@@ -1,0 +1,242 @@
+[2026-03-12 17:55:44] === WAR FATIGUE SYSTEM INITIALIZATION ===
+[2026-03-12 17:55:44] War Fatigue Logger initialized at: 2026-03-12 17:55:44
+[2026-03-12 17:55:44] === INITIALIZATION COMPLETE ===
+[2026-03-12 17:55:44] 
+[2026-03-12 17:55:44] [WAR_STATS] Initialized stats for Northern Empire: 4874 troops, 47 settlements
+[2026-03-12 17:55:44] [WAR_STATS] Initialized stats for Khuzait: 4374 troops, 50 settlements
+[2026-03-12 17:55:44] [WAR_STATS] Initialized stats for Western Empire: 5214 troops, 45 settlements
+[2026-03-12 17:55:44] [WAR_STATS] Initialized stats for Battania: 4278 troops, 46 settlements
+[2026-03-12 17:55:44] [WAR_STATS] Initialized stats for Southern Empire: 5128 troops, 49 settlements
+[2026-03-12 17:55:44] [WAR_STATS] Initialized stats for Aserai: 5325 troops, 57 settlements
+[2026-03-12 17:55:44] [WAR_STATS] Initialized stats for Sturgia: 4523 troops, 47 settlements
+[2026-03-12 17:55:44] [WAR_STATS] Initialized stats for Vlandia: 5428 troops, 52 settlements
+[2026-03-12 17:55:45] [WAR_STATS] Initializing war statistics tracker...
+[2026-03-12 17:55:45] [WAR_STATS] Initialized stats for Northern Empire: 4874 troops, 47 settlements
+[2026-03-12 17:55:45] [WAR_STATS] Initialized stats for Khuzait: 4374 troops, 50 settlements
+[2026-03-12 17:55:45] [WAR_STATS] Initialized stats for Western Empire: 5214 troops, 45 settlements
+[2026-03-12 17:55:45] [WAR_STATS] Initialized stats for Battania: 4278 troops, 46 settlements
+[2026-03-12 17:55:45] [WAR_STATS] Initialized stats for Southern Empire: 5128 troops, 49 settlements
+[2026-03-12 17:55:45] [WAR_STATS] Initialized stats for Aserai: 5325 troops, 57 settlements
+[2026-03-12 17:55:45] [WAR_STATS] Initialized stats for Sturgia: 4523 troops, 47 settlements
+[2026-03-12 17:55:45] [WAR_STATS] Initialized stats for Vlandia: 5428 troops, 52 settlements
+[2026-03-12 17:55:45] [WAR_STATS] Cleaning up conflicting diplomatic relations...
+[2026-03-12 17:55:45] [WAR_STATS] No conflicting diplomatic relations found
+[2026-03-12 17:55:45] [WAR_STATS] War statistics tracker initialized with 8 kingdoms
+[2026-03-12 17:56:12] [WAR_STATS] Initializing war statistics tracker...
+[2026-03-12 17:56:12] [WAR_STATS] Initialized stats for Northern Empire: 4832 troops, 47 settlements
+[2026-03-12 17:56:12] [WAR_STATS] Initialized stats for Khuzait: 4426 troops, 50 settlements
+[2026-03-12 17:56:12] [WAR_STATS] Initialized stats for Western Empire: 5093 troops, 45 settlements
+[2026-03-12 17:56:12] [WAR_STATS] Initialized stats for Battania: 4162 troops, 46 settlements
+[2026-03-12 17:56:12] [WAR_STATS] Initialized stats for Southern Empire: 5164 troops, 49 settlements
+[2026-03-12 17:56:12] [WAR_STATS] Initialized stats for Aserai: 5288 troops, 57 settlements
+[2026-03-12 17:56:12] [WAR_STATS] Initialized stats for Sturgia: 4486 troops, 47 settlements
+[2026-03-12 17:56:12] [WAR_STATS] Initialized stats for Vlandia: 5502 troops, 52 settlements
+[2026-03-12 17:56:12] [WAR_STATS] Cleaning up conflicting diplomatic relations...
+[2026-03-12 17:56:12] [WAR_STATS] No conflicting diplomatic relations found
+[2026-03-12 17:56:12] [WAR_STATS] War statistics tracker initialized with 8 kingdoms
+[2026-03-12 18:03:34] === WAR FATIGUE SYSTEM INITIALIZATION ===
+[2026-03-12 18:03:34] War Fatigue Logger initialized at: 2026-03-12 18:03:34
+[2026-03-12 18:03:34] === INITIALIZATION COMPLETE ===
+[2026-03-12 18:03:34] 
+[2026-03-12 18:03:34] [WAR_STATS] Initializing war statistics tracker...
+[2026-03-12 18:03:34] [WAR_STATS] Initialized stats for Northern Empire: 4832 troops, 47 settlements
+[2026-03-12 18:03:34] [WAR_STATS] Initialized stats for Khuzait: 4436 troops, 50 settlements
+[2026-03-12 18:03:34] [WAR_STATS] Initialized stats for Western Empire: 5098 troops, 45 settlements
+[2026-03-12 18:03:34] [WAR_STATS] Initialized stats for Battania: 4162 troops, 46 settlements
+[2026-03-12 18:03:34] [WAR_STATS] Initialized stats for Southern Empire: 5164 troops, 49 settlements
+[2026-03-12 18:03:34] [WAR_STATS] Initialized stats for Aserai: 5297 troops, 57 settlements
+[2026-03-12 18:03:34] [WAR_STATS] Initialized stats for Sturgia: 4474 troops, 47 settlements
+[2026-03-12 18:03:34] [WAR_STATS] Initialized stats for Vlandia: 5502 troops, 52 settlements
+[2026-03-12 18:03:34] [WAR_STATS] Cleaning up conflicting diplomatic relations...
+[2026-03-12 18:03:34] [WAR_STATS] No conflicting diplomatic relations found
+[2026-03-12 18:03:34] [WAR_STATS] War statistics tracker initialized with 8 kingdoms
+[2026-03-12 18:41:26] === WAR FATIGUE SYSTEM INITIALIZATION ===
+[2026-03-12 18:41:26] War Fatigue Logger initialized at: 2026-03-12 18:41:26
+[2026-03-12 18:41:26] === INITIALIZATION COMPLETE ===
+[2026-03-12 18:41:26] 
+[2026-03-12 18:41:26] [WAR_STATS] Initializing war statistics tracker...
+[2026-03-12 18:41:26] [WAR_STATS] Cleaning up conflicting diplomatic relations...
+[2026-03-12 18:41:26] [WAR_STATS] No conflicting diplomatic relations found
+[2026-03-12 18:41:26] [WAR_STATS] War statistics tracker initialized with 8 kingdoms
+[2026-03-12 19:24:26] === WAR FATIGUE SYSTEM INITIALIZATION ===
+[2026-03-12 19:24:26] War Fatigue Logger initialized at: 2026-03-12 19:24:26
+[2026-03-12 19:24:26] === INITIALIZATION COMPLETE ===
+[2026-03-12 19:24:26] 
+[2026-03-12 19:24:26] [WAR_STATS] Initializing war statistics tracker...
+[2026-03-12 19:24:26] [WAR_STATS] Cleaning up conflicting diplomatic relations...
+[2026-03-12 19:24:26] [WAR_STATS] No conflicting diplomatic relations found
+[2026-03-12 19:24:26] [WAR_STATS] War statistics tracker initialized with 8 kingdoms
+[2026-03-12 19:31:57] === WAR FATIGUE SYSTEM INITIALIZATION ===
+[2026-03-12 19:31:57] War Fatigue Logger initialized at: 2026-03-12 19:31:57
+[2026-03-12 19:31:57] === INITIALIZATION COMPLETE ===
+[2026-03-12 19:31:57] 
+[2026-03-12 19:31:57] [WAR_STATS] Initializing war statistics tracker...
+[2026-03-12 19:31:57] [WAR_STATS] Cleaning up conflicting diplomatic relations...
+[2026-03-12 19:31:57] [WAR_STATS] No conflicting diplomatic relations found
+[2026-03-12 19:31:57] [WAR_STATS] War statistics tracker initialized with 8 kingdoms
+[2026-03-12 21:54:08] [WAR_STATS] Initializing war statistics tracker...
+[2026-03-12 21:54:08] [WAR_STATS] Cleaning up conflicting diplomatic relations...
+[2026-03-12 21:54:08] [WAR_STATS] No conflicting diplomatic relations found
+[2026-03-12 21:54:08] [WAR_STATS] War statistics tracker initialized with 8 kingdoms
+[2026-03-12 22:06:29] [WAR_STATS] Initializing war statistics tracker...
+[2026-03-12 22:06:29] [WAR_STATS] Cleaning up conflicting diplomatic relations...
+[2026-03-12 22:06:29] [WAR_STATS] No conflicting diplomatic relations found
+[2026-03-12 22:06:29] [WAR_STATS] War statistics tracker initialized with 8 kingdoms
+[2026-03-12 22:42:34] === WAR FATIGUE SYSTEM INITIALIZATION ===
+[2026-03-12 22:42:34] War Fatigue Logger initialized at: 2026-03-12 22:42:34
+[2026-03-12 22:42:34] === INITIALIZATION COMPLETE ===
+[2026-03-12 22:42:34] 
+[2026-03-12 22:42:34] [WAR_STATS] Initialized stats for Northern Empire: 4954 troops, 47 settlements
+[2026-03-12 22:42:34] [WAR_STATS] Initialized stats for Khuzait: 4441 troops, 50 settlements
+[2026-03-12 22:42:34] [WAR_STATS] Initialized stats for Western Empire: 5122 troops, 45 settlements
+[2026-03-12 22:42:34] [WAR_STATS] Initialized stats for Battania: 4207 troops, 46 settlements
+[2026-03-12 22:42:34] [WAR_STATS] Initialized stats for Southern Empire: 5072 troops, 49 settlements
+[2026-03-12 22:42:34] [WAR_STATS] Initialized stats for Aserai: 5285 troops, 57 settlements
+[2026-03-12 22:42:34] [WAR_STATS] Initialized stats for Sturgia: 4539 troops, 47 settlements
+[2026-03-12 22:42:34] [WAR_STATS] Initialized stats for Vlandia: 5402 troops, 52 settlements
+[2026-03-12 22:42:34] [WAR_STATS] Initializing war statistics tracker...
+[2026-03-12 22:42:34] [WAR_STATS] Initialized stats for Northern Empire: 4954 troops, 47 settlements
+[2026-03-12 22:42:34] [WAR_STATS] Initialized stats for Khuzait: 4441 troops, 50 settlements
+[2026-03-12 22:42:34] [WAR_STATS] Initialized stats for Western Empire: 5122 troops, 45 settlements
+[2026-03-12 22:42:34] [WAR_STATS] Initialized stats for Battania: 4207 troops, 46 settlements
+[2026-03-12 22:42:34] [WAR_STATS] Initialized stats for Southern Empire: 5072 troops, 49 settlements
+[2026-03-12 22:42:34] [WAR_STATS] Initialized stats for Aserai: 5285 troops, 57 settlements
+[2026-03-12 22:42:34] [WAR_STATS] Initialized stats for Sturgia: 4539 troops, 47 settlements
+[2026-03-12 22:42:34] [WAR_STATS] Initialized stats for Vlandia: 5402 troops, 52 settlements
+[2026-03-12 22:42:34] [WAR_STATS] Cleaning up conflicting diplomatic relations...
+[2026-03-12 22:42:34] [WAR_STATS] No conflicting diplomatic relations found
+[2026-03-12 22:42:34] [WAR_STATS] War statistics tracker initialized with 8 kingdoms
+[2026-03-12 22:50:53] === WAR FATIGUE SYSTEM INITIALIZATION ===
+[2026-03-12 22:50:53] War Fatigue Logger initialized at: 2026-03-12 22:50:53
+[2026-03-12 22:50:53] === INITIALIZATION COMPLETE ===
+[2026-03-12 22:50:53] 
+[2026-03-12 22:50:53] [WAR_STATS] Initialized stats for Northern Empire: 4941 troops, 47 settlements
+[2026-03-12 22:50:53] [WAR_STATS] Initialized stats for Khuzait: 4411 troops, 50 settlements
+[2026-03-12 22:50:53] [WAR_STATS] Initialized stats for Western Empire: 5098 troops, 45 settlements
+[2026-03-12 22:50:53] [WAR_STATS] Initialized stats for Battania: 4186 troops, 46 settlements
+[2026-03-12 22:50:53] [WAR_STATS] Initialized stats for Southern Empire: 5116 troops, 49 settlements
+[2026-03-12 22:50:53] [WAR_STATS] Initialized stats for Aserai: 5294 troops, 57 settlements
+[2026-03-12 22:50:53] [WAR_STATS] Initialized stats for Sturgia: 4498 troops, 47 settlements
+[2026-03-12 22:50:53] [WAR_STATS] Initialized stats for Vlandia: 5558 troops, 52 settlements
+[2026-03-12 22:50:53] [WAR_STATS] Initializing war statistics tracker...
+[2026-03-12 22:50:53] [WAR_STATS] Initialized stats for Northern Empire: 4941 troops, 47 settlements
+[2026-03-12 22:50:53] [WAR_STATS] Initialized stats for Khuzait: 4411 troops, 50 settlements
+[2026-03-12 22:50:53] [WAR_STATS] Initialized stats for Western Empire: 5098 troops, 45 settlements
+[2026-03-12 22:50:53] [WAR_STATS] Initialized stats for Battania: 4186 troops, 46 settlements
+[2026-03-12 22:50:53] [WAR_STATS] Initialized stats for Southern Empire: 5116 troops, 49 settlements
+[2026-03-12 22:50:53] [WAR_STATS] Initialized stats for Aserai: 5294 troops, 57 settlements
+[2026-03-12 22:50:53] [WAR_STATS] Initialized stats for Sturgia: 4498 troops, 47 settlements
+[2026-03-12 22:50:53] [WAR_STATS] Initialized stats for Vlandia: 5558 troops, 52 settlements
+[2026-03-12 22:50:53] [WAR_STATS] Cleaning up conflicting diplomatic relations...
+[2026-03-12 22:50:53] [WAR_STATS] No conflicting diplomatic relations found
+[2026-03-12 22:50:53] [WAR_STATS] War statistics tracker initialized with 8 kingdoms
+[2026-03-13 00:25:32] [WAR_STATS] Initializing war statistics tracker...
+[2026-03-13 00:25:32] [WAR_STATS] Cleaning up conflicting diplomatic relations...
+[2026-03-13 00:25:32] [WAR_STATS] No conflicting diplomatic relations found
+[2026-03-13 00:25:32] [WAR_STATS] War statistics tracker initialized with 8 kingdoms
+[2026-03-13 00:40:08] [WAR_STATS] Initializing war statistics tracker...
+[2026-03-13 00:40:08] [WAR_STATS] Cleaning up conflicting diplomatic relations...
+[2026-03-13 00:40:08] [WAR_STATS] No conflicting diplomatic relations found
+[2026-03-13 00:40:08] [WAR_STATS] War statistics tracker initialized with 8 kingdoms
+[2026-03-13 14:21:20] === WAR FATIGUE SYSTEM INITIALIZATION ===
+[2026-03-13 14:21:20] War Fatigue Logger initialized at: 2026-03-13 14:21:20
+[2026-03-13 14:21:20] === INITIALIZATION COMPLETE ===
+[2026-03-13 14:21:20] 
+[2026-03-13 14:21:20] [WAR_STATS] Initialized stats for Northern Empire: 4850 troops, 47 settlements
+[2026-03-13 14:21:20] [WAR_STATS] Initialized stats for Khuzait: 4461 troops, 50 settlements
+[2026-03-13 14:21:20] [WAR_STATS] Initialized stats for Western Empire: 5160 troops, 45 settlements
+[2026-03-13 14:21:20] [WAR_STATS] Initialized stats for Battania: 4218 troops, 46 settlements
+[2026-03-13 14:21:20] [WAR_STATS] Initialized stats for Southern Empire: 5117 troops, 49 settlements
+[2026-03-13 14:21:20] [WAR_STATS] Initialized stats for Aserai: 5269 troops, 57 settlements
+[2026-03-13 14:21:20] [WAR_STATS] Initialized stats for Sturgia: 4489 troops, 47 settlements
+[2026-03-13 14:21:20] [WAR_STATS] Initialized stats for Vlandia: 5522 troops, 52 settlements
+[2026-03-13 14:21:20] [WAR_STATS] Initializing war statistics tracker...
+[2026-03-13 14:21:20] [WAR_STATS] Initialized stats for Northern Empire: 4850 troops, 47 settlements
+[2026-03-13 14:21:20] [WAR_STATS] Initialized stats for Khuzait: 4461 troops, 50 settlements
+[2026-03-13 14:21:20] [WAR_STATS] Initialized stats for Western Empire: 5160 troops, 45 settlements
+[2026-03-13 14:21:20] [WAR_STATS] Initialized stats for Battania: 4218 troops, 46 settlements
+[2026-03-13 14:21:20] [WAR_STATS] Initialized stats for Southern Empire: 5117 troops, 49 settlements
+[2026-03-13 14:21:20] [WAR_STATS] Initialized stats for Aserai: 5269 troops, 57 settlements
+[2026-03-13 14:21:20] [WAR_STATS] Initialized stats for Sturgia: 4489 troops, 47 settlements
+[2026-03-13 14:21:20] [WAR_STATS] Initialized stats for Vlandia: 5522 troops, 52 settlements
+[2026-03-13 14:21:20] [WAR_STATS] Cleaning up conflicting diplomatic relations...
+[2026-03-13 14:21:20] [WAR_STATS] No conflicting diplomatic relations found
+[2026-03-13 14:21:20] [WAR_STATS] War statistics tracker initialized with 8 kingdoms
+[2026-03-13 14:31:41] === WAR FATIGUE SYSTEM INITIALIZATION ===
+[2026-03-13 14:31:41] War Fatigue Logger initialized at: 2026-03-13 14:31:41
+[2026-03-13 14:31:41] === INITIALIZATION COMPLETE ===
+[2026-03-13 14:31:41] 
+[2026-03-13 14:31:41] [WAR_STATS] Initialized stats for Macedonia: 3799 troops, 28 settlements
+[2026-03-13 14:31:41] [WAR_STATS] Initialized stats for Bosporan: 3582 troops, 43 settlements
+[2026-03-13 14:31:41] [WAR_STATS] Initialized stats for Roman Republic: 6346 troops, 61 settlements
+[2026-03-13 14:31:41] [WAR_STATS] Initialized stats for Boii: 4365 troops, 46 settlements
+[2026-03-13 14:31:41] [WAR_STATS] Initialized stats for Athens: 3578 troops, 32 settlements
+[2026-03-13 14:31:41] [WAR_STATS] Initialized stats for Carthage: 3868 troops, 41 settlements
+[2026-03-13 14:31:41] [WAR_STATS] Initialized stats for Svarling Tribes: 2708 troops, 26 settlements
+[2026-03-13 14:31:41] [WAR_STATS] Initialized stats for Nervii: 2766 troops, 29 settlements
+[2026-03-13 14:31:41] [WAR_STATS] Initialized stats for Kersal Tribes: 3698 troops, 39 settlements
+[2026-03-13 14:31:41] [WAR_STATS] Initialized stats for Sparta: 2775 troops, 20 settlements
+[2026-03-13 14:31:41] [WAR_STATS] Initialized stats for Arverni: 3044 troops, 23 settlements
+[2026-03-13 14:31:41] [WAR_STATS] Initialized stats for Seleucid Empire: 3429 troops, 29 settlements
+[2026-03-13 14:31:41] [WAR_STATS] Initialized stats for Guthar Tribes: 2394 troops, 21 settlements
+[2026-03-13 14:31:41] [WAR_STATS] Initialized stats for Vijron Tribes: 1336 troops, 10 settlements
+[2026-03-13 14:31:41] [WAR_STATS] Initialized stats for Masaesyli: 1321 troops, 9 settlements
+[2026-03-13 14:31:42] [WAR_STATS] Initializing war statistics tracker...
+[2026-03-13 14:31:42] [WAR_STATS] Initialized stats for Macedonia: 3799 troops, 28 settlements
+[2026-03-13 14:31:42] [WAR_STATS] Initialized stats for Bosporan: 3582 troops, 43 settlements
+[2026-03-13 14:31:42] [WAR_STATS] Initialized stats for Roman Republic: 6346 troops, 61 settlements
+[2026-03-13 14:31:42] [WAR_STATS] Initialized stats for Boii: 4365 troops, 46 settlements
+[2026-03-13 14:31:42] [WAR_STATS] Initialized stats for Athens: 3578 troops, 32 settlements
+[2026-03-13 14:31:42] [WAR_STATS] Initialized stats for Carthage: 3868 troops, 41 settlements
+[2026-03-13 14:31:42] [WAR_STATS] Initialized stats for Svarling Tribes: 2708 troops, 26 settlements
+[2026-03-13 14:31:42] [WAR_STATS] Initialized stats for Nervii: 2766 troops, 29 settlements
+[2026-03-13 14:31:42] [WAR_STATS] Initialized stats for Kersal Tribes: 3698 troops, 39 settlements
+[2026-03-13 14:31:42] [WAR_STATS] Initialized stats for Sparta: 2775 troops, 20 settlements
+[2026-03-13 14:31:42] [WAR_STATS] Initialized stats for Arverni: 3044 troops, 23 settlements
+[2026-03-13 14:31:42] [WAR_STATS] Initialized stats for Seleucid Empire: 3429 troops, 29 settlements
+[2026-03-13 14:31:42] [WAR_STATS] Initialized stats for Guthar Tribes: 2394 troops, 21 settlements
+[2026-03-13 14:31:42] [WAR_STATS] Initialized stats for Vijron Tribes: 1336 troops, 10 settlements
+[2026-03-13 14:31:42] [WAR_STATS] Initialized stats for Masaesyli: 1321 troops, 9 settlements
+[2026-03-13 14:31:42] [WAR_STATS] Cleaning up conflicting diplomatic relations...
+[2026-03-13 14:31:42] [WAR_STATS] No conflicting diplomatic relations found
+[2026-03-13 14:31:42] [WAR_STATS] War statistics tracker initialized with 15 kingdoms
+[2026-03-13 14:45:30] [WAR_STATS] Initializing war statistics tracker...
+[2026-03-13 14:45:30] [WAR_STATS] Initialized stats for Macedonia: 3802 troops, 28 settlements
+[2026-03-13 14:45:30] [WAR_STATS] Initialized stats for Bosporan: 3638 troops, 43 settlements
+[2026-03-13 14:45:30] [WAR_STATS] Initialized stats for Roman Republic: 6284 troops, 61 settlements
+[2026-03-13 14:45:30] [WAR_STATS] Initialized stats for Boii: 4292 troops, 46 settlements
+[2026-03-13 14:45:30] [WAR_STATS] Initialized stats for Athens: 3587 troops, 32 settlements
+[2026-03-13 14:45:30] [WAR_STATS] Initialized stats for Carthage: 3840 troops, 41 settlements
+[2026-03-13 14:45:30] [WAR_STATS] Initialized stats for Svarling Tribes: 2669 troops, 26 settlements
+[2026-03-13 14:45:30] [WAR_STATS] Initialized stats for Nervii: 2727 troops, 29 settlements
+[2026-03-13 14:45:30] [WAR_STATS] Initialized stats for Kersal Tribes: 3658 troops, 39 settlements
+[2026-03-13 14:45:30] [WAR_STATS] Initialized stats for Sparta: 2710 troops, 20 settlements
+[2026-03-13 14:45:30] [WAR_STATS] Initialized stats for Arverni: 3030 troops, 23 settlements
+[2026-03-13 14:45:30] [WAR_STATS] Initialized stats for Seleucid Empire: 3451 troops, 29 settlements
+[2026-03-13 14:45:30] [WAR_STATS] Initialized stats for Guthar Tribes: 2382 troops, 21 settlements
+[2026-03-13 14:45:30] [WAR_STATS] Initialized stats for Vijron Tribes: 1362 troops, 10 settlements
+[2026-03-13 14:45:30] [WAR_STATS] Initialized stats for Masaesyli: 1333 troops, 9 settlements
+[2026-03-13 14:45:30] [WAR_STATS] Cleaning up conflicting diplomatic relations...
+[2026-03-13 14:45:30] [WAR_STATS] No conflicting diplomatic relations found
+[2026-03-13 14:45:30] [WAR_STATS] War statistics tracker initialized with 15 kingdoms
+[2026-03-13 15:40:59] [WAR_STATS] Initializing war statistics tracker...
+[2026-03-13 15:40:59] [WAR_STATS] Cleaning up conflicting diplomatic relations...
+[2026-03-13 15:40:59] [WAR_STATS] No conflicting diplomatic relations found
+[2026-03-13 15:40:59] [WAR_STATS] War statistics tracker initialized with 15 kingdoms
+[2026-03-13 16:49:28] [WAR_STATS] Tracked NEW war start: Boii vs Vijron Tribes (new war, start time = now, losses reset to 0)
+[2026-03-13 16:49:28] [WAR_STATS] Reset loss counters for Boii (new war, no other active wars). Base fatigue preserved: 0.0%. Baseline: 5004 troops, 46 settlements
+[2026-03-13 16:49:28] [WAR_STATS] Tracked NEW war start: Vijron Tribes vs Boii (new war, start time = now, losses reset to 0)
+[2026-03-13 16:49:28] [WAR_STATS] Reset loss counters for Vijron Tribes (new war, no other active wars). Base fatigue preserved: 0.0%. Baseline: 1998 troops, 10 settlements
+[2026-03-13 16:49:28] [WAR_STATS] Tracked war start: Boii vs Vijron Tribes
+[2026-03-13 17:06:00] === WAR FATIGUE SYSTEM INITIALIZATION ===
+[2026-03-13 17:06:00] War Fatigue Logger initialized at: 2026-03-13 17:06:00
+[2026-03-13 17:06:00] === INITIALIZATION COMPLETE ===
+[2026-03-13 17:06:00] 
+[2026-03-13 17:06:00] [WAR_STATS] Initializing war statistics tracker...
+[2026-03-13 17:06:00] [WAR_STATS] Cleaning up conflicting diplomatic relations...
+[2026-03-13 17:06:00] [WAR_STATS] No conflicting diplomatic relations found
+[2026-03-13 17:06:00] [WAR_STATS] War statistics tracker initialized with 15 kingdoms
+[2026-03-13 17:26:57] [WAR_STATS] Initializing war statistics tracker...
+[2026-03-13 17:26:57] [WAR_STATS] Cleaning up conflicting diplomatic relations...
+[2026-03-13 17:26:57] [WAR_STATS] No conflicting diplomatic relations found
+[2026-03-13 17:26:57] [WAR_STATS] War statistics tracker initialized with 15 kingdoms

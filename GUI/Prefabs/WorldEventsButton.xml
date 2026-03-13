@@ -1,0 +1,46 @@
+<Prefab>
+    <Window Id="WorldEventsButton" Layer="Overlay">
+        <!-- "World Events" button in the top right corner -->
+        <Widget Id="WorldEventsButtonContainer" 
+                HeightSizePolicy="CoverChildren" 
+                WidthSizePolicy="CoverChildren" 
+                HorizontalAlignment="Right" 
+                VerticalAlignment="Top"
+                MarginTop="15"
+                MarginRight="20"
+                DoNotAcceptEvents="true">
+            <Children>
+                <ListPanel DoNotAcceptEvents="true" 
+                          WidthSizePolicy="CoverChildren" 
+                          HeightSizePolicy="Fixed" 
+                          SuggestedHeight="40" 
+                          HorizontalAlignment="Right" 
+                          VerticalAlignment="Center">
+                    <Children>
+                        <ButtonWidget Id="WorldEventsButton"
+                                     WidthSizePolicy="Fixed" 
+                                     HeightSizePolicy="Fixed" 
+                                     SuggestedWidth="160" 
+                                     SuggestedHeight="45" 
+                                     DoNotPassEventsToChildren="true"
+                                     VerticalAlignment="Center" 
+                                     HorizontalAlignment="Right" 
+                                     Command.Click="ExecuteOpenWorldEvents" 
+                                     Brush="ButtonBrush1" 
+                                     UpdateChildrenStates="true">
+                            <Children>
+                                <TextWidget Text="@WorldEventsButtonText"
+                                           WidthSizePolicy="StretchToParent"
+                                           HeightSizePolicy="StretchToParent"
+                                           Brush="Popup.Button.Text"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           Brush.FontSize="18" />
+                            </Children>
+                        </ButtonWidget>
+                    </Children>
+                </ListPanel>
+            </Children>
+        </Widget>
+    </Window>
+</Prefab> 

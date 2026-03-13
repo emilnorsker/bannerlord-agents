@@ -1,0 +1,616 @@
+[2026-03-12 17:55:45] [AIActionManager] AIActionManager events registered
+[2026-03-12 17:55:53] [AIActionManager] Resetting AIActionManager instance for new game/save load
+[2026-03-12 17:56:12] [AIActionManager] AIActionManager events registered
+[2026-03-12 18:00:52] [AIActionManager] Player entered settlement Sargot, managing following heroes
+[2026-03-12 18:00:52] [AIActionManager] Remembered Amaldulf was in party on settlement entry
+[2026-03-12 18:01:25] [AIActionManager] [SAVE] Found 0 active follow actions: 
+[2026-03-12 18:01:25] [AIActionManager] [SAVE] Captured 0 active AI actions for serialization.
+[2026-03-12 18:01:28] [AIActionManager] Player left settlement Sargot, managing follow heroes
+[2026-03-12 18:01:28] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 18:01:31] [AIActionManager] Resetting AIActionManager instance for new game/save load
+[2026-03-12 18:03:34] [AIActionManager] AIActionManager events registered
+[2026-03-12 18:10:55] [AIActionManager] Player left settlement Sargot, managing follow heroes
+[2026-03-12 18:10:55] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 18:10:56] [AIActionManager] Player entered settlement Sargot, managing following heroes
+[2026-03-12 18:10:56] [AIActionManager] Remembered Amaldulf was in party on settlement entry
+[2026-03-12 18:10:57] [AIActionManager] Player left settlement Sargot, managing follow heroes
+[2026-03-12 18:10:57] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 18:11:24] [AIActionManager] Player entered settlement Charas, managing following heroes
+[2026-03-12 18:11:24] [AIActionManager] Remembered Amaldulf was in party on settlement entry
+[2026-03-12 18:32:03] [AIActionManager] Player left settlement Charas, managing follow heroes
+[2026-03-12 18:32:03] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 18:32:03] [AIActionManager] [SAVE] Found 0 active follow actions: 
+[2026-03-12 18:32:03] [AIActionManager] [SAVE] Captured 0 active AI actions for serialization.
+[2026-03-12 18:32:07] [AIActionManager] Player entered settlement Charas, managing following heroes
+[2026-03-12 18:32:07] [AIActionManager] Remembered Amaldulf was in party on settlement entry
+[2026-03-12 18:32:20] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-12 18:32:20] [AIActionManager] Could not find LocationCharacter for companion Amaldulf
+[2026-03-12 18:41:26] [AIActionManager] AIActionManager events registered
+[2026-03-12 18:41:42] [AIActionManager] Player entered settlement Charas, managing following heroes
+[2026-03-12 18:41:42] [AIActionManager] Remembered Amaldulf was in party on settlement entry
+[2026-03-12 18:42:14] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-12 18:42:14] [AIActionManager] Could not find LocationCharacter for companion Amaldulf
+[2026-03-12 18:49:02] [AIActionManager] Player left settlement Charas, managing follow heroes
+[2026-03-12 18:49:02] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 18:49:10] [AIActionManager] Map event started, checking for nearby following parties
+[2026-03-12 18:49:13] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-12 18:49:13] [AIActionManager] No LocationEncounter for companion Amaldulf
+[2026-03-12 18:50:39] [AIActionManager] Map event ended, checking for following parties after battle
+[2026-03-12 18:56:56] [AIActionManager] Player entered settlement Sargot, managing following heroes
+[2026-03-12 18:56:56] [AIActionManager] Remembered Amaldulf was in party on settlement entry
+[2026-03-12 19:10:09] [AIActionManager] Player left settlement Sargot, managing follow heroes
+[2026-03-12 19:10:09] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 19:10:09] [AIActionManager] [SAVE] Found 0 active follow actions: 
+[2026-03-12 19:10:09] [AIActionManager] [SAVE] Captured 0 active AI actions for serialization.
+[2026-03-12 19:13:45] [follow_player] OnStart called for Ovagos
+[2026-03-12 19:13:45] [follow_player] Captured origin settlement Veron Castle for Ovagos
+[2026-03-12 19:13:45] [follow_player] Starting follow action for Ovagos
+[2026-03-12 19:13:45] [follow_player] Setting up following for Ovagos
+[2026-03-12 19:13:45] [follow_player] EnsureLordParty for Ovagos: PartyBelongedTo=Ovagos' Party, forceCreate=False
+[2026-03-12 19:13:45] [follow_player] Lord Ovagos has existing party: Ovagos' Party
+[2026-03-12 19:13:45] [follow_player] Set up escort mode for Ovagos
+[2026-03-12 19:13:45] [AIActionManager] Added Ovagos to follow action history
+[2026-03-12 19:24:26] [AIActionManager] AIActionManager events registered
+[2026-03-12 19:24:44] [AIActionManager] Player entered settlement Sargot, managing following heroes
+[2026-03-12 19:24:44] [AIActionManager] Remembered Amaldulf was in party on settlement entry
+[2026-03-12 19:25:21] [AIActionManager] Player left settlement Sargot, managing follow heroes
+[2026-03-12 19:25:21] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 19:31:57] [AIActionManager] AIActionManager events registered
+[2026-03-12 19:35:58] [AIActionManager] Player entered settlement Sargot, managing following heroes
+[2026-03-12 19:35:58] [AIActionManager] Remembered Amaldulf was in party on settlement entry
+[2026-03-12 19:37:00] [AIActionManager] Player left settlement Sargot, managing follow heroes
+[2026-03-12 19:37:00] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 19:41:17] [AIActionManager] Map event started, checking for nearby following parties
+[2026-03-12 19:41:20] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-12 19:41:20] [AIActionManager] No LocationEncounter for companion Amaldulf
+[2026-03-12 19:45:33] [AIActionManager] Map event ended, checking for following parties after battle
+[2026-03-12 19:46:02] [AIActionManager] Player entered settlement Ocs Hall, managing following heroes
+[2026-03-12 19:46:02] [AIActionManager] Remembered Amaldulf was in party on settlement entry
+[2026-03-12 19:51:25] [AIActionManager] Player left settlement Ocs Hall, managing follow heroes
+[2026-03-12 19:51:25] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 19:51:35] [AIActionManager] Map event started, checking for nearby following parties
+[2026-03-12 19:51:38] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-12 19:51:38] [AIActionManager] No LocationEncounter for companion Amaldulf
+[2026-03-12 19:53:04] [AIActionManager] Map event ended, checking for following parties after battle
+[2026-03-12 19:53:30] [AIActionManager] Player entered settlement Rovalt, managing following heroes
+[2026-03-12 19:53:30] [AIActionManager] Remembered Amaldulf was in party on settlement entry
+[2026-03-12 19:54:46] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-12 19:54:46] [AIActionManager] Could not find LocationCharacter for companion Amaldulf
+[2026-03-12 20:09:30] [AIActionManager] Player left settlement Rovalt, managing follow heroes
+[2026-03-12 20:09:30] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 20:09:30] [AIActionManager] [SAVE] Found 0 active follow actions: 
+[2026-03-12 20:09:30] [AIActionManager] [SAVE] Captured 0 active AI actions for serialization.
+[2026-03-12 20:09:47] [AIActionManager] Map event started, checking for nearby following parties
+[2026-03-12 20:09:50] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-12 20:09:50] [AIActionManager] No LocationEncounter for companion Amaldulf
+[2026-03-12 20:13:24] [AIActionManager] Map event ended, checking for following parties after battle
+[2026-03-12 20:13:32] [AIActionManager] Player entered settlement Tirby Castle, managing following heroes
+[2026-03-12 20:13:32] [AIActionManager] Remembered Amaldulf was in party on settlement entry
+[2026-03-12 20:13:40] [AIActionManager] Player left settlement Tirby Castle, managing follow heroes
+[2026-03-12 20:13:40] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 20:14:05] [AIActionManager] Map event started, checking for nearby following parties
+[2026-03-12 20:14:08] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-12 20:14:08] [AIActionManager] No LocationEncounter for companion Amaldulf
+[2026-03-12 20:18:06] [AIActionManager] Map event ended, checking for following parties after battle
+[2026-03-12 20:18:14] [AIActionManager] Player entered settlement Sirindac, managing following heroes
+[2026-03-12 20:18:14] [AIActionManager] Remembered Amaldulf was in party on settlement entry
+[2026-03-12 20:18:30] [AIActionManager] Player left settlement Sirindac, managing follow heroes
+[2026-03-12 20:18:30] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 20:18:33] [AIActionManager] Player entered settlement Remental, managing following heroes
+[2026-03-12 20:18:33] [AIActionManager] Remembered Amaldulf was in party on settlement entry
+[2026-03-12 20:18:36] [AIActionManager] Player left settlement Remental, managing follow heroes
+[2026-03-12 20:18:36] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 20:18:54] [AIActionManager] Player entered settlement Cananc, managing following heroes
+[2026-03-12 20:18:54] [AIActionManager] Remembered Amaldulf was in party on settlement entry
+[2026-03-12 20:19:01] [AIActionManager] Player left settlement Cananc, managing follow heroes
+[2026-03-12 20:19:01] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 20:19:10] [AIActionManager] Player entered settlement Tirby Castle, managing following heroes
+[2026-03-12 20:19:10] [AIActionManager] Remembered Amaldulf was in party on settlement entry
+[2026-03-12 20:19:24] [AIActionManager] Player left settlement Tirby Castle, managing follow heroes
+[2026-03-12 20:19:24] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 20:19:28] [AIActionManager] Player entered settlement Alantas, managing following heroes
+[2026-03-12 20:19:28] [AIActionManager] Remembered Amaldulf was in party on settlement entry
+[2026-03-12 20:19:46] [AIActionManager] Player left settlement Alantas, managing follow heroes
+[2026-03-12 20:19:46] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 20:20:13] [AIActionManager] Player entered settlement Alantas, managing following heroes
+[2026-03-12 20:20:13] [AIActionManager] Remembered Amaldulf was in party on settlement entry
+[2026-03-12 20:20:27] [AIActionManager] Player left settlement Alantas, managing follow heroes
+[2026-03-12 20:20:27] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 20:24:03] [AIActionManager] Map event started, checking for nearby following parties
+[2026-03-12 20:24:08] [AIActionManager] Map event ended, checking for following parties after battle
+[2026-03-12 20:24:14] [AIActionManager] Player entered settlement Sirindac, managing following heroes
+[2026-03-12 20:24:14] [AIActionManager] Remembered Amaldulf was in party on settlement entry
+[2026-03-12 20:24:17] [AIActionManager] Player left settlement Sirindac, managing follow heroes
+[2026-03-12 20:24:17] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 20:24:21] [AIActionManager] Player entered settlement Tirby Castle, managing following heroes
+[2026-03-12 20:24:21] [AIActionManager] Remembered Amaldulf was in party on settlement entry
+[2026-03-12 20:24:35] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-12 20:24:35] [AIActionManager] Could not find LocationCharacter for companion Amaldulf
+[2026-03-12 20:29:16] [AIActionManager] Player left settlement Tirby Castle, managing follow heroes
+[2026-03-12 20:29:16] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 20:30:41] [AIActionIntegration] Parsing transfer_troops_and_prisoners parameter for Adaltrud: 'to_player:troop:vlandian_levy_crossbowman:10'
+[2026-03-12 20:30:41] [AIActionIntegration] Prepared transfer_troops_and_prisoners for Adaltrud: to_player, 1 troops, 0 prisoners
+[2026-03-12 20:30:41] [transfer_troops_and_prisoners] Transferred 10 x Vlandian Levy Crossbowman (vlandian_levy_crossbowman)
+[2026-03-12 20:30:41] [transfer_troops_and_prisoners] Adaltrud transferred troops to you.
+[2026-03-12 20:30:41] [transfer_troops_and_prisoners] Transfer completed for Adaltrud
+[2026-03-12 20:31:53] [AIActionManager] Map event started, checking for nearby following parties
+[2026-03-12 20:31:56] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-12 20:31:56] [AIActionManager] No LocationEncounter for companion Amaldulf
+[2026-03-12 20:34:17] [AIActionManager] Map event ended, checking for following parties after battle
+[2026-03-12 20:34:17] [AIActionManager] [SAVE] Found 0 active follow actions: 
+[2026-03-12 20:34:17] [AIActionManager] [SAVE] Captured 0 active AI actions for serialization.
+[2026-03-12 20:34:41] [AIActionManager] Player entered settlement Hideout, managing following heroes
+[2026-03-12 20:34:41] [AIActionManager] Remembered Amaldulf was in party on settlement entry
+[2026-03-12 20:34:48] [AIActionManager] Player left settlement Hideout, managing follow heroes
+[2026-03-12 20:34:48] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 20:35:05] [AIActionManager] Player entered settlement Hideout, managing following heroes
+[2026-03-12 20:35:05] [AIActionManager] Remembered Amaldulf was in party on settlement entry
+[2026-03-12 20:35:15] [AIActionManager] Map event started, checking for nearby following parties
+[2026-03-12 20:35:18] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-12 20:35:18] [AIActionManager] Could not find LocationCharacter for companion Amaldulf
+[2026-03-12 20:49:24] [AIActionManager] Map event ended, checking for following parties after battle
+[2026-03-12 20:49:24] [AIActionManager] Player left settlement Hideout, managing follow heroes
+[2026-03-12 20:49:24] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 20:49:24] [AIActionManager] Player entered settlement Hideout, managing following heroes
+[2026-03-12 20:49:24] [AIActionManager] Remembered Amaldulf was in party on settlement entry
+[2026-03-12 20:49:27] [AIActionManager] Player left settlement Hideout, managing follow heroes
+[2026-03-12 20:49:27] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 20:50:09] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-12 20:50:09] [AIActionManager] No LocationEncounter for companion Amaldulf
+[2026-03-12 20:51:11] [AIActionManager] Player entered settlement Tirby, managing following heroes
+[2026-03-12 20:51:11] [AIActionManager] Remembered Amaldulf was in party on settlement entry
+[2026-03-12 20:51:38] [AIActionManager] Player left settlement Tirby, managing follow heroes
+[2026-03-12 20:51:38] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 20:52:01] [AIActionManager] Player entered settlement Tirby, managing following heroes
+[2026-03-12 20:52:01] [AIActionManager] Remembered Amaldulf was in party on settlement entry
+[2026-03-12 20:52:02] [AIActionManager] Player left settlement Tirby, managing follow heroes
+[2026-03-12 20:52:02] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 20:58:05] [AIActionManager] Player entered settlement Tirby Castle, managing following heroes
+[2026-03-12 20:58:05] [AIActionManager] Remembered Amaldulf was in party on settlement entry
+[2026-03-12 20:58:12] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-12 20:58:12] [AIActionManager] Could not find LocationCharacter for companion Amaldulf
+[2026-03-12 21:02:51] [AIActionManager] Player left settlement Tirby Castle, managing follow heroes
+[2026-03-12 21:02:51] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 21:02:51] [AIActionManager] [SAVE] Found 0 active follow actions: 
+[2026-03-12 21:02:51] [AIActionManager] [SAVE] Captured 0 active AI actions for serialization.
+[2026-03-12 21:15:24] [AIActionManager] Player entered settlement Tirby Castle, managing following heroes
+[2026-03-12 21:15:24] [AIActionManager] Remembered Amaldulf was in party on settlement entry
+[2026-03-12 21:15:53] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-12 21:15:53] [AIActionManager] Could not find LocationCharacter for companion Amaldulf
+[2026-03-12 21:16:34] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-12 21:16:34] [AIActionManager] Could not find LocationCharacter for companion Amaldulf
+[2026-03-12 21:29:28] [AIActionManager] Player left settlement Tirby Castle, managing follow heroes
+[2026-03-12 21:29:28] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 21:29:29] [AIActionManager] [SAVE] Found 0 active follow actions: 
+[2026-03-12 21:29:29] [AIActionManager] [SAVE] Captured 0 active AI actions for serialization.
+[2026-03-12 21:32:07] [AIActionIntegration] Parsing transfer_troops_and_prisoners parameter for Bothero: 'to_player:troop:company_of_the_boar_tier_3:2'
+[2026-03-12 21:32:07] [AIActionIntegration] Prepared transfer_troops_and_prisoners for Bothero: to_player, 1 troops, 0 prisoners
+[2026-03-12 21:32:07] [transfer_troops_and_prisoners] Transferred 2 x Boar Champion (company_of_the_boar_tier_3)
+[2026-03-12 21:32:07] [transfer_troops_and_prisoners] Bothero transferred troops to you.
+[2026-03-12 21:32:07] [transfer_troops_and_prisoners] Transfer completed for Bothero
+[2026-03-12 21:37:57] [AIActionManager] Player entered settlement Hideout, managing following heroes
+[2026-03-12 21:37:57] [AIActionManager] Remembered Amaldulf was in party on settlement entry
+[2026-03-12 21:38:06] [AIActionManager] Player left settlement Hideout, managing follow heroes
+[2026-03-12 21:38:06] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 21:38:09] [AIActionManager] Player entered settlement Hideout, managing following heroes
+[2026-03-12 21:38:09] [AIActionManager] Remembered Amaldulf was in party on settlement entry
+[2026-03-12 21:38:11] [AIActionManager] Player left settlement Hideout, managing follow heroes
+[2026-03-12 21:38:11] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 21:38:12] [AIActionManager] Player entered settlement Hideout, managing following heroes
+[2026-03-12 21:38:12] [AIActionManager] Remembered Amaldulf was in party on settlement entry
+[2026-03-12 21:38:20] [AIActionManager] Player left settlement Hideout, managing follow heroes
+[2026-03-12 21:38:20] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 21:38:23] [AIActionManager] Player entered settlement Hideout, managing following heroes
+[2026-03-12 21:38:23] [AIActionManager] Remembered Amaldulf was in party on settlement entry
+[2026-03-12 21:38:38] [AIActionManager] Player left settlement Hideout, managing follow heroes
+[2026-03-12 21:38:38] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 21:39:01] [AIActionManager] Map event started, checking for nearby following parties
+[2026-03-12 21:39:04] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-12 21:39:04] [AIActionManager] No LocationEncounter for companion Amaldulf
+[2026-03-12 21:43:38] [AIActionManager] Map event ended, checking for following parties after battle
+[2026-03-12 21:47:06] [AIActionManager] Map event started, checking for nearby following parties
+[2026-03-12 21:47:08] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-12 21:47:08] [AIActionManager] No LocationEncounter for companion Amaldulf
+[2026-03-12 21:52:59] [AIActionManager] Map event ended, checking for following parties after battle
+[2026-03-12 21:52:59] [AIActionManager] [SAVE] Found 0 active follow actions: 
+[2026-03-12 21:52:59] [AIActionManager] [SAVE] Captured 0 active AI actions for serialization.
+[2026-03-12 21:53:26] [AIActionManager] Player entered settlement Tirby Castle, managing following heroes
+[2026-03-12 21:53:26] [AIActionManager] Remembered Amaldulf was in party on settlement entry
+[2026-03-12 21:53:38] [AIActionManager] Player left settlement Tirby Castle, managing follow heroes
+[2026-03-12 21:53:38] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 21:53:52] [AIActionManager] Resetting AIActionManager instance for new game/save load
+[2026-03-12 21:54:08] [AIActionManager] AIActionManager events registered
+[2026-03-12 21:54:28] [AIActionManager] Player entered settlement Rovalt, managing following heroes
+[2026-03-12 21:54:28] [AIActionManager] Remembered Amaldulf was in party on settlement entry
+[2026-03-12 21:57:12] [AIActionManager] Player left settlement Rovalt, managing follow heroes
+[2026-03-12 21:57:12] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 22:06:13] [AIActionManager] Resetting AIActionManager instance for new game/save load
+[2026-03-12 22:06:29] [AIActionManager] AIActionManager events registered
+[2026-03-12 22:08:22] [AIActionManager] Player entered settlement Rovalt, managing following heroes
+[2026-03-12 22:08:22] [AIActionManager] Remembered Amaldulf was in party on settlement entry
+[2026-03-12 22:13:36] [AIActionManager] Player left settlement Rovalt, managing follow heroes
+[2026-03-12 22:13:36] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 22:18:13] [AIActionManager] Player entered settlement Tirby Castle, managing following heroes
+[2026-03-12 22:18:13] [AIActionManager] Remembered Amaldulf was in party on settlement entry
+[2026-03-12 22:18:18] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-12 22:18:18] [AIActionManager] Could not find LocationCharacter for companion Amaldulf
+[2026-03-12 22:22:21] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-12 22:22:21] [AIActionManager] Could not find LocationCharacter for companion Amaldulf
+[2026-03-12 22:24:02] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-12 22:24:02] [AIActionManager] Could not find LocationCharacter for companion Amaldulf
+[2026-03-12 22:27:31] [AIActionManager] Resetting AIActionManager instance for new game/save load
+[2026-03-12 22:42:34] [AIActionManager] AIActionManager events registered
+[2026-03-12 22:45:06] [AIActionManager] Player entered settlement Training Field, managing following heroes
+[2026-03-12 22:45:06] [AIActionManager] Remembered Castor was in party on settlement entry
+[2026-03-12 22:45:06] [AIActionManager] Remembered Nathanos was in party on settlement entry
+[2026-03-12 22:45:06] [AIActionManager] Player entered settlement Training Field, managing following heroes
+[2026-03-12 22:45:06] [AIActionManager] Remembered Castor was in party on settlement entry
+[2026-03-12 22:45:06] [AIActionManager] Remembered Nathanos was in party on settlement entry
+[2026-03-12 22:45:09] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-12 22:45:09] [AIActionManager] Could not find LocationCharacter for companion Castor
+[2026-03-12 22:45:09] [AIActionManager] Could not find LocationCharacter for companion Nathanos
+[2026-03-12 22:45:21] [AIActionManager] Player entered settlement Training Field, managing following heroes
+[2026-03-12 22:45:21] [AIActionManager] Remembered Castor was in party on settlement entry
+[2026-03-12 22:45:24] [AIActionManager] Player left settlement Training Field, managing follow heroes
+[2026-03-12 22:45:24] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 22:50:53] [AIActionManager] AIActionManager events registered
+[2026-03-12 22:52:59] [AIActionManager] Player entered settlement Danustica, managing following heroes
+[2026-03-12 22:52:59] [AIActionManager] Remembered Osarios was in party on settlement entry
+[2026-03-12 23:05:44] [AIActionManager] Player left settlement Danustica, managing follow heroes
+[2026-03-12 23:05:44] [AIActionManager] Heroes with follow actions: 
+[2026-03-12 23:12:59] [AIActionManager] Player entered settlement Danustica, managing following heroes
+[2026-03-12 23:12:59] [AIActionManager] Remembered Osarios was in party on settlement entry
+[2026-03-12 23:34:29] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-12 23:34:29] [AIActionManager] Could not find LocationCharacter for companion Osarios
+[2026-03-12 23:39:20] [AIActionIntegration] Parsing create_rp_item parameter for Oros: 'Safe Passage|A signed seal of the Mestricaros clan granting protection to Osarios the Smith'
+[2026-03-12 23:39:20] [AIActionIntegration] Prepared create_rp_item for Oros: Safe Passage
+[2026-03-12 23:39:20] [create_rp_item] FindAgentForHero: Searching for agent of Oros among 9 agents
+[2026-03-12 23:39:20] [create_rp_item] FindAgentForHero: Skipping agent (null: False, IsHuman: True, IsPlayerControlled: True)
+[2026-03-12 23:39:20] [create_rp_item] FindAgentForHero: Checking agent Jonna (IsHuman: True, IsPlayerControlled: False)
+[2026-03-12 23:39:20] [create_rp_item] FindAgentForHero: Agent character is Jonna, HeroObject: Jonna
+[2026-03-12 23:39:20] [create_rp_item] FindAgentForHero: Checking agent Honoratus (IsHuman: True, IsPlayerControlled: False)
+[2026-03-12 23:39:20] [create_rp_item] FindAgentForHero: Agent character is Honoratus, HeroObject: Honoratus
+[2026-03-12 23:39:20] [create_rp_item] FindAgentForHero: Checking agent Oros (IsHuman: True, IsPlayerControlled: False)
+[2026-03-12 23:39:20] [create_rp_item] FindAgentForHero: Agent character is Oros, HeroObject: Oros
+[2026-03-12 23:39:20] [create_rp_item] FindAgentForHero: Found matching agent for Oros!
+[2026-03-12 23:39:20] [create_rp_item] Starting RP item creation: Safe Passage
+[2026-03-12 23:39:20] [create_rp_item] RP item created and given to player: Safe Passage
+[2026-03-12 23:39:20] [create_rp_item] RP item creation completed: Safe Passage
+[2026-03-12 23:42:21] [AIActionManager] Hero Oros joined the player's party via OnHeroJoinedParty - clearing all AI actions and tasks for this hero
+[2026-03-12 23:43:09] [follow_player] FindAgentForHero: Searching for agent of Oros among 9 agents
+[2026-03-12 23:43:09] [follow_player] FindAgentForHero: Skipping agent (null: False, IsHuman: True, IsPlayerControlled: True)
+[2026-03-12 23:43:09] [follow_player] FindAgentForHero: Checking agent Jonna (IsHuman: True, IsPlayerControlled: False)
+[2026-03-12 23:43:09] [follow_player] FindAgentForHero: Agent character is Jonna, HeroObject: Jonna
+[2026-03-12 23:43:09] [follow_player] FindAgentForHero: Checking agent Honoratus (IsHuman: True, IsPlayerControlled: False)
+[2026-03-12 23:43:09] [follow_player] FindAgentForHero: Agent character is Honoratus, HeroObject: Honoratus
+[2026-03-12 23:43:09] [follow_player] FindAgentForHero: Checking agent Oros (IsHuman: True, IsPlayerControlled: False)
+[2026-03-12 23:43:09] [follow_player] FindAgentForHero: Agent character is Oros, HeroObject: Oros
+[2026-03-12 23:43:09] [follow_player] FindAgentForHero: Found matching agent for Oros!
+[2026-03-12 23:43:09] [follow_player] OnStart called for Oros
+[2026-03-12 23:43:09] [follow_player] Captured origin settlement Danustica for Oros
+[2026-03-12 23:43:09] [follow_player] Starting follow action for Oros
+[2026-03-12 23:43:09] [follow_player] Setting up following for Oros
+[2026-03-12 23:43:09] [follow_player] Setting up mission following for Oros
+[2026-03-12 23:43:09] [follow_player] TargetAgent already exists for Oros
+[2026-03-12 23:43:09] [follow_player] Configuring follow behavior for Oros
+[2026-03-12 23:43:09] [follow_player] Oros activated FollowAgentBehavior
+[2026-03-12 23:43:09] [follow_player] Oros using standard FollowAgentBehavior (Active: True)
+[2026-03-12 23:43:09] [follow_player] Oros agent LocationCharacter found: True
+[2026-03-12 23:43:09] [follow_player] Oros hero LocationCharacter found: True
+[2026-03-12 23:43:09] [follow_player] Oros added to accompanying characters in settlement (existing LocationCharacter)
+[2026-03-12 23:43:09] [follow_player] Skipping party creation for Oros - already in player party
+[2026-03-12 23:43:09] [follow_player] Oros is already in player party - skipping follow message
+[2026-03-12 23:43:09] [AIActionManager] Added Oros to follow action history
+[2026-03-12 23:43:35] [AIActionManager] Player left settlement Danustica, managing follow heroes
+[2026-03-12 23:43:35] [AIActionManager] Removed Oros (not in party on entry) from player roster after leaving settlement
+[2026-03-12 23:43:35] [AIActionManager] Hero Oros is NOT in settlement Danustica - skipping exit logic
+[2026-03-12 23:43:35] [AIActionManager] Heroes with follow actions: Oros
+[2026-03-12 23:43:35] [AIActionManager] [SAVE] Found 1 active follow actions: lord_1_17
+[2026-03-12 23:43:35] [AIActionManager] [SAVE] Captured 1 active AI actions for serialization.
+[2026-03-12 23:44:28] [AIActionManager] Player entered settlement Danustica, managing following heroes
+[2026-03-12 23:44:28] [AIActionManager] Remembered Osarios was in party on settlement entry
+[2026-03-12 23:44:28] [AIActionManager] Hero Oros has no party while entering settlement Danustica - attempting to create one
+[2026-03-12 23:44:28] [follow_player] Player is in settlement - deferring party creation for Oros until player leaves
+[2026-03-12 23:44:28] [AIActionManager] Hero Oros still has no valid party after creation attempt - cannot enter settlement
+[2026-03-13 00:04:50] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-13 00:04:50] [AIActionManager] Could not find LocationCharacter for companion Osarios
+[2026-03-13 00:04:50] [AIActionManager] Skipping mission following init for companion Oros - no own party, handled by accompanying characters
+[2026-03-13 00:06:22] [AIActionManager] Player left settlement Danustica, managing follow heroes
+[2026-03-13 00:06:22] [AIActionManager] Hero Oros is NOT in settlement Danustica - skipping exit logic
+[2026-03-13 00:06:22] [AIActionManager] Heroes with follow actions: Oros
+[2026-03-13 00:06:22] [AIActionManager] [SAVE] Found 1 active follow actions: lord_1_17
+[2026-03-13 00:06:22] [AIActionManager] [SAVE] Captured 1 active AI actions for serialization.
+[2026-03-13 00:06:28] [AIActionManager] Player entered settlement Danustica, managing following heroes
+[2026-03-13 00:06:28] [AIActionManager] Remembered Osarios was in party on settlement entry
+[2026-03-13 00:06:28] [AIActionManager] Hero Oros has no party while entering settlement Danustica - attempting to create one
+[2026-03-13 00:06:28] [follow_player] Player is in settlement - deferring party creation for Oros until player leaves
+[2026-03-13 00:06:28] [AIActionManager] Hero Oros still has no valid party after creation attempt - cannot enter settlement
+[2026-03-13 00:09:54] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-13 00:09:54] [AIActionManager] Could not find LocationCharacter for companion Osarios
+[2026-03-13 00:09:54] [AIActionManager] Skipping mission following init for companion Oros - no own party, handled by accompanying characters
+[2026-03-13 00:19:34] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-13 00:19:34] [AIActionManager] Could not find LocationCharacter for companion Osarios
+[2026-03-13 00:19:34] [AIActionManager] Skipping mission following init for companion Oros - no own party, handled by accompanying characters
+[2026-03-13 00:24:59] [AIActionManager] Resetting AIActionManager instance for new game/save load
+[2026-03-13 00:25:32] [follow_player] OnStart called for Oros
+[2026-03-13 00:25:32] [follow_player] Captured origin settlement Diathma for Oros
+[2026-03-13 00:25:32] [follow_player] Starting follow action for Oros
+[2026-03-13 00:25:32] [follow_player] Setting up following for Oros
+[2026-03-13 00:25:32] [follow_player] Attempting to create REAL Lord Party for Oros (Clan: Golden Jaguars)
+[2026-03-13 00:25:32] [NonCombatantPartyProtector] Registered party Oros' Party for protection (Leader: Oros, Action: FollowPlayer)
+[2026-03-13 00:25:32] [follow_player] Registered party Oros' Party for non-combatant protection
+[2026-03-13 00:25:32] [follow_player] Created REAL party Oros' Party for Oros
+[2026-03-13 00:25:32] [follow_player] Created temporary party for lord Oros
+[2026-03-13 00:25:32] [follow_player] Set up escort mode for Oros
+[2026-03-13 00:25:32] [AIActionManager] Added Oros to follow action history
+[2026-03-13 00:25:32] [AIActionManager] [RESTORE] Restored 1 AI actions after load.
+[2026-03-13 00:25:32] [AIActionManager] AIActionManager events registered
+[2026-03-13 00:25:37] [AIActionManager] Player entered settlement Danustica, managing following heroes
+[2026-03-13 00:25:37] [AIActionManager] Remembered Osarios was in party on settlement entry
+[2026-03-13 00:25:37] [AIActionManager] Hero Oros is too far (distance: 2.51) - NOT entering settlement
+[2026-03-13 00:27:00] [AIActionManager] Player left settlement Danustica, managing follow heroes
+[2026-03-13 00:27:00] [AIActionManager] Hero Oros is NOT in settlement Danustica - skipping exit logic
+[2026-03-13 00:27:00] [AIActionManager] Heroes with follow actions: Oros
+[2026-03-13 00:27:00] [AIActionManager] Keeping companion party for Oros - companions can create caravans
+[2026-03-13 00:27:01] [AIActionManager] Player entered settlement Danustica, managing following heroes
+[2026-03-13 00:27:01] [AIActionManager] Remembered Osarios was in party on settlement entry
+[2026-03-13 00:27:01] [AIActionManager] Hero Oros is too far (distance: 2.51) - NOT entering settlement
+[2026-03-13 00:27:07] [AIActionManager] Player left settlement Danustica, managing follow heroes
+[2026-03-13 00:27:07] [AIActionManager] Hero Oros is NOT in settlement Danustica - skipping exit logic
+[2026-03-13 00:27:07] [AIActionManager] Heroes with follow actions: Oros
+[2026-03-13 00:27:07] [AIActionManager] Keeping companion party for Oros - companions can create caravans
+[2026-03-13 00:27:17] [follow_player] Performing forced AI reset 1/3 for Oros
+[2026-03-13 00:27:17] [follow_player] Set up escort mode for Oros
+[2026-03-13 00:27:56] [follow_player] OnStop called for Oros (_needsMissionFollowingInit was False)
+[2026-03-13 00:27:56] [follow_player] Cleaning up following for Oros
+[2026-03-13 00:27:56] [follow_player] No mission detected (Mission.Current is null and IsInMission() is false)
+[2026-03-13 00:27:56] [follow_player] Stopping global map following for Oros
+[2026-03-13 00:27:56] [follow_player] Oros's party is traveling to Diathma
+[2026-03-13 00:27:56] [AIActionManager] Registered party of Oros for removal when it arrives at Diathma
+[2026-03-13 00:27:56] [follow_player] Sending temporary party to Diathma for Oros
+[2026-03-13 00:27:56] [follow_player] Hero Oros stopped following; party will act autonomously
+[2026-03-13 00:28:06] [NonCombatantPartyProtector] Protected party Oros' Party daily check passed (Leader: Oros)
+[2026-03-13 00:28:06] [AIActionManager] Player entered settlement Danustica, managing following heroes
+[2026-03-13 00:28:06] [AIActionManager] Remembered Osarios was in party on settlement entry
+[2026-03-13 00:30:17] [AIActionManager] Player left settlement Danustica, managing follow heroes
+[2026-03-13 00:30:17] [AIActionManager] Heroes with follow actions: 
+[2026-03-13 00:30:17] [AIActionManager] Keeping companion party for Oros - companions can create caravans
+[2026-03-13 00:30:48] [AIActionManager] Player entered settlement Danustica, managing following heroes
+[2026-03-13 00:30:48] [AIActionManager] Remembered Osarios was in party on settlement entry
+[2026-03-13 00:30:55] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-13 00:30:55] [AIActionManager] Could not find LocationCharacter for companion Osarios
+[2026-03-13 00:39:37] [AIActionManager] Resetting AIActionManager instance for new game/save load
+[2026-03-13 00:40:08] [follow_player] OnStart called for Oros
+[2026-03-13 00:40:08] [follow_player] Captured origin settlement Diathma for Oros
+[2026-03-13 00:40:08] [follow_player] Starting follow action for Oros
+[2026-03-13 00:40:08] [follow_player] Setting up following for Oros
+[2026-03-13 00:40:08] [follow_player] Attempting to create REAL Lord Party for Oros (Clan: Golden Jaguars)
+[2026-03-13 00:40:08] [NonCombatantPartyProtector] Registered party Oros' Party for protection (Leader: Oros, Action: FollowPlayer)
+[2026-03-13 00:40:08] [follow_player] Registered party Oros' Party for non-combatant protection
+[2026-03-13 00:40:08] [follow_player] Created REAL party Oros' Party for Oros
+[2026-03-13 00:40:08] [follow_player] Created temporary party for lord Oros
+[2026-03-13 00:40:08] [follow_player] Set up escort mode for Oros
+[2026-03-13 00:40:08] [AIActionManager] Added Oros to follow action history
+[2026-03-13 00:40:08] [AIActionManager] [RESTORE] Restored 1 AI actions after load.
+[2026-03-13 00:40:08] [AIActionManager] AIActionManager events registered
+[2026-03-13 00:40:20] [follow_player] Performing forced AI reset 1/3 for Oros
+[2026-03-13 00:40:20] [follow_player] Set up escort mode for Oros
+[2026-03-13 00:40:39] [follow_player] OnStop called for  (_needsMissionFollowingInit was False)
+[2026-03-13 00:40:39] [follow_player] Cleaning up following for 
+[2026-03-13 00:40:39] [follow_player] No mission detected (Mission.Current is null and IsInMission() is false)
+[2026-03-13 00:40:39] [follow_player] Stopping global map following for 
+[2026-03-13 00:40:39] [follow_player] 's party is traveling to Diathma
+[2026-03-13 00:40:39] [AIActionManager] Registered party of  for removal when it arrives at Diathma
+[2026-03-13 00:40:39] [follow_player] Sending temporary party to Diathma for 
+[2026-03-13 00:40:39] [follow_player] Hero  stopped following; party will act autonomously
+[2026-03-13 00:42:02] [NonCombatantPartyProtector] Protected party 's Party daily check passed (Leader: )
+[2026-03-13 00:42:45] [NonCombatantPartyProtector] Protected party 's Party daily check passed (Leader: )
+[2026-03-13 00:43:04] [AIActionManager] Map event started, checking for nearby following parties
+[2026-03-13 00:43:07] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-13 00:43:07] [AIActionManager] No LocationEncounter for companion Osarios
+[2026-03-13 00:45:01] [AIActionManager] Map event ended, checking for following parties after battle
+[2026-03-13 00:45:05] [NonCombatantPartyProtector] Protected party 's Party daily check passed (Leader: )
+[2026-03-13 00:45:34] [AIActionManager] Player entered settlement Onira, managing following heroes
+[2026-03-13 00:45:34] [AIActionManager] Remembered Osarios was in party on settlement entry
+[2026-03-13 00:49:57] [NonCombatantPartyProtector] Protected party 's Party daily check passed (Leader: )
+[2026-03-13 00:50:02] [NonCombatantPartyProtector] Protected party 's Party daily check passed (Leader: )
+[2026-03-13 00:50:17] [NonCombatantPartyProtector] Protected party 's Party daily check passed (Leader: )
+[2026-03-13 00:50:22] [NonCombatantPartyProtector] Protected party 's Party daily check passed (Leader: )
+[2026-03-13 00:50:34] [AIActionManager] Player left settlement Onira, managing follow heroes
+[2026-03-13 00:50:34] [AIActionManager] Heroes with follow actions: 
+[2026-03-13 00:50:34] [AIActionManager] Keeping companion party for  - companions can create caravans
+[2026-03-13 00:50:49] [AIActionManager] Player entered settlement Onira, managing following heroes
+[2026-03-13 00:50:49] [AIActionManager] Remembered Osarios was in party on settlement entry
+[2026-03-13 00:51:14] [AIActionManager] Player left settlement Onira, managing follow heroes
+[2026-03-13 00:51:14] [AIActionManager] Heroes with follow actions: 
+[2026-03-13 00:51:14] [AIActionManager] Keeping companion party for  - companions can create caravans
+[2026-03-13 00:51:17] [AIActionManager] Map event started, checking for nearby following parties
+[2026-03-13 00:51:20] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-13 00:51:20] [AIActionManager] No LocationEncounter for companion Osarios
+[2026-03-13 00:53:19] [AIActionManager] Map event ended, checking for following parties after battle
+[2026-03-13 00:56:06] [AIActionManager] Map event started, checking for nearby following parties
+[2026-03-13 00:56:09] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-13 00:56:09] [AIActionManager] No LocationEncounter for companion Osarios
+[2026-03-13 00:59:13] [AIActionManager] Map event ended, checking for following parties after battle
+[2026-03-13 00:59:24] [NonCombatantPartyProtector] Protected party 's Party daily check passed (Leader: )
+[2026-03-13 00:59:55] [AIActionManager] Map event started, checking for nearby following parties
+[2026-03-13 00:59:58] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-13 00:59:58] [AIActionManager] No LocationEncounter for companion Osarios
+[2026-03-13 14:21:20] [AIActionManager] AIActionManager events registered
+[2026-03-13 14:21:39] [AIActionManager] Resetting AIActionManager instance for new game/save load
+[2026-03-13 14:31:42] [AIActionManager] AIActionManager events registered
+[2026-03-13 14:43:03] [AIActionManager] Player entered settlement Amyclae, managing following heroes
+[2026-03-13 14:43:03] [AIActionManager] Remembered Gorigos was in party on settlement entry
+[2026-03-13 14:44:41] [AIActionManager] Resetting AIActionManager instance for new game/save load
+[2026-03-13 14:45:30] [AIActionManager] AIActionManager events registered
+[2026-03-13 14:49:22] [AIActionManager] Map event started, checking for nearby following parties
+[2026-03-13 14:49:26] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-13 14:49:26] [AIActionManager] No LocationEncounter for companion Patrys
+[2026-03-13 14:55:57] [AIActionManager] Map event ended, checking for following parties after battle
+[2026-03-13 14:56:00] [AIActionManager] Player entered settlement Amyclae, managing following heroes
+[2026-03-13 14:56:00] [AIActionManager] Remembered Patrys was in party on settlement entry
+[2026-03-13 14:59:14] [AIActionManager] Player left settlement Amyclae, managing follow heroes
+[2026-03-13 14:59:14] [AIActionManager] Heroes with follow actions: 
+[2026-03-13 15:03:48] [AIActionIntegration] Parsing transfer_troops_and_prisoners parameter for Lexarios: 'to_player:troop:ariontus_recruit:10,troop:ariontus_elite_hoplite:1'
+[2026-03-13 15:03:48] [AIActionIntegration] Prepared transfer_troops_and_prisoners for Lexarios: to_player, 2 troops, 0 prisoners
+[2026-03-13 15:03:48] [transfer_troops_and_prisoners] Transferred 10 x Spartan Recruit (ariontus_recruit)
+[2026-03-13 15:03:48] [transfer_troops_and_prisoners] Transferred 1 x Spartan Elite Hoplite (ariontus_elite_hoplite)
+[2026-03-13 15:03:48] [transfer_troops_and_prisoners] Lexarios transferred troops to you.
+[2026-03-13 15:03:48] [transfer_troops_and_prisoners] Transfer completed for Lexarios
+[2026-03-13 15:05:09] [AIActionManager] Map event started, checking for nearby following parties
+[2026-03-13 15:05:13] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-13 15:05:13] [AIActionManager] No LocationEncounter for companion Patrys
+[2026-03-13 15:15:03] [AIActionManager] Map event ended, checking for following parties after battle
+[2026-03-13 15:15:04] [AIActionManager] [SAVE] Found 0 active follow actions: 
+[2026-03-13 15:15:04] [AIActionManager] [SAVE] Captured 0 active AI actions for serialization.
+[2026-03-13 15:17:14] [AIActionIntegration] Parsing transfer_troops_and_prisoners parameter for Lexarios: 'from_player:troop:ariontus_royal_hoplite:1,troop:ariontus_recruit:7,troop:ariontus_archers:1'
+[2026-03-13 15:17:14] [AIActionIntegration] Prepared transfer_troops_and_prisoners for Lexarios: from_player, 3 troops, 0 prisoners
+[2026-03-13 15:17:14] [transfer_troops_and_prisoners] Transferred 1 x Spartan Royal Hoplite (ariontus_royal_hoplite)
+[2026-03-13 15:17:14] [transfer_troops_and_prisoners] Transferred 7 x Spartan Recruit (ariontus_recruit)
+[2026-03-13 15:17:14] [transfer_troops_and_prisoners] Transferred 1 x Spartan Sphendone (ariontus_archers)
+[2026-03-13 15:17:14] [transfer_troops_and_prisoners] You transferred troops to Lexarios.
+[2026-03-13 15:17:14] [transfer_troops_and_prisoners] Transfer completed for Lexarios
+[2026-03-13 15:17:50] [AIActionManager] Player entered settlement Amyclae, managing following heroes
+[2026-03-13 15:17:50] [AIActionManager] Remembered Patrys was in party on settlement entry
+[2026-03-13 15:34:17] [AIActionManager] Player left settlement Amyclae, managing follow heroes
+[2026-03-13 15:34:17] [AIActionManager] Heroes with follow actions: 
+[2026-03-13 15:37:03] [AIActionIntegration] Parsing transfer_troops_and_prisoners parameter for Lexarios: 'to_player:troop:ariontus_medium_hoplite:10'
+[2026-03-13 15:37:03] [AIActionIntegration] Prepared transfer_troops_and_prisoners for Lexarios: to_player, 1 troops, 0 prisoners
+[2026-03-13 15:37:03] [transfer_troops_and_prisoners] Transferred 10 x Spartan Medium Hoplite (ariontus_medium_hoplite)
+[2026-03-13 15:37:03] [transfer_troops_and_prisoners] Lexarios transferred troops to you.
+[2026-03-13 15:37:03] [transfer_troops_and_prisoners] Transfer completed for Lexarios
+[2026-03-13 15:38:46] [AIActionIntegration] Parsing transfer_troops_and_prisoners parameter for Lexarios: 'to_player:troop:ariontus_medium_hoplite:4,troop:ariontus_warrior:6'
+[2026-03-13 15:38:46] [AIActionIntegration] Prepared transfer_troops_and_prisoners for Lexarios: to_player, 2 troops, 0 prisoners
+[2026-03-13 15:38:46] [transfer_troops_and_prisoners] Transferred 4 x Spartan Medium Hoplite (ariontus_medium_hoplite)
+[2026-03-13 15:38:46] [transfer_troops_and_prisoners] Transferred 6 x Spartan Warrior (ariontus_warrior)
+[2026-03-13 15:38:46] [transfer_troops_and_prisoners] Lexarios transferred troops to you.
+[2026-03-13 15:38:46] [transfer_troops_and_prisoners] Transfer completed for Lexarios
+[2026-03-13 15:39:24] [AIActionManager] Player entered settlement Morenia, managing following heroes
+[2026-03-13 15:39:24] [AIActionManager] Remembered Patrys was in party on settlement entry
+[2026-03-13 15:39:38] [AIActionManager] Player left settlement Morenia, managing follow heroes
+[2026-03-13 15:39:38] [AIActionManager] Heroes with follow actions: 
+[2026-03-13 15:39:38] [AIActionManager] [SAVE] Found 0 active follow actions: 
+[2026-03-13 15:39:38] [AIActionManager] [SAVE] Captured 0 active AI actions for serialization.
+[2026-03-13 15:40:24] [AIActionManager] Resetting AIActionManager instance for new game/save load
+[2026-03-13 15:40:59] [AIActionManager] AIActionManager events registered
+[2026-03-13 15:41:14] [AIActionManager] Player entered settlement Morenia, managing following heroes
+[2026-03-13 15:41:14] [AIActionManager] Remembered Patrys was in party on settlement entry
+[2026-03-13 15:41:21] [AIActionManager] Player left settlement Morenia, managing follow heroes
+[2026-03-13 15:41:21] [AIActionManager] Heroes with follow actions: 
+[2026-03-13 15:41:30] [AIActionManager] Player entered settlement Canterion, managing following heroes
+[2026-03-13 15:41:30] [AIActionManager] Remembered Patrys was in party on settlement entry
+[2026-03-13 15:41:49] [AIActionManager] Player left settlement Canterion, managing follow heroes
+[2026-03-13 15:41:49] [AIActionManager] Heroes with follow actions: 
+[2026-03-13 15:43:16] [AIActionManager] Map event started, checking for nearby following parties
+[2026-03-13 15:43:19] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-13 15:43:19] [AIActionManager] No LocationEncounter for companion Patrys
+[2026-03-13 15:55:12] [AIActionManager] Map event ended, checking for following parties after battle
+[2026-03-13 15:55:42] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-13 15:55:42] [AIActionManager] No LocationEncounter for companion Patrys
+[2026-03-13 16:08:47] [AIActionManager] Player entered settlement Morenia, managing following heroes
+[2026-03-13 16:08:47] [AIActionManager] Remembered Patrys was in party on settlement entry
+[2026-03-13 16:08:52] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-13 16:08:52] [AIActionManager] Could not find LocationCharacter for companion Patrys
+[2026-03-13 16:09:11] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-13 16:09:11] [AIActionManager] Could not find LocationCharacter for companion Patrys
+[2026-03-13 16:26:25] [AIActionManager] Player left settlement Morenia, managing follow heroes
+[2026-03-13 16:26:25] [AIActionManager] Heroes with follow actions: 
+[2026-03-13 16:26:25] [AIActionManager] [SAVE] Found 0 active follow actions: 
+[2026-03-13 16:26:25] [AIActionManager] [SAVE] Captured 0 active AI actions for serialization.
+[2026-03-13 16:27:25] [AIActionManager] Player entered settlement Morenia, managing following heroes
+[2026-03-13 16:27:25] [AIActionManager] Remembered Patrys was in party on settlement entry
+[2026-03-13 16:27:26] [AIActionManager] Player left settlement Morenia, managing follow heroes
+[2026-03-13 16:27:26] [AIActionManager] Heroes with follow actions: 
+[2026-03-13 16:27:45] [AIActionManager] Map event started, checking for nearby following parties
+[2026-03-13 16:27:48] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-13 16:27:48] [AIActionManager] No LocationEncounter for companion Patrys
+[2026-03-13 16:31:47] [AIActionManager] Map event ended, checking for following parties after battle
+[2026-03-13 16:32:05] [AIActionManager] Player entered settlement Amyclae, managing following heroes
+[2026-03-13 16:32:05] [AIActionManager] Remembered Patrys was in party on settlement entry
+[2026-03-13 16:32:28] [AIActionManager] Player left settlement Amyclae, managing follow heroes
+[2026-03-13 16:32:28] [AIActionManager] Heroes with follow actions: 
+[2026-03-13 16:32:30] [AIActionManager] Player entered settlement Amyclae, managing following heroes
+[2026-03-13 16:32:30] [AIActionManager] Remembered Patrys was in party on settlement entry
+[2026-03-13 16:33:11] [AIActionManager] Player left settlement Amyclae, managing follow heroes
+[2026-03-13 16:33:11] [AIActionManager] Heroes with follow actions: 
+[2026-03-13 16:33:35] [AIActionManager] Player entered settlement Amyclae, managing following heroes
+[2026-03-13 16:33:35] [AIActionManager] Remembered Patrys was in party on settlement entry
+[2026-03-13 16:33:42] [AIActionManager] Player left settlement Amyclae, managing follow heroes
+[2026-03-13 16:33:42] [AIActionManager] Heroes with follow actions: 
+[2026-03-13 16:42:32] [AIActionManager] Player entered settlement Morenia, managing following heroes
+[2026-03-13 16:42:32] [AIActionManager] Remembered Patrys was in party on settlement entry
+[2026-03-13 16:42:33] [AIActionManager] Player left settlement Morenia, managing follow heroes
+[2026-03-13 16:42:33] [AIActionManager] Heroes with follow actions: 
+[2026-03-13 16:42:43] [AIActionManager] Player entered settlement Morenia, managing following heroes
+[2026-03-13 16:42:43] [AIActionManager] Remembered Patrys was in party on settlement entry
+[2026-03-13 16:42:48] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-13 16:42:48] [AIActionManager] Could not find LocationCharacter for companion Patrys
+[2026-03-13 16:44:42] [AIActionManager] Player left settlement Morenia, managing follow heroes
+[2026-03-13 16:44:42] [AIActionManager] Heroes with follow actions: 
+[2026-03-13 16:44:59] [AIActionManager] Player entered settlement Sparta, managing following heroes
+[2026-03-13 16:44:59] [AIActionManager] Remembered Patrys was in party on settlement entry
+[2026-03-13 16:48:01] [AIActionManager] Player left settlement Sparta, managing follow heroes
+[2026-03-13 16:48:01] [AIActionManager] Heroes with follow actions: 
+[2026-03-13 16:48:34] [AIActionManager] Player entered settlement Morenia, managing following heroes
+[2026-03-13 16:48:34] [AIActionManager] Remembered Patrys was in party on settlement entry
+[2026-03-13 16:48:41] [AIActionManager] Player left settlement Morenia, managing follow heroes
+[2026-03-13 16:48:41] [AIActionManager] Heroes with follow actions: 
+[2026-03-13 16:49:03] [AIActionManager] Map event ended, checking for following parties after battle
+[2026-03-13 16:49:04] [AIActionManager] [SAVE] Found 0 active follow actions: 
+[2026-03-13 16:49:04] [AIActionManager] [SAVE] Captured 0 active AI actions for serialization.
+[2026-03-13 16:49:30] [AIActionManager] Player entered settlement Hideout, managing following heroes
+[2026-03-13 16:49:30] [AIActionManager] Remembered Patrys was in party on settlement entry
+[2026-03-13 16:50:14] [AIActionManager] Player left settlement Hideout, managing follow heroes
+[2026-03-13 16:50:14] [AIActionManager] Heroes with follow actions: 
+[2026-03-13 16:50:16] [AIActionManager] Player entered settlement Hideout, managing following heroes
+[2026-03-13 16:50:16] [AIActionManager] Remembered Patrys was in party on settlement entry
+[2026-03-13 16:50:26] [AIActionManager] Map event started, checking for nearby following parties
+[2026-03-13 16:50:29] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-13 16:50:29] [AIActionManager] Could not find LocationCharacter for companion Patrys
+[2026-03-13 16:52:01] [AIActionManager] Map event ended, checking for following parties after battle
+[2026-03-13 16:52:01] [AIActionManager] Player left settlement Hideout, managing follow heroes
+[2026-03-13 16:52:01] [AIActionManager] Heroes with follow actions: 
+[2026-03-13 16:52:12] [AIActionManager] Player entered settlement Morenia, managing following heroes
+[2026-03-13 16:52:12] [AIActionManager] Remembered Patrys was in party on settlement entry
+[2026-03-13 16:52:17] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-13 16:52:17] [AIActionManager] Could not find LocationCharacter for companion Patrys
+[2026-03-13 16:54:01] [AIActionIntegration] Parsing create_rp_item parameter for Lerosion of Morenia: 'Scroll of Morenia|A parchment signed by Lerosion, detailing the White Boar's victory over the forest bandits and bearing the clay seal of the village headman.'
+[2026-03-13 16:54:01] [AIActionIntegration] Prepared create_rp_item for Lerosion of Morenia: Scroll of Morenia
+[2026-03-13 16:54:01] [create_rp_item] FindAgentForHero: Searching for agent of Lerosion of Morenia among 68 agents
+[2026-03-13 16:54:01] [create_rp_item] FindAgentForHero: Skipping agent (null: False, IsHuman: False, IsPlayerControlled: False)
+[2026-03-13 16:54:01] [create_rp_item] FindAgentForHero: Skipping agent (null: False, IsHuman: True, IsPlayerControlled: True)
+[2026-03-13 16:54:01] [create_rp_item] FindAgentForHero: Checking agent Valaos of Morenia (IsHuman: True, IsPlayerControlled: False)
+[2026-03-13 16:54:01] [create_rp_item] FindAgentForHero: Agent character is Valaos of Morenia, HeroObject: Valaos of Morenia
+[2026-03-13 16:54:01] [create_rp_item] FindAgentForHero: Checking agent Nortos of Morenia (IsHuman: True, IsPlayerControlled: False)
+[2026-03-13 16:54:01] [create_rp_item] FindAgentForHero: Agent character is Nortos of Morenia, HeroObject: Nortos of Morenia
+[2026-03-13 16:54:01] [create_rp_item] FindAgentForHero: Checking agent Lerosion of Morenia (IsHuman: True, IsPlayerControlled: False)
+[2026-03-13 16:54:01] [create_rp_item] FindAgentForHero: Agent character is Lerosion of Morenia, HeroObject: Lerosion of Morenia
+[2026-03-13 16:54:01] [create_rp_item] FindAgentForHero: Found matching agent for Lerosion of Morenia!
+[2026-03-13 16:54:01] [create_rp_item] Starting RP item creation: Scroll of Morenia
+[2026-03-13 16:54:01] [create_rp_item] RP item created and given to player: Scroll of Morenia
+[2026-03-13 16:54:01] [create_rp_item] RP item creation completed: Scroll of Morenia
+[2026-03-13 17:00:48] [AIActionManager] Resetting AIActionManager instance for new game/save load
+[2026-03-13 17:06:00] [AIActionManager] AIActionManager events registered
+[2026-03-13 17:06:35] [AIActionManager] Player entered settlement Morenia, managing following heroes
+[2026-03-13 17:06:35] [AIActionManager] Remembered Patrys was in party on settlement entry
+[2026-03-13 17:06:42] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-13 17:06:42] [AIActionManager] Could not find LocationCharacter for companion Patrys
+[2026-03-13 17:07:49] [AIActionManager] Player left settlement Morenia, managing follow heroes
+[2026-03-13 17:07:49] [AIActionManager] Heroes with follow actions: 
+[2026-03-13 17:08:16] [AIActionManager] Player entered settlement Amyclae, managing following heroes
+[2026-03-13 17:08:16] [AIActionManager] Remembered Patrys was in party on settlement entry
+[2026-03-13 17:08:30] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-13 17:08:30] [AIActionManager] Could not find LocationCharacter for companion Patrys
+[2026-03-13 17:13:16] [AIActionManager] Player left settlement Amyclae, managing follow heroes
+[2026-03-13 17:13:16] [AIActionManager] Heroes with follow actions: 
+[2026-03-13 17:23:45] [AIActionManager] Player entered settlement Hideout, managing following heroes
+[2026-03-13 17:23:45] [AIActionManager] Remembered Patrys was in party on settlement entry
+[2026-03-13 17:24:17] [AIActionManager] Player left settlement Hideout, managing follow heroes
+[2026-03-13 17:24:17] [AIActionManager] Heroes with follow actions: 
+[2026-03-13 17:24:18] [AIActionManager] Player entered settlement Hideout, managing following heroes
+[2026-03-13 17:24:18] [AIActionManager] Remembered Patrys was in party on settlement entry
+[2026-03-13 17:26:23] [AIActionManager] Resetting AIActionManager instance for new game/save load
+[2026-03-13 17:26:57] [AIActionManager] AIActionManager events registered
+[2026-03-13 17:27:27] [AIActionManager] Mission started: Mission, initializing following actions
+[2026-03-13 17:27:27] [AIActionManager] No LocationEncounter for companion Patrys
+[2026-03-13 17:54:06] [AIActionManager] Resetting AIActionManager instance for new game/save load

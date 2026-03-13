@@ -1,0 +1,23 @@
+<Window>
+  <PopUpConversationScreenWidget Type="AIInfluence.UI.Widgets.CombatPhrases.PopUpConversationScreenWidget" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" IsMarkersEnabled="true" TargetAlphaValue="1.0" MarkersContainer="MarkersContainer">
+    <Children>
+      <Widget Id="MarkersContainer" DataSource="{Targets}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent">
+        <ItemTemplate>
+          <PopUpConversationListPanel Type="AIInfluence.UI.Widgets.CombatPhrases.PopUpConversationListPanel" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="800" SuggestedHeight="0" Position="@ScreenPosition" TypeVisualWidget="TypeWidget" NameTextWidget="TypeWidget\NameAndDistanceContainer\NameTextWidget" StackLayout.LayoutMethod = "VerticalBottomToTop" Distance="@Distance">
+            <Children>
+              <Widget Id="TypeWidget" WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Children>
+                  <ListPanel Id="NameAndDistanceContainer" WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" HorizontalAlignment="Center" MarginTop="-10" StackLayout.LayoutMethod="VerticalBottomToTop">
+                    <Children>
+                      <TextWidget Id="NameTextWidget" WidthSizePolicy="Fixed" HeightSizePolicy="CoverChildren" SuggestedWidth="500" Text="@Name" HorizontalAlignment="Center" Brush="Popup.Message.Text" Brush.FontSize="@FontSizeInt" OverrideDefaultStateSwitchingEnabled="true" ClipContents="false"/>
+                    </Children>
+                  </ListPanel>
+                </Children>
+              </Widget>
+            </Children>
+          </PopUpConversationListPanel>
+        </ItemTemplate>
+      </Widget>
+    </Children>
+  </PopUpConversationScreenWidget>
+</Window>

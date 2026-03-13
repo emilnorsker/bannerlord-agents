@@ -1,0 +1,144 @@
+<Prefab>
+	<Window>
+
+		<TextQueryParentWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" TextInputWidget="TextQueryParent\TextQueryContentList\TextInputArea\TextInputParent\TextInputWidget" TextQueryParent="TextQueryParent">
+			<Children>
+
+				<!--Text Query-->
+				<DimensionSyncWidget Id="TextQueryParent" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="550" HorizontalAlignment="Center" VerticalAlignment="Center" PositionYOffset="-50" DimensionToSync="Vertical" WidgetToCopyHeightFrom="TextQueryContentList">
+					<Children>
+
+						<DimensionSyncWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="550" ClipContents="true" DimensionToSync="Vertical" WidgetToCopyHeightFrom="..\TextQueryContentList">
+							<Children>
+								<Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="550" SuggestedHeight="630" HorizontalAlignment="Center" VerticalAlignment="Top" Sprite="StdAssets\Popup\canvas" />
+							</Children>
+						</DimensionSyncWidget>
+
+						<ListPanel Id="TextQueryContentList" WidthSizePolicy="Fixed" HeightSizePolicy="CoverChildren" SuggestedWidth="550" StackLayout.LayoutMethod="VerticalBottomToTop" MaxHeight="630">
+							<Children>
+
+								<!-- Header Area (Portrait + Title) -->
+								<Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="120" MarginTop="10" MarginLeft="15" MarginRight="15">
+									<Children>
+										<!-- Decorative Header Background -->
+										<Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="General\CharacterCreation\character_creation_background_gradient" AlphaFactor="0.4" Color="#000000FF" />
+										
+										<ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" StackLayout.LayoutMethod="HorizontalLeftToRight">
+											<Children>
+												
+												<!-- Portrait Slot -->
+											<Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="110" SuggestedHeight="110" VerticalAlignment="Center" MarginLeft="15" Sprite="StdAssets\Popup\tuple_portrait_slot" ClipContents="true">
+												<Children>
+													<AIInfluencePortraitWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" MarginLeft="8" MarginRight="8" MarginTop="8" MarginBottom="8" />
+												</Children>
+											</Widget>
+												
+												<!-- Title with Shadow -->
+												<Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="60" VerticalAlignment="Center" MarginLeft="15" MarginRight="15" Sprite="name_shadow_9" AlphaFactor="0.8">
+													<Children>
+														<AutoHideRichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" VerticalAlignment="Center" MarginLeft="15" MarginRight="15" Brush="Popup.Title.Text" Text="@TitleText" WidgetToHideIfEmpty="..\..\..\..\TitleDivider" />
+													</Children>
+												</Widget>
+
+											</Children>
+										</ListPanel>
+									</Children>
+								</Widget>
+
+								<!--Divider-->
+								<Widget Id="TitleDivider" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="15" Sprite="StdAssets\Popup\divider" MarginTop="5" MarginBottom="5" />
+
+								<!--Description with scrollbar-->
+								<DimensionSyncWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
+								                     MarginLeft="25" MarginRight="25" MarginTop="5" MarginBottom="15"
+								                     MaxHeight="315" MinHeight="105"
+								                     DimensionToSync="Vertical" WidgetToCopyHeightFrom="BackgroundPanel\ScrollablePanel\DescriptionClipRect\DescriptionInner">
+									<Children>
+										
+										<!-- Dark background for better readability, styled like parchment/letter -->
+										<Widget Id="BackgroundPanel" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="BlankWhite" Color="#0a0704FF" AlphaFactor="0.65">
+											<Children>
+												<!-- Inner Frame -->
+												<Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="frame_9" ExtendLeft="5" ExtendTop="5" ExtendRight="5" ExtendBottom="5" AlphaFactor="0.3" />
+												
+												<ScrollablePanel Id="ScrollablePanel" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+																 MarginLeft="15" MarginRight="15" MarginTop="15" MarginBottom="15"
+																 AutoHideScrollBars="true"
+																 ClipRect="DescriptionClipRect"
+																 InnerPanel="DescriptionClipRect\DescriptionInner"
+																 VerticalScrollbar="..\..\DescriptionScrollbar\Scrollbar">
+													<Children>
+														<Widget Id="DescriptionClipRect" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" ClipContents="true">
+															<Children>
+																<RichTextWidget Id="DescriptionInner" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+																			   MarginLeft="10" MarginRight="10" MarginTop="10" MarginBottom="10"
+																			   Brush="Popup.Description.Text" Text="@PopUpLabel" />
+															</Children>
+														</Widget>
+													</Children>
+												</ScrollablePanel>
+											</Children>
+										</Widget>
+
+										<Standard.VerticalScrollbar Id="DescriptionScrollbar"
+										                            HeightSizePolicy="StretchToParent"
+																	MarginTop="10" MarginBottom="10" MarginRight="5"
+										                            HorizontalAlignment="Right" />
+									</Children>
+								</DimensionSyncWidget>
+
+								<!--Text Input Area-->
+								<Widget Id="TextInputArea" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="70" MarginLeft="25" MarginRight="25" MarginBottom="15" Sprite="BlankWhite" Color="#000000FF" AlphaFactor="0.2">
+									<Children>
+										<!-- Inner Frame -->
+										<Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="frame_9" ExtendLeft="5" ExtendTop="5" ExtendRight="5" ExtendBottom="5" AlphaFactor="0.25" />
+										
+										<Widget Id="TextInputParent" DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="50" HorizontalAlignment="Center" VerticalAlignment="Center" MarginLeft="10" MarginRight="10" Sprite="General\CharacterCreation\name_input_area">
+											<Children>
+												<EditableTextWidget Id="TextInputWidget" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Center" VerticalAlignment="Center" MarginLeft="10" MarginRight="10" MarginTop="8" MarginBottom="8" Brush="Review.NameInput.Text" RealText="@InputText" IsObfuscationEnabled="@IsInputObfuscated" KeyboardInfoText="@TitleText"/>
+											</Children>
+										</Widget>
+									</Children>
+								</Widget>
+
+								<!--Control Buttons-->
+								<NavigationForcedScopeCollectionTargeter CollectionParent="..\." />
+								<NavigationScopeTargeter ScopeID="AIInfluenceTextQueryPopupScope" ScopeParent="..\ControlButtons" ScopeMovements="Horizontal" />
+								<ListPanel Id="ControlButtons" WidthSizePolicy="CoverChildren" SuggestedHeight="50" HorizontalAlignment="Center" VerticalAlignment="Bottom" MarginLeft="25" MarginRight="25" MarginBottom="15" StackLayout.LayoutMethod="HorizontalLeftToRight">
+									<Children>
+
+										<ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="200" SuggestedHeight="55" HorizontalAlignment="Right" VerticalAlignment="Center" Brush="Popup.Cancel.Button" Command.Click="ExecuteNegativeAction" IsVisible="@IsButtonCancelShown" GamepadNavigationIndex="0">
+											<Children>
+												<TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="22" VerticalAlignment="Center" MarginLeft="30" MarginRight="25" Brush="Popup.Button.Text" Text="@ButtonCancelLabel" />
+											</Children>
+										</ButtonWidget>
+
+										<Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="200" SuggestedHeight="55" HorizontalAlignment="Right" VerticalAlignment="Center" GamepadNavigationIndex="1">
+											<Children>
+												<ButtonWidget DoNotPassEventsToChildren="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Brush="Popup.Done.Button" Command.Click="ExecuteAffirmativeAction" IsVisible="@IsButtonOkShown" IsEnabled="@IsButtonOkEnabled">
+													<Children>
+														<TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="22" VerticalAlignment="Center" MarginLeft="30" MarginRight="25" Brush="Popup.Button.Text" Text="@ButtonOkLabel" />
+													</Children>
+												</ButtonWidget>
+											</Children>
+										</Widget>
+
+									</Children>
+								</ListPanel>
+
+							</Children>
+						</ListPanel>
+
+						<Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="StdAssets\Popup\canvas_gradient" IsEnabled="false" />
+
+						<!--Frame Border-->
+						<Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="frame_9" ExtendLeft="18" ExtendTop="18" ExtendRight="18" ExtendBottom="18" IsEnabled="false" />
+
+					</Children>
+				</DimensionSyncWidget>
+
+			</Children>
+		</TextQueryParentWidget>
+		
+	</Window>
+</Prefab>

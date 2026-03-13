@@ -1,0 +1,813 @@
+[17:55:45.158] [RP_ITEM_MANAGER] RegisterEvents: GameStateManager found, listener registered: True
+[17:55:45.806] [RP_ITEM_MANAGER] OnPushState called: Type=VideoPlaybackState, isTopGameState=True
+[17:55:49.884] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterCreationState, isTopGameState=True
+[17:56:12.289] [RP_ITEM_MANAGER] RegisterEvents: GameStateManager found, listener registered: True
+[17:56:12.667] [RP_ITEM_MANAGER] OnPushState called: Type=VideoPlaybackState, isTopGameState=True
+[17:56:21.974] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterCreationState, isTopGameState=True
+[18:00:47.952] [RP_ITEM_MANAGER] OnPushState called: Type=MapState, isTopGameState=True
+[18:03:34.220] [RP_ITEM_MANAGER] RegisterEvents: GameStateManager found, listener registered: True
+[18:03:35.764] [RP_ITEM_MANAGER] OnPushState called: Type=MapState, isTopGameState=True
+[18:05:36.603] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[18:05:36.603] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[18:05:36.604] [RP_ITEM_MANAGER] Synchronization completed
+[18:06:01.989] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[18:06:19.840] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[18:06:40.340] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[18:06:44.761] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[18:06:55.610] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[18:06:55.611] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[18:06:55.611] [RP_ITEM_MANAGER] Synchronization completed
+[18:07:08.472] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[18:07:25.863] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[18:07:25.864] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[18:07:25.864] [RP_ITEM_MANAGER] Synchronization completed
+[18:07:40.617] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[18:08:25.218] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[18:08:25.218] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[18:08:25.218] [RP_ITEM_MANAGER] Synchronization completed
+[18:08:38.212] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[18:09:03.068] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[18:09:03.068] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[18:09:03.069] [RP_ITEM_MANAGER] Synchronization completed
+[18:09:15.996] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[18:09:30.003] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[18:09:45.284] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[18:09:45.285] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[18:09:45.285] [RP_ITEM_MANAGER] Synchronization completed
+[18:09:55.384] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[18:10:14.915] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[18:10:14.915] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[18:10:14.915] [RP_ITEM_MANAGER] Synchronization completed
+[18:11:28.950] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[18:11:42.815] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[18:11:42.815] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[18:11:42.815] [RP_ITEM_MANAGER] Synchronization completed
+[18:11:50.033] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[18:12:04.274] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[18:12:14.439] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[18:12:43.821] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[18:12:43.822] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[18:12:43.822] [RP_ITEM_MANAGER] Synchronization completed
+[18:12:49.487] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[18:13:07.280] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[18:13:07.280] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[18:13:07.280] [RP_ITEM_MANAGER] Synchronization completed
+[18:13:13.774] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[18:13:35.117] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[18:13:35.117] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[18:13:35.118] [RP_ITEM_MANAGER] Synchronization completed
+[18:13:59.878] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[18:15:42.498] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[18:15:49.598] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[18:16:00.362] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[18:16:00.362] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[18:16:00.362] [RP_ITEM_MANAGER] Synchronization completed
+[18:16:17.929] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[18:18:40.866] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[18:18:40.867] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[18:18:40.867] [RP_ITEM_MANAGER] Synchronization completed
+[18:18:52.122] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[18:18:52.122] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[18:18:52.122] [RP_ITEM_MANAGER] Synchronization completed
+[18:19:37.239] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[18:27:51.364] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[18:27:51.364] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[18:27:51.365] [RP_ITEM_MANAGER] Synchronization completed
+[18:29:39.270] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[18:29:59.200] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[18:30:27.408] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[18:30:44.709] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[18:30:44.710] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[18:30:44.710] [RP_ITEM_MANAGER] Synchronization completed
+[18:30:49.988] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[18:30:49.988] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[18:30:49.990] [RP_ITEM_MANAGER] Synchronization completed
+[18:32:10.307] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[18:32:18.715] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[18:41:26.982] [RP_ITEM_MANAGER] RegisterEvents: GameStateManager found, listener registered: True
+[18:41:28.617] [RP_ITEM_MANAGER] OnPushState called: Type=MapState, isTopGameState=True
+[18:42:13.954] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[18:47:34.713] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[18:47:34.713] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[18:47:34.714] [RP_ITEM_MANAGER] Synchronization completed
+[18:47:49.184] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[18:47:49.185] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[18:47:49.185] [RP_ITEM_MANAGER] Synchronization completed
+[18:49:11.910] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[18:50:45.056] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[18:51:38.591] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[18:51:38.591] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[18:51:38.592] [RP_ITEM_MANAGER] Synchronization completed
+[18:56:57.681] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[18:56:57.682] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[18:56:57.682] [RP_ITEM_MANAGER] Synchronization completed
+[19:00:35.521] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[19:03:36.553] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[19:03:36.554] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[19:03:36.555] [RP_ITEM_MANAGER] Synchronization completed
+[19:14:23.068] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[19:24:26.775] [RP_ITEM_MANAGER] RegisterEvents: GameStateManager found, listener registered: True
+[19:24:28.203] [RP_ITEM_MANAGER] OnPushState called: Type=MapState, isTopGameState=True
+[19:25:12.799] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[19:25:12.799] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[19:25:12.800] [RP_ITEM_MANAGER] Synchronization completed
+[19:25:41.509] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[19:31:57.873] [RP_ITEM_MANAGER] RegisterEvents: GameStateManager found, listener registered: True
+[19:31:59.312] [RP_ITEM_MANAGER] OnPushState called: Type=MapState, isTopGameState=True
+[19:36:00.269] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[19:36:00.269] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[19:36:00.271] [RP_ITEM_MANAGER] Synchronization completed
+[19:36:18.689] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[19:40:36.047] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[19:41:18.931] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[19:44:58.764] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[19:45:07.380] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[19:45:07.380] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[19:45:07.380] [RP_ITEM_MANAGER] Synchronization completed
+[19:45:36.254] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[19:46:05.493] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[19:46:05.494] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[19:46:05.494] [RP_ITEM_MANAGER] Synchronization completed
+[19:46:48.234] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[19:46:58.415] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[19:46:58.415] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[19:46:58.415] [RP_ITEM_MANAGER] Synchronization completed
+[19:47:29.398] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[19:48:03.484] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[19:48:03.484] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[19:48:03.484] [RP_ITEM_MANAGER] Synchronization completed
+[19:48:20.292] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[19:49:02.396] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[19:49:02.397] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[19:49:02.397] [RP_ITEM_MANAGER] Synchronization completed
+[19:49:09.166] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[19:50:06.191] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[19:50:06.191] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[19:50:06.191] [RP_ITEM_MANAGER] Synchronization completed
+[19:50:11.711] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[19:50:16.584] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[19:50:16.584] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[19:50:16.585] [RP_ITEM_MANAGER] Synchronization completed
+[19:50:21.875] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[19:51:13.997] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[19:51:13.997] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[19:51:13.998] [RP_ITEM_MANAGER] Synchronization completed
+[19:51:37.508] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[19:53:01.113] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[19:53:01.113] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[19:53:01.113] [RP_ITEM_MANAGER] Synchronization completed
+[19:54:45.660] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[20:01:27.434] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[20:01:27.436] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[20:01:27.436] [RP_ITEM_MANAGER] Synchronization completed
+[20:04:38.319] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[20:04:38.319] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[20:04:38.320] [RP_ITEM_MANAGER] Synchronization completed
+[20:04:42.604] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[20:05:02.182] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[20:05:02.183] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[20:05:02.183] [RP_ITEM_MANAGER] Synchronization completed
+[20:05:22.768] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[20:08:37.118] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[20:08:37.119] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[20:08:37.119] [RP_ITEM_MANAGER] Synchronization completed
+[20:08:49.375] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[20:09:16.118] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[20:09:16.119] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[20:09:16.119] [RP_ITEM_MANAGER] Synchronization completed
+[20:09:33.460] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[20:09:49.573] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[20:13:02.118] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[20:13:02.118] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[20:13:02.118] [RP_ITEM_MANAGER] Synchronization completed
+[20:13:52.231] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[20:13:52.231] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[20:13:52.231] [RP_ITEM_MANAGER] Synchronization completed
+[20:14:07.355] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[20:17:56.655] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[20:18:02.297] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[20:18:02.297] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[20:18:02.297] [RP_ITEM_MANAGER] Synchronization completed
+[20:18:37.557] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[20:19:47.767] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[20:24:34.795] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[20:25:11.515] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[20:25:11.515] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[20:25:11.516] [RP_ITEM_MANAGER] Synchronization completed
+[20:31:39.751] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[20:31:54.924] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[20:34:13.276] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[20:34:13.277] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[20:34:13.277] [RP_ITEM_MANAGER] Synchronization completed
+[20:35:15.388] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[20:49:32.894] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[20:50:09.211] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[20:51:34.664] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[20:51:34.664] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[20:51:34.665] [RP_ITEM_MANAGER] Synchronization completed
+[20:51:54.529] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[20:58:12.367] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[21:15:46.138] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[21:16:34.081] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[21:29:05.272] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[21:29:05.273] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[21:29:05.273] [RP_ITEM_MANAGER] Synchronization completed
+[21:37:44.247] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[21:38:00.552] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[21:38:00.552] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[21:38:00.552] [RP_ITEM_MANAGER] Synchronization completed
+[21:39:03.379] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[21:42:49.411] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[21:43:25.362] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[21:43:25.363] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[21:43:25.363] [RP_ITEM_MANAGER] Synchronization completed
+[21:46:21.853] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[21:46:21.853] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[21:46:21.853] [RP_ITEM_MANAGER] Synchronization completed
+[21:46:32.181] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[21:47:07.941] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[21:52:04.923] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[21:52:25.506] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[21:52:25.507] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[21:52:25.507] [RP_ITEM_MANAGER] Synchronization completed
+[21:53:06.140] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[21:53:21.130] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[21:54:08.793] [RP_ITEM_MANAGER] RegisterEvents: GameStateManager found, listener registered: True
+[21:54:09.861] [RP_ITEM_MANAGER] OnPushState called: Type=MapState, isTopGameState=True
+[21:54:39.573] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[21:54:39.573] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[21:54:39.573] [RP_ITEM_MANAGER] Synchronization completed
+[21:55:07.829] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[21:55:20.020] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[21:55:20.021] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[21:55:20.021] [RP_ITEM_MANAGER] Synchronization completed
+[21:55:29.268] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[21:55:29.268] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[21:55:29.268] [RP_ITEM_MANAGER] Synchronization completed
+[21:55:35.499] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[21:55:55.331] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[21:55:55.331] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[21:55:55.331] [RP_ITEM_MANAGER] Synchronization completed
+[21:56:02.770] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[22:02:23.508] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[22:03:28.045] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[22:06:29.036] [RP_ITEM_MANAGER] RegisterEvents: GameStateManager found, listener registered: True
+[22:06:30.112] [RP_ITEM_MANAGER] OnPushState called: Type=MapState, isTopGameState=True
+[22:08:29.355] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[22:08:29.355] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[22:08:29.355] [RP_ITEM_MANAGER] Synchronization completed
+[22:09:00.017] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[22:10:31.285] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[22:10:31.285] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[22:10:31.285] [RP_ITEM_MANAGER] Synchronization completed
+[22:10:37.996] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[22:13:02.238] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[22:13:02.238] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[22:13:02.239] [RP_ITEM_MANAGER] Synchronization completed
+[22:13:31.391] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[22:13:31.391] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[22:13:31.392] [RP_ITEM_MANAGER] Synchronization completed
+[22:18:17.941] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[22:20:28.629] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[22:21:17.686] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[22:22:20.927] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[22:24:01.820] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[22:42:34.390] [RP_ITEM_MANAGER] RegisterEvents: GameStateManager found, listener registered: True
+[22:42:34.989] [RP_ITEM_MANAGER] OnPushState called: Type=VideoPlaybackState, isTopGameState=True
+[22:42:38.620] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterCreationState, isTopGameState=True
+[22:45:06.802] [RP_ITEM_MANAGER] OnPushState called: Type=MapState, isTopGameState=True
+[22:45:07.422] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[22:50:53.616] [RP_ITEM_MANAGER] RegisterEvents: GameStateManager found, listener registered: True
+[22:50:54.235] [RP_ITEM_MANAGER] OnPushState called: Type=VideoPlaybackState, isTopGameState=True
+[22:50:58.959] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterCreationState, isTopGameState=True
+[22:52:55.996] [RP_ITEM_MANAGER] OnPushState called: Type=MapState, isTopGameState=True
+[22:53:07.971] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[22:53:07.971] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[22:53:07.972] [RP_ITEM_MANAGER] Synchronization completed
+[22:53:34.818] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[22:54:01.929] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[22:54:36.187] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[22:54:55.508] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[22:54:55.509] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[22:54:55.509] [RP_ITEM_MANAGER] Synchronization completed
+[22:55:02.422] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[22:55:02.422] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[22:55:02.422] [RP_ITEM_MANAGER] Synchronization completed
+[22:55:27.686] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[22:55:46.625] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[22:55:46.625] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[22:55:46.626] [RP_ITEM_MANAGER] Synchronization completed
+[22:55:56.530] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[22:56:42.069] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[22:56:42.069] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[22:56:42.069] [RP_ITEM_MANAGER] Synchronization completed
+[22:56:51.563] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[22:56:56.400] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[22:56:56.400] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[22:56:56.400] [RP_ITEM_MANAGER] Synchronization completed
+[22:57:02.125] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[22:58:11.018] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[22:58:17.160] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[22:58:17.161] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[22:58:17.161] [RP_ITEM_MANAGER] Synchronization completed
+[22:58:23.092] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[23:03:28.722] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:03:28.722] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:03:28.722] [RP_ITEM_MANAGER] Synchronization completed
+[23:03:32.569] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:03:32.569] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:03:32.569] [RP_ITEM_MANAGER] Synchronization completed
+[23:03:56.278] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:03:56.278] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:03:56.278] [RP_ITEM_MANAGER] Synchronization completed
+[23:04:07.886] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[23:04:17.170] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[23:04:28.816] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[23:13:02.797] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[23:13:34.814] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:13:34.814] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:13:34.814] [RP_ITEM_MANAGER] Synchronization completed
+[23:13:47.231] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:13:47.231] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:13:47.231] [RP_ITEM_MANAGER] Synchronization completed
+[23:14:08.691] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[23:14:23.847] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:14:23.847] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:14:23.847] [RP_ITEM_MANAGER] Synchronization completed
+[23:14:52.879] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[23:17:07.777] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:17:07.777] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:17:07.777] [RP_ITEM_MANAGER] Synchronization completed
+[23:17:13.041] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:17:13.042] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:17:13.042] [RP_ITEM_MANAGER] Synchronization completed
+[23:17:30.614] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[23:18:22.478] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:18:22.478] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:18:22.478] [RP_ITEM_MANAGER] Synchronization completed
+[23:18:42.469] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[23:19:34.370] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:19:34.370] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:19:34.370] [RP_ITEM_MANAGER] Synchronization completed
+[23:19:38.930] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:19:38.930] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:19:38.930] [RP_ITEM_MANAGER] Synchronization completed
+[23:19:47.480] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:19:47.480] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:19:47.481] [RP_ITEM_MANAGER] Synchronization completed
+[23:19:51.540] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[23:20:28.078] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:20:28.078] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:20:28.078] [RP_ITEM_MANAGER] Synchronization completed
+[23:20:41.429] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[23:21:00.538] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:21:00.538] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:21:00.538] [RP_ITEM_MANAGER] Synchronization completed
+[23:21:05.152] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[23:21:26.158] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[23:21:28.635] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:21:28.636] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:21:28.636] [RP_ITEM_MANAGER] Synchronization completed
+[23:21:33.395] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:21:33.395] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:21:33.395] [RP_ITEM_MANAGER] Synchronization completed
+[23:21:47.228] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:21:47.228] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:21:47.228] [RP_ITEM_MANAGER] Synchronization completed
+[23:21:50.892] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[23:22:04.618] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:22:04.618] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:22:04.619] [RP_ITEM_MANAGER] Synchronization completed
+[23:22:11.066] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:22:11.066] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:22:11.066] [RP_ITEM_MANAGER] Synchronization completed
+[23:22:25.287] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[23:22:36.171] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[23:22:54.399] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:22:54.399] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:22:54.399] [RP_ITEM_MANAGER] Synchronization completed
+[23:23:01.269] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:23:01.269] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:23:01.269] [RP_ITEM_MANAGER] Synchronization completed
+[23:23:11.289] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[23:23:55.458] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:23:55.459] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:23:55.459] [RP_ITEM_MANAGER] Synchronization completed
+[23:23:59.950] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:23:59.950] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:23:59.950] [RP_ITEM_MANAGER] Synchronization completed
+[23:24:03.830] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:24:03.830] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:24:03.830] [RP_ITEM_MANAGER] Synchronization completed
+[23:24:13.804] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:24:13.805] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:24:13.805] [RP_ITEM_MANAGER] Synchronization completed
+[23:24:22.027] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[23:25:16.861] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[23:25:20.481] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[23:25:25.108] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:25:25.108] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:25:25.109] [RP_ITEM_MANAGER] Synchronization completed
+[23:25:31.770] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:25:31.770] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:25:31.770] [RP_ITEM_MANAGER] Synchronization completed
+[23:26:01.656] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[23:26:37.689] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[23:26:40.025] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:26:40.027] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:26:40.027] [RP_ITEM_MANAGER] Synchronization completed
+[23:27:34.520] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[23:28:16.393] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:28:16.393] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:28:16.394] [RP_ITEM_MANAGER] Synchronization completed
+[23:28:29.550] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[23:28:48.528] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[23:28:57.093] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[23:29:42.619] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:29:42.619] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:29:42.619] [RP_ITEM_MANAGER] Synchronization completed
+[23:30:02.068] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:30:02.068] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:30:02.068] [RP_ITEM_MANAGER] Synchronization completed
+[23:30:39.881] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[23:31:10.638] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:31:10.638] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:31:10.638] [RP_ITEM_MANAGER] Synchronization completed
+[23:31:25.865] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[23:32:05.765] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:32:05.765] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:32:05.765] [RP_ITEM_MANAGER] Synchronization completed
+[23:32:23.247] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[23:32:32.464] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:32:32.464] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:32:32.464] [RP_ITEM_MANAGER] Synchronization completed
+[23:33:02.807] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[23:33:36.003] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:33:36.003] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:33:36.003] [RP_ITEM_MANAGER] Synchronization completed
+[23:34:28.675] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[23:36:04.265] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:36:04.266] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:36:04.266] [RP_ITEM_MANAGER] Synchronization completed
+[23:37:27.313] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:37:27.313] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:37:27.313] [RP_ITEM_MANAGER] Synchronization completed
+[23:39:20.310] [RP_ITEM_MANAGER] Created RP item: Safe Passage (ID: ai_rp_item_430e1)
+[23:43:21.832] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[23:43:40.506] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[23:43:45.309] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[23:44:17.059] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:44:17.059] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:44:17.071] [RP_ITEM_MANAGER] Synchronized item ai_rp_item_430e1: Name='Safe Passage', Description='A signed seal of the Mestricaros clan granting protection to Osarios the Smith'
+[23:44:17.071] [RP_ITEM_MANAGER] Synchronized 1 items from JSON
+[23:44:17.071] [RP_ITEM_MANAGER] Synchronization completed
+[23:44:30.127] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[23:46:16.139] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:46:16.140] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:46:16.141] [RP_ITEM_MANAGER] Synchronized item ai_rp_item_430e1: Name='Safe Passage', Description='A signed seal of the Mestricaros clan granting protection to Osarios the Smith'
+[23:46:16.142] [RP_ITEM_MANAGER] Synchronized 1 items from JSON
+[23:46:16.142] [RP_ITEM_MANAGER] Synchronization completed
+[23:46:32.863] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[23:51:39.334] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:51:39.334] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:51:39.335] [RP_ITEM_MANAGER] Synchronized item ai_rp_item_430e1: Name='Safe Passage', Description='A signed seal of the Mestricaros clan granting protection to Osarios the Smith'
+[23:51:39.335] [RP_ITEM_MANAGER] Synchronized 1 items from JSON
+[23:51:39.336] [RP_ITEM_MANAGER] Synchronization completed
+[23:51:44.872] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:51:44.872] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:51:44.873] [RP_ITEM_MANAGER] Synchronized item ai_rp_item_430e1: Name='Safe Passage', Description='A signed seal of the Mestricaros clan granting protection to Osarios the Smith'
+[23:51:44.874] [RP_ITEM_MANAGER] Synchronized 1 items from JSON
+[23:51:44.874] [RP_ITEM_MANAGER] Synchronization completed
+[23:51:51.015] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[23:52:06.041] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[23:52:13.762] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[23:53:10.245] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:53:10.245] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:53:10.246] [RP_ITEM_MANAGER] Synchronized item ai_rp_item_430e1: Name='Safe Passage', Description='A signed seal of the Mestricaros clan granting protection to Osarios the Smith'
+[23:53:10.247] [RP_ITEM_MANAGER] Synchronized 1 items from JSON
+[23:53:10.247] [RP_ITEM_MANAGER] Synchronization completed
+[23:53:33.082] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[23:57:32.920] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:57:32.921] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:57:32.923] [RP_ITEM_MANAGER] Synchronized item ai_rp_item_430e1: Name='Safe Passage', Description='A signed seal of the Mestricaros clan granting protection to Osarios the Smith'
+[23:57:32.923] [RP_ITEM_MANAGER] Synchronized 1 items from JSON
+[23:57:32.924] [RP_ITEM_MANAGER] Synchronization completed
+[23:57:41.263] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[23:58:14.747] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:58:14.747] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:58:14.749] [RP_ITEM_MANAGER] Synchronized item ai_rp_item_430e1: Name='Safe Passage', Description='A signed seal of the Mestricaros clan granting protection to Osarios the Smith'
+[23:58:14.749] [RP_ITEM_MANAGER] Synchronized 1 items from JSON
+[23:58:14.749] [RP_ITEM_MANAGER] Synchronization completed
+[23:58:22.341] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[23:58:53.544] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:58:53.544] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:58:53.545] [RP_ITEM_MANAGER] Synchronized item ai_rp_item_430e1: Name='Safe Passage', Description='A signed seal of the Mestricaros clan granting protection to Osarios the Smith'
+[23:58:53.546] [RP_ITEM_MANAGER] Synchronized 1 items from JSON
+[23:58:53.546] [RP_ITEM_MANAGER] Synchronization completed
+[23:59:09.166] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[23:59:09.166] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[23:59:09.169] [RP_ITEM_MANAGER] Synchronized item ai_rp_item_430e1: Name='Safe Passage', Description='A signed seal of the Mestricaros clan granting protection to Osarios the Smith'
+[23:59:09.170] [RP_ITEM_MANAGER] Synchronized 1 items from JSON
+[23:59:09.170] [RP_ITEM_MANAGER] Synchronization completed
+[23:59:24.788] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[00:01:19.363] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[00:01:19.363] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[00:01:19.365] [RP_ITEM_MANAGER] Synchronized item ai_rp_item_430e1: Name='Safe Passage', Description='A signed seal of the Mestricaros clan granting protection to Osarios the Smith'
+[00:01:19.365] [RP_ITEM_MANAGER] Synchronized 1 items from JSON
+[00:01:19.365] [RP_ITEM_MANAGER] Synchronization completed
+[00:01:44.293] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[00:04:49.654] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[00:06:31.838] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[00:09:24.216] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[00:09:24.216] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[00:09:24.217] [RP_ITEM_MANAGER] Synchronized item ai_rp_item_430e1: Name='Safe Passage', Description='A signed seal of the Mestricaros clan granting protection to Osarios the Smith'
+[00:09:24.218] [RP_ITEM_MANAGER] Synchronized 1 items from JSON
+[00:09:24.218] [RP_ITEM_MANAGER] Synchronization completed
+[00:09:40.604] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[00:09:54.115] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[00:13:45.973] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[00:13:45.973] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[00:13:45.974] [RP_ITEM_MANAGER] Synchronized item ai_rp_item_430e1: Name='Safe Passage', Description='A signed seal of the Mestricaros clan granting protection to Osarios the Smith'
+[00:13:45.974] [RP_ITEM_MANAGER] Synchronized 1 items from JSON
+[00:13:45.976] [RP_ITEM_MANAGER] Synchronization completed
+[00:17:05.063] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[00:17:05.063] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[00:17:05.066] [RP_ITEM_MANAGER] Synchronized item ai_rp_item_430e1: Name='Safe Passage', Description='A signed seal of the Mestricaros clan granting protection to Osarios the Smith'
+[00:17:05.066] [RP_ITEM_MANAGER] Synchronized 1 items from JSON
+[00:17:05.066] [RP_ITEM_MANAGER] Synchronization completed
+[00:17:31.172] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[00:17:31.172] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[00:17:31.174] [RP_ITEM_MANAGER] Synchronized item ai_rp_item_430e1: Name='Safe Passage', Description='A signed seal of the Mestricaros clan granting protection to Osarios the Smith'
+[00:17:31.174] [RP_ITEM_MANAGER] Synchronized 1 items from JSON
+[00:17:31.174] [RP_ITEM_MANAGER] Synchronization completed
+[00:17:39.310] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[00:17:39.310] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[00:17:39.311] [RP_ITEM_MANAGER] Synchronized item ai_rp_item_430e1: Name='Safe Passage', Description='A signed seal of the Mestricaros clan granting protection to Osarios the Smith'
+[00:17:39.312] [RP_ITEM_MANAGER] Synchronized 1 items from JSON
+[00:17:39.312] [RP_ITEM_MANAGER] Synchronization completed
+[00:18:51.507] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[00:18:51.507] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[00:18:51.508] [RP_ITEM_MANAGER] Synchronized item ai_rp_item_430e1: Name='Safe Passage', Description='A signed seal of the Mestricaros clan granting protection to Osarios the Smith'
+[00:18:51.510] [RP_ITEM_MANAGER] Synchronized 1 items from JSON
+[00:18:51.510] [RP_ITEM_MANAGER] Synchronization completed
+[00:19:11.084] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[00:19:34.220] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[00:25:32.837] [RP_ITEM_MANAGER] Created RP item: Safe Passage (ID: ai_rp_item_430e1)
+[00:25:32.837] [RP_ITEM_MANAGER] Recreated item: Safe Passage
+[00:25:32.838] [RP_ITEM_MANAGER] Restored item Safe Passage to MainParty
+[00:25:32.838] [RP_ITEM_MANAGER] Loaded 1 RP items, removed 0 items with dead creators
+[00:25:32.839] [RP_ITEM_MANAGER] RegisterEvents: GameStateManager found, listener registered: True
+[00:25:33.863] [RP_ITEM_MANAGER] OnPushState called: Type=MapState, isTopGameState=True
+[00:25:40.237] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[00:25:52.662] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[00:25:52.662] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[00:25:52.663] [RP_ITEM_MANAGER] Synchronized item ai_rp_item_430e1: Name='Safe Passage', Description='A signed seal of the Mestricaros clan granting protection to Osarios the Smith'
+[00:25:52.663] [RP_ITEM_MANAGER] Synchronized 1 items from JSON
+[00:25:52.663] [RP_ITEM_MANAGER] Synchronization completed
+[00:26:04.861] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[00:26:18.951] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[00:26:18.962] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[00:26:18.963] [RP_ITEM_MANAGER] Synchronized item ai_rp_item_430e1: Name='Safe Passage', Description='A signed seal of the Mestricaros clan granting protection to Osarios the Smith'
+[00:26:18.964] [RP_ITEM_MANAGER] Synchronized 1 items from JSON
+[00:26:18.964] [RP_ITEM_MANAGER] Synchronization completed
+[00:26:27.012] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[00:26:44.457] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[00:26:44.458] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[00:26:44.459] [RP_ITEM_MANAGER] Synchronized item ai_rp_item_430e1: Name='Safe Passage', Description='A signed seal of the Mestricaros clan granting protection to Osarios the Smith'
+[00:26:44.460] [RP_ITEM_MANAGER] Synchronized 1 items from JSON
+[00:26:44.460] [RP_ITEM_MANAGER] Synchronization completed
+[00:28:06.691] [RP_ITEM_MANAGER] Daily check: Attempted to restore items for available owners
+[00:28:14.007] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[00:28:23.143] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[00:29:10.842] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[00:29:10.842] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[00:29:10.843] [RP_ITEM_MANAGER] Synchronized item ai_rp_item_430e1: Name='Safe Passage', Description='A signed seal of the Mestricaros clan granting protection to Osarios the Smith'
+[00:29:10.844] [RP_ITEM_MANAGER] Synchronized 1 items from JSON
+[00:29:10.844] [RP_ITEM_MANAGER] Synchronization completed
+[00:30:20.282] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[00:30:20.283] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[00:30:20.284] [RP_ITEM_MANAGER] Synchronized item ai_rp_item_430e1: Name='Safe Passage', Description='A signed seal of the Mestricaros clan granting protection to Osarios the Smith'
+[00:30:20.284] [RP_ITEM_MANAGER] Synchronized 1 items from JSON
+[00:30:20.286] [RP_ITEM_MANAGER] Synchronization completed
+[00:30:54.714] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[00:40:08.918] [RP_ITEM_MANAGER] Created RP item: Safe Passage (ID: ai_rp_item_430e1)
+[00:40:08.918] [RP_ITEM_MANAGER] Recreated item: Safe Passage
+[00:40:08.919] [RP_ITEM_MANAGER] Restored item Safe Passage to MainParty
+[00:40:08.919] [RP_ITEM_MANAGER] Loaded 1 RP items, removed 0 items with dead creators
+[00:40:08.919] [RP_ITEM_MANAGER] RegisterEvents: GameStateManager found, listener registered: True
+[00:40:10.033] [RP_ITEM_MANAGER] OnPushState called: Type=MapState, isTopGameState=True
+[00:40:42.951] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[00:40:42.951] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[00:40:42.952] [RP_ITEM_MANAGER] Synchronized item ai_rp_item_430e1: Name='Safe Passage', Description='A signed seal of the Mestricaros clan granting protection to Osarios the Smith'
+[00:40:42.952] [RP_ITEM_MANAGER] Synchronized 1 items from JSON
+[00:40:42.952] [RP_ITEM_MANAGER] Synchronization completed
+[00:41:49.483] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[00:42:01.222] [RP_ITEM_MANAGER] Daily check: Attempted to restore items for available owners
+[00:42:46.074] [RP_ITEM_MANAGER] Daily check: Attempted to restore items for available owners
+[00:43:05.813] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[00:45:06.175] [RP_ITEM_MANAGER] Daily check: Attempted to restore items for available owners
+[00:45:42.012] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[00:46:17.083] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[00:46:17.083] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[00:46:17.085] [RP_ITEM_MANAGER] Synchronized item ai_rp_item_430e1: Name='Safe Passage', Description='A signed seal of the Mestricaros clan granting protection to Osarios the Smith'
+[00:46:17.086] [RP_ITEM_MANAGER] Synchronized 1 items from JSON
+[00:46:17.086] [RP_ITEM_MANAGER] Synchronization completed
+[00:48:52.718] [RP_ITEM_MANAGER] OnPushState called: Type=ClanState, isTopGameState=False
+[00:49:11.318] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[00:49:58.095] [RP_ITEM_MANAGER] Daily check: Attempted to restore items for available owners
+[00:50:03.131] [RP_ITEM_MANAGER] Daily check: Attempted to restore items for available owners
+[00:50:17.825] [RP_ITEM_MANAGER] Daily check: Attempted to restore items for available owners
+[00:50:23.273] [RP_ITEM_MANAGER] Daily check: Attempted to restore items for available owners
+[00:50:27.556] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[00:50:39.032] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[00:50:39.032] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[00:50:39.034] [RP_ITEM_MANAGER] Synchronized item ai_rp_item_430e1: Name='Safe Passage', Description='A signed seal of the Mestricaros clan granting protection to Osarios the Smith'
+[00:50:39.035] [RP_ITEM_MANAGER] Synchronized 1 items from JSON
+[00:50:39.035] [RP_ITEM_MANAGER] Synchronization completed
+[00:50:52.797] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[00:50:52.797] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[00:50:52.799] [RP_ITEM_MANAGER] Synchronized item ai_rp_item_430e1: Name='Safe Passage', Description='A signed seal of the Mestricaros clan granting protection to Osarios the Smith'
+[00:50:52.800] [RP_ITEM_MANAGER] Synchronized 1 items from JSON
+[00:50:52.800] [RP_ITEM_MANAGER] Synchronization completed
+[00:51:06.592] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[00:51:06.592] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[00:51:06.594] [RP_ITEM_MANAGER] Synchronized item ai_rp_item_430e1: Name='Safe Passage', Description='A signed seal of the Mestricaros clan granting protection to Osarios the Smith'
+[00:51:06.594] [RP_ITEM_MANAGER] Synchronized 1 items from JSON
+[00:51:06.594] [RP_ITEM_MANAGER] Synchronization completed
+[00:51:19.465] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[00:53:10.402] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[00:53:13.874] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[00:53:13.875] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[00:53:13.875] [RP_ITEM_MANAGER] Synchronized item ai_rp_item_430e1: Name='Safe Passage', Description='A signed seal of the Mestricaros clan granting protection to Osarios the Smith'
+[00:53:13.876] [RP_ITEM_MANAGER] Synchronized 1 items from JSON
+[00:53:13.876] [RP_ITEM_MANAGER] Synchronization completed
+[00:53:26.638] [RP_ITEM_MANAGER] OnPushState called: Type=ClanState, isTopGameState=False
+[00:55:38.040] [RP_ITEM_MANAGER] OnPushState called: Type=ClanState, isTopGameState=False
+[00:56:08.160] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[00:59:00.173] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[00:59:03.471] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[00:59:03.471] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[00:59:03.473] [RP_ITEM_MANAGER] Synchronized item ai_rp_item_430e1: Name='Safe Passage', Description='A signed seal of the Mestricaros clan granting protection to Osarios the Smith'
+[00:59:03.473] [RP_ITEM_MANAGER] Synchronized 1 items from JSON
+[00:59:03.474] [RP_ITEM_MANAGER] Synchronization completed
+[00:59:26.808] [RP_ITEM_MANAGER] Daily check: Attempted to restore items for available owners
+[00:59:29.723] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[00:59:29.734] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[00:59:29.735] [RP_ITEM_MANAGER] Synchronized item ai_rp_item_430e1: Name='Safe Passage', Description='A signed seal of the Mestricaros clan granting protection to Osarios the Smith'
+[00:59:29.736] [RP_ITEM_MANAGER] Synchronized 1 items from JSON
+[00:59:29.736] [RP_ITEM_MANAGER] Synchronization completed
+[00:59:57.201] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[14:21:20.498] [RP_ITEM_MANAGER] RegisterEvents: GameStateManager found, listener registered: True
+[14:21:21.221] [RP_ITEM_MANAGER] OnPushState called: Type=VideoPlaybackState, isTopGameState=True
+[14:21:35.000] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterCreationState, isTopGameState=True
+[14:31:42.056] [RP_ITEM_MANAGER] RegisterEvents: GameStateManager found, listener registered: True
+[14:31:44.107] [RP_ITEM_MANAGER] OnPushState called: Type=VideoPlaybackState, isTopGameState=True
+[14:32:30.669] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterCreationState, isTopGameState=True
+[14:42:55.638] [RP_ITEM_MANAGER] OnPushState called: Type=MapState, isTopGameState=True
+[14:43:10.936] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[14:43:10.937] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[14:43:10.938] [RP_ITEM_MANAGER] Synchronization completed
+[14:43:28.859] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[14:43:28.860] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[14:43:28.860] [RP_ITEM_MANAGER] Synchronization completed
+[14:43:32.471] [RP_ITEM_MANAGER] OnPushState called: Type=CraftingState, isTopGameState=False
+[14:45:30.077] [RP_ITEM_MANAGER] RegisterEvents: GameStateManager found, listener registered: True
+[14:45:31.714] [RP_ITEM_MANAGER] OnPushState called: Type=VideoPlaybackState, isTopGameState=True
+[14:45:33.938] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterCreationState, isTopGameState=True
+[14:47:53.261] [RP_ITEM_MANAGER] OnPushState called: Type=MapState, isTopGameState=True
+[14:47:55.873] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[14:47:55.873] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[14:47:55.875] [RP_ITEM_MANAGER] Synchronization completed
+[14:47:58.933] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[14:48:05.042] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[14:48:06.840] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[14:49:24.908] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[14:55:21.541] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[14:55:24.446] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[14:55:24.446] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[14:55:24.446] [RP_ITEM_MANAGER] Synchronization completed
+[14:57:18.893] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[14:57:18.893] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[14:57:18.893] [RP_ITEM_MANAGER] Synchronization completed
+[14:59:14.764] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[15:04:52.772] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[15:05:11.033] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[15:14:40.300] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[15:14:46.914] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[15:14:46.914] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[15:14:46.914] [RP_ITEM_MANAGER] Synchronization completed
+[15:17:42.047] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[15:18:02.201] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[15:18:06.671] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[15:18:06.671] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[15:18:06.672] [RP_ITEM_MANAGER] Synchronization completed
+[15:18:58.235] [RP_ITEM_MANAGER] OnPushState called: Type=ClanState, isTopGameState=False
+[15:19:36.876] [RP_ITEM_MANAGER] OnPushState called: Type=ClanState, isTopGameState=False
+[15:33:48.499] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[15:38:59.638] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[15:39:31.081] [RP_ITEM_MANAGER] OnPushState called: Type=QuestsState, isTopGameState=False
+[15:40:59.457] [RP_ITEM_MANAGER] RegisterEvents: GameStateManager found, listener registered: True
+[15:41:02.072] [RP_ITEM_MANAGER] OnPushState called: Type=MapState, isTopGameState=True
+[15:41:16.552] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[15:41:16.552] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[15:41:16.552] [RP_ITEM_MANAGER] Synchronization completed
+[15:41:32.060] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[15:41:32.061] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[15:41:32.061] [RP_ITEM_MANAGER] Synchronization completed
+[15:42:33.846] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[15:42:51.927] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[15:42:54.734] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[15:43:17.964] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[15:54:02.883] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[15:54:21.729] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[15:54:21.730] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[15:54:21.730] [RP_ITEM_MANAGER] Synchronization completed
+[15:55:24.855] [RP_ITEM_MANAGER] OnPushState called: Type=QuestsState, isTopGameState=False
+[15:55:41.666] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[16:08:50.160] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[16:09:10.042] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[16:26:33.822] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[16:27:47.089] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[16:30:45.904] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[16:30:58.736] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[16:30:58.736] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[16:30:58.736] [RP_ITEM_MANAGER] Synchronization completed
+[16:32:07.594] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[16:32:07.594] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[16:32:07.594] [RP_ITEM_MANAGER] Synchronization completed
+[16:32:35.995] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[16:33:02.157] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[16:35:07.297] [RP_ITEM_MANAGER] OnPushState called: Type=QuestsState, isTopGameState=False
+[16:39:35.536] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[16:42:01.834] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[16:42:11.396] [RP_ITEM_MANAGER] OnPushState called: Type=QuestsState, isTopGameState=False
+[16:42:47.135] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[16:45:03.704] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[16:45:03.705] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[16:45:03.705] [RP_ITEM_MANAGER] Synchronization completed
+[16:48:36.219] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[16:48:36.221] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[16:48:36.221] [RP_ITEM_MANAGER] Synchronization completed
+[16:48:50.008] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[16:48:57.924] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[16:48:57.924] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[16:48:57.924] [RP_ITEM_MANAGER] Synchronization completed
+[16:49:07.882] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[16:49:21.548] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[16:49:48.988] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[16:49:48.988] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[16:49:48.989] [RP_ITEM_MANAGER] Synchronization completed
+[16:50:26.979] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[16:51:37.788] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[16:51:46.309] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[16:51:46.309] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[16:51:46.310] [RP_ITEM_MANAGER] Synchronization completed
+[16:52:15.950] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[16:54:01.196] [RP_ITEM_MANAGER] Created RP item: Scroll of Morenia (ID: ai_rp_item_c7617)
+[17:06:00.867] [RP_ITEM_MANAGER] Created RP item: Scroll of Morenia (ID: ai_rp_item_c7617)
+[17:06:00.867] [RP_ITEM_MANAGER] Recreated item: Scroll of Morenia
+[17:06:00.870] [RP_ITEM_MANAGER] Restored item Scroll of Morenia to MainParty
+[17:06:00.870] [RP_ITEM_MANAGER] Loaded 1 RP items, removed 0 items with dead creators
+[17:06:00.871] [RP_ITEM_MANAGER] RegisterEvents: GameStateManager found, listener registered: True
+[17:06:04.372] [RP_ITEM_MANAGER] OnPushState called: Type=MapState, isTopGameState=True
+[17:06:13.680] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[17:06:20.928] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[17:06:29.879] [RP_ITEM_MANAGER] Daily check: Attempted to restore items for available owners
+[17:06:41.814] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[17:07:38.147] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[17:07:38.147] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[17:07:38.149] [RP_ITEM_MANAGER] Synchronized item ai_rp_item_c7617: Name='Scroll of Morenia', Description='A parchment signed by Lerosion, detailing the White Boar's victory over the forest bandits and bearing the clay seal of the village headman.'
+[17:07:38.152] [RP_ITEM_MANAGER] Synchronized 1 items from JSON
+[17:07:38.152] [RP_ITEM_MANAGER] Synchronization completed
+[17:07:59.953] [RP_ITEM_MANAGER] Daily check: Attempted to restore items for available owners
+[17:08:20.431] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
+[17:10:14.611] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[17:10:14.612] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[17:10:14.613] [RP_ITEM_MANAGER] Synchronized item ai_rp_item_c7617: Name='Scroll of Morenia', Description='A parchment signed by Lerosion, detailing the White Boar's victory over the forest bandits and bearing the clay seal of the village headman.'
+[17:10:14.614] [RP_ITEM_MANAGER] Synchronized 1 items from JSON
+[17:10:14.614] [RP_ITEM_MANAGER] Synchronization completed
+[17:13:00.237] [RP_ITEM_MANAGER] Daily check: Attempted to restore items for available owners
+[17:13:04.593] [RP_ITEM_MANAGER] OnPushState called: Type=QuestsState, isTopGameState=False
+[17:14:00.231] [RP_ITEM_MANAGER] UpdateItemOwner: ai_rp_item_c7617 owner changed MainParty -> lord_1_2_331
+[17:22:22.794] [RP_ITEM_MANAGER] Daily check: Attempted to restore items for available owners
+[17:22:26.135] [RP_ITEM_MANAGER] OnPushState called: Type=ClanState, isTopGameState=False
+[17:23:22.151] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[17:23:37.546] [RP_ITEM_MANAGER] Restored item Scroll of Morenia to Lexarios
+[17:23:37.546] [RP_ITEM_MANAGER] Daily check: Attempted to restore items for available owners
+[17:24:00.653] [RP_ITEM_MANAGER] OnPushState called: Type=InventoryState, isTopGameState=False
+[17:24:00.653] [RP_ITEM_MANAGER] Inventory opened, starting synchronization...
+[17:24:00.663] [RP_ITEM_MANAGER] Synchronized item ai_rp_item_c7617: Name='Scroll of Morenia', Description='A parchment signed by Lerosion, detailing the White Boar's victory over the forest bandits and bearing the clay seal of the village headman.'
+[17:24:00.664] [RP_ITEM_MANAGER] Synchronized 1 items from JSON
+[17:24:00.664] [RP_ITEM_MANAGER] Synchronization completed
+[17:24:50.151] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[17:25:38.322] [RP_ITEM_MANAGER] OnPushState called: Type=CharacterDeveloperState, isTopGameState=False
+[17:25:43.616] [RP_ITEM_MANAGER] OnPushState called: Type=PartyState, isTopGameState=False
+[17:26:57.917] [RP_ITEM_MANAGER] Created RP item: Scroll of Morenia (ID: ai_rp_item_c7617)
+[17:26:57.917] [RP_ITEM_MANAGER] Recreated item: Scroll of Morenia
+[17:26:57.917] [RP_ITEM_MANAGER] Restored item Scroll of Morenia to Lexarios
+[17:26:57.917] [RP_ITEM_MANAGER] Loaded 1 RP items, removed 0 items with dead creators
+[17:26:57.917] [RP_ITEM_MANAGER] RegisterEvents: GameStateManager found, listener registered: True
+[17:27:00.535] [RP_ITEM_MANAGER] OnPushState called: Type=MapState, isTopGameState=True
+[17:27:10.451] [RP_ITEM_MANAGER] Daily check: Attempted to restore items for available owners
+[17:27:16.960] [RP_ITEM_MANAGER] OnPushState called: Type=QuestsState, isTopGameState=False
+[17:27:27.103] [RP_ITEM_MANAGER] OnPushState called: Type=MissionState, isTopGameState=False
