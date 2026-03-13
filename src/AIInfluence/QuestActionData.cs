@@ -1,0 +1,66 @@
+using System.Collections.Generic;
+using Newtonsoft.Json;
+
+namespace AIInfluence;
+
+[JsonSerializable]
+public class QuestActionData
+{
+	[JsonProperty("action")]
+	public string Action { get; set; }
+
+	[JsonProperty("title")]
+	public string Title { get; set; }
+
+	[JsonProperty("description")]
+	public string Description { get; set; }
+
+	[JsonProperty("reward_gold")]
+	public int RewardGold { get; set; }
+
+	[JsonProperty("duration_days")]
+	public int DurationDays { get; set; }
+
+	[JsonProperty("quest_id")]
+	public string QuestId { get; set; }
+
+	[JsonProperty("target_npc_ids")]
+	public List<string> TargetNpcIds { get; set; }
+
+	[JsonProperty("target_npc_id")]
+	public string TargetNpcId { get; set; }
+
+	[JsonProperty("ai_verification_notes")]
+	public string AIVerificationNotes { get; set; }
+
+	[JsonProperty("completer_npc_id")]
+	public string CompleterNpcId { get; set; }
+
+	[JsonProperty("update_log")]
+	public string UpdateLog { get; set; }
+
+	[JsonProperty("set_progress")]
+	public int? SetProgress { get; set; }
+
+	[JsonProperty("completion_reason")]
+	public string CompletionReason { get; set; }
+
+	[JsonProperty("progress_target")]
+	public int? ProgressTarget { get; set; }
+
+	[JsonProperty("progress_label")]
+	public string ProgressLabel { get; set; }
+
+	public List<string> GetEffectiveTargetNpcIds()
+	{
+		if (TargetNpcIds != null && TargetNpcIds.Count > 0)
+		{
+			return TargetNpcIds;
+		}
+		if (!string.IsNullOrEmpty(TargetNpcId))
+		{
+			return new List<string> { TargetNpcId };
+		}
+		return new List<string>();
+	}
+}
