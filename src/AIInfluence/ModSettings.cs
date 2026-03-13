@@ -34,15 +34,11 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 
 	private bool _enableDebugLogging = true;
 
-	private Dropdown<string> _aiBackend = new Dropdown<string>((IEnumerable<string>)new List<string> { "OpenRouter", "DeepSeek", "Player2", "Ollama", "KoboldCpp" }, 2);
+	private Dropdown<string> _aiBackend = new Dropdown<string>((IEnumerable<string>)new List<string> { "OpenRouter" }, 0);
 
 	private string _aiModel = "gpt-3.5-turbo";
 
 	private string _apiKey = "";
-
-	private string _deepSeekModel = "deepseek-chat";
-
-	private string _deepSeekApiKey = "";
 
 	private bool _enableTTS = false;
 
@@ -589,76 +585,6 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 		}
 	}
 
-	[SettingPropertyText("DeepSeek Model", -1, true, "", RequireRestart = false, HintText = "Enter the DeepSeek model to use (e.g., deepseek-chat).")]
-	[SettingPropertyGroup("API Settings/DeepSeek Settings", GroupOrder = 5)]
-	public string DeepSeekModel
-	{
-		get
-		{
-			return _deepSeekModel;
-		}
-		set
-		{
-			if (_deepSeekModel != value)
-			{
-				_deepSeekModel = value;
-				this.OnSettingChanged?.Invoke("DeepSeekModel", value);
-			}
-		}
-	}
-
-	[SettingPropertyText("DeepSeek API Key", -1, true, "", RequireRestart = false, HintText = "Enter your DeepSeek API key (only needed for DeepSeek provider).")]
-	[SettingPropertyGroup("API Settings/DeepSeek Settings", GroupOrder = 5)]
-	public string DeepSeekApiKey
-	{
-		get
-		{
-			return _deepSeekApiKey;
-		}
-		set
-		{
-			if (_deepSeekApiKey != value)
-			{
-				_deepSeekApiKey = value;
-				this.OnSettingChanged?.Invoke("DeepSeekApiKey", value);
-			}
-		}
-	}
-
-	[SettingPropertyBool("Test DeepSeek Connection", Order = 0, RequireRestart = false, HintText = "Test connection to DeepSeek backend. Results will be displayed in game messages.")]
-	[SettingPropertyGroup("API Settings/DeepSeek Settings", GroupOrder = 5)]
-	public bool TestDeepSeekConnection
-	{
-		get
-		{
-			return false;
-		}
-		set
-		{
-			//IL_0042: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0047: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0051: Expected O, but got Unknown
-			if (!value)
-			{
-				return;
-			}
-			try
-			{
-				Task.Run(async delegate
-				{
-					await AIClient.TestDeepSeekConnection();
-				});
-			}
-			catch (Exception ex)
-			{
-				InformationManager.DisplayMessage(new InformationMessage("Error testing DeepSeek connection: " + ex.Message, ExtraColors.RedAIInfluence));
-			}
-		}
-	}
-
-	[SettingPropertyText("Player2 API URL", -1, true, "", RequireRestart = false, HintText = "The URL for the Player2 API. Default is http://127.0.0.1:4315")]
-	[SettingPropertyGroup("API Settings/Player2 Settings", GroupOrder = 2)]
-	public string Player2ApiUrl { get; set; } = "http://127.0.0.1:4315";
 
 	[SettingPropertyBool("Test OpenRouter Connection", Order = 0, RequireRestart = false, HintText = "Test connection to OpenRouter backend. Results will be displayed in game messages.")]
 	[SettingPropertyGroup("API Settings/OpenRouter Settings", GroupOrder = 1)]
@@ -691,130 +617,9 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 		}
 	}
 
-	[SettingPropertyBool("Test Player2 Connection", Order = 0, RequireRestart = false, HintText = "Test connection to Player2 backend. Results will be displayed in game messages.")]
-	[SettingPropertyGroup("API Settings/Player2 Settings", GroupOrder = 2)]
-	public bool TestPlayer2Connection
-	{
-		get
-		{
-			return false;
-		}
-		set
-		{
-			//IL_0042: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0047: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0051: Expected O, but got Unknown
-			if (!value)
-			{
-				return;
-			}
-			try
-			{
-				Task.Run(async delegate
-				{
-					await AIClient.TestPlayer2Connection();
-				});
-			}
-			catch (Exception ex)
-			{
-				InformationManager.DisplayMessage(new InformationMessage("Error testing Player2 connection: " + ex.Message, ExtraColors.RedAIInfluence));
-			}
-		}
-	}
-
-	[SettingPropertyButton("{=DownloadPlayer2}API Settings/Player2 Settings", 0, true, "{=DownloadPlayer2_Button}Open Player2 Web", Content = "{=DownloadPlayer2_Button_2}Open Player2 Web", RequireRestart = false, HintText = "{=DynamicClanSettings_CheckAIInfluence_Hint}Download Player2 (free AI API)")]
-	[SettingPropertyGroup("API Settings/Player2 Settings", GroupOrder = 2)]
-	public Action OpenAIInfluenceWebsite { get; set; } = delegate
-	{
-		try
-		{
-			Process.Start(new ProcessStartInfo
-			{
-				FileName = "https://player2.game/",
-				UseShellExecute = true
-			});
-		}
-		catch (Exception)
-		{
-		}
-	};
-
-	[SettingPropertyText("Ollama Model Name", -1, true, "", RequireRestart = false, HintText = "Enter the Ollama model name (e.g., llama2, mistral, codellama).")]
-	[SettingPropertyGroup("API Settings/Ollama Settings", GroupOrder = 3)]
-	public string OllamaModel { get; set; } = "llama2";
-
-	[SettingPropertyText("Ollama API URL", -1, true, "", RequireRestart = false, HintText = "Enter the Ollama API URL (default: http://localhost:11434).")]
-	[SettingPropertyGroup("API Settings/Ollama Settings", GroupOrder = 3)]
-	public string OllamaApiUrl { get; set; } = "http://localhost:11434";
-
-	[SettingPropertyText("KoboldCpp API URL", -1, true, "", RequireRestart = false, HintText = "Enter the KoboldCpp API URL (default: http://localhost:5001).")]
-	[SettingPropertyGroup("API Settings/KoboldCpp Settings", GroupOrder = 4)]
-	public string KoboldCppApiUrl { get; set; } = "http://localhost:5001";
-
-	[SettingPropertyBool("Test Ollama Connection", Order = 0, RequireRestart = false, HintText = "Test connection to Ollama backend. Results will be displayed in game messages.")]
-	[SettingPropertyGroup("API Settings/Ollama Settings", GroupOrder = 3)]
-	public bool TestOllamaConnection
-	{
-		get
-		{
-			return false;
-		}
-		set
-		{
-			//IL_0042: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0047: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0051: Expected O, but got Unknown
-			if (!value)
-			{
-				return;
-			}
-			try
-			{
-				Task.Run(async delegate
-				{
-					await AIClient.TestOllamaConnection();
-				});
-			}
-			catch (Exception ex)
-			{
-				InformationManager.DisplayMessage(new InformationMessage("Error testing Ollama connection: " + ex.Message, ExtraColors.RedAIInfluence));
-			}
-		}
-	}
-
-	[SettingPropertyBool("Test KoboldCpp Connection", Order = 0, RequireRestart = false, HintText = "Test connection to KoboldCpp backend. Results will be displayed in game messages.")]
-	[SettingPropertyGroup("API Settings/KoboldCpp Settings", GroupOrder = 4)]
-	public bool TestKoboldCppConnection
-	{
-		get
-		{
-			return false;
-		}
-		set
-		{
-			//IL_0042: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0047: Unknown result type (might be due to invalid IL or missing references)
-			//IL_0051: Expected O, but got Unknown
-			if (!value)
-			{
-				return;
-			}
-			try
-			{
-				Task.Run(async delegate
-				{
-					await AIClient.TestKoboldCppConnection();
-				});
-			}
-			catch (Exception ex)
-			{
-				InformationManager.DisplayMessage(new InformationMessage("Error testing KoboldCpp connection: " + ex.Message, ExtraColors.RedAIInfluence));
-			}
-		}
-	}
 
 	[SettingPropertyBool("Enable TTS (Text-to-Speech)", Order = 1, RequireRestart = false, HintText = "Enable text-to-speech for NPC dialogue responses. Voices are assigned automatically based on gender.")]
-	[SettingPropertyGroup("API Settings/Player2 Settings", GroupOrder = 2)]
+	[SettingPropertyGroup("TTS Settings", GroupOrder = 2)]
 	public bool EnableTTS
 	{
 		get
@@ -832,7 +637,7 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 	}
 
 	[SettingPropertyBool("{=AIInfluence_EnableTTSAnimations}Enable TTS Animations (Lip Sync)", Order = 2, RequireRestart = false, HintText = "{=AIInfluence_EnableTTSAnimations_Hint}Enable body and lip-sync animations during TTS playback. When disabled, only audio is played without animations.")]
-	[SettingPropertyGroup("API Settings/Player2 Settings", GroupOrder = 2)]
+	[SettingPropertyGroup("TTS Settings", GroupOrder = 2)]
 	public bool EnableTTSAnimations
 	{
 		get
@@ -850,7 +655,7 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 	}
 
 	[SettingPropertyFloatingInteger("TTS Speed", 0.25f, 4f, "0.00", Order = 3, RequireRestart = false, HintText = "Speed of text-to-speech (0.25 to 4.0)")]
-	[SettingPropertyGroup("API Settings/Player2 Settings", GroupOrder = 2)]
+	[SettingPropertyGroup("TTS Settings", GroupOrder = 2)]
 	public float TTSSpeed
 	{
 		get
@@ -868,7 +673,7 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 	}
 
 	[SettingPropertyFloatingInteger("TTS Volume", 0.1f, 3f, "0.00", Order = 4, RequireRestart = false, HintText = "Volume multiplier for TTS voice (0.1 = quiet, 1.0 = normal, 3.0 = very loud). The gain is applied during audio encoding.")]
-	[SettingPropertyGroup("API Settings/Player2 Settings", GroupOrder = 2)]
+	[SettingPropertyGroup("TTS Settings", GroupOrder = 2)]
 	public float TTSVolume
 	{
 		get
@@ -885,64 +690,6 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 		}
 	}
 
-	[SettingPropertyButton("Export Available Voices", 0, true, "Export Voices", Content = "Export Available Voices", RequireRestart = false, HintText = "Export available TTS voices to a text file in the mod folder. You can use this list to manually edit NPC .json files and assign custom voices.")]
-	[SettingPropertyGroup("API Settings/Player2 Settings", GroupOrder = 2)]
-	public Action ExportTTSVoices { get; set; } = delegate
-	{
-		//IL_0302: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0307: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0311: Expected O, but got Unknown
-		//IL_0023: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0028: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0032: Expected O, but got Unknown
-		//IL_029d: Unknown result type (might be due to invalid IL or missing references)
-		//IL_02a2: Unknown result type (might be due to invalid IL or missing references)
-		//IL_02ac: Expected O, but got Unknown
-		try
-		{
-			Dictionary<string, VoiceInfo> availableVoices = Player2Client.GetAvailableVoices();
-			if (availableVoices == null || availableVoices.Count == 0)
-			{
-				InformationManager.DisplayMessage(new InformationMessage("No voices available.", Colors.Yellow));
-			}
-			else
-			{
-				string directoryName = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-				string fullName = Directory.GetParent(Directory.GetParent(directoryName).FullName).FullName;
-				string text = Path.Combine(fullName, "tts_voices.txt");
-				List<VoiceInfo> list = (from v in availableVoices.Values
-					where v.Gender?.ToLower() == "male"
-					orderby v.Name
-					select v).ToList();
-				List<VoiceInfo> list2 = (from v in availableVoices.Values
-					where v.Gender?.ToLower() == "female"
-					orderby v.Name
-					select v).ToList();
-				List<string> list3 = new List<string> { "Available TTS Voices", "====================", "", "You can manually edit NPC .json files and set 'AssignedTTSVoice' to any voice ID from this list.", "", "MALE VOICES:", "------------" };
-				foreach (VoiceInfo item in list)
-				{
-					list3.Add(item.Id + " - " + item.Name + " (" + item.Language + ")");
-				}
-				list3.Add("");
-				list3.Add("FEMALE VOICES:");
-				list3.Add("--------------");
-				foreach (VoiceInfo item2 in list2)
-				{
-					list3.Add(item2.Id + " - " + item2.Name + " (" + item2.Language + ")");
-				}
-				File.WriteAllLines(text, list3, Encoding.UTF8);
-				InformationManager.DisplayMessage(new InformationMessage("TTS voices exported to: tts_voices.txt", Colors.Green));
-				if (AIInfluenceBehavior.Instance != null)
-				{
-					AIInfluenceBehavior.Instance.LogMessage($"[TTS] Exported {list.Count} male and {list2.Count} female voices to {text}");
-				}
-			}
-		}
-		catch (Exception ex)
-		{
-			InformationManager.DisplayMessage(new InformationMessage("Error: " + ex.Message, Colors.Red));
-		}
-	};
 
 	[SettingPropertyGroup("{=AIInfluence_Group_Prompt}Prompt Settings", GroupOrder = 5)]
 	[SettingPropertyBool("{=AIInfluence_PromptInternalThoughts}Enable AI Internal Thoughts (EXPERIMENTAL)", Order = -1, RequireRestart = false, HintText = "{=AIInfluence_PromptInternalThoughts_Hint}EXPERIMENTAL FEATURE: AI will think through character's motivations, emotions, and internal conflicts before responding. This creates deeper, more nuanced roleplay but may increase response time by 10-30%. The AI's internal thoughts will be logged for debugging but not shown to the player.")]
@@ -2014,7 +1761,7 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 
 	[SettingPropertyGroup("{=AIInfluence_Group_DynamicEvents}Dynamic Events", GroupOrder = 8)]
 	[SettingPropertyDropdown("{=AIInfluence_DynamicEventsAIBackend}AI Backend for Events", RequireRestart = false, Order = 2, HintText = "{=AIInfluence_DynamicEventsAIBackend_Hint}Select which AI backend to use for dynamic event generation. Can be different from dialogue AI.")]
-	public Dropdown<string> DynamicEventsAIBackend { get; set; } = new Dropdown<string>((IEnumerable<string>)new List<string> { "OpenRouter", "DeepSeek", "Player2", "Ollama", "KoboldCpp" }, 2);
+	public Dropdown<string> DynamicEventsAIBackend { get; set; } = new Dropdown<string>((IEnumerable<string>)new List<string> { "OpenRouter" }, 0);
 
 	[SettingPropertyGroup("{=AIInfluence_Group_DynamicEvents}Dynamic Events", GroupOrder = 8)]
 	[SettingPropertyInteger("{=AIInfluence_MaxSimultaneousDynamicEvents}Max Simultaneous Events", 1, 3, "0 Events", Order = 3, RequireRestart = false, HintText = "{=AIInfluence_MaxSimultaneousDynamicEvents_Hint}Maximum number of active dynamic events allowed at the same time. Default: 1.")]
@@ -2945,7 +2692,7 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 
 	[SettingPropertyGroup("{=AIInfluence_Group_Diplomacy}Diplomacy", GroupOrder = 10)]
 	[SettingPropertyDropdown("{=AIInfluence_DiplomacyAIBackend}AI Backend for Diplomacy", RequireRestart = false, Order = 1, HintText = "{=AIInfluence_DiplomacyAIBackend_Hint}Select which AI backend to use for diplomatic statement generation. Can be different from dialogue AI.")]
-	public Dropdown<string> DiplomacyAIBackend { get; set; } = new Dropdown<string>((IEnumerable<string>)new List<string> { "OpenRouter", "DeepSeek", "Player2", "Ollama", "KoboldCpp" }, 2);
+	public Dropdown<string> DiplomacyAIBackend { get; set; } = new Dropdown<string>((IEnumerable<string>)new List<string> { "OpenRouter" }, 0);
 
 	[SettingPropertyGroup("{=AIInfluence_Group_Diplomacy}Diplomacy", GroupOrder = 10)]
 	[SettingPropertyBool("{=AIInfluence_StartInPeace}Start Campaign in Peace", Order = 2, RequireRestart = false, HintText = "{=AIInfluence_StartInPeace_Hint}When enabled, all kingdoms start the campaign at peace with each other. Wars will only be declared through the AI diplomacy system.")]

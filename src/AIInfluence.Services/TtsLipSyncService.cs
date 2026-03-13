@@ -10,7 +10,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
-using AIInfluence.API;
 using Helpers;
 using MCM.Abstractions.Base.Global;
 using TaleWorlds.CampaignSystem;
@@ -103,85 +102,9 @@ public static class TtsLipSyncService
 		return Path.Combine(Path.GetTempPath(), "AIInfluence_tts");
 	}
 
-	public static async Task<TtsPreparedData> PrepareAsync(string text, string voiceId, string npcName, string ttsInstructions, string escalationState)
+	public static Task<TtsPreparedData> PrepareAsync(string text, string voiceId, string npcName, string ttsInstructions, string escalationState)
 	{
-		try
-		{
-			byte[] audioBytes = await Player2Client.GenerateTTSAudioBytesAsync(text, voiceId, npcName, ttsInstructions);
-			if (audioBytes == null || audioBytes.Length == 0)
-			{
-				Log("[LipSync] Failed to get audio from Player2");
-				return null;
-			}
-			string id = Guid.NewGuid().ToString("N").Substring(0, 8);
-			string oggPath = Path.Combine(_ttsDir, "tts_" + id + ".ogg");
-			string xmlPath = Path.Combine(_ttsDir, "tts_" + id + ".xml");
-			if (!ConvertPcmToOgg(audioBytes, oggPath))
-			{
-				Log("[LipSync] PCM→OGG conversion failed.");
-				return null;
-			}
-			Log("[LipSync] OGG saved → " + oggPath);
-			bool useAnimations = GlobalSettings<ModSettings>.Instance?.EnableTTSAnimations ?? true;
-			if (useAnimations)
-			{
-				string tempOgg = Path.Combine(_tempDir, "tts_" + id + ".ogg");
-				string tempXml = Path.Combine(_tempDir, "tts_" + id + ".xml");
-				try
-				{
-					File.Copy(oggPath, tempOgg, overwrite: true);
-				}
-				catch
-				{
-					tempOgg = oggPath;
-					tempXml = xmlPath;
-				}
-				bool flag = File.Exists(_rhubarbExe);
-				bool flag2 = flag;
-				if (flag2)
-				{
-					flag2 = await RunRhubarbAsync(tempOgg, tempXml);
-				}
-				bool hasXml = flag2;
-				if (hasXml && tempXml != xmlPath && File.Exists(tempXml))
-				{
-					try
-					{
-						File.Copy(tempXml, xmlPath, overwrite: true);
-					}
-					catch
-					{
-						hasXml = false;
-					}
-				}
-				DeleteSafe(tempOgg);
-				DeleteSafe(tempXml);
-				if (!hasXml)
-				{
-					Log("[LipSync] No rhubarb.exe or failed — will play without lip-sync");
-				}
-			}
-			else
-			{
-				Log("[LipSync] Animations disabled — TTS prepared for playback only");
-			}
-			string playPath = TryGetPathForNativeAudio(oggPath);
-			Log("[LipSync] TTS prepared: " + playPath);
-			return new TtsPreparedData
-			{
-				PlayPath = playPath,
-				EscalationState = escalationState,
-				UseAnimations = useAnimations,
-				ResponseText = text,
-				TtsInstructions = ttsInstructions
-			};
-		}
-		catch (Exception ex)
-		{
-			Exception ex2 = ex;
-			Log("[LipSync] PrepareAsync: " + ex2.Message);
-			return null;
-		}
+		return Task.FromResult<TtsPreparedData>(null);
 	}
 
 	public static void PlayPrepared(TtsPreparedData data)

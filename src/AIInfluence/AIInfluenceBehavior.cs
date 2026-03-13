@@ -226,7 +226,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			LogMessage("[SEND_AI_REQUEST] Отправляем запрос типа '" + requestType + "' к ИИ backend '" + backend + "'");
 			LogMessage(string.Format("[SEND_AI_REQUEST] Длина промта: {0} символов{1}", prompt.Length, (cachePrefixLength > 0) ? $", кэш-префикс: {cachePrefixLength}" : ""));
-			string response = await AIClient.GetRawTextResponseWithBackend(prompt, backend, cachePrefixLength);
+			string response = await AIClient.GetRawTextResponseWithBackend(prompt, cachePrefixLength);
 			LogMessage($"[SEND_AI_REQUEST] Получен ответ от ИИ для '{requestType}': {response?.Length ?? 0} символов");
 			if (string.IsNullOrEmpty(response))
 			{
@@ -2795,51 +2795,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				}
 				else
 				{
-					LogMessage("[TTS] Pre-generating TTS for " + npcName + " before showing 'NPC ready'...");
-					try
-					{
-						bool voiceExists = await Player2Client.VoiceExistsAsync(context.AssignedTTSVoice);
-						string voiceToUse = context.AssignedTTSVoice;
-						if (!voiceExists)
-						{
-							LogMessage("[TTS] Voice " + context.AssignedTTSVoice + " no longer exists. Replacing.");
-							string newVoice = await Player2Client.GetRandomVoiceAsync(context.Gender);
-							if (!string.IsNullOrEmpty(newVoice))
-							{
-								voiceToUse = newVoice;
-								context.AssignedTTSVoice = newVoice;
-								LogMessage("[TTS] Replaced voice for " + npcName + ": " + newVoice);
-							}
-							else
-							{
-								LogMessage("[TTS] Failed to assign new voice for " + npcName + ". Skipping TTS.");
-								voiceToUse = null;
-							}
-						}
-						if (!string.IsNullOrEmpty(voiceToUse))
-						{
-							TtsPreparedData prepared = await TtsLipSyncService.PrepareAsync(responseText, voiceToUse, npcName, ttsInstructions, context.EscalationState ?? "neutral");
-							if (prepared != null)
-							{
-								context.PreparedTts = prepared;
-								context.LastTTSPlayedText = responseText;
-								context.LastTTSInstructions = ttsInstructions;
-								SaveNPCContext(npcId, npc, context);
-								LogMessage("[TTS] TTS prepared successfully for " + npcName + ".");
-							}
-							else
-							{
-								context.PreparedTts = null;
-								LogMessage("[TTS] TTS preparation failed for " + npcName + ".");
-							}
-						}
-					}
-					catch (Exception ex5)
-					{
-						Exception ex8 = ex5;
-						context.PreparedTts = null;
-						LogMessage("[TTS_ERROR] TTS preparation failed for " + npcName + ": " + ex8.Message);
-					}
+				context.PreparedTts = null;
 				}
 			}
 		}
@@ -5033,65 +4989,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			context.Gender = (npc.IsFemale ? "female" : "male");
 		}
-		Task.Run(async delegate
-		{
-			try
-			{
-				if (string.IsNullOrEmpty(context.AssignedTTSVoice))
-				{
-					string assignedVoice = await Player2Client.GetRandomVoiceAsync(context.Gender);
-					if (!string.IsNullOrEmpty(assignedVoice))
-					{
-						context.AssignedTTSVoice = assignedVoice;
-					}
-					else
-					{
-						LogMessage("[WARNING] Failed to assign TTS voice to " + context.Name + " (gender: " + context.Gender + "). TTS will be disabled for this NPC.");
-					}
-				}
-				else if (!(await Player2Client.VoiceExistsAsync(context.AssignedTTSVoice)))
-				{
-					LogMessage("[TTS] Voice " + context.AssignedTTSVoice + " for " + context.Name + " no longer exists in API. Replacing with new voice.");
-					string newVoice = await Player2Client.GetRandomVoiceAsync(context.Gender);
-					if (!string.IsNullOrEmpty(newVoice))
-					{
-						context.AssignedTTSVoice = newVoice;
-						LogMessage("[TTS] Replaced voice for " + context.Name + ": " + newVoice);
-					}
-					else
-					{
-						LogMessage("[WARNING] Failed to assign new voice for " + context.Name + ". TTS will be disabled.");
-						context.AssignedTTSVoice = null;
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				Exception ex2 = ex;
-				LogMessage("[TTS_ERROR] Exception while ensuring voice for " + context.Name + ": " + ex2.Message);
-			}
-		});
 	}
 
 	public string AssignRandomVoiceForGender(string gender)
 	{
-		try
-		{
-			string randomVoice = Player2Client.GetRandomVoice(gender);
-			if (string.IsNullOrEmpty(randomVoice))
-			{
-				LogMessage("[TTS_ERROR] Failed to assign voice for gender " + gender + ". GetRandomVoice returned null or empty string.");
-				return null;
-			}
-			LogMessage("[TTS] Successfully assigned voice " + randomVoice + " for gender " + gender);
-			return randomVoice;
-		}
-		catch (Exception ex)
-		{
-			LogMessage("[TTS_ERROR] Exception while assigning voice for gender " + gender + ": " + ex.Message);
-			LogMessage("[TTS_ERROR] StackTrace: " + ex.StackTrace);
-			return null;
-		}
+		return null;
 	}
 
 	public List<NPCEraseInfo> GetInitializedNPCs()

@@ -41,7 +41,7 @@ public static class AIClient
 		}
 	}
 
-	public static async Task<string> GetRawTextResponseWithBackend(string prompt, string backend, int cachePrefixLength = 0)
+	public static async Task<string> GetRawTextResponseWithBackend(string prompt, int cachePrefixLength = 0)
 	{
 		try
 		{
