@@ -67,7 +67,6 @@ public class InitializationManager
 			InitializeEconomicEffectsManager();
 			InitializeRPItemManager(behavior);
 			InitializeDiseaseSystem(campaignGameStarter);
-			InitializeArenaTrainingSystem(campaignGameStarter);
 			_isInitialized = true;
 			behavior?.LogMessage("[INIT_MANAGER] Все системы успешно инициализированы.");
 		}
@@ -311,24 +310,6 @@ public class InitializationManager
 		catch (Exception ex)
 		{
 			_behavior?.LogMessage("[INIT_MANAGER] Ошибка инициализации Disease System: " + ex.Message);
-			_behavior?.LogMessage("[INIT_MANAGER] StackTrace: " + ex.StackTrace);
-		}
-	}
-
-	private void InitializeArenaTrainingSystem(CampaignGameStarter campaignGameStarter)
-	{
-		try
-		{
-			ArenaTrainingMenuBehavior.AddMenus(campaignGameStarter);
-			if (campaignGameStarter != null)
-			{
-				campaignGameStarter.AddBehavior((CampaignBehaviorBase)(object)new ArenaTrainingMenuBehavior());
-			}
-			_behavior?.LogMessage("[INIT_MANAGER] Arena training system initialized.");
-		}
-		catch (Exception ex)
-		{
-			_behavior?.LogMessage("[INIT_MANAGER] Error initializing Arena Training System: " + ex.Message);
 			_behavior?.LogMessage("[INIT_MANAGER] StackTrace: " + ex.StackTrace);
 		}
 	}

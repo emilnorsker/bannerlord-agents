@@ -29,7 +29,6 @@ public static class HospitalVisitSettlementNotificationPatch
 		_registry = new Dictionary<Settlement, SettlementNameplateNotificationsVM>();
 		HospitalVisitSettlementNotification.OnHeroVisitedHospital += OnNotify;
 		HospitalVisitSettlementNotification.OnSettlementForceTreated += OnSettlementForceTreated;
-		ArenaTrainingNotification.OnTrainingStarted += OnArenaTrainingStarted;
 	}
 
 	private static void OnNotify(Hero hero, Settlement settlement)
@@ -54,19 +53,6 @@ public static class HospitalVisitSettlementNotificationPatch
 			{
 				((Collection<SettlementNotificationItemBaseVM>)(object)vm.Notifications).Remove(item2);
 			}, settlement, targetType, createdTick, lordHero, ownerDisplayName);
-			((Collection<SettlementNotificationItemBaseVM>)(object)vm.Notifications).Add((SettlementNotificationItemBaseVM)(object)item);
-		}
-	}
-
-	private static void OnArenaTrainingStarted(Settlement settlement, Hero hero, string customText)
-	{
-		if (settlement != null && _registry.TryGetValue(settlement, out var vm))
-		{
-			int createdTick = ((TickField != null) ? ((int)(TickField.GetValue(vm) ?? ((object)0))) : 0);
-			ArenaTrainingNotificationItemVM item = new ArenaTrainingNotificationItemVM(delegate(SettlementNotificationItemBaseVM item2)
-			{
-				((Collection<SettlementNotificationItemBaseVM>)(object)vm.Notifications).Remove(item2);
-			}, hero, settlement, createdTick, customText);
 			((Collection<SettlementNotificationItemBaseVM>)(object)vm.Notifications).Add((SettlementNotificationItemBaseVM)(object)item);
 		}
 	}
