@@ -115,10 +115,10 @@ public class DynamicEvent
 	public Dictionary<string, int> FailedStatementAttempts { get; set; } = new Dictionary<string, int>();
 
 	[JsonProperty("disease_data")]
-	public DiseaseEventData DiseaseData { get; set; }
+	public object DiseaseData { get; set; }
 
 	[JsonIgnore]
-	public bool IsDiseaseEvent => Type == "disease_outbreak" && DiseaseData != null;
+	public bool IsDiseaseEvent => false;
 
 	public DynamicEvent()
 	{
@@ -150,7 +150,7 @@ public class DynamicEvent
 		return num > ExpirationCampaignDays || num > num3;
 	}
 
-	public void AddEventUpdate(string newDescription, string updateReason = "Event Update", List<EconomicEffect> economicEffects = null, DiseaseEventData diseaseData = null)
+	public void AddEventUpdate(string newDescription, string updateReason = "Event Update", List<EconomicEffect> economicEffects = null, object diseaseData = null)
 	{
 		//IL_001a: Unknown result type (might be due to invalid IL or missing references)
 		//IL_001f: Unknown result type (might be due to invalid IL or missing references)

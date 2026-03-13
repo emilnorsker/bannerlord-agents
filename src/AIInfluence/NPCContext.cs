@@ -155,7 +155,7 @@ public class NPCContext
 	public bool IsSick { get; set; } = false;
 
 	[JsonProperty("CurrentDiseases")]
-	public List<NPCDiseaseInfo> CurrentDiseases { get; set; } = new List<NPCDiseaseInfo>();
+	public List<string> CurrentDiseases { get; set; } = new List<string>();
 
 	[JsonProperty("DiseaseProgress")]
 	public float DiseaseProgress { get; set; } = 0f;

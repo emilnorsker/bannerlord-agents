@@ -6,7 +6,6 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using AIInfluence.Diplomacy;
-using AIInfluence.Diseases;
 using AIInfluence.Util;
 using MCM.Abstractions.Base.Global;
 using Newtonsoft.Json;
@@ -409,7 +408,7 @@ public class DynamicEventsGenerator
 			"economic" => CollectEconomicWorldData(), 
 			"social" => CollectSocialWorldData(), 
 			"mysterious" => CollectMysteriousWorldData(), 
-			"disease_outbreak" => CollectDiseaseOutbreakWorldData(), 
+			"disease_outbreak" => CollectMinimalWorldData(), 
 			_ => CollectMinimalWorldData(), 
 		};
 	}
@@ -1155,45 +1154,9 @@ public class DynamicEventsGenerator
 					}
 				}
 			}
-			stringBuilder.AppendLine();
-		}
-		ModSettings instance = GlobalSettings<ModSettings>.Instance;
-		if (instance != null && instance.EnableDiseaseSystem)
-		{
-			DiseaseManager diseaseManager = DiseaseManager.Instance;
-			if (diseaseManager != null)
-			{
-				List<Settlement> list2 = ((IEnumerable<Settlement>)Settlement.All).Where((Settlement s) => (s.IsTown || s.IsCastle) && diseaseManager.IsSettlementUnderQuarantine(s)).ToList();
-				if (list2.Any())
-				{
-					stringBuilder.AppendLine("QUARANTINED SETTLEMENTS (officially closed by kingdom rulers):");
-					foreach (Settlement item4 in list2)
-					{
-						TextObject name = item4.Name;
-						string stringId = ((MBObjectBase)item4).StringId;
-						Clan ownerClan5 = item4.OwnerClan;
-						object obj7;
-						if (ownerClan5 == null)
-						{
-							obj7 = null;
-						}
-						else
-						{
-							Kingdom kingdom = ownerClan5.Kingdom;
-							obj7 = ((kingdom == null) ? null : ((object)kingdom.Name)?.ToString());
-						}
-						if (obj7 == null)
-						{
-							obj7 = "Unknown";
-						}
-						stringBuilder.AppendLine($"- {name} (string_id: \"{stringId}\"), Kingdom: {obj7}");
-					}
-					stringBuilder.AppendLine("**IMPORTANT:** Do NOT use the word 'quarantine' for settlements NOT in this list. Only these have official quarantine.");
-					stringBuilder.AppendLine();
-				}
-			}
-		}
-		stringBuilder.AppendLine("SEASONAL ECONOMIC FACTORS:");
+		stringBuilder.AppendLine();
+	}
+	stringBuilder.AppendLine("SEASONAL ECONOMIC FACTORS:");
 		Seasons getSeasonOfYear = ((CampaignTime)(ref now)).GetSeasonOfYear;
 		Seasons val5 = getSeasonOfYear;
 		Seasons val6 = val5;
@@ -1356,18 +1319,6 @@ public class DynamicEventsGenerator
 			stringBuilder.AppendLine("  Ruler: " + item.RulerName + " (string_id: \"" + item.RulerStringId + "\")");
 		}
 		stringBuilder.AppendLine();
-		stringBuilder.AppendLine("DISEASE-VULNERABLE SETTLEMENTS:");
-		List<DiseaseVulnerableSettlement> diseaseVulnerableSettlements = GetDiseaseVulnerableSettlements();
-		foreach (DiseaseVulnerableSettlement item2 in diseaseVulnerableSettlements)
-		{
-			stringBuilder.AppendLine("- " + item2.SettlementName + " (string_id: \"" + item2.SettlementStringId + "\") - " + item2.SettlementType);
-			stringBuilder.AppendLine("  Kingdom: " + item2.KingdomName + " (string_id: \"" + item2.KingdomStringId + "\")");
-			stringBuilder.AppendLine("  Culture: " + item2.Culture);
-			stringBuilder.AppendLine("  Vulnerability: " + item2.VulnerabilityLevel);
-			stringBuilder.AppendLine("  Risk factors: " + item2.RiskFactors);
-			stringBuilder.AppendLine("  Ruler: " + item2.RulerName + " (string_id: \"" + item2.RulerStringId + "\")");
-		}
-		stringBuilder.AppendLine();
 		stringBuilder.AppendLine("SETTLEMENTS WITH STRANGE OCCURRENCES POTENTIAL:");
 		List<StrangeOccurrenceSettlement> strangeOccurrenceSettlements = GetStrangeOccurrenceSettlements();
 		foreach (StrangeOccurrenceSettlement item3 in strangeOccurrenceSettlements)
@@ -1399,69 +1350,7 @@ public class DynamicEventsGenerator
 
 	private string CollectDiseaseOutbreakWorldData()
 	{
-		//IL_001a: Unknown result type (might be due to invalid IL or missing references)
-		//IL_001f: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0035: Unknown result type (might be due to invalid IL or missing references)
-		//IL_004c: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0051: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0053: Unknown result type (might be due to invalid IL or missing references)
-		//IL_006a: Expected I4, but got Unknown
-		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.AppendLine("=== DISEASE OUTBREAK SITUATION ===");
-		stringBuilder.AppendLine();
-		CampaignTime now = CampaignTime.Now;
-		stringBuilder.AppendLine($"Time: Year {((CampaignTime)(ref now)).GetYear}, {GetSeasonName(((CampaignTime)(ref now)).GetSeasonOfYear)}");
-		Seasons getSeasonOfYear = ((CampaignTime)(ref now)).GetSeasonOfYear;
-		stringBuilder.AppendLine("Season disease risk: " + (int)getSeasonOfYear switch
-		{
-			3 => "High risk - cold weather increases respiratory illness spread", 
-			2 => "Moderate-high risk - harvests bring travelers and disease vectors", 
-			0 => "Moderate risk - thawing conditions can spread waterborne diseases", 
-			1 => "Low-moderate risk - heat can increase food spoilage and dysentery", 
-			_ => "Unknown", 
-		});
-		stringBuilder.AppendLine();
-		stringBuilder.AppendLine("SETTLEMENTS AT HIGH RISK FOR DISEASE OUTBREAKS:");
-		List<DiseaseVulnerableSettlement> diseaseVulnerableSettlements = GetDiseaseVulnerableSettlements();
-		foreach (DiseaseVulnerableSettlement item in diseaseVulnerableSettlements)
-		{
-			stringBuilder.AppendLine("- " + item.SettlementName + " (string_id: \"" + item.SettlementStringId + "\") - " + item.SettlementType);
-			stringBuilder.AppendLine("  Kingdom: " + item.KingdomName + " (string_id: \"" + item.KingdomStringId + "\")");
-			stringBuilder.AppendLine("  Culture: " + item.Culture);
-			stringBuilder.AppendLine("  Vulnerability level: " + item.VulnerabilityLevel);
-			stringBuilder.AppendLine("  Risk factors: " + item.RiskFactors);
-			stringBuilder.AppendLine("  Ruler: " + item.RulerName + " (string_id: \"" + item.RulerStringId + "\")");
-		}
-		stringBuilder.AppendLine();
-		DiseaseManager instance = DiseaseManager.Instance;
-		if (instance != null)
-		{
-			List<Disease> allDiseases = instance.GetAllDiseases();
-			if (allDiseases != null && allDiseases.Count > 0)
-			{
-				stringBuilder.AppendLine("CURRENTLY ACTIVE DISEASES:");
-				foreach (Disease item2 in allDiseases.Take(5))
-				{
-					stringBuilder.AppendLine($"- {item2.Name} (severity: {item2.Severity}/5)");
-					stringBuilder.AppendLine("  Location: " + item2.SettlementId);
-					stringBuilder.AppendLine($"  Quarantined: {item2.IsQuarantined}");
-				}
-				stringBuilder.AppendLine();
-			}
-		}
-		stringBuilder.AppendLine("EXISTING KINGDOMS (use string_id for kingdoms_involved field):");
-		foreach (Kingdom item3 in ((IEnumerable<Kingdom>)Kingdom.All).Where((Kingdom k) => !k.IsEliminated))
-		{
-			Hero leader = item3.Leader;
-			stringBuilder.AppendLine("- " + (((object)item3.Name)?.ToString() ?? "Unknown"));
-			stringBuilder.AppendLine("  string_id: \"" + ((MBObjectBase)item3).StringId + "\"");
-			stringBuilder.AppendLine("  Leader: " + (((leader == null) ? null : ((object)leader.Name)?.ToString()) ?? "None"));
-			if (leader != null)
-			{
-				stringBuilder.AppendLine("  Leader string_id: \"" + ((MBObjectBase)leader).StringId + "\"");
-			}
-		}
-		return stringBuilder.ToString();
+		return CollectMinimalWorldData();
 	}
 
 	private string AnalyzeSuccession(Hero ruler)
@@ -2091,20 +1980,6 @@ public class DynamicEventsGenerator
 			stringBuilder.AppendLine("- Review 'ACTIVE ECONOMIC EFFECTS'. Too many on target? **CRITICAL:** Avoid unrealistic overlaps.");
 			stringBuilder.AppendLine("- Values within range? Reason logical/specific? For target_type=\"kingdom\" or \"clan\": target_id with correct string_id? target_scope appropriate?");
 			stringBuilder.AppendLine("- **IMPORTANT:** prosperity_delta_per_day MORE VISIBLE. **FOR VILLAGES:** Only prosperity_delta/prosperity_delta_per_day (Hearth). Do NOT use Food/Security/Loyalty!");
-			ModSettings instance = GlobalSettings<ModSettings>.Instance;
-			if (instance != null && instance.EnableDiseaseSystem)
-			{
-				stringBuilder.AppendLine("- **QUARANTINE WORD:** Do NOT use 'quarantine' in description or economic_effects reason for settlements NOT in 'QUARANTINED SETTLEMENTS' list. Only kingdom rulers impose quarantine.");
-			}
-			stringBuilder.AppendLine();
-		}
-		ModSettings instance2 = GlobalSettings<ModSettings>.Instance;
-		if (instance2 != null && instance2.EnableDiseaseSystem)
-		{
-			stringBuilder.AppendLine("**STEP 4b: DISEASE SYSTEM (if disease_outbreak)**");
-			stringBuilder.AppendLine("- Review 'ACTIVE DISEASES'. Settlement already infected? Spread logical? (proximity, trade routes)");
-			stringBuilder.AppendLine("- disease_data: settlement_id exists in world? severity 1-5? spread_rate 0.1-1.0? disease_effects modifiers 0.5-1.0 (1=no change)?");
-			stringBuilder.AppendLine("- Consider economic_effects for affected settlement (negative prosperity, security).");
 			stringBuilder.AppendLine();
 		}
 		stringBuilder.AppendLine("**STEP 5: EVENT STRUCTURE**");
@@ -2209,11 +2084,6 @@ public class DynamicEventsGenerator
 		stringBuilder.AppendLine("**CRITICAL:** kingdoms_involved CANNOT be null. Use \"all\" for events affecting all kingdoms, or use array of string_ids for specific kingdoms.");
 		stringBuilder.AppendLine();
 		stringBuilder.AppendLine("**ECONOMIC EFFECTS:** Check 'ACTIVE ECONOMIC EFFECTS' - avoid conflicts/overlaps. Too many on one target = unrealistic.");
-		ModSettings instance = GlobalSettings<ModSettings>.Instance;
-		if (instance != null && instance.EnableDiseaseSystem)
-		{
-			stringBuilder.AppendLine("**QUARANTINE:** Do NOT use 'quarantine' in description/reason for settlements NOT in 'QUARANTINED SETTLEMENTS'. Only kingdom rulers impose quarantine.");
-		}
 		stringBuilder.AppendLine();
 		stringBuilder.AppendLine("## OUTPUT FORMAT (STRICT JSON):");
 		stringBuilder.AppendLine("```json");
@@ -2385,34 +2255,10 @@ public class DynamicEventsGenerator
 				stringBuilder.AppendLine("- Multiple kingdoms: create MULTIPLE objects in economic_effects array (one per kingdom with its string_id)");
 				stringBuilder.AppendLine("- target_scope: \"all_settlements\", \"towns\", \"castles\", \"villages\" (works only with target_id)");
 				stringBuilder.AppendLine("- prosperity_delta_per_day is MORE VISIBLE than prosperity_delta (use _per_day for noticeable effects: -1/day for 21 days = -21 total)");
-				stringBuilder.AppendLine();
-			}
-			if (string.Equals(selectedEventType, "disease_outbreak", StringComparison.OrdinalIgnoreCase))
-			{
-				ModSettings instance3 = GlobalSettings<ModSettings>.Instance;
-				int num = instance3?.DiseaseMaxSeverity ?? 5;
-				float num2 = instance3?.DiseaseMaxSpreadRate ?? 1f;
-				float num3 = instance3?.DiseaseMinCombatModifier ?? 0.5f;
-				float num4 = instance3?.DiseaseMinMapSpeedModifier ?? 0.5f;
-				float num5 = instance3?.DiseaseMaxMoralePenalty ?? (-30f);
-				float num6 = instance3?.DiseaseMaxPhysicalSkillPenalty ?? (-30f);
-				float num7 = instance3?.DiseaseMaxDeathChance ?? 0.3f;
-				stringBuilder.AppendLine("### DISEASE OUTBREAK — YOU (AI) MUST SET disease_data:");
-				stringBuilder.AppendLine("YOU must generate: disease_name, disease_description, severity, settlement_id (use real settlement from world data), spread_rate, disease_effects.");
-				stringBuilder.AppendLine("Do NOT copy placeholders; choose values from context (settlement, narrative, existing diseases).");
-				stringBuilder.AppendLine("Format:");
-				stringBuilder.AppendLine("```json");
-				stringBuilder.AppendLine("{\"type\": \"disease_outbreak\", \"disease_data\": {");
-				stringBuilder.AppendLine($"  \"disease_name\": \"<your generated name>\", \"disease_description\": \"<your description>\", \"severity\": <1-{num}>, \"settlement_id\": \"<valid settlement string_id from world>\", \"spread_rate\": <0.1-{num2:F1}>,");
-				stringBuilder.AppendLine("  \"duration_days\": <7-120>,  // OPTIONAL: how many days the disease stays active. If omitted, auto-calculated from severity (sev1=30d, sev2=45d, sev3=60d, sev4=75d, sev5=90d)");
-				stringBuilder.AppendLine($"  \"disease_effects\": {{\"physical_skill_penalty\": <{num6:F0} to 0>, \"combat_damage_modifier\": <{num3:F1}-1.0>, \"combat_defense_modifier\": <{num3:F1}-1.0>, \"combat_speed_modifier\": <{num3:F1}-1.0>, \"map_speed_modifier\": <{num4:F1}-1.0>, \"morale_modifier\": <{num5:F0} to 0>, \"death_chance\": <0-{num7:F1}>}}");
-				stringBuilder.AppendLine("}}");
-				stringBuilder.AppendLine("```");
-				stringBuilder.AppendLine($"severity 1-{num}; spread_rate 0.1-{num2:F1} (how fast disease spreads); duration_days 7-120 (optional, auto-calculated from severity if omitted); disease_effects: modifiers {num3:F1}-1.0 (1=no change); economic_effects recommended.");
-				stringBuilder.AppendLine();
-			}
+			stringBuilder.AppendLine();
 		}
-		stringBuilder.AppendLine("## === CURRENT WORLD DATA (GROUND TRUTH) ===");
+	}
+	stringBuilder.AppendLine("## === CURRENT WORLD DATA (GROUND TRUTH) ===");
 		stringBuilder.AppendLine("The following data shows the ACTUAL CURRENT STATE of the game world RIGHT NOW.");
 		stringBuilder.AppendLine("Use this as FACTUAL BASIS for creating events.");
 		stringBuilder.AppendLine();
@@ -2517,15 +2363,10 @@ public class DynamicEventsGenerator
 		{
 			DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS_GEN] ERROR applying economic effects for event " + dynamicEvent.Id + ": " + ex.Message);
 		}
-		if (!dynamicEvent.EventHistory.Any())
-		{
-			DiseaseEventData diseaseData = (dynamicEvent.IsDiseaseEvent ? dynamicEvent.DiseaseData : null);
-			dynamicEvent.AddEventUpdate(dynamicEvent.Description, "Initial Event", economicEffects, diseaseData);
-		}
-		if (dynamicEvent.IsDiseaseEvent && dynamicEvent.DiseaseData != null)
-		{
-			ProcessDiseaseOutbreakEvent(dynamicEvent);
-		}
+	if (!dynamicEvent.EventHistory.Any())
+	{
+		dynamicEvent.AddEventUpdate(dynamicEvent.Description, "Initial Event", economicEffects);
+	}
 		DynamicEventsManager.Instance.AddEvent(dynamicEvent);
 		DiplomacyLogger.Instance?.Log("Checking diplomatic response for event " + dynamicEvent.Id);
 		DiplomacyLogger.Instance?.Log($"AllowsDiplomaticResponse = {dynamicEvent.AllowsDiplomaticResponse}");
@@ -2546,111 +2387,6 @@ public class DynamicEventsGenerator
 				ProcessDiplomaticEventAsync(dynamicEvent);
 			}
 		}
-	}
-
-	private void ProcessDiseaseOutbreakEvent(DynamicEvent dynamicEvent)
-	{
-		if (dynamicEvent?.DiseaseData == null)
-		{
-			return;
-		}
-		try
-		{
-			DiseaseEventData diseaseData = dynamicEvent.DiseaseData;
-			string text = ExtractSettlementIdForDisease(dynamicEvent);
-			if (string.IsNullOrEmpty(text))
-			{
-				DynamicEventsLogger.Instance.Log("[DISEASE] Could not determine settlement for disease event");
-				return;
-			}
-			DiseaseEffects effects = ConvertDiseaseEffectsData(diseaseData.DiseaseEffects);
-			int val = GlobalSettings<ModSettings>.Instance?.DiseaseMaxSeverity ?? 5;
-			Disease disease = DiseaseManager.Instance?.CreateDiseaseFromEvent(dynamicEvent, diseaseData.DiseaseName ?? "Неизвестная болезнь", diseaseData.DiseaseDescription ?? "Странная болезнь неизвестного происхождения.", Math.Max(1, Math.Min(val, diseaseData.Severity)), effects, text);
-			if (disease != null)
-			{
-				diseaseData.DiseaseId = disease.Id;
-				DynamicEventsLogger.Instance.Log($"[DISEASE] Created disease '{disease.Name}' (severity {disease.Severity}) in settlement {text}");
-			}
-		}
-		catch (Exception ex)
-		{
-			DynamicEventsLogger.Instance.Log("[DISEASE] Error processing disease outbreak event: " + ex.Message);
-		}
-	}
-
-	private string ExtractSettlementIdForDisease(DynamicEvent dynamicEvent)
-	{
-		if (!string.IsNullOrEmpty(dynamicEvent.DiseaseData?.SettlementId))
-		{
-			return dynamicEvent.DiseaseData.SettlementId;
-		}
-		List<EconomicEffect> economicEffects = dynamicEvent.EconomicEffects;
-		if (economicEffects != null && economicEffects.Count > 0)
-		{
-			EconomicEffect economicEffect = dynamicEvent.EconomicEffects.FirstOrDefault((EconomicEffect e) => e.TargetType == "settlement");
-			if (economicEffect != null && !string.IsNullOrEmpty(economicEffect.TargetId))
-			{
-				return economicEffect.TargetId;
-			}
-		}
-		if (!string.IsNullOrEmpty(dynamicEvent.Description))
-		{
-			foreach (Settlement item in ((IEnumerable<Settlement>)Settlement.All).Where((Settlement s) => s.IsTown || s.IsCastle))
-			{
-				if (dynamicEvent.Description.Contains(((object)item.Name).ToString()))
-				{
-					return ((MBObjectBase)item).StringId;
-				}
-			}
-		}
-		if (!string.IsNullOrEmpty(dynamicEvent.Title))
-		{
-			foreach (Settlement item2 in ((IEnumerable<Settlement>)Settlement.All).Where((Settlement s) => s.IsTown || s.IsCastle))
-			{
-				if (dynamicEvent.Title.Contains(((object)item2.Name).ToString()))
-				{
-					return ((MBObjectBase)item2).StringId;
-				}
-			}
-		}
-		Settlement val = (from _ in (IEnumerable<Settlement>)Settlement.All
-			where _.IsTown && IsDiseaseVulnerable(_)
-			orderby _random.Next()
-			select _).FirstOrDefault();
-		return (val != null) ? ((MBObjectBase)val).StringId : null;
-	}
-
-	private DiseaseEffects ConvertDiseaseEffectsData(DiseaseEffectsData data)
-	{
-		DiseaseEffects diseaseEffects = new DiseaseEffects();
-		if (data == null)
-		{
-			return diseaseEffects;
-		}
-		ModSettings instance = GlobalSettings<ModSettings>.Instance;
-		float val = instance?.DiseaseMinCombatModifier ?? 0.5f;
-		float val2 = instance?.DiseaseMinMapSpeedModifier ?? 0.5f;
-		float val3 = instance?.DiseaseMaxMoralePenalty ?? (-30f);
-		float val4 = instance?.DiseaseMaxPhysicalSkillPenalty ?? (-30f);
-		float val5 = instance?.DiseaseMaxDeathChance ?? 0.3f;
-		if (data.PhysicalSkillPenalty != 0f)
-		{
-			float val6 = 0f - Math.Abs(data.PhysicalSkillPenalty);
-			float value = Math.Max(val4, Math.Min(0f, val6));
-			string[] physicalSkills = DiseaseEffects.PhysicalSkills;
-			foreach (string key in physicalSkills)
-			{
-				diseaseEffects.SkillModifiers[key] = value;
-			}
-		}
-		diseaseEffects.CombatModifiers.DamageMultiplier = Math.Max(val, Math.Min(1f, Math.Abs(data.CombatDamageModifier)));
-		diseaseEffects.CombatModifiers.DefenseMultiplier = Math.Max(val, Math.Min(1f, Math.Abs(data.CombatDefenseModifier)));
-		diseaseEffects.CombatModifiers.SpeedMultiplier = Math.Max(val, Math.Min(1f, Math.Abs(data.CombatSpeedModifier)));
-		diseaseEffects.MapModifiers.MovementSpeedMultiplier = Math.Max(val2, Math.Min(1f, Math.Abs(data.MapSpeedModifier)));
-		float val7 = 0f - Math.Abs(data.MoraleModifier);
-		diseaseEffects.MapModifiers.MoraleModifier = Math.Max(val3, Math.Min(0f, val7));
-		diseaseEffects.DeathChance = Math.Max(0f, Math.Min(val5, Math.Abs(data.DeathChance)));
-		return diseaseEffects;
 	}
 
 	private string GetEventTitleOrFallback(DynamicEvent dynamicEvent)
@@ -3370,70 +3106,6 @@ public class DynamicEventsGenerator
 		return list;
 	}
 
-	private List<DiseaseVulnerableSettlement> GetDiseaseVulnerableSettlements()
-	{
-		List<DiseaseVulnerableSettlement> list = new List<DiseaseVulnerableSettlement>();
-		List<Settlement> list2 = (from s in (IEnumerable<Settlement>)Settlement.All
-			where s.IsTown || s.IsCastle
-			where IsDiseaseVulnerable(s)
-			orderby _random.Next()
-			select s).Take(2).ToList();
-		foreach (Settlement item2 in list2)
-		{
-			string vulnerabilityLevel = GetVulnerabilityLevel(item2);
-			string riskFactors = GetRiskFactors(item2);
-			DiseaseVulnerableSettlement obj = new DiseaseVulnerableSettlement
-			{
-				SettlementName = (((object)item2.Name)?.ToString() ?? "Unknown"),
-				SettlementStringId = (((MBObjectBase)item2).StringId ?? "unknown"),
-				SettlementType = (item2.IsTown ? "Town" : "Castle") + (item2.HasPort ? " (port)" : "")
-			};
-			IFaction mapFaction = item2.MapFaction;
-			obj.KingdomName = ((mapFaction == null) ? null : ((object)mapFaction.Name)?.ToString()) ?? "Independent";
-			IFaction mapFaction2 = item2.MapFaction;
-			obj.KingdomStringId = ((mapFaction2 != null) ? mapFaction2.StringId : null) ?? "independent";
-			CultureObject culture = item2.Culture;
-			obj.Culture = ((culture == null) ? null : ((object)((BasicCultureObject)culture).Name)?.ToString()) ?? "Unknown";
-			obj.VulnerabilityLevel = vulnerabilityLevel;
-			obj.RiskFactors = riskFactors;
-			Clan ownerClan = item2.OwnerClan;
-			object obj2;
-			if (ownerClan == null)
-			{
-				obj2 = null;
-			}
-			else
-			{
-				Hero leader = ownerClan.Leader;
-				obj2 = ((leader == null) ? null : ((object)leader.Name)?.ToString());
-			}
-			if (obj2 == null)
-			{
-				obj2 = "Unknown";
-			}
-			obj.RulerName = (string)obj2;
-			Clan ownerClan2 = item2.OwnerClan;
-			object obj3;
-			if (ownerClan2 == null)
-			{
-				obj3 = null;
-			}
-			else
-			{
-				Hero leader2 = ownerClan2.Leader;
-				obj3 = ((leader2 != null) ? ((MBObjectBase)leader2).StringId : null);
-			}
-			if (obj3 == null)
-			{
-				obj3 = "unknown";
-			}
-			obj.RulerStringId = (string)obj3;
-			DiseaseVulnerableSettlement item = obj;
-			list.Add(item);
-		}
-		return list;
-	}
-
 	private List<StrangeOccurrenceSettlement> GetStrangeOccurrenceSettlements()
 	{
 		List<StrangeOccurrenceSettlement> list = new List<StrangeOccurrenceSettlement>();
@@ -3498,6 +3170,65 @@ public class DynamicEventsGenerator
 		return list;
 	}
 
+	private string GetVulnerabilityLevel(Settlement settlement)
+	{
+		if (settlement.Town == null)
+		{
+			return "unknown";
+		}
+		int num = 0;
+		if (settlement.Town.Prosperity < 2000f)
+		{
+			num++;
+		}
+		if (((Fief)settlement.Town).FoodStocks < 100f)
+		{
+			num++;
+		}
+		if (settlement.Town.Security < 30f)
+		{
+			num++;
+		}
+		if (settlement.IsUnderSiege)
+		{
+			num++;
+		}
+		return num switch
+		{
+			1 => "low vulnerability", 
+			2 => "moderate vulnerability", 
+			3 => "high vulnerability", 
+			4 => "extreme vulnerability", 
+			_ => "unknown vulnerability", 
+		};
+	}
+
+	private string GetRiskFactors(Settlement settlement)
+	{
+		if (settlement.Town == null)
+		{
+			return "none";
+		}
+		List<string> list = new List<string>();
+		if (settlement.Town.Prosperity < 2000f)
+		{
+			list.Add("poverty");
+		}
+		if (((Fief)settlement.Town).FoodStocks < 100f)
+		{
+			list.Add("food shortage");
+		}
+		if (settlement.Town.Security < 30f)
+		{
+			list.Add("poor sanitation");
+		}
+		if (settlement.IsUnderSiege)
+		{
+			list.Add("siege conditions");
+		}
+		return list.Any() ? string.Join(", ", list) : "none";
+	}
+
 	private string GetDiscoveryPotential(Settlement settlement)
 	{
 		List<string> list = new List<string>();
@@ -3524,19 +3255,6 @@ public class DynamicEventsGenerator
 			list.Add("recently disturbed");
 		}
 		return list.Any() ? string.Join(", ", list) : "moderate archaeological potential";
-	}
-
-	private bool IsDiseaseVulnerable(Settlement settlement)
-	{
-		if (settlement.Town == null)
-		{
-			return false;
-		}
-		bool flag = settlement.Town.Prosperity < (float)PROSPERITY_MEDIUM_THRESHOLD;
-		bool flag2 = ((Fief)settlement.Town).FoodStocks < (float)FOOD_STOCKS_LOW_THRESHOLD;
-		bool flag3 = settlement.Town.Security < (float)TOWN_SECURITY_LOW_THRESHOLD;
-		bool isUnderSiege = settlement.IsUnderSiege;
-		return flag || flag2 || flag3 || isUnderSiege;
 	}
 
 	private string GetVulnerabilityLevel(Settlement settlement)

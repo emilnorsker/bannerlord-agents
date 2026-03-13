@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using AIInfluence.Diseases;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.GameComponents;
@@ -197,19 +196,8 @@ public class SettlementIncomeMultiplierPatch
 							{
 								text += $" ({list2.Count} effects)";
 							}
-							TextObject val = new TextObject(text, (Dictionary<string, object>)null);
-							((ExplainedNumber)(ref goldChange)).Add(num2, val, ((SettlementComponent)item).Name);
-						}
-					}
-				}
-				if (DiseaseManager.Instance != null)
-				{
-					float quarantineIncomeMultiplier = DiseaseManager.Instance.GetQuarantineIncomeMultiplier(((SettlementComponent)item).Settlement);
-					if (Math.Abs(quarantineIncomeMultiplier - 1f) > 0.001f)
-					{
-						float num5 = num * (quarantineIncomeMultiplier - 1f);
-						TextObject val2 = new TextObject("{=AIInfluence_QuarantinePenaltyReason}Quarantine", (Dictionary<string, object>)null);
-						((ExplainedNumber)(ref goldChange)).Add(num5, val2, ((SettlementComponent)item).Name);
+						TextObject val = new TextObject(text, (Dictionary<string, object>)null);
+						((ExplainedNumber)(ref goldChange)).Add(num2, val, ((SettlementComponent)item).Name);
 					}
 				}
 			}

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using AIInfluence.Diseases;
 using AIInfluence.DynamicEvents;
 using AIInfluence.Util;
 using MCM.Abstractions.Base.Global;
@@ -834,76 +833,7 @@ public class KingdomStatementGenerator
 				stringBuilder.AppendLine("No active trade agreements.");
 				stringBuilder.AppendLine();
 			}
-			ModSettings instance = GlobalSettings<ModSettings>.Instance;
-			if (instance != null && instance.EnableDiseaseSystem)
-			{
-				DiseaseManager diseaseManager = DiseaseManager.Instance;
-				if (diseaseManager != null)
-				{
-					List<Settlement> source2 = ((IEnumerable<Settlement>)Settlement.All).Where(delegate(Settlement s)
-					{
-						int result;
-						if (s.IsTown || s.IsCastle)
-						{
-							Clan ownerClan2 = s.OwnerClan;
-							result = ((((ownerClan2 != null) ? ownerClan2.Kingdom : null) == kingdom) ? 1 : 0);
-						}
-						else
-						{
-							result = 0;
-						}
-						return (byte)result != 0;
-					}).ToList();
-					List<Settlement> list3 = source2.Where((Settlement s) => diseaseManager.SettlementHasDisease(s)).ToList();
-					if (list3.Any())
-					{
-						stringBuilder.AppendLine("### DISEASE STATUS IN YOUR SETTLEMENTS ###");
-						stringBuilder.AppendLine("**You can use quarantine_settlement action to close diseased settlements. Requires settlement_id and quarantine_duration_days (positive integer, minimum 1 day; quarantine auto-lifts). You decide the duration.**");
-						stringBuilder.AppendLine("**QUARANTINE DURATION GUIDANCE:** To be effective, quarantine_duration_days should be at least equal to the disease's 'Days remaining'. Setting it shorter than the disease duration means the quarantine will lift while the disease is still active. For severe diseases (severity 4-5) consider adding extra days as buffer.");
-						foreach (Settlement item4 in list3)
-						{
-							List<Disease> allDiseasesForSettlement = diseaseManager.GetAllDiseasesForSettlement(item4);
-							string arg;
-							if (diseaseManager.IsSettlementUnderQuarantine(item4))
-							{
-								int num2 = 0;
-								foreach (Disease item5 in allDiseasesForSettlement)
-								{
-									if (!item5.IsQuarantined || !item5.QuarantineEndDays.HasValue)
-									{
-										continue;
-									}
-									_ = CampaignTime.Now;
-									if (true)
-									{
-										float value = item5.QuarantineEndDays.Value;
-										val2 = CampaignTime.Now;
-										int num3 = (int)(value - (float)((CampaignTime)(ref val2)).ToDays);
-										if (num3 > num2)
-										{
-											num2 = num3;
-										}
-									}
-								}
-								arg = ((num2 > 0) ? $" [QUARANTINED, {num2} days remaining — if you quarantine again, duration will be EXTENDED by adding new days to remaining]" : " [QUARANTINED, indefinite]");
-							}
-							else
-							{
-								arg = " [NOT QUARANTINED]";
-							}
-							stringBuilder.AppendLine($"- {item4.Name} (string_id:{((MBObjectBase)item4).StringId}){arg}");
-							foreach (Disease item6 in allDiseasesForSettlement)
-							{
-								int val3 = item6.DurationDays - item6.DaysSinceCreation;
-								int num4 = Math.Max(0, val3);
-								stringBuilder.AppendLine($"  Disease: {item6.Name}, Severity: {item6.Severity}/5, Days active: {item6.DaysSinceCreation}, Days remaining: {num4} → recommended quarantine_duration_days: at least {num4}");
-							}
-						}
-						stringBuilder.AppendLine();
-					}
-				}
-			}
-			stringBuilder.AppendLine("### CLANS IN YOUR KINGDOM ###");
+		stringBuilder.AppendLine("### CLANS IN YOUR KINGDOM ###");
 			bool flag = false;
 			foreach (Clan item7 in (List<Clan>)(object)kingdom.Clans)
 			{

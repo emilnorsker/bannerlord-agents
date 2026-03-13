@@ -5,9 +5,7 @@ using AIInfluence.Behaviors.AIActions;
 using AIInfluence.Behaviors.AIActions.TaskSystem;
 using AIInfluence.Behaviors.RolePlay;
 using AIInfluence.Diplomacy;
-using AIInfluence.Diseases;
 using AIInfluence.DynamicEvents;
-using AIInfluence.Patches.Diseases;
 using AIInfluence.SettlementCombat;
 using AIInfluence.Util;
 using MCM.Abstractions.Base.Global;
@@ -63,11 +61,10 @@ public class InitializationManager
 			InitializeAIActionsManager();
 			InitializeTaskManager(campaignGameStarter);
 			MessengerMenuBehavior.AddTavernMenuOption(campaignGameStarter);
-			InitializeSettlementPenaltyManager();
-			InitializeEconomicEffectsManager();
-			InitializeRPItemManager(behavior);
-			InitializeDiseaseSystem(campaignGameStarter);
-			InitializeArenaTrainingSystem(campaignGameStarter);
+		InitializeSettlementPenaltyManager();
+		InitializeEconomicEffectsManager();
+		InitializeRPItemManager(behavior);
+		InitializeArenaTrainingSystem(campaignGameStarter);
 			_isInitialized = true;
 			behavior?.LogMessage("[INIT_MANAGER] Все системы успешно инициализированы.");
 		}
@@ -276,45 +273,6 @@ public class InitializationManager
 		}
 	}
 
-	private void InitializeDiseaseSystem(CampaignGameStarter campaignGameStarter)
-	{
-		try
-		{
-			ModSettings instance = GlobalSettings<ModSettings>.Instance;
-			if (instance != null && !instance.EnableDiseaseSystem)
-			{
-				_behavior?.LogMessage("[INIT_MANAGER] Disease system disabled in settings, skipping initialization.");
-				return;
-			}
-			DiseaseManager diseaseManager = new DiseaseManager();
-			diseaseManager.Initialize();
-			_behavior?.LogMessage("[INIT_MANAGER] DiseaseManager инициализирован.");
-			HospitalMenuBehavior.AddMenus(campaignGameStarter);
-			_behavior?.LogMessage("[INIT_MANAGER] Hospital menu registered.");
-			QuarantineMenuBehavior.AddMenus(campaignGameStarter);
-			QuarantineSettlementExitBlocker.AddMenus(campaignGameStarter);
-			_behavior?.LogMessage("[INIT_MANAGER] Quarantine menu registered.");
-			if (campaignGameStarter != null)
-			{
-				campaignGameStarter.AddBehavior((CampaignBehaviorBase)(object)new HospitalMenuBehavior());
-			}
-			if (campaignGameStarter != null)
-			{
-				campaignGameStarter.AddBehavior((CampaignBehaviorBase)(object)new QuarantineMenuBehavior());
-			}
-			if (campaignGameStarter != null)
-			{
-				campaignGameStarter.AddBehavior((CampaignBehaviorBase)(object)new QuarantineSettlementExitBlocker());
-			}
-			_behavior?.LogMessage("[INIT_MANAGER] Disease system fully initialized.");
-		}
-		catch (Exception ex)
-		{
-			_behavior?.LogMessage("[INIT_MANAGER] Ошибка инициализации Disease System: " + ex.Message);
-			_behavior?.LogMessage("[INIT_MANAGER] StackTrace: " + ex.StackTrace);
-		}
-	}
-
 	private void InitializeArenaTrainingSystem(CampaignGameStarter campaignGameStarter)
 	{
 		try
@@ -344,9 +302,8 @@ public class InitializationManager
 			DynamicEventsManager.Reset();
 			SettlementOwnershipTracker.Instance.ResetInitialization();
 			KingdomLeadershipTracker.Instance.ResetInitialization();
-			DiplomacyInitializer.Instance.Reset();
-			TaskManager.ResetInstance();
-			DiseaseTreatmentExpensePatch.Reset();
+		DiplomacyInitializer.Instance.Reset();
+		TaskManager.ResetInstance();
 			_isInitialized = false;
 			_behavior = null;
 			behavior?.LogMessage("[INIT_MANAGER] Все системы успешно сброшены.");
