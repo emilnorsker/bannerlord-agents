@@ -9,10 +9,6 @@
 [2026-03-12 18:11:08.747] [NPC_INITIATIVE] Skipping Unqid - NPC does not want to send letters (AllowsLettersFromNPC = false)
 [2026-03-12 18:11:08.748] [NPC_INITIATIVE] Checked 0 NPCs, initiatives: 0/1
 [2026-03-12 18:11:19.067] [NPC_INITIATIVE] Skipping daily check - only 1.0 days since last check (need 3 days)
-[2026-03-12 18:11:22.647] [NPC_MAP_INITIATIVE] Selected Amalgun from 1 candidates to approach player! (Hostile: False)
-[2026-03-12 18:11:22.650] [NPC_MAP_INITIATIVE] Timeout set for Amalgun: 3.0 days
-[2026-03-12 18:11:24.139] [NPC_MAP_INITIATIVE] Player entered settlement - stopping all pursuits
-[2026-03-12 18:11:24.140] [NPC_MAP_INITIATIVE] Stopped pursuit for Amalgun. Reason: Player entered settlement
 [2026-03-12 18:28:41.749] [NPC_INITIATIVE] Skipping daily check - only 2.0 days since last check (need 3 days)
 [2026-03-12 18:28:47.505] [NPC_INITIATIVE] Starting NPC initiative check (every 3 days)
 [2026-03-12 18:28:47.505] [NPC_INITIATIVE] Skipping Caladog - NPC does not want to send letters (AllowsLettersFromNPC = false)
@@ -986,10 +982,6 @@ If the player doesn't ask you to go somewhere or come to them, set `technical_ac
 [2026-03-13 00:50:03.129] [NPC_INITIATIVE] Skipping Serandon - NPC does not want to send letters (AllowsLettersFromNPC = false)
 [2026-03-13 00:50:03.129] [NPC_INITIATIVE] Skipping Baranor - NPC does not want to send letters (AllowsLettersFromNPC = false)
 [2026-03-13 00:50:03.130] [NPC_INITIATIVE] Checked 1 NPCs, initiatives: 0/1
-[2026-03-13 00:50:04.127] [NPC_MAP_INITIATIVE] Selected Jathea from 1 candidates to approach player! (Hostile: False)
-[2026-03-13 00:50:04.130] [NPC_MAP_INITIATIVE] Timeout set for Jathea: 3.4 days
-[2026-03-13 00:50:04.142] [NPC_MAP_INITIATIVE] Player entered settlement - stopping all pursuits
-[2026-03-13 00:50:04.143] [NPC_MAP_INITIATIVE] Stopped pursuit for Jathea. Reason: Player entered settlement
 [2026-03-13 00:50:17.823] [NPC_INITIATIVE] Skipping daily check - only 1.0 days since last check (need 3 days)
 [2026-03-13 00:50:23.272] [NPC_INITIATIVE] Skipping daily check - only 2.0 days since last check (need 3 days)
 [2026-03-13 00:59:26.807] [NPC_INITIATIVE] Skipping daily check - only 3.0 days since last check (need 3 days)
