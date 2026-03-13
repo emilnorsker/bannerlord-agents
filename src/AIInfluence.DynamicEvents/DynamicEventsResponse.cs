@@ -1,0 +1,16 @@
+using System.Collections.Generic;
+using Newtonsoft.Json;
+
+namespace AIInfluence.DynamicEvents;
+
+[JsonSerializable]
+public class DynamicEventsResponse
+{
+	[JsonProperty("events")]
+	public List<DynamicEvent> Events { get; set; }
+
+	public DynamicEventsResponse()
+	{
+		Events = new List<DynamicEvent>();
+	}
+}
