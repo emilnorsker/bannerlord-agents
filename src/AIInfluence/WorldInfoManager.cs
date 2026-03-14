@@ -4780,7 +4780,7 @@ public class WorldInfoManager
 			if (list5.Count > 0)
 			{
 				list5 = (from x in list5
-					group x by ((MBObjectBase)x.Settlement).StringId into g
+					group x by ((MBObjectBase)x.Item1).StringId into g
 					select g.First()).ToList();
 				list5.Sort(((Settlement Settlement, float Distance) a, (Settlement Settlement, float Distance) b) => a.Distance.CompareTo(b.Distance));
 				List<string> values = list5.Select<(Settlement, float), string>(delegate((Settlement Settlement, float Distance) x)

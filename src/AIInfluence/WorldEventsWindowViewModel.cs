@@ -121,7 +121,7 @@ public class WorldEventsWindowViewModel : ViewModel
 				}
 				List<WorldEventEntry> list7 = (from e in list5
 					orderby e.Item3 descending, e.Item2 descending
-					select e.entry).ToList();
+					select e.Item1).ToList();
 				foreach (WorldEventEntry item5 in list7)
 				{
 					((Collection<WorldEventEntry>)(object)DeclarationList).Add(item5);
