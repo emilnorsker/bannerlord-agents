@@ -1028,16 +1028,18 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				return;
 			}
 			Vec2 spawnPos = questGiver?.CurrentSettlement?.GatePosition ?? questGiver?.GetPosition2D ?? MobileParty.MainParty.Position2D;
+			CharacterObject basicTroop = banditClan.BasicTroop;
+			if (basicTroop == null)
+			{
+				LogMessage("[QUEST] Bandit clan has no BasicTroop — cannot spawn hostile party");
+				return;
+			}
 			Hideout nearestHideout = Settlement.All?
-				.Where((Settlement s) => s.IsHideout)
+				.Where((Settlement s) => s.IsHideout && s.Hideout != null)
 				.Select((Settlement s) => s.Hideout)
 				.FirstOrDefault();
 			TroopRoster memberRoster = new TroopRoster((PartyBase)null);
-			CharacterObject basicTroop = banditClan.BasicTroop;
-			if (basicTroop != null)
-			{
-				memberRoster.AddToCounts(basicTroop, troopCount, false, 0, 0, true, -1);
-			}
+			memberRoster.AddToCounts(basicTroop, troopCount, false, 0, 0, true, -1);
 			MobileParty party = BanditPartyComponent.CreateBanditParty("quest_party_" + questInfo.QuestId, banditClan, nearestHideout, false);
 			if (party == null)
 			{
