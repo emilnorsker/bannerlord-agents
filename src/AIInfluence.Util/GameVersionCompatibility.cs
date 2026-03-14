@@ -314,20 +314,25 @@ public static class GameVersionCompatibility
 		}
 	}
 
-	public static Kingdom CreateKingdom(TextObject name, TextObject informalName, CultureObject culture, Banner banner)
+	// Kingdom.CreateKingdom(stringID) + InitializeKingdom(...) is the low-level API.
+	// KingdomManager.CreateKingdom(name, informalName, culture, founderClan) is the
+	// high-level API that creates the Kingdom, initialises it, and moves the clan in —
+	// equivalent to calling the three low-level steps in sequence.
+	// Signature verified from TaleWorlds.CampaignSystem.dll (v1.2.7):
+	//   KingdomManager.CreateKingdom(TextObject, TextObject, CultureObject, Clan, [optional...])
+	public static void CreateKingdom(TextObject name, TextObject informalName, CultureObject culture, Clan founderClan)
 	{
-		if (name == null || culture == null || banner == null)
+		if (name == null || culture == null || founderClan == null)
 		{
-			return null;
+			return;
 		}
 		try
 		{
-			return Kingdom.CreateKingdom(name, informalName ?? name, culture, banner);
+			Campaign.Current.KingdomManager.CreateKingdom(name, informalName ?? name, culture, founderClan);
 		}
 		catch (Exception ex)
 		{
 			Debug.Print("[AIInfluence] Failed to create kingdom: " + ex.Message, 0, (DebugColor)12, 17592186044416uL);
-			return null;
 		}
 	}
 
