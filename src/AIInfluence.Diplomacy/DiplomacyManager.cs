@@ -806,15 +806,12 @@ public class DiplomacyManager
 		}
 		string name = (!string.IsNullOrWhiteSpace(kingdomName)) ? kingdomName : (((object)founderClan.Leader.Name)?.ToString() + "'s Kingdom");
 		string informal = (!string.IsNullOrWhiteSpace(informalName)) ? informalName : name;
+		// KingdomManager.CreateKingdom handles the full setup: creates the Kingdom object,
+		// initialises name/culture/banner, and moves the founding clan in as ruler.
+		// ChangeKingdomAction.ApplyByCreateKingdom is called internally — do not call it again.
 		DiplomacyPatches.WithBypass(delegate
 		{
-			Kingdom newKingdom = GameVersionCompatibility.CreateKingdom(new TextObject(name), new TextObject(informal), founderClan.Culture, founderClan.Banner);
-			if (newKingdom == null)
-			{
-				DiplomacyLogger.Instance.Log("[DIPLOMACY_MGR] FoundKingdom: Kingdom.CreateKingdom returned null");
-				return;
-			}
-			ChangeKingdomAction.ApplyByCreateKingdom(founderClan, newKingdom, true);
+			GameVersionCompatibility.CreateKingdom(new TextObject(name), new TextObject(informal), founderClan.Culture, founderClan);
 			DiplomacyLogger.Instance.LogDiplomaticAction("kingdom_founded", ((MBObjectBase)sourceKingdom).StringId, founderClanId, reason);
 			DiplomacyLogger.Instance.Log($"[DIPLOMACY_MGR] SUCCESS: Kingdom '{name}' founded by {founderClan.Name} (broke away from {sourceKingdom.Name})");
 		});
