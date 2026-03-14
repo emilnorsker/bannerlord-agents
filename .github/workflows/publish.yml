@@ -30,6 +30,7 @@ jobs:
         id: version
         run: |
           VERSION=$(xmllint --xpath 'string(//Version/@value)' SubModule.xml)
+          if [ -z "$VERSION" ]; then echo "Failed to extract version from SubModule.xml"; exit 1; fi
           echo "value=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Stage mod files
@@ -37,12 +38,15 @@ jobs:
           mkdir -p staging/AIInfluence/bin/Win64_Shipping_Client
           cp SubModule.xml staging/AIInfluence/
           cp -r GUI staging/AIInfluence/
-          find src/bin -name "AIInfluence.dll" | head -1 | xargs -I{} cp {} staging/AIInfluence/bin/Win64_Shipping_Client/
+          DLL=$(find src/bin -name "AIInfluence.dll" | head -1)
+          if [ -z "$DLL" ]; then echo "AIInfluence.dll not found after build"; exit 1; fi
+          cp "$DLL" staging/AIInfluence/bin/Win64_Shipping_Client/
           cp bin/Win64_Shipping_Client/OggVorbisEncoder.dll staging/AIInfluence/bin/Win64_Shipping_Client/
           cp bin/Win64_Shipping_Client/System.Buffers.dll staging/AIInfluence/bin/Win64_Shipping_Client/
           cp bin/Win64_Shipping_Client/System.Memory.dll staging/AIInfluence/bin/Win64_Shipping_Client/
           [ -f bin/Win64_Shipping_Client/rhubarb.exe ] && cp bin/Win64_Shipping_Client/rhubarb.exe staging/AIInfluence/bin/Win64_Shipping_Client/
           cp -r bin/Win64_Shipping_Client/res staging/AIInfluence/bin/Win64_Shipping_Client/
+          # world_secrets.json contains in-game lore (hidden NPC details), not credentials
           for f in world.txt world_info.json world_secrets.json cultural_traditions.json \
                    actionrules_description_EN.txt actionrules.txt eventsanalyzerrules.txt \
                    eventsgeneratorrules.txt kingdomstatementrules.txt playerdescription.txt \
