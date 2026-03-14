@@ -405,6 +405,15 @@ public class DialogManager
 				obj6 = (object)val6;
 			}
 			SafeAddPlayerLine(starter, "aiinfluence_diplomatic_exit", "aiinfluence_diplomatic_input", "end_conversation", "{=AIInfluence_DiplomaticExit}Return", (OnConditionDelegate)obj6, null);
+			SafeAddPlayerLine(starter, "aiinfluence_chat_window", "aiinfluence_input", "end_conversation", "{=AIInfluence_OpenChat}Chat", (OnConditionDelegate)(() => Hero.OneToOneConversationHero != null && IsNonCombatConversation(Hero.OneToOneConversationHero)), (OnConsequenceDelegate)delegate
+			{
+				Hero npc = Hero.OneToOneConversationHero;
+				if (npc != null)
+				{
+					NPCContext context = _behavior.GetOrCreateNPCContext(npc);
+					NpcChatWindowManager.Show(npc, context, onReturn: null);
+				}
+			});
 			SafeAddPlayerLine(starter, "aiinfluence_input", "aiinfluence_input", "aiinfluence_processing", "{=AIInfluence_PlayerThink}Speak", (OnConditionDelegate)(() => Hero.OneToOneConversationHero != null && IsNonCombatConversation(Hero.OneToOneConversationHero)), (OnConsequenceDelegate)delegate
 			{
 				_behavior.HandlePlayerInput();
