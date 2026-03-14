@@ -28,5 +28,6 @@ public enum DiplomaticAction
 	ExpelClan,
 	GrantFief,
 	ReceiveFief,
-	QuarantineSettlement
+	QuarantineSettlement,
+	FoundKingdom
 }
