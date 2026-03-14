@@ -1034,13 +1034,18 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage("[QUEST] Bandit clan has no BasicTroop — cannot spawn hostile party");
 				return;
 			}
-			Hideout nearestHideout = Settlement.All?
+			Hideout anyHideout = Settlement.All?
 				.Where((Settlement s) => s.IsHideout && s.Hideout != null)
 				.Select((Settlement s) => s.Hideout)
 				.FirstOrDefault();
+			if (anyHideout == null)
+			{
+				LogMessage("[QUEST] No hideout found on map — cannot spawn hostile party");
+				return;
+			}
 			TroopRoster memberRoster = new TroopRoster((PartyBase)null);
 			memberRoster.AddToCounts(basicTroop, troopCount, false, 0, 0, true, -1);
-			MobileParty party = BanditPartyComponent.CreateBanditParty("quest_party_" + questInfo.QuestId, banditClan, nearestHideout, false);
+			MobileParty party = BanditPartyComponent.CreateBanditParty("quest_party_" + questInfo.QuestId, banditClan, anyHideout, false);
 			if (party == null)
 			{
 				LogMessage("[QUEST] BanditPartyComponent.CreateBanditParty returned null");
