@@ -20,6 +20,15 @@ jobs:
       - name: Restore packages
         run: dotnet restore src/AIInfluence.csproj
 
+      - name: Extract Bannerlord reference DLLs
+        run: |
+          PKG_ROOT=$(dotnet nuget locals global-packages --list | sed 's/global-packages: //')
+          mkdir -p src/.bl-refs
+          cp "${PKG_ROOT}bannerlord.referenceassemblies.core/1.3.15.110062/ref/net472/"*.dll src/.bl-refs/
+          cp "${PKG_ROOT}bannerlord.referenceassemblies.native/1.3.15.110062/ref/net472/"*.dll src/.bl-refs/
+          cp "${PKG_ROOT}bannerlord.referenceassemblies.sandbox/1.3.15.110062/ref/net472/"*.dll src/.bl-refs/
+          echo "Extracted $(ls src/.bl-refs/*.dll | wc -l) reference DLLs"
+
       - name: Build
         run: dotnet build src/AIInfluence.csproj -c Release --no-restore
 

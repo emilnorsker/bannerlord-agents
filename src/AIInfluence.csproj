@@ -10,21 +10,20 @@
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
 
-  <!-- Add Bannerlord ref/ assembly folders to the search path so bare <Reference> items resolve. -->
-  <!-- PackageDownload ensures the packages land in the NuGet cache on dotnet restore. -->
-  <PropertyGroup>
-    <_BLRefCore>$(NuGetPackageRoot)bannerlord.referenceassemblies.core/1.3.15.110062/ref/net472/</_BLRefCore>
-    <_BLRefSandBox>$(NuGetPackageRoot)bannerlord.referenceassemblies.sandbox/1.3.15.110062/ref/net472/</_BLRefSandBox>
-    <AssemblySearchPaths>$(AssemblySearchPaths);$(_BLRefCore);$(_BLRefSandBox)</AssemblySearchPaths>
+  <!-- In CI, the workflow copies ref DLLs to .bl-refs/ before building.
+       When that folder exists extend the assembly search path so bare
+       <Reference> items can resolve from it. -->
+  <PropertyGroup Condition="Exists('$(MSBuildProjectDirectory)/.bl-refs/')">
+    <AssemblySearchPaths>$(AssemblySearchPaths);$(MSBuildProjectDirectory)/.bl-refs/</AssemblySearchPaths>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageDownload Include="Bannerlord.ReferenceAssemblies.Core" Version="[1.3.15.110062]" />
+    <PackageDownload Include="Bannerlord.ReferenceAssemblies.Native" Version="[1.3.15.110062]" />
     <PackageDownload Include="Bannerlord.ReferenceAssemblies.SandBox" Version="[1.3.15.110062]" />
   </ItemGroup>
 
   <ItemGroup>
-    <!-- TaleWorlds core assemblies – resolved via AssemblySearchPaths above -->
     <Reference Include="TaleWorlds.CampaignSystem" />
     <Reference Include="TaleWorlds.SaveSystem" />
     <Reference Include="TaleWorlds.Localization" />
@@ -43,20 +42,16 @@
     <Reference Include="TaleWorlds.Core.ViewModelCollection" />
     <Reference Include="TaleWorlds.InputSystem" />
     <Reference Include="TaleWorlds.DotNet" />
-    <!-- SandBox module assemblies – resolved via AssemblySearchPaths above -->
     <Reference Include="SandBox" />
     <Reference Include="SandBox.View" />
     <Reference Include="SandBox.ViewModelCollection" />
-    <!-- Local bin asset -->
     <Reference Include="OggVorbisEncoder">
       <HintPath>../bin/Win64_Shipping_Client/OggVorbisEncoder.dll</HintPath>
     </Reference>
-    <!-- Framework assemblies -->
     <Reference Include="System.Net.Http" />
   </ItemGroup>
 
   <ItemGroup>
-    <!-- lib/-based packages: auto-injected by NuGet into compile references -->
     <PackageReference Include="Lib.Harmony" Version="2.4.2" IncludeAssets="compile" PrivateAssets="all" />
     <PackageReference Include="Bannerlord.UIExtenderEx" Version="2.13.2" IncludeAssets="compile" PrivateAssets="all" />
     <PackageReference Include="Bannerlord.MCM" Version="5.11.3" IncludeAssets="compile" PrivateAssets="all" />
