@@ -16,11 +16,21 @@ public class ChatMessageItemVM : ViewModel
     [DataSourceProperty]
     public string MessageColor { get; set; } = "#00000033";
 
-    public ChatMessageItemVM(string senderName, string senderColor, string messageText, string messageColor)
+    /// <summary>speech | emote | action | sender</summary>
+    [DataSourceProperty]
+    public string MessageType { get; set; } = "speech";
+
+    [DataSourceProperty] public bool IsSender => MessageType == "sender";
+    [DataSourceProperty] public bool IsSpeech => MessageType == "speech";
+    [DataSourceProperty] public bool IsEmote  => MessageType == "emote";
+    [DataSourceProperty] public bool IsAction => MessageType == "action";
+
+    public ChatMessageItemVM(string senderName, string senderColor, string messageText, string messageColor, string messageType = "speech")
     {
         SenderName = senderName;
         SenderColor = senderColor;
         MessageText = messageText;
         MessageColor = messageColor;
+        MessageType = messageType;
     }
 }
