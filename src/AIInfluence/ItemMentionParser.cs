@@ -20,7 +20,7 @@ public static class ItemMentionParser
 
 	private static readonly object CacheLock = new object();
 
-	private static List<(string NormalizedName, ItemObject Item)> _normalizedItems;
+	private static volatile List<(string NormalizedName, ItemObject Item)> _normalizedItems;
 
 	private static volatile List<(string NormalizedName, CharacterObject Troop)> _normalizedTroops;
 
