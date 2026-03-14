@@ -155,7 +155,10 @@ public class SerializedPlayerStatement
 			TributeDurationDays = TributeDurationDays,
 			ReparationsAmount = ReparationsAmount,
 			TradeAgreementDurationYears = TradeAgreementDurationYears,
-			QuarantineDurationDays = QuarantineDurationDays
+			QuarantineDurationDays = QuarantineDurationDays,
+			TargetClanId = TargetClanId,
+			NewKingdomName = NewKingdomName,
+			NewKingdomInformalName = NewKingdomInformalName
 		};
 	}
 }
