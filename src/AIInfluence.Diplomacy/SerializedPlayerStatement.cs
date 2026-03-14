@@ -90,6 +90,9 @@ public class SerializedPlayerStatement
 		obj.ReparationsAmount = delayed.ReparationsAmount;
 		obj.TradeAgreementDurationYears = delayed.TradeAgreementDurationYears;
 		obj.QuarantineDurationDays = delayed.QuarantineDurationDays;
+		obj.TargetClanId = delayed.TargetClanId;
+		obj.NewKingdomName = delayed.NewKingdomName;
+		obj.NewKingdomInformalName = delayed.NewKingdomInformalName;
 		SerializedPlayerStatement serializedPlayerStatement = obj;
 		DiplomacyLogger instance = DiplomacyLogger.Instance;
 		object[] array = new object[4];
