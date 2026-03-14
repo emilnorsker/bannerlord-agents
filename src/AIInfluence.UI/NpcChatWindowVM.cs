@@ -33,18 +33,24 @@ public class NpcChatWindowVM : ViewModel
 	public string InputText
 	{
 		get => _inputText;
-		set { if (value != _inputText) { _inputText = value; OnPropertyChangedWithValue(value); OnPropertyChanged("IsSendEnabled"); } }
+		set { if (value != _inputText) { _inputText = value; OnPropertyChangedWithValue(value); OnPropertyChanged("IsSendEnabled"); OnPropertyChanged("IsNotReady"); } }
 	}
 
 	[DataSourceProperty]
 	public bool IsWaitingForResponse
 	{
 		get => _isWaitingForResponse;
-		set { if (value != _isWaitingForResponse) { _isWaitingForResponse = value; OnPropertyChangedWithValue(value); OnPropertyChanged("IsSendEnabled"); } }
+		set { if (value != _isWaitingForResponse) { _isWaitingForResponse = value; OnPropertyChangedWithValue(value); OnPropertyChanged("IsSendEnabled"); OnPropertyChanged("IsNotWaiting"); OnPropertyChanged("IsNotReady"); } }
 	}
 
 	[DataSourceProperty]
 	public bool IsSendEnabled => !_isWaitingForResponse && !string.IsNullOrWhiteSpace(_inputText);
+
+	[DataSourceProperty]
+	public bool IsNotWaiting => !_isWaitingForResponse;
+
+	[DataSourceProperty]
+	public bool IsNotReady => !_isWaitingForResponse && string.IsNullOrWhiteSpace(_inputText);
 
 	[DataSourceProperty]
 	public MBBindingList<ChatMessageItemVM> Messages
