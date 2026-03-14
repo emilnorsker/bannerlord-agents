@@ -2,7 +2,7 @@ name: Build and Publish Mod
 
 on:
   push:
-    branches: [main, cursor/ci-mod-publishing-3421]
+    branches: [main]
 
 jobs:
   publish:
@@ -17,13 +17,13 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: Install tools
+        run: sudo apt-get install -y p7zip-full libxml2-utils
+
       - name: Restore & build
         run: |
           dotnet restore src/AIInfluence.csproj
-          dotnet build src/AIInfluence.csproj -c Release --no-restore -p:GameFolder="$PWD/staging"
-
-      - name: Install tools
-        run: sudo apt-get install -y p7zip-full libxml2-utils
+          dotnet build src/AIInfluence.csproj -c Release --no-restore -p:GameFolder="$PWD/_game_folder"
 
       - name: Get mod version
         id: version
@@ -63,3 +63,4 @@ jobs:
           name: AIInfluence ${{ steps.version.outputs.value }}
           files: AIInfluence-${{ steps.version.outputs.value }}.7z
           generate_release_notes: true
+          fail_on_unmatched_files: true
