@@ -4615,7 +4615,8 @@ public static class PromptGenerator
 			"Hostile party (optional, for combat quests):\n" +
 			"- `\"spawn_hostile_party\": true`: spawns a bandit party on the map near the player when the quest is created. The player must defeat it.\n" +
 			"- `\"hostile_party_size\"`: number of troops (5–50).\n" +
-			"- `\"hostile_party_label\"`: display name of the party (e.g. \"Bandits sent by Radagos\").\n");
+			"- `\"hostile_party_label\"`: display name of the party (e.g. \"Bandits sent by Radagos\").\n" +
+			"- `\"hostile_troop_name\"`: troop type name (e.g. \"looter\", \"forest bandit\", \"sea raider\", \"mountain bandit\"). The system fuzzy-matches to the closest real troop. Omit to use default bandits.\n");
 		stringBuilder.Append("\n");
 		return stringBuilder.ToString();
 	}
@@ -4720,7 +4721,7 @@ public static class PromptGenerator
 		return "- `quest_action`: (object) Quest-related action. **Omit if no quest interaction.**\n" +
 		"  Create: {\"action\": \"create_quest\", \"title\": \"...\", \"description\": \"...\", \"duration_days\": N, \"target_npc_ids\": [\"id1\"], \"completer_npc_id\": \"id or null\", \"ai_verification_notes\": \"private notes\", \"progress_target\": N_or_null, \"progress_label\": \"label_or_null\", " +
 		"\"reward_gold\": N, \"reward_items\": [{\"item_name\": \"grain\", \"count\": 10}], \"reward_skill\": \"Charm\", \"reward_skill_xp\": 200, \"crime_rating_change\": -10, \"influence_change\": 5, " +
-		"\"spawn_hostile_party\": false, \"hostile_party_size\": 10, \"hostile_party_label\": \"Bandits\"}\n" +
+		"\"spawn_hostile_party\": false, \"hostile_party_size\": 10, \"hostile_party_label\": \"Bandits\", \"hostile_troop_name\": \"looter\"}\n" +
 		"  Update: {\"action\": \"update_quest\", \"quest_id\": \"...\", \"update_log\": \"your note\", \"set_progress\": N_or_null}\n" +
 		"  Complete: {\"action\": \"complete_quest\", \"quest_id\": \"...\", \"completion_reason\": \"why\", \"set_progress\": N_or_null} — all rewards applied automatically\n" +
 		"  Fail: {\"action\": \"fail_quest\", \"quest_id\": \"...\", \"completion_reason\": \"why failed\"}\n";

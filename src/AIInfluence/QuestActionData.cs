@@ -75,6 +75,9 @@ public class QuestActionData
 	[JsonProperty("hostile_party_label")]
 	public string HostilePartyLabel { get; set; }
 
+	[JsonProperty("hostile_troop_name")]
+	public string HostileTroopName { get; set; }
+
 	public List<string> GetEffectiveTargetNpcIds()
 	{
 		if (TargetNpcIds != null && TargetNpcIds.Count > 0)

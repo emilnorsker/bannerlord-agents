@@ -22,6 +22,8 @@ public static class ItemMentionParser
 
 	private static List<(string NormalizedName, ItemObject Item)> _normalizedItems;
 
+	private static List<(string NormalizedName, CharacterObject Troop)> _normalizedTroops;
+
 	public static string GetMentionedItemsSummary(ItemRoster roster, IEnumerable<string> conversationHistory, int lastMessageCount = 6, bool isPlayerInventory = false, Hero contextHero = null)
 	{
 		//IL_015e: Unknown result type (might be due to invalid IL or missing references)
@@ -300,6 +302,74 @@ public static class ItemMentionParser
 			}
 		}
 		return stringBuilder.ToString().Trim();
+	}
+
+	public static CharacterObject FindBestTroopMatch(string troopName)
+	{
+		if (string.IsNullOrWhiteSpace(troopName))
+		{
+			return null;
+		}
+		EnsureTroopLookup();
+		string normalized = NormalizeText(troopName);
+		if (string.IsNullOrEmpty(normalized))
+		{
+			return null;
+		}
+		string[] tokens = normalized.Split(new char[1] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+		CharacterObject best = null;
+		int bestScore = 0;
+		foreach (var (candidateName, troop) in _normalizedTroops)
+		{
+			int score = ScoreItemMatch(tokens, normalized, candidateName);
+			if (score > bestScore)
+			{
+				bestScore = score;
+				best = troop;
+			}
+		}
+		return bestScore > 0 ? best : null;
+	}
+
+	private static void EnsureTroopLookup()
+	{
+		if (_normalizedTroops != null)
+		{
+			return;
+		}
+		lock (CacheLock)
+		{
+			if (_normalizedTroops != null)
+			{
+				return;
+			}
+			_normalizedTroops = new List<(string, CharacterObject)>();
+			foreach (CharacterObject troop in (IEnumerable<CharacterObject>)CharacterObject.All)
+			{
+				if (troop == null || ((BasicCharacterObject)troop).IsHero)
+				{
+					continue;
+				}
+				string name = ((object)((BasicCharacterObject)troop).Name)?.ToString();
+				if (!string.IsNullOrWhiteSpace(name))
+				{
+					string normalized = NormalizeText(name);
+					if (!string.IsNullOrEmpty(normalized))
+					{
+						_normalizedTroops.Add((normalized, troop));
+					}
+				}
+				string stringId = ((MBObjectBase)troop).StringId;
+				if (!string.IsNullOrWhiteSpace(stringId))
+				{
+					string normalized2 = NormalizeText(stringId);
+					if (!string.IsNullOrEmpty(normalized2))
+					{
+						_normalizedTroops.Add((normalized2, troop));
+					}
+				}
+			}
+		}
 	}
 
 	public static ItemObject FindBestItemMatch(string itemName)
