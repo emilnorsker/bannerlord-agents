@@ -1143,23 +1143,19 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 	}
 
-	private void ApplyQuestSkillReward(AIQuestInfo questInfo)
-	{
-		if (string.IsNullOrEmpty(questInfo.RewardSkill) || questInfo.RewardSkillXp <= 0)
-		{
-			return;
-		}
-		SkillObject skill = DefaultSkills.GetAllSkills()?.FirstOrDefault((SkillObject s) => string.Equals(((MBObjectBase)s).StringId, questInfo.RewardSkill, StringComparison.OrdinalIgnoreCase));
 		if (skill != null)
 		{
-			Hero.MainHero.HeroDeveloper.AddSkillXp(skill, (float)questInfo.RewardSkillXp, true, true);
-			LogMessage($"[QUEST] Gave {questInfo.RewardSkillXp} XP in {questInfo.RewardSkill} as quest skill reward");
+			Hero mainHero = Hero.MainHero;
+			if (mainHero?.HeroDeveloper != null)
+			{
+				mainHero.HeroDeveloper.AddSkillXp(skill, (float)questInfo.RewardSkillXp, true, true);
+				LogMessage($"[QUEST] Gave {questInfo.RewardSkillXp} XP in {questInfo.RewardSkill} as quest skill reward");
+			}
+			else
+			{
+				LogMessage($"[QUEST] Skill reward skipped — MainHero or HeroDeveloper is null");
+			}
 		}
-		else
-		{
-			LogMessage($"[QUEST] Skill reward '{questInfo.RewardSkill}' not found in DefaultSkills");
-		}
-	}
 
 	private void ProcessUpdateQuest(Hero npc, NPCContext context, QuestActionData questAction)
 	{
