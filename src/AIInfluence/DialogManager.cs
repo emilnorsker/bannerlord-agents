@@ -581,61 +581,612 @@ public class DialogManager
 			}
 			SafeAddDialogLine(starter, "aiinfluence_dynamic_response", "aiinfluence_dynamic_response", "aiinfluence_apply_changes", "{=AIInfluence_DynamicResponse}{DYNAMIC_NPC_RESPONSE}", (OnConditionDelegate)obj12, (OnConsequenceDelegate)delegate
 			{
-				//IL_0e30: Unknown result type (might be due to invalid IL or missing references)
-				//IL_0ec2: Unknown result type (might be due to invalid IL or missing references)
-				//IL_0930: Unknown result type (might be due to invalid IL or missing references)
-				//IL_093a: Expected O, but got Unknown
-				//IL_093a: Unknown result type (might be due to invalid IL or missing references)
-				//IL_093f: Unknown result type (might be due to invalid IL or missing references)
-				//IL_0949: Expected O, but got Unknown
-				//IL_0b06: Unknown result type (might be due to invalid IL or missing references)
-				//IL_0b10: Expected O, but got Unknown
-				//IL_0b10: Unknown result type (might be due to invalid IL or missing references)
-				//IL_0b15: Unknown result type (might be due to invalid IL or missing references)
-				//IL_0b1f: Expected O, but got Unknown
-				//IL_0b5b: Unknown result type (might be due to invalid IL or missing references)
-				//IL_0b65: Expected O, but got Unknown
-				//IL_0b65: Unknown result type (might be due to invalid IL or missing references)
-				//IL_0b6a: Unknown result type (might be due to invalid IL or missing references)
-				//IL_0b74: Expected O, but got Unknown
-				//IL_1d80: Unknown result type (might be due to invalid IL or missing references)
-				//IL_1d8a: Expected O, but got Unknown
-				//IL_1d8a: Unknown result type (might be due to invalid IL or missing references)
-				//IL_1d8f: Unknown result type (might be due to invalid IL or missing references)
-				//IL_1d99: Expected O, but got Unknown
-				//IL_19db: Unknown result type (might be due to invalid IL or missing references)
-				//IL_19e5: Expected O, but got Unknown
-				//IL_19e5: Unknown result type (might be due to invalid IL or missing references)
-				//IL_19ea: Unknown result type (might be due to invalid IL or missing references)
-				//IL_19f4: Expected O, but got Unknown
-				//IL_1542: Unknown result type (might be due to invalid IL or missing references)
-				//IL_154c: Expected O, but got Unknown
-				//IL_15d7: Unknown result type (might be due to invalid IL or missing references)
-				//IL_15ee: Unknown result type (might be due to invalid IL or missing references)
-				//IL_15f3: Unknown result type (might be due to invalid IL or missing references)
-				//IL_15fd: Expected O, but got Unknown
-				//IL_1470: Unknown result type (might be due to invalid IL or missing references)
-				//IL_147a: Expected O, but got Unknown
-				//IL_14d8: Unknown result type (might be due to invalid IL or missing references)
-				//IL_14e2: Expected O, but got Unknown
-				//IL_14e2: Unknown result type (might be due to invalid IL or missing references)
-				//IL_14e7: Unknown result type (might be due to invalid IL or missing references)
-				//IL_14f1: Expected O, but got Unknown
-				//IL_1bf3: Unknown result type (might be due to invalid IL or missing references)
-				//IL_1c0a: Unknown result type (might be due to invalid IL or missing references)
-				//IL_1c0f: Unknown result type (might be due to invalid IL or missing references)
-				//IL_1c19: Expected O, but got Unknown
-				//IL_1b42: Unknown result type (might be due to invalid IL or missing references)
-				//IL_1b5e: Unknown result type (might be due to invalid IL or missing references)
-				//IL_1b63: Unknown result type (might be due to invalid IL or missing references)
-				//IL_1b6d: Expected O, but got Unknown
-				//IL_1836: Unknown result type (might be due to invalid IL or missing references)
-				//IL_186d: Unknown result type (might be due to invalid IL or missing references)
-				//IL_1872: Unknown result type (might be due to invalid IL or missing references)
-				//IL_187c: Expected O, but got Unknown
+				ExecutePendingResponseProcessing(Hero.OneToOneConversationHero);
+			});
+			SafeAddDialogLine(starter, "aiinfluence_apply_changes", "aiinfluence_apply_changes", "aiinfluence_input", "{=AIInfluence_NPCContinue}...", (OnConditionDelegate)(() => Hero.OneToOneConversationHero != null && IsNonCombatConversation(Hero.OneToOneConversationHero)), null);
+			SafeAddDialogLine(starter, "aiinfluence_apply_changes_combat", "aiinfluence_apply_changes", "aiinfluence_locked", "{=AIInfluence_DynamicResponse}{DYNAMIC_NPC_RESPONSE}", (OnConditionDelegate)(() => Hero.OneToOneConversationHero != null && !IsNonCombatConversation(Hero.OneToOneConversationHero)), null);
+			SafeAddDialogLine(starter, "aiinfluence_locked", "aiinfluence_locked", "aiinfluence_locked", "{=AIInfluence_DynamicResponse}{DYNAMIC_NPC_RESPONSE}", (OnConditionDelegate)(() => Hero.OneToOneConversationHero != null && !IsNonCombatConversation(Hero.OneToOneConversationHero)), null);
+			object obj13 = _003C_003Ec._003C_003E9__6_33;
+			if (obj13 == null)
+			{
+				OnConditionDelegate val13 = () => false;
+				_003C_003Ec._003C_003E9__6_33 = val13;
+				obj13 = (object)val13;
+			}
+			SafeAddPlayerLine(starter, "aiinfluence_locked_player", "aiinfluence_locked", "aiinfluence_locked", "{=AIInfluence_LockedPlaceholder}...", (OnConditionDelegate)obj13, null);
+			object obj14 = _003C_003Ec._003C_003E9__6_34;
+			if (obj14 == null)
+			{
+				OnConditionDelegate val14 = () => Hero.OneToOneConversationHero != null;
+				_003C_003Ec._003C_003E9__6_34 = val14;
+				obj14 = (object)val14;
+			}
+			SafeAddPlayerLine(starter, "aiinfluence_surrender_start", "player_responds_to_surrender_demand", "aiinfluence_surrender_response", "{=AIInfluence_PlayerStart}Talk [AI Influence]", (OnConditionDelegate)obj14, null);
+			SafeAddDialogLine(starter, "aiinfluence_surrender_response", "aiinfluence_surrender_response", "aiinfluence_surrender_input", "{=AIInfluence_NPCResponse}I'm listening.", null, null);
+			object obj15 = _003C_003Ec._003C_003E9__6_35;
+			if (obj15 == null)
+			{
+				OnConditionDelegate val15 = () => Hero.OneToOneConversationHero != null;
+				_003C_003Ec._003C_003E9__6_35 = val15;
+				obj15 = (object)val15;
+			}
+			SafeAddPlayerLine(starter, "aiinfluence_surrender_input", "aiinfluence_surrender_input", "aiinfluence_surrender_processing", "{=AIInfluence_PlayerThink}Speak", (OnConditionDelegate)obj15, (OnConsequenceDelegate)delegate
+			{
+				_behavior.HandlePlayerInput();
+			});
+			object obj16 = _003C_003Ec._003C_003E9__6_37;
+			if (obj16 == null)
+			{
+				OnConditionDelegate val16 = () => Hero.OneToOneConversationHero != null;
+				_003C_003Ec._003C_003E9__6_37 = val16;
+				obj16 = (object)val16;
+			}
+			SafeAddPlayerLine(starter, "aiinfluence_surrender_exit", "aiinfluence_surrender_input", "lord_demands_surrender_after_comment", "{=AIInfluence_PlayerExit}Return", (OnConditionDelegate)obj16, (OnConsequenceDelegate)delegate
+			{
+				Hero oneToOneConversationHero = Hero.OneToOneConversationHero;
+				if (oneToOneConversationHero != null)
+				{
+					NPCContext orCreateNPCContext = _behavior.GetOrCreateNPCContext(oneToOneConversationHero);
+					orCreateNPCContext.CombatResponse = null;
+					orCreateNPCContext.IsSurrendering = false;
+					orCreateNPCContext.MarriageResponse = null;
+					orCreateNPCContext.PendingWorkshopSale = null;
+					orCreateNPCContext.PendingMoneyTransfer = null;
+					orCreateNPCContext.PendingItemTransfers = null;
+					orCreateNPCContext.PendingDeath = null;
+					_behavior.SaveNPCContext(((MBObjectBase)oneToOneConversationHero).StringId, oneToOneConversationHero, orCreateNPCContext);
+					_behavior.LogMessage("[DEBUG] Exiting surrender dialog with NPC " + ((MBObjectBase)oneToOneConversationHero).StringId + " to lord_demands_surrender_after_comment.");
+				}
+			});
+			SafeAddDialogLine(starter, "aiinfluence_surrender_processing", "aiinfluence_surrender_processing", "aiinfluence_surrender_waiting", "{=AIInfluence_NPCProcessing}(Send a message and wait for the NPC's response)", null, null);
+			object obj17 = _003C_003Ec._003C_003E9__6_39;
+			if (obj17 == null)
+			{
+				OnConditionDelegate val17 = () => Hero.OneToOneConversationHero != null;
+				_003C_003Ec._003C_003E9__6_39 = val17;
+				obj17 = (object)val17;
+			}
+			SafeAddPlayerLine(starter, "aiinfluence_surrender_waiting", "aiinfluence_surrender_waiting", "aiinfluence_surrender_dynamic_response", "{=AIInfluence_PlayerAsk}View NPC's response", (OnConditionDelegate)obj17, null);
+			object obj18 = _003C_003Ec._003C_003E9__6_40;
+			if (obj18 == null)
+			{
+				OnConditionDelegate val18 = () => Hero.OneToOneConversationHero != null;
+				_003C_003Ec._003C_003E9__6_40 = val18;
+				obj18 = (object)val18;
+			}
+			SafeAddDialogLine(starter, "aiinfluence_surrender_dynamic_response", "aiinfluence_surrender_dynamic_response", "aiinfluence_surrender_apply_changes", "{=AIInfluence_DynamicResponse}{DYNAMIC_NPC_RESPONSE}", (OnConditionDelegate)obj18, (OnConsequenceDelegate)delegate
+			{
+				//IL_0327: Unknown result type (might be due to invalid IL or missing references)
+				//IL_03b9: Unknown result type (might be due to invalid IL or missing references)
 				Hero npc = Hero.OneToOneConversationHero;
 				if (npc != null)
 				{
+					NPCContext context = _behavior.GetOrCreateNPCContext(npc);
+					ModSettings instance = GlobalSettings<ModSettings>.Instance;
+					if (instance != null && instance.EnableTTS)
+					{
+						if (context.PreparedTts != null)
+						{
+							_behavior.LogMessage($"[TTS] Playing pre-prepared TTS for {npc.Name} (surrender flow)");
+							TtsLipSyncService.PlayPrepared(context.PreparedTts);
+							context.PreparedTts = null;
+						}
+						else
+						{
+							_behavior.LogMessage($"[TTS] No prepared TTS available for {npc.Name} (surrender flow), skipping playback.");
+						}
+					}
+					_behavior.LogMessage($"[DEBUG] Displaying dynamic response for NPC {((MBObjectBase)npc).StringId} in surrender dialog. CombatResponse={context.CombatResponse}, IsSurrendering={context.IsSurrendering}, MarriageResponse={context.MarriageResponse}");
+					if (!npc.IsPrisoner && context.CombatResponse != null)
+					{
+						bool flag = context.CombatResponse.IndexOf("attack", StringComparison.OrdinalIgnoreCase) >= 0;
+						bool flag2 = context.CombatResponse.IndexOf("release", StringComparison.OrdinalIgnoreCase) >= 0;
+						bool flag3 = context.CombatResponse.IndexOf("accept_surrender", StringComparison.OrdinalIgnoreCase) >= 0;
+						_behavior.LogMessage($"[DEBUG] In surrender dialog for {((MBObjectBase)npc).StringId}: isAttack={flag}, isRelease={flag2}, isAcceptSurrender={flag3}");
+						if (flag)
+						{
+							if (Settlement.CurrentSettlement != null && Mission.Current != null)
+							{
+								_behavior.LogMessage("[DEBUG] Settlement combat in surrender dialog - PendingSettlementCombat: " + context.PendingSettlementCombat);
+								if (context.PendingSettlementCombat == "attack")
+								{
+									_behavior.GetDelayedTaskManager().AddTask(5.0, delegate
+									{
+										SettlementCombatManager settlementCombatManager = _behavior.GetSettlementCombatManager();
+										if (settlementCombatManager != null && context.PendingSettlementCombat == "attack")
+										{
+											_behavior.LogMessage("[SETTLEMENT_COMBAT] Initiating combat from surrender dialog");
+											settlementCombatManager.InitiateCombat(npc, context, CombatTriggerType.NPCAttack, context.SettlementCombatResponse);
+											context.PendingSettlementCombat = null;
+											context.SettlementCombatResponse = null;
+											_behavior.SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
+										}
+									});
+								}
+							}
+							else
+							{
+								float dialogDelay = GlobalSettings<ModSettings>.Instance.DialogDelay;
+								_behavior.GetDelayedTaskManager().AddTask(dialogDelay, delegate
+								{
+									try
+									{
+										_behavior.LogMessage("[DEBUG] Calling InitiateCombatLogic from surrender dialog for " + ((MBObjectBase)npc).StringId);
+										_behavior.InitiateCombatLogic(npc, context);
+									}
+									catch (Exception ex2)
+									{
+										_behavior.LogMessage("[ERROR] Failed to initiate combat from surrender dialog: " + ex2.Message);
+									}
+								});
+							}
+						}
+					}
+					if (context.PendingRelationChange != null)
+					{
+						PendingRelationChange pendingRelationChange = context.PendingRelationChange;
+						_behavior.ApplyRelationChangeWithDelay(npc, pendingRelationChange.RelationChange, pendingRelationChange.Color, pendingRelationChange.Message);
+						_behavior.LogMessage($"[DEBUG] Scheduled relation change for NPC {((MBObjectBase)npc).StringId} by {pendingRelationChange.RelationChange} in 4s.");
+						context.PendingRelationChange = null;
+					}
+					if (context.PendingLiePenalty != null)
+					{
+						PendingRelationChange pendingLiePenalty = context.PendingLiePenalty;
+						_behavior.ApplyRelationChangeWithDelay(npc, pendingLiePenalty.RelationChange, pendingLiePenalty.Color, pendingLiePenalty.Message);
+						_behavior.LogMessage($"[DEBUG] Scheduled lie penalty for NPC {((MBObjectBase)npc).StringId} by {pendingLiePenalty.RelationChange} in 4s.");
+						context.PendingLiePenalty = null;
+					}
+					if (context.PendingWorkshopSale != null && !npc.IsPrisoner)
+					{
+						_behavior.LogMessage($"[DEBUG] Executing pending workshop sale for NPC {((MBObjectBase)npc).StringId} (surrender dialog).");
+						_behavior.ExecutePendingWorkshopSale(npc, context);
+						_behavior.SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
+					}
+					else if (context.PendingWorkshopSale != null && npc.IsPrisoner)
+					{
+						_behavior.LogMessage($"[DEBUG] Cleared pending workshop sale for prisoner {((MBObjectBase)npc).StringId} (surrender dialog).");
+						context.PendingWorkshopSale = null;
+					}
+					if (context.PendingAIResponse != null)
+					{
+						context.PendingAIResponse = null;
+						context.InteractionCount++;
+						_behavior.UpdateContextData(context, npc);
+					}
+					if (context.PendingMoneyTransfer != null)
+					{
+						_behavior.LogMessage($"[MONEY_TRANSFER] Executing pending money transfer for NPC {((MBObjectBase)npc).StringId} (Prisoner: {npc.IsPrisoner}, surrender dialog): {context.PendingMoneyTransfer.Action} {context.PendingMoneyTransfer.Amount} denars");
+						_behavior.ProcessMoneyTransfer(npc, context, context.PendingMoneyTransfer);
+						context.PendingMoneyTransfer = null;
+						_behavior.SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
+						_behavior.LogMessage($"[MONEY_TRANSFER] Money transfer completed for NPC {((MBObjectBase)npc).StringId} (surrender dialog)");
+					}
+					if (context.PendingItemTransfers != null && context.PendingItemTransfers.Count > 0)
+					{
+						_behavior.LogMessage($"[ITEM_TRANSFER] Executing pending item transfers for NPC {((MBObjectBase)npc).StringId} (Prisoner: {npc.IsPrisoner}, surrender dialog): {context.PendingItemTransfers.Count} items");
+						_behavior.ProcessItemTransfers(npc, context, context.PendingItemTransfers);
+						context.PendingItemTransfers = null;
+						_behavior.SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
+						_behavior.LogMessage($"[ITEM_TRANSFER] Item transfers completed for NPC {((MBObjectBase)npc).StringId} (surrender dialog)");
+					}
+				}
+			});
+			SafeAddDialogLine(starter, "aiinfluence_surrender_apply_changes", "aiinfluence_surrender_apply_changes", "aiinfluence_surrender_input", "{=AIInfluence_NPCContinue}...", (OnConditionDelegate)(() => Hero.OneToOneConversationHero != null && IsNonCombatConversation(Hero.OneToOneConversationHero)), null);
+			SafeAddDialogLine(starter, "aiinfluence_surrender_apply_changes_combat", "aiinfluence_surrender_apply_changes", "aiinfluence_locked", "{=AIInfluence_DynamicResponse}{DYNAMIC_NPC_RESPONSE}", (OnConditionDelegate)(() => Hero.OneToOneConversationHero != null && !IsNonCombatConversation(Hero.OneToOneConversationHero)), null);
+		}
+		catch (Exception ex)
+		{
+			_behavior.LogMessage("[ERROR] Failed to add dialogs: " + ex.Message);
+		}
+	}
+
+	private bool IsNonCombatConversation(Hero npc)
+	{
+		NPCContext orCreateNPCContext = _behavior.GetOrCreateNPCContext(npc);
+		if (npc.IsPrisoner)
+		{
+			return true;
+		}
+		bool flag = orCreateNPCContext.CombatResponse != null && orCreateNPCContext.CombatResponse.IndexOf("release", StringComparison.OrdinalIgnoreCase) >= 0;
+		return orCreateNPCContext.CombatResponse == null && !orCreateNPCContext.IsSurrendering && orCreateNPCContext.PendingDeath == null && orCreateNPCContext.MarriageResponse != "married";
+	}
+
+	private List<MobileParty> GetFollowingPlayerParties()
+	{
+		List<MobileParty> list = new List<MobileParty>();
+		try
+		{
+			if (AIActionManager.Instance == null)
+			{
+				return list;
+			}
+			FieldInfo field = typeof(AIActionManager).GetField("_activeActions", BindingFlags.Instance | BindingFlags.NonPublic);
+			if (field == null)
+			{
+				_behavior.LogMessage("[WARNING] Could not access _activeActions field via reflection");
+				return list;
+			}
+			if (!(field.GetValue(AIActionManager.Instance) is Dictionary<Hero, List<AIActionBase>> dictionary))
+			{
+				return list;
+			}
+			foreach (KeyValuePair<Hero, List<AIActionBase>> item in dictionary)
+			{
+				Hero key = item.Key;
+				if (key == null || key.IsDead || key.IsPrisoner)
+				{
+					continue;
+				}
+				List<AIActionBase> value = item.Value;
+				if (value == null)
+				{
+					continue;
+				}
+				AIActionBase aIActionBase = value.FirstOrDefault((AIActionBase a) => a.ActionName == "follow_player" && a.IsActive);
+				if (aIActionBase != null)
+				{
+					MobileParty partyBelongedTo = key.PartyBelongedTo;
+					if (partyBelongedTo != null && partyBelongedTo != MobileParty.MainParty && !list.Contains(partyBelongedTo))
+					{
+						list.Add(partyBelongedTo);
+						_behavior.LogMessage($"[DEBUG] Found following party: {partyBelongedTo.Name} (leader: {key.Name})");
+					}
+				}
+			}
+		}
+		catch (Exception ex)
+		{
+			_behavior.LogMessage("[ERROR] Failed to get following player parties: " + ex.Message);
+		}
+		return list;
+	}
+
+	private void ProtectFollowingPlayerParties(MobileParty npcParty, bool isArmyLeader = false)
+	{
+		try
+		{
+			List<MobileParty> followingPlayerParties = GetFollowingPlayerParties();
+			if (followingPlayerParties.Count == 0 || npcParty == null)
+			{
+				return;
+			}
+			Type type = ((object)npcParty.Ai).GetType();
+			MethodInfo method = type.GetMethod("SetDoNotAttackParty", new Type[2]
+			{
+				typeof(MobileParty),
+				typeof(float)
+			});
+			foreach (MobileParty item in followingPlayerParties)
+			{
+				if (item == null || item == MobileParty.MainParty)
+				{
+					continue;
+				}
+				if (method != null)
+				{
+					try
+					{
+						method.Invoke(npcParty.Ai, new object[2] { item, 24f });
+						_behavior.LogMessage($"[DEBUG] Protected following party {item.Name} from attack by {npcParty.Name} for 24 hours (using SetDoNotAttackParty)");
+					}
+					catch (Exception ex)
+					{
+						_behavior.LogMessage("[WARNING] Failed to use SetDoNotAttackParty: " + ex.Message);
+						SetPartyIgnoredUntil(item, 24);
+						_behavior.LogMessage($"[DEBUG] Protected following party {item.Name} from attack by {npcParty.Name} for 24 hours (using IgnoreByOtherPartiesTill as fallback)");
+					}
+				}
+				else
+				{
+					SetPartyIgnoredUntil(item, 24);
+					_behavior.LogMessage($"[DEBUG] Protected following party {item.Name} from attack by {npcParty.Name} for 24 hours (using IgnoreByOtherPartiesTill)");
+				}
+				if (!isArmyLeader || npcParty.Army == null)
+				{
+					continue;
+				}
+				foreach (MobileParty item2 in (List<MobileParty>)(object)npcParty.Army.Parties)
+				{
+					if (item2 == npcParty || item2 == null)
+					{
+						continue;
+					}
+					if (method != null)
+					{
+						try
+						{
+							method.Invoke(item2.Ai, new object[2] { item, 24f });
+							_behavior.LogMessage($"[DEBUG] Protected following party {item.Name} from attack by army party {item2.Name} for 24 hours");
+						}
+						catch (Exception ex2)
+						{
+							_behavior.LogMessage("[WARNING] Failed to use SetDoNotAttackParty for army party: " + ex2.Message);
+						}
+					}
+					else
+					{
+						_behavior.LogMessage($"[DEBUG] Following party {item.Name} already protected from all parties (army party {item2.Name} included)");
+					}
+				}
+			}
+		}
+		catch (Exception ex3)
+		{
+			_behavior.LogMessage("[ERROR] Failed to protect following player parties: " + ex3.Message);
+		}
+	}
+
+	private void SetPartyIgnoredUntil(MobileParty party, int hours)
+	{
+		//IL_000e: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0013: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0015: Unknown result type (might be due to invalid IL or missing references)
+		//IL_002d: Unknown result type (might be due to invalid IL or missing references)
+		try
+		{
+			if (party != null)
+			{
+				CampaignTime val = CampaignTime.HoursFromNow((float)hours);
+				party.IgnoreByOtherPartiesTill(val);
+				_behavior.LogMessage($"[DEBUG] Set party {party.Name} to be ignored by other parties until {val}");
+			}
+		}
+		catch (Exception ex)
+		{
+			_behavior.LogMessage($"[ERROR] Failed to set party {((party != null) ? party.Name : null)} as ignored: {ex.Message}");
+		}
+	}
+
+	private bool IsCastleMenuConversation(Hero npc)
+	{
+		if (npc == null)
+		{
+			return false;
+		}
+		if (Mission.Current != null)
+		{
+			return false;
+		}
+		if (CampaignMission.Current != null)
+		{
+			return false;
+		}
+		NPCContext nPCContextByStringId = _behavior.GetNPCContextByStringId(((MBObjectBase)npc).StringId);
+		if (nPCContextByStringId != null && nPCContextByStringId.IsNPCInitiatedConversation)
+		{
+			return false;
+		}
+		if (npc.CurrentSettlement == null)
+		{
+			return false;
+		}
+		GameStateManager current = GameStateManager.Current;
+		GameState val = ((current != null) ? current.ActiveState : null);
+		if (val is MapState)
+		{
+			Hero mainHero = Hero.MainHero;
+			return ((mainHero != null) ? mainHero.CurrentSettlement : null) != null;
+		}
+		return true;
+	}
+
+	private bool IsNPCInitiatedConversation(Hero npc)
+	{
+		if (npc == null)
+		{
+			return false;
+		}
+		return _behavior.GetNPCContextByStringId(((MBObjectBase)npc).StringId)?.IsNPCInitiatedConversation ?? false;
+	}
+
+	private bool IsHostileNPCInitiatedConversation(Hero npc)
+	{
+		if (npc == null)
+		{
+			return false;
+		}
+		NPCContext nPCContextByStringId = _behavior.GetNPCContextByStringId(((MBObjectBase)npc).StringId);
+		if (nPCContextByStringId == null)
+		{
+			return false;
+		}
+		return nPCContextByStringId.IsNPCInitiatedConversation && nPCContextByStringId.IsHostileInitiative;
+	}
+
+	private bool IsNeutralNPCInitiatedConversation(Hero npc)
+	{
+		if (npc == null)
+		{
+			return false;
+		}
+		NPCContext nPCContextByStringId = _behavior.GetNPCContextByStringId(((MBObjectBase)npc).StringId);
+		if (nPCContextByStringId == null)
+		{
+			return false;
+		}
+		return nPCContextByStringId.IsNPCInitiatedConversation && !nPCContextByStringId.IsHostileInitiative;
+	}
+
+	private bool IsPlayerDefenderInEncounter()
+	{
+		return PlayerEncounter.Current != null && !PlayerEncounter.PlayerIsAttacker;
+	}
+
+	private void SafeAddPlayerLine(CampaignGameStarter starter, string id, string inputToken, string outputToken, string text, OnConditionDelegate conditionDelegate, OnConsequenceDelegate consequenceDelegate)
+	{
+		if (!string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(inputToken))
+		{
+			starter.AddPlayerLine(id, inputToken, outputToken, text, conditionDelegate, consequenceDelegate, 100, (OnClickableConditionDelegate)null, (OnPersuasionOptionDelegate)null);
+		}
+		else
+		{
+			_behavior.LogMessage("[WARNING] Skipped adding player line. id or inputToken is null/empty.");
+		}
+	}
+
+	private void SafeAddDialogLine(CampaignGameStarter starter, string id, string inputToken, string outputToken, string text, OnConditionDelegate conditionDelegate, OnConsequenceDelegate consequenceDelegate, int priority = 100)
+	{
+		//IL_0024: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0037: Expected O, but got Unknown
+		if (!string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(inputToken))
+		{
+			starter.AddDialogLineMultiAgent(id, inputToken, outputToken, new TextObject(text, (Dictionary<string, object>)null), conditionDelegate, consequenceDelegate, 0, 0, priority, (OnClickableConditionDelegate)null);
+		}
+		else
+		{
+			_behavior.LogMessage("[WARNING] Skipped adding dialog line. id or inputToken is null/empty.");
+		}
+	}
+
+	private static string GetDynamicNPCResponseText()
+	{
+		try
+		{
+			FieldInfo field = typeof(MBTextManager).GetField("_cachedTextVariables", BindingFlags.Static | BindingFlags.NonPublic);
+			if (field != null && field.GetValue(null) is IDictionary dictionary && dictionary.Contains("DYNAMIC_NPC_RESPONSE"))
+			{
+				return dictionary["DYNAMIC_NPC_RESPONSE"]?.ToString();
+			}
+		}
+		catch
+		{
+		}
+		return null;
+	}
+
+	private void WieldBestMeleeWeaponForAgent(Agent agent)
+	{
+		//IL_001b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_001d: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00b9: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00bb: Invalid comparison between Unknown and I4
+		//IL_002a: Unknown result type (might be due to invalid IL or missing references)
+		//IL_002b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0030: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00c6: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00c8: Invalid comparison between Unknown and I4
+		//IL_00b5: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00b7: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00b8: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0047: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0048: Unknown result type (might be due to invalid IL or missing references)
+		//IL_004d: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0056: Unknown result type (might be due to invalid IL or missing references)
+		//IL_005b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_005d: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0060: Invalid comparison between Unknown and I4
+		//IL_00d5: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0062: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0065: Invalid comparison between Unknown and I4
+		//IL_0067: Unknown result type (might be due to invalid IL or missing references)
+		//IL_006a: Invalid comparison between Unknown and I4
+		//IL_00a5: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00a7: Invalid comparison between Unknown and I4
+		//IL_00a1: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00a2: Unknown result type (might be due to invalid IL or missing references)
+		//IL_006c: Unknown result type (might be due to invalid IL or missing references)
+		//IL_006f: Invalid comparison between Unknown and I4
+		//IL_00b0: Unknown result type (might be due to invalid IL or missing references)
+		//IL_00b1: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0071: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0074: Invalid comparison between Unknown and I4
+		//IL_0076: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0079: Invalid comparison between Unknown and I4
+		//IL_007b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_007e: Invalid comparison between Unknown and I4
+		//IL_0080: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0083: Invalid comparison between Unknown and I4
+		//IL_0085: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0089: Invalid comparison between Unknown and I4
+		//IL_008b: Unknown result type (might be due to invalid IL or missing references)
+		//IL_008f: Invalid comparison between Unknown and I4
+		//IL_0091: Unknown result type (might be due to invalid IL or missing references)
+		//IL_0095: Invalid comparison between Unknown and I4
+		try
+		{
+			if (agent == null || !agent.IsActive())
+			{
+				return;
+			}
+			EquipmentIndex val = (EquipmentIndex)(-1);
+			for (EquipmentIndex val2 = (EquipmentIndex)0; (int)val2 < 5; val2 = (EquipmentIndex)(val2 + 1))
+			{
+				MissionWeapon val3 = agent.Equipment[val2];
+				if (!(val3).IsEmpty)
+				{
+					val3 = agent.Equipment[val2];
+					WeaponClass weaponClass = (val3).CurrentUsageItem.WeaponClass;
+					if ((int)weaponClass == 2 || (int)weaponClass == 3 || (int)weaponClass == 4 || (int)weaponClass == 5 || (int)weaponClass == 6 || (int)weaponClass == 8 || (int)weaponClass == 7 || (int)weaponClass == 1 || (int)weaponClass == 9 || (int)weaponClass == 10 || (int)weaponClass == 11)
+					{
+						val = val2;
+						break;
+					}
+					if ((int)val == -1)
+					{
+						val = val2;
+					}
+				}
+			}
+			if ((int)val != -1)
+			{
+				agent.TryToWieldWeaponInSlot(val, (WeaponWieldActionType)2, false);
+			}
+		}
+		catch (Exception ex)
+		{
+			_behavior.LogMessage("[ERROR] WieldBestMeleeWeaponForAgent failed: " + ex.Message);
+		}
+	}
+
+	private static bool IsPlayerKingdomGovernor()
+	{
+		try
+		{
+			Hero oneToOneConversationHero = Hero.OneToOneConversationHero;
+			if (oneToOneConversationHero == null)
+			{
+				return false;
+			}
+			Hero mainHero = Hero.MainHero;
+			object obj;
+			if (mainHero == null)
+			{
+				obj = null;
+			}
+			else
+			{
+				Clan clan = mainHero.Clan;
+				obj = ((clan != null) ? clan.Kingdom : null);
+			}
+			Kingdom val = (Kingdom)obj;
+			if (val == null)
+			{
+				return false;
+			}
+			if (val.Leader != Hero.MainHero)
+			{
+				return false;
+			}
+			if (oneToOneConversationHero.GovernorOf != null)
+			{
+				Town governorOf = oneToOneConversationHero.GovernorOf;
+				Clan ownerClan = governorOf.OwnerClan;
+				if (((ownerClan != null) ? ownerClan.Kingdom : null) == val)
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+		catch
+		{
+			return false;
+		}
+	}
+	public void ExecutePendingResponseProcessing(Hero npc)
+	{
+		if (npc == null)
+			return;
 					NPCContext context = _behavior.GetOrCreateNPCContext(npc);
 					if (context.PendingAIResponse != null)
 					{
@@ -1424,606 +1975,6 @@ public class DialogManager
 						_behavior.LogMessage($"[DEBUG] Scheduled character death for {((MBObjectBase)npc).StringId} (prisoner: {npc.IsPrisoner}) in {dialogDelay6:F0} seconds.");
 						InformationManager.DisplayMessage(new InformationMessage(((object)new TextObject("{=AIInfluence_NPCAction_Death}NPC is experiencing final moments... (dialog will close automatically)", (Dictionary<string, object>)null)).ToString(), Colors.Gray));
 					}
-				}
-			});
-			SafeAddDialogLine(starter, "aiinfluence_apply_changes", "aiinfluence_apply_changes", "aiinfluence_input", "{=AIInfluence_NPCContinue}...", (OnConditionDelegate)(() => Hero.OneToOneConversationHero != null && IsNonCombatConversation(Hero.OneToOneConversationHero)), null);
-			SafeAddDialogLine(starter, "aiinfluence_apply_changes_combat", "aiinfluence_apply_changes", "aiinfluence_locked", "{=AIInfluence_DynamicResponse}{DYNAMIC_NPC_RESPONSE}", (OnConditionDelegate)(() => Hero.OneToOneConversationHero != null && !IsNonCombatConversation(Hero.OneToOneConversationHero)), null);
-			SafeAddDialogLine(starter, "aiinfluence_locked", "aiinfluence_locked", "aiinfluence_locked", "{=AIInfluence_DynamicResponse}{DYNAMIC_NPC_RESPONSE}", (OnConditionDelegate)(() => Hero.OneToOneConversationHero != null && !IsNonCombatConversation(Hero.OneToOneConversationHero)), null);
-			object obj13 = _003C_003Ec._003C_003E9__6_33;
-			if (obj13 == null)
-			{
-				OnConditionDelegate val13 = () => false;
-				_003C_003Ec._003C_003E9__6_33 = val13;
-				obj13 = (object)val13;
-			}
-			SafeAddPlayerLine(starter, "aiinfluence_locked_player", "aiinfluence_locked", "aiinfluence_locked", "{=AIInfluence_LockedPlaceholder}...", (OnConditionDelegate)obj13, null);
-			object obj14 = _003C_003Ec._003C_003E9__6_34;
-			if (obj14 == null)
-			{
-				OnConditionDelegate val14 = () => Hero.OneToOneConversationHero != null;
-				_003C_003Ec._003C_003E9__6_34 = val14;
-				obj14 = (object)val14;
-			}
-			SafeAddPlayerLine(starter, "aiinfluence_surrender_start", "player_responds_to_surrender_demand", "aiinfluence_surrender_response", "{=AIInfluence_PlayerStart}Talk [AI Influence]", (OnConditionDelegate)obj14, null);
-			SafeAddDialogLine(starter, "aiinfluence_surrender_response", "aiinfluence_surrender_response", "aiinfluence_surrender_input", "{=AIInfluence_NPCResponse}I'm listening.", null, null);
-			object obj15 = _003C_003Ec._003C_003E9__6_35;
-			if (obj15 == null)
-			{
-				OnConditionDelegate val15 = () => Hero.OneToOneConversationHero != null;
-				_003C_003Ec._003C_003E9__6_35 = val15;
-				obj15 = (object)val15;
-			}
-			SafeAddPlayerLine(starter, "aiinfluence_surrender_input", "aiinfluence_surrender_input", "aiinfluence_surrender_processing", "{=AIInfluence_PlayerThink}Speak", (OnConditionDelegate)obj15, (OnConsequenceDelegate)delegate
-			{
-				_behavior.HandlePlayerInput();
-			});
-			object obj16 = _003C_003Ec._003C_003E9__6_37;
-			if (obj16 == null)
-			{
-				OnConditionDelegate val16 = () => Hero.OneToOneConversationHero != null;
-				_003C_003Ec._003C_003E9__6_37 = val16;
-				obj16 = (object)val16;
-			}
-			SafeAddPlayerLine(starter, "aiinfluence_surrender_exit", "aiinfluence_surrender_input", "lord_demands_surrender_after_comment", "{=AIInfluence_PlayerExit}Return", (OnConditionDelegate)obj16, (OnConsequenceDelegate)delegate
-			{
-				Hero oneToOneConversationHero = Hero.OneToOneConversationHero;
-				if (oneToOneConversationHero != null)
-				{
-					NPCContext orCreateNPCContext = _behavior.GetOrCreateNPCContext(oneToOneConversationHero);
-					orCreateNPCContext.CombatResponse = null;
-					orCreateNPCContext.IsSurrendering = false;
-					orCreateNPCContext.MarriageResponse = null;
-					orCreateNPCContext.PendingWorkshopSale = null;
-					orCreateNPCContext.PendingMoneyTransfer = null;
-					orCreateNPCContext.PendingItemTransfers = null;
-					orCreateNPCContext.PendingDeath = null;
-					_behavior.SaveNPCContext(((MBObjectBase)oneToOneConversationHero).StringId, oneToOneConversationHero, orCreateNPCContext);
-					_behavior.LogMessage("[DEBUG] Exiting surrender dialog with NPC " + ((MBObjectBase)oneToOneConversationHero).StringId + " to lord_demands_surrender_after_comment.");
-				}
-			});
-			SafeAddDialogLine(starter, "aiinfluence_surrender_processing", "aiinfluence_surrender_processing", "aiinfluence_surrender_waiting", "{=AIInfluence_NPCProcessing}(Send a message and wait for the NPC's response)", null, null);
-			object obj17 = _003C_003Ec._003C_003E9__6_39;
-			if (obj17 == null)
-			{
-				OnConditionDelegate val17 = () => Hero.OneToOneConversationHero != null;
-				_003C_003Ec._003C_003E9__6_39 = val17;
-				obj17 = (object)val17;
-			}
-			SafeAddPlayerLine(starter, "aiinfluence_surrender_waiting", "aiinfluence_surrender_waiting", "aiinfluence_surrender_dynamic_response", "{=AIInfluence_PlayerAsk}View NPC's response", (OnConditionDelegate)obj17, null);
-			object obj18 = _003C_003Ec._003C_003E9__6_40;
-			if (obj18 == null)
-			{
-				OnConditionDelegate val18 = () => Hero.OneToOneConversationHero != null;
-				_003C_003Ec._003C_003E9__6_40 = val18;
-				obj18 = (object)val18;
-			}
-			SafeAddDialogLine(starter, "aiinfluence_surrender_dynamic_response", "aiinfluence_surrender_dynamic_response", "aiinfluence_surrender_apply_changes", "{=AIInfluence_DynamicResponse}{DYNAMIC_NPC_RESPONSE}", (OnConditionDelegate)obj18, (OnConsequenceDelegate)delegate
-			{
-				//IL_0327: Unknown result type (might be due to invalid IL or missing references)
-				//IL_03b9: Unknown result type (might be due to invalid IL or missing references)
-				Hero npc = Hero.OneToOneConversationHero;
-				if (npc != null)
-				{
-					NPCContext context = _behavior.GetOrCreateNPCContext(npc);
-					ModSettings instance = GlobalSettings<ModSettings>.Instance;
-					if (instance != null && instance.EnableTTS)
-					{
-						if (context.PreparedTts != null)
-						{
-							_behavior.LogMessage($"[TTS] Playing pre-prepared TTS for {npc.Name} (surrender flow)");
-							TtsLipSyncService.PlayPrepared(context.PreparedTts);
-							context.PreparedTts = null;
-						}
-						else
-						{
-							_behavior.LogMessage($"[TTS] No prepared TTS available for {npc.Name} (surrender flow), skipping playback.");
-						}
-					}
-					_behavior.LogMessage($"[DEBUG] Displaying dynamic response for NPC {((MBObjectBase)npc).StringId} in surrender dialog. CombatResponse={context.CombatResponse}, IsSurrendering={context.IsSurrendering}, MarriageResponse={context.MarriageResponse}");
-					if (!npc.IsPrisoner && context.CombatResponse != null)
-					{
-						bool flag = context.CombatResponse.IndexOf("attack", StringComparison.OrdinalIgnoreCase) >= 0;
-						bool flag2 = context.CombatResponse.IndexOf("release", StringComparison.OrdinalIgnoreCase) >= 0;
-						bool flag3 = context.CombatResponse.IndexOf("accept_surrender", StringComparison.OrdinalIgnoreCase) >= 0;
-						_behavior.LogMessage($"[DEBUG] In surrender dialog for {((MBObjectBase)npc).StringId}: isAttack={flag}, isRelease={flag2}, isAcceptSurrender={flag3}");
-						if (flag)
-						{
-							if (Settlement.CurrentSettlement != null && Mission.Current != null)
-							{
-								_behavior.LogMessage("[DEBUG] Settlement combat in surrender dialog - PendingSettlementCombat: " + context.PendingSettlementCombat);
-								if (context.PendingSettlementCombat == "attack")
-								{
-									_behavior.GetDelayedTaskManager().AddTask(5.0, delegate
-									{
-										SettlementCombatManager settlementCombatManager = _behavior.GetSettlementCombatManager();
-										if (settlementCombatManager != null && context.PendingSettlementCombat == "attack")
-										{
-											_behavior.LogMessage("[SETTLEMENT_COMBAT] Initiating combat from surrender dialog");
-											settlementCombatManager.InitiateCombat(npc, context, CombatTriggerType.NPCAttack, context.SettlementCombatResponse);
-											context.PendingSettlementCombat = null;
-											context.SettlementCombatResponse = null;
-											_behavior.SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
-										}
-									});
-								}
-							}
-							else
-							{
-								float dialogDelay = GlobalSettings<ModSettings>.Instance.DialogDelay;
-								_behavior.GetDelayedTaskManager().AddTask(dialogDelay, delegate
-								{
-									try
-									{
-										_behavior.LogMessage("[DEBUG] Calling InitiateCombatLogic from surrender dialog for " + ((MBObjectBase)npc).StringId);
-										_behavior.InitiateCombatLogic(npc, context);
-									}
-									catch (Exception ex2)
-									{
-										_behavior.LogMessage("[ERROR] Failed to initiate combat from surrender dialog: " + ex2.Message);
-									}
-								});
-							}
-						}
-					}
-					if (context.PendingRelationChange != null)
-					{
-						PendingRelationChange pendingRelationChange = context.PendingRelationChange;
-						_behavior.ApplyRelationChangeWithDelay(npc, pendingRelationChange.RelationChange, pendingRelationChange.Color, pendingRelationChange.Message);
-						_behavior.LogMessage($"[DEBUG] Scheduled relation change for NPC {((MBObjectBase)npc).StringId} by {pendingRelationChange.RelationChange} in 4s.");
-						context.PendingRelationChange = null;
-					}
-					if (context.PendingLiePenalty != null)
-					{
-						PendingRelationChange pendingLiePenalty = context.PendingLiePenalty;
-						_behavior.ApplyRelationChangeWithDelay(npc, pendingLiePenalty.RelationChange, pendingLiePenalty.Color, pendingLiePenalty.Message);
-						_behavior.LogMessage($"[DEBUG] Scheduled lie penalty for NPC {((MBObjectBase)npc).StringId} by {pendingLiePenalty.RelationChange} in 4s.");
-						context.PendingLiePenalty = null;
-					}
-					if (context.PendingWorkshopSale != null && !npc.IsPrisoner)
-					{
-						_behavior.LogMessage($"[DEBUG] Executing pending workshop sale for NPC {((MBObjectBase)npc).StringId} (surrender dialog).");
-						_behavior.ExecutePendingWorkshopSale(npc, context);
-						_behavior.SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
-					}
-					else if (context.PendingWorkshopSale != null && npc.IsPrisoner)
-					{
-						_behavior.LogMessage($"[DEBUG] Cleared pending workshop sale for prisoner {((MBObjectBase)npc).StringId} (surrender dialog).");
-						context.PendingWorkshopSale = null;
-					}
-					if (context.PendingAIResponse != null)
-					{
-						context.PendingAIResponse = null;
-						context.InteractionCount++;
-						_behavior.UpdateContextData(context, npc);
-					}
-					if (context.PendingMoneyTransfer != null)
-					{
-						_behavior.LogMessage($"[MONEY_TRANSFER] Executing pending money transfer for NPC {((MBObjectBase)npc).StringId} (Prisoner: {npc.IsPrisoner}, surrender dialog): {context.PendingMoneyTransfer.Action} {context.PendingMoneyTransfer.Amount} denars");
-						_behavior.ProcessMoneyTransfer(npc, context, context.PendingMoneyTransfer);
-						context.PendingMoneyTransfer = null;
-						_behavior.SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
-						_behavior.LogMessage($"[MONEY_TRANSFER] Money transfer completed for NPC {((MBObjectBase)npc).StringId} (surrender dialog)");
-					}
-					if (context.PendingItemTransfers != null && context.PendingItemTransfers.Count > 0)
-					{
-						_behavior.LogMessage($"[ITEM_TRANSFER] Executing pending item transfers for NPC {((MBObjectBase)npc).StringId} (Prisoner: {npc.IsPrisoner}, surrender dialog): {context.PendingItemTransfers.Count} items");
-						_behavior.ProcessItemTransfers(npc, context, context.PendingItemTransfers);
-						context.PendingItemTransfers = null;
-						_behavior.SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
-						_behavior.LogMessage($"[ITEM_TRANSFER] Item transfers completed for NPC {((MBObjectBase)npc).StringId} (surrender dialog)");
-					}
-				}
-			});
-			SafeAddDialogLine(starter, "aiinfluence_surrender_apply_changes", "aiinfluence_surrender_apply_changes", "aiinfluence_surrender_input", "{=AIInfluence_NPCContinue}...", (OnConditionDelegate)(() => Hero.OneToOneConversationHero != null && IsNonCombatConversation(Hero.OneToOneConversationHero)), null);
-			SafeAddDialogLine(starter, "aiinfluence_surrender_apply_changes_combat", "aiinfluence_surrender_apply_changes", "aiinfluence_locked", "{=AIInfluence_DynamicResponse}{DYNAMIC_NPC_RESPONSE}", (OnConditionDelegate)(() => Hero.OneToOneConversationHero != null && !IsNonCombatConversation(Hero.OneToOneConversationHero)), null);
-		}
-		catch (Exception ex)
-		{
-			_behavior.LogMessage("[ERROR] Failed to add dialogs: " + ex.Message);
-		}
 	}
 
-	private bool IsNonCombatConversation(Hero npc)
-	{
-		NPCContext orCreateNPCContext = _behavior.GetOrCreateNPCContext(npc);
-		if (npc.IsPrisoner)
-		{
-			return true;
-		}
-		bool flag = orCreateNPCContext.CombatResponse != null && orCreateNPCContext.CombatResponse.IndexOf("release", StringComparison.OrdinalIgnoreCase) >= 0;
-		return orCreateNPCContext.CombatResponse == null && !orCreateNPCContext.IsSurrendering && orCreateNPCContext.PendingDeath == null && orCreateNPCContext.MarriageResponse != "married";
-	}
-
-	private List<MobileParty> GetFollowingPlayerParties()
-	{
-		List<MobileParty> list = new List<MobileParty>();
-		try
-		{
-			if (AIActionManager.Instance == null)
-			{
-				return list;
-			}
-			FieldInfo field = typeof(AIActionManager).GetField("_activeActions", BindingFlags.Instance | BindingFlags.NonPublic);
-			if (field == null)
-			{
-				_behavior.LogMessage("[WARNING] Could not access _activeActions field via reflection");
-				return list;
-			}
-			if (!(field.GetValue(AIActionManager.Instance) is Dictionary<Hero, List<AIActionBase>> dictionary))
-			{
-				return list;
-			}
-			foreach (KeyValuePair<Hero, List<AIActionBase>> item in dictionary)
-			{
-				Hero key = item.Key;
-				if (key == null || key.IsDead || key.IsPrisoner)
-				{
-					continue;
-				}
-				List<AIActionBase> value = item.Value;
-				if (value == null)
-				{
-					continue;
-				}
-				AIActionBase aIActionBase = value.FirstOrDefault((AIActionBase a) => a.ActionName == "follow_player" && a.IsActive);
-				if (aIActionBase != null)
-				{
-					MobileParty partyBelongedTo = key.PartyBelongedTo;
-					if (partyBelongedTo != null && partyBelongedTo != MobileParty.MainParty && !list.Contains(partyBelongedTo))
-					{
-						list.Add(partyBelongedTo);
-						_behavior.LogMessage($"[DEBUG] Found following party: {partyBelongedTo.Name} (leader: {key.Name})");
-					}
-				}
-			}
-		}
-		catch (Exception ex)
-		{
-			_behavior.LogMessage("[ERROR] Failed to get following player parties: " + ex.Message);
-		}
-		return list;
-	}
-
-	private void ProtectFollowingPlayerParties(MobileParty npcParty, bool isArmyLeader = false)
-	{
-		try
-		{
-			List<MobileParty> followingPlayerParties = GetFollowingPlayerParties();
-			if (followingPlayerParties.Count == 0 || npcParty == null)
-			{
-				return;
-			}
-			Type type = ((object)npcParty.Ai).GetType();
-			MethodInfo method = type.GetMethod("SetDoNotAttackParty", new Type[2]
-			{
-				typeof(MobileParty),
-				typeof(float)
-			});
-			foreach (MobileParty item in followingPlayerParties)
-			{
-				if (item == null || item == MobileParty.MainParty)
-				{
-					continue;
-				}
-				if (method != null)
-				{
-					try
-					{
-						method.Invoke(npcParty.Ai, new object[2] { item, 24f });
-						_behavior.LogMessage($"[DEBUG] Protected following party {item.Name} from attack by {npcParty.Name} for 24 hours (using SetDoNotAttackParty)");
-					}
-					catch (Exception ex)
-					{
-						_behavior.LogMessage("[WARNING] Failed to use SetDoNotAttackParty: " + ex.Message);
-						SetPartyIgnoredUntil(item, 24);
-						_behavior.LogMessage($"[DEBUG] Protected following party {item.Name} from attack by {npcParty.Name} for 24 hours (using IgnoreByOtherPartiesTill as fallback)");
-					}
-				}
-				else
-				{
-					SetPartyIgnoredUntil(item, 24);
-					_behavior.LogMessage($"[DEBUG] Protected following party {item.Name} from attack by {npcParty.Name} for 24 hours (using IgnoreByOtherPartiesTill)");
-				}
-				if (!isArmyLeader || npcParty.Army == null)
-				{
-					continue;
-				}
-				foreach (MobileParty item2 in (List<MobileParty>)(object)npcParty.Army.Parties)
-				{
-					if (item2 == npcParty || item2 == null)
-					{
-						continue;
-					}
-					if (method != null)
-					{
-						try
-						{
-							method.Invoke(item2.Ai, new object[2] { item, 24f });
-							_behavior.LogMessage($"[DEBUG] Protected following party {item.Name} from attack by army party {item2.Name} for 24 hours");
-						}
-						catch (Exception ex2)
-						{
-							_behavior.LogMessage("[WARNING] Failed to use SetDoNotAttackParty for army party: " + ex2.Message);
-						}
-					}
-					else
-					{
-						_behavior.LogMessage($"[DEBUG] Following party {item.Name} already protected from all parties (army party {item2.Name} included)");
-					}
-				}
-			}
-		}
-		catch (Exception ex3)
-		{
-			_behavior.LogMessage("[ERROR] Failed to protect following player parties: " + ex3.Message);
-		}
-	}
-
-	private void SetPartyIgnoredUntil(MobileParty party, int hours)
-	{
-		//IL_000e: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0013: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0015: Unknown result type (might be due to invalid IL or missing references)
-		//IL_002d: Unknown result type (might be due to invalid IL or missing references)
-		try
-		{
-			if (party != null)
-			{
-				CampaignTime val = CampaignTime.HoursFromNow((float)hours);
-				party.IgnoreByOtherPartiesTill(val);
-				_behavior.LogMessage($"[DEBUG] Set party {party.Name} to be ignored by other parties until {val}");
-			}
-		}
-		catch (Exception ex)
-		{
-			_behavior.LogMessage($"[ERROR] Failed to set party {((party != null) ? party.Name : null)} as ignored: {ex.Message}");
-		}
-	}
-
-	private bool IsCastleMenuConversation(Hero npc)
-	{
-		if (npc == null)
-		{
-			return false;
-		}
-		if (Mission.Current != null)
-		{
-			return false;
-		}
-		if (CampaignMission.Current != null)
-		{
-			return false;
-		}
-		NPCContext nPCContextByStringId = _behavior.GetNPCContextByStringId(((MBObjectBase)npc).StringId);
-		if (nPCContextByStringId != null && nPCContextByStringId.IsNPCInitiatedConversation)
-		{
-			return false;
-		}
-		if (npc.CurrentSettlement == null)
-		{
-			return false;
-		}
-		GameStateManager current = GameStateManager.Current;
-		GameState val = ((current != null) ? current.ActiveState : null);
-		if (val is MapState)
-		{
-			Hero mainHero = Hero.MainHero;
-			return ((mainHero != null) ? mainHero.CurrentSettlement : null) != null;
-		}
-		return true;
-	}
-
-	private bool IsNPCInitiatedConversation(Hero npc)
-	{
-		if (npc == null)
-		{
-			return false;
-		}
-		return _behavior.GetNPCContextByStringId(((MBObjectBase)npc).StringId)?.IsNPCInitiatedConversation ?? false;
-	}
-
-	private bool IsHostileNPCInitiatedConversation(Hero npc)
-	{
-		if (npc == null)
-		{
-			return false;
-		}
-		NPCContext nPCContextByStringId = _behavior.GetNPCContextByStringId(((MBObjectBase)npc).StringId);
-		if (nPCContextByStringId == null)
-		{
-			return false;
-		}
-		return nPCContextByStringId.IsNPCInitiatedConversation && nPCContextByStringId.IsHostileInitiative;
-	}
-
-	private bool IsNeutralNPCInitiatedConversation(Hero npc)
-	{
-		if (npc == null)
-		{
-			return false;
-		}
-		NPCContext nPCContextByStringId = _behavior.GetNPCContextByStringId(((MBObjectBase)npc).StringId);
-		if (nPCContextByStringId == null)
-		{
-			return false;
-		}
-		return nPCContextByStringId.IsNPCInitiatedConversation && !nPCContextByStringId.IsHostileInitiative;
-	}
-
-	private bool IsPlayerDefenderInEncounter()
-	{
-		return PlayerEncounter.Current != null && !PlayerEncounter.PlayerIsAttacker;
-	}
-
-	private void SafeAddPlayerLine(CampaignGameStarter starter, string id, string inputToken, string outputToken, string text, OnConditionDelegate conditionDelegate, OnConsequenceDelegate consequenceDelegate)
-	{
-		if (!string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(inputToken))
-		{
-			starter.AddPlayerLine(id, inputToken, outputToken, text, conditionDelegate, consequenceDelegate, 100, (OnClickableConditionDelegate)null, (OnPersuasionOptionDelegate)null);
-		}
-		else
-		{
-			_behavior.LogMessage("[WARNING] Skipped adding player line. id or inputToken is null/empty.");
-		}
-	}
-
-	private void SafeAddDialogLine(CampaignGameStarter starter, string id, string inputToken, string outputToken, string text, OnConditionDelegate conditionDelegate, OnConsequenceDelegate consequenceDelegate, int priority = 100)
-	{
-		//IL_0024: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0037: Expected O, but got Unknown
-		if (!string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(inputToken))
-		{
-			starter.AddDialogLineMultiAgent(id, inputToken, outputToken, new TextObject(text, (Dictionary<string, object>)null), conditionDelegate, consequenceDelegate, 0, 0, priority, (OnClickableConditionDelegate)null);
-		}
-		else
-		{
-			_behavior.LogMessage("[WARNING] Skipped adding dialog line. id or inputToken is null/empty.");
-		}
-	}
-
-	private static string GetDynamicNPCResponseText()
-	{
-		try
-		{
-			FieldInfo field = typeof(MBTextManager).GetField("_cachedTextVariables", BindingFlags.Static | BindingFlags.NonPublic);
-			if (field != null && field.GetValue(null) is IDictionary dictionary && dictionary.Contains("DYNAMIC_NPC_RESPONSE"))
-			{
-				return dictionary["DYNAMIC_NPC_RESPONSE"]?.ToString();
-			}
-		}
-		catch
-		{
-		}
-		return null;
-	}
-
-	private void WieldBestMeleeWeaponForAgent(Agent agent)
-	{
-		//IL_001b: Unknown result type (might be due to invalid IL or missing references)
-		//IL_001d: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00b9: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00bb: Invalid comparison between Unknown and I4
-		//IL_002a: Unknown result type (might be due to invalid IL or missing references)
-		//IL_002b: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0030: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00c6: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00c8: Invalid comparison between Unknown and I4
-		//IL_00b5: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00b7: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00b8: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0047: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0048: Unknown result type (might be due to invalid IL or missing references)
-		//IL_004d: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0056: Unknown result type (might be due to invalid IL or missing references)
-		//IL_005b: Unknown result type (might be due to invalid IL or missing references)
-		//IL_005d: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0060: Invalid comparison between Unknown and I4
-		//IL_00d5: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0062: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0065: Invalid comparison between Unknown and I4
-		//IL_0067: Unknown result type (might be due to invalid IL or missing references)
-		//IL_006a: Invalid comparison between Unknown and I4
-		//IL_00a5: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00a7: Invalid comparison between Unknown and I4
-		//IL_00a1: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00a2: Unknown result type (might be due to invalid IL or missing references)
-		//IL_006c: Unknown result type (might be due to invalid IL or missing references)
-		//IL_006f: Invalid comparison between Unknown and I4
-		//IL_00b0: Unknown result type (might be due to invalid IL or missing references)
-		//IL_00b1: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0071: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0074: Invalid comparison between Unknown and I4
-		//IL_0076: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0079: Invalid comparison between Unknown and I4
-		//IL_007b: Unknown result type (might be due to invalid IL or missing references)
-		//IL_007e: Invalid comparison between Unknown and I4
-		//IL_0080: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0083: Invalid comparison between Unknown and I4
-		//IL_0085: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0089: Invalid comparison between Unknown and I4
-		//IL_008b: Unknown result type (might be due to invalid IL or missing references)
-		//IL_008f: Invalid comparison between Unknown and I4
-		//IL_0091: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0095: Invalid comparison between Unknown and I4
-		try
-		{
-			if (agent == null || !agent.IsActive())
-			{
-				return;
-			}
-			EquipmentIndex val = (EquipmentIndex)(-1);
-			for (EquipmentIndex val2 = (EquipmentIndex)0; (int)val2 < 5; val2 = (EquipmentIndex)(val2 + 1))
-			{
-				MissionWeapon val3 = agent.Equipment[val2];
-				if (!(val3).IsEmpty)
-				{
-					val3 = agent.Equipment[val2];
-					WeaponClass weaponClass = (val3).CurrentUsageItem.WeaponClass;
-					if ((int)weaponClass == 2 || (int)weaponClass == 3 || (int)weaponClass == 4 || (int)weaponClass == 5 || (int)weaponClass == 6 || (int)weaponClass == 8 || (int)weaponClass == 7 || (int)weaponClass == 1 || (int)weaponClass == 9 || (int)weaponClass == 10 || (int)weaponClass == 11)
-					{
-						val = val2;
-						break;
-					}
-					if ((int)val == -1)
-					{
-						val = val2;
-					}
-				}
-			}
-			if ((int)val != -1)
-			{
-				agent.TryToWieldWeaponInSlot(val, (WeaponWieldActionType)2, false);
-			}
-		}
-		catch (Exception ex)
-		{
-			_behavior.LogMessage("[ERROR] WieldBestMeleeWeaponForAgent failed: " + ex.Message);
-		}
-	}
-
-	private static bool IsPlayerKingdomGovernor()
-	{
-		try
-		{
-			Hero oneToOneConversationHero = Hero.OneToOneConversationHero;
-			if (oneToOneConversationHero == null)
-			{
-				return false;
-			}
-			Hero mainHero = Hero.MainHero;
-			object obj;
-			if (mainHero == null)
-			{
-				obj = null;
-			}
-			else
-			{
-				Clan clan = mainHero.Clan;
-				obj = ((clan != null) ? clan.Kingdom : null);
-			}
-			Kingdom val = (Kingdom)obj;
-			if (val == null)
-			{
-				return false;
-			}
-			if (val.Leader != Hero.MainHero)
-			{
-				return false;
-			}
-			if (oneToOneConversationHero.GovernorOf != null)
-			{
-				Town governorOf = oneToOneConversationHero.GovernorOf;
-				Clan ownerClan = governorOf.OwnerClan;
-				if (((ownerClan != null) ? ownerClan.Kingdom : null) == val)
-				{
-					return true;
-				}
-			}
-			return false;
-		}
-		catch
-		{
-			return false;
-		}
-	}
 }
