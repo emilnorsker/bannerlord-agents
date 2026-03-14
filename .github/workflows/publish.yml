@@ -13,6 +13,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      # NOTE: The build step requires the game's proprietary TaleWorlds DLLs.
+      # The BUTR Bannerlord.ReferenceAssemblies NuGet packages (v1.3.15) expose
+      # several campaign types (KillCharacterActionDetail, OnConditionDelegate …)
+      # as nested types rather than the top-level types the code was written
+      # against, causing CS0246 errors.  Until matching reference assemblies or
+      # the actual game DLLs are available in CI, the compiled binary must be
+      # committed to bin/Win64_Shipping_Client/ by the developer and CI packages
+      # that pre-built artifact.  When this is resolved, delete the fallback
+      # block below and use $BUILD_DLL exclusively.
+      - name: Build
+        id: build
+        continue-on-error: true
+        run: |
+          dotnet restore src/AIInfluence.csproj
+          dotnet build src/AIInfluence.csproj -c Release --no-restore
+          echo "succeeded=true" >> $GITHUB_OUTPUT
+
       - name: Install tools
         run: sudo apt-get install -y p7zip-full libxml2-utils
 
@@ -25,13 +46,22 @@ jobs:
 
       - name: Stage mod files
         run: |
-          if [ ! -f bin/Win64_Shipping_Client/AIInfluence.dll ]; then
-            echo "AIInfluence.dll not found in bin/Win64_Shipping_Client/"; exit 1
-          fi
           mkdir -p staging/AIInfluence/bin/Win64_Shipping_Client
+
+          # Prefer the freshly compiled DLL; fall back to committed binary with a warning.
+          BUILD_DLL=$(find src/bin -name "AIInfluence.dll" 2>/dev/null | head -1)
+          if [ -n "$BUILD_DLL" ]; then
+            echo "Using compiled DLL: $BUILD_DLL"
+            cp "$BUILD_DLL" staging/AIInfluence/bin/Win64_Shipping_Client/
+          elif [ -f bin/Win64_Shipping_Client/AIInfluence.dll ]; then
+            echo "::warning::Build failed – packaging pre-committed DLL. Binary may not match current source."
+            cp bin/Win64_Shipping_Client/AIInfluence.dll staging/AIInfluence/bin/Win64_Shipping_Client/
+          else
+            echo "No AIInfluence.dll found"; exit 1
+          fi
+
           cp SubModule.xml staging/AIInfluence/
           cp -r GUI staging/AIInfluence/
-          cp bin/Win64_Shipping_Client/AIInfluence.dll staging/AIInfluence/bin/Win64_Shipping_Client/
           cp bin/Win64_Shipping_Client/OggVorbisEncoder.dll staging/AIInfluence/bin/Win64_Shipping_Client/
           cp bin/Win64_Shipping_Client/System.Buffers.dll staging/AIInfluence/bin/Win64_Shipping_Client/
           cp bin/Win64_Shipping_Client/System.Memory.dll staging/AIInfluence/bin/Win64_Shipping_Client/
