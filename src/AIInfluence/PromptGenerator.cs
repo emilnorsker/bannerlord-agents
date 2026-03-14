@@ -4614,7 +4614,7 @@ public static class PromptGenerator
 			"- `\"influence_change\"`: integer influence change for the player's clan (positive = gain, negative = lose).\n" +
 			"Hostile party (optional, for combat quests):\n" +
 			"- `\"spawn_hostile_party\": true`: spawns a bandit party on the map near the player when the quest is created. The player must defeat it.\n" +
-			"- `\"hostile_party_size\"`: number of troops (5–50).\n" +
+			"- `\"hostile_party_size\"`: number of troops (5–1500).\n" +
 			"- `\"hostile_party_label\"`: display name of the party (e.g. \"Bandits sent by Radagos\").\n" +
 			"- `\"hostile_troop_name\"`: troop type name (e.g. \"looter\", \"forest bandit\", \"sea raider\", \"mountain bandit\"). The system fuzzy-matches to the closest real troop. Omit to use default bandits.\n");
 		stringBuilder.Append("\n");
