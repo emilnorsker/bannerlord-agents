@@ -208,14 +208,14 @@ public class AIDecisionHandler
 				foreach (TroopRosterElement item3 in (List<TroopRosterElement>)(object)item2.MemberRoster.GetTroopRoster())
 				{
 					TroopRosterElement current3 = item3;
-					val.AddToCounts(current3.Character, ((TroopRosterElement)(ref current3)).Number, false, 0, 0, true, -1);
-					_behavior.LogMessage($"[NPC] Queued {((TroopRosterElement)(ref current3)).Number} of {((BasicCharacterObject)current3.Character).Name} from {item2.Name} for prisoner loot screen.");
+					val.AddToCounts(current3.Character, (current3).Number, false, 0, 0, true, -1);
+					_behavior.LogMessage($"[NPC] Queued {(current3).Number} of {((BasicCharacterObject)current3.Character).Name} from {item2.Name} for prisoner loot screen.");
 				}
 				foreach (TroopRosterElement item4 in (List<TroopRosterElement>)(object)item2.PrisonRoster.GetTroopRoster())
 				{
 					TroopRosterElement current4 = item4;
-					val.AddToCounts(current4.Character, ((TroopRosterElement)(ref current4)).Number, false, 0, 0, true, -1);
-					_behavior.LogMessage($"[NPC] Queued {((TroopRosterElement)(ref current4)).Number} of {((BasicCharacterObject)current4.Character).Name} from {item2.Name}'s prison roster for loot screen.");
+					val.AddToCounts(current4.Character, (current4).Number, false, 0, 0, true, -1);
+					_behavior.LogMessage($"[NPC] Queued {(current4).Number} of {((BasicCharacterObject)current4.Character).Name} from {item2.Name}'s prison roster for loot screen.");
 				}
 			}
 			foreach (MobileParty item5 in list)

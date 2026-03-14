@@ -135,27 +135,27 @@ public class AIGeneratedQuest : QuestBase
 			_targetNpcIdsCsv = "";
 			_targetNpcId = "";
 		}
-		((QuestBase)this).AddLog(new TextObject(description, (Dictionary<string, object>)null), false);
+		base.AddLog(new TextObject(description, (Dictionary<string, object>)null), false);
 		if (progressTarget > 0 && !string.IsNullOrEmpty(progressLabel))
 		{
-			_discreteLog = ((QuestBase)this).AddDiscreteLog(new TextObject(progressLabel, (Dictionary<string, object>)null), new TextObject(progressLabel, (Dictionary<string, object>)null), 0, progressTarget, (TextObject)null, false);
+			_discreteLog = base.AddDiscreteLog(new TextObject(progressLabel, (Dictionary<string, object>)null), new TextObject(progressLabel, (Dictionary<string, object>)null), 0, progressTarget, (TextObject)null, false);
 		}
-		((QuestBase)this).InitializeQuestOnCreation();
-		((QuestBase)this).StartQuest();
+		base.InitializeQuestOnCreation();
+		base.StartQuest();
 	}
 
 	public void AddUpdateLog(string message)
 	{
 		//IL_0004: Unknown result type (might be due to invalid IL or missing references)
 		//IL_000f: Expected O, but got Unknown
-		((QuestBase)this).AddLog(new TextObject(message, (Dictionary<string, object>)null), false);
+		base.AddLog(new TextObject(message, (Dictionary<string, object>)null), false);
 	}
 
 	public void SetDiscreteProgress(int currentProgress)
 	{
 		if (_discreteLog != null && _progressTarget > 0)
 		{
-			((QuestBase)this).UpdateQuestTaskStage(_discreteLog, Math.Min(currentProgress, _progressTarget));
+			base.UpdateQuestTaskStage(_discreteLog, Math.Min(currentProgress, _progressTarget));
 		}
 	}
 
@@ -165,7 +165,7 @@ public class AIGeneratedQuest : QuestBase
 		//IL_0017: Unknown result type (might be due to invalid IL or missing references)
 		double num = EstimateCreatedDaysFromId();
 		CampaignTime questDueTime = ((QuestBase)this).QuestDueTime;
-		int durationDays = (int)Math.Max(7.0, ((CampaignTime)(ref questDueTime)).ToDays - num);
+		int durationDays = (int)Math.Max(7.0, (questDueTime).ToDays - num);
 		AIQuestInfo obj = new AIQuestInfo
 		{
 			QuestId = ((MBObjectBase)this).StringId,
@@ -201,7 +201,7 @@ public class AIGeneratedQuest : QuestBase
 		if (string.IsNullOrEmpty(((MBObjectBase)this).StringId))
 		{
 			now = CampaignTime.Now;
-			return ((CampaignTime)(ref now)).ToDays;
+			return (now).ToDays;
 		}
 		string[] array = ((MBObjectBase)this).StringId.Split(new char[1] { '_' });
 		if (array.Length >= 2 && int.TryParse(array[^2], out var result))
@@ -209,7 +209,7 @@ public class AIGeneratedQuest : QuestBase
 			return result;
 		}
 		now = CampaignTime.Now;
-		return ((CampaignTime)(ref now)).ToDays;
+		return (now).ToDays;
 	}
 
 	protected override void SetDialogs()
@@ -229,10 +229,10 @@ public class AIGeneratedQuest : QuestBase
 		{
 			CampaignTime questDueTime = ((QuestBase)this).QuestDueTime;
 			CampaignTime now = CampaignTime.Now;
-			double num = ((CampaignTime)(ref questDueTime)).RemainingDaysFromNow;
+			double num = (questDueTime).RemainingDaysFromNow;
 			Hero questGiver = ((QuestBase)this).QuestGiver;
 			bool flag = questGiver != null && !questGiver.IsDead;
-			string message = $"[QUEST_LOAD] AIGeneratedQuest '{((MBObjectBase)this).StringId}' loaded. DueTime={((CampaignTime)(ref questDueTime)).ToDays:F0}, Now={((CampaignTime)(ref now)).ToDays:F0}, RemainingDays={num:F1}, QuestGiver valid={flag}";
+			string message = $"[QUEST_LOAD] AIGeneratedQuest '{((MBObjectBase)this).StringId}' loaded. DueTime={(questDueTime).ToDays:F0}, Now={(now).ToDays:F0}, RemainingDays={num:F1}, QuestGiver valid={flag}";
 			EarlyLog(message);
 			AIInfluenceBehavior.Instance?.LogMessage(message);
 			if (!flag)
@@ -247,9 +247,9 @@ public class AIGeneratedQuest : QuestBase
 				string message3 = "[QUEST_LOAD] WARNING: Quest '" + ((MBObjectBase)this).StringId + "' DueTime already passed! Extending by 7 days to prevent false fail.";
 				EarlyLog(message3);
 				AIInfluenceBehavior.Instance?.LogMessage(message3);
-				((QuestBase)this).ChangeQuestDueTime(CampaignTime.DaysFromNow(7f));
+				base.ChangeQuestDueTime(CampaignTime.DaysFromNow(7f));
 				CampaignTime questDueTime2 = ((QuestBase)this).QuestDueTime;
-				EarlyLog($"[QUEST_LOAD] ChangeQuestDueTime called. New due time: {((CampaignTime)(ref questDueTime2)).ToDays:F0}");
+				EarlyLog($"[QUEST_LOAD] ChangeQuestDueTime called. New due time: {(questDueTime2).ToDays:F0}");
 			}
 			if (_progressTarget > 0 && !string.IsNullOrEmpty(_progressLabel))
 			{
@@ -296,12 +296,12 @@ public class AIGeneratedQuest : QuestBase
 		//IL_0024: Unknown result type (might be due to invalid IL or missing references)
 		string stringId = ((MBObjectBase)this).StringId;
 		CampaignTime val = ((QuestBase)this).QuestDueTime;
-		object arg = ((CampaignTime)(ref val)).ToDays;
+		object arg = (val).ToDays;
 		val = CampaignTime.Now;
-		string message = $"[QUEST_TIMEOUT] AIGeneratedQuest '{stringId}' timed out. DueTime was: {arg:F0}, Now: {((CampaignTime)(ref val)).ToDays:F0}";
+		string message = $"[QUEST_TIMEOUT] AIGeneratedQuest '{stringId}' timed out. DueTime was: {arg:F0}, Now: {(val).ToDays:F0}";
 		EarlyLog(message);
 		AIInfluenceBehavior.Instance?.LogMessage(message);
 		AIInfluenceBehavior.Instance?.HandleQuestTimedOut(((MBObjectBase)this).StringId, _title ?? "Unknown Quest", _npcStringId);
-		((QuestBase)this).OnFailed();
+		base.OnFailed();
 	}
 }

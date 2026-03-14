@@ -104,7 +104,7 @@ public class WarStatisticsTracker
 				warStatsAgainstKingdom.IsActive = true;
 				_ = warStatsAgainstKingdom.WarStartTime;
 				CampaignTime warStartTime = warStatsAgainstKingdom.WarStartTime;
-				if (((CampaignTime)(ref warStartTime)).GetYear == 0 || warStatsAgainstKingdom.WarStartTimeDays <= 0f)
+				if ((warStartTime).GetYear == 0 || warStatsAgainstKingdom.WarStartTimeDays <= 0f)
 				{
 					int num2 = random.Next(15, 41);
 					warStatsAgainstKingdom.WarStartTime = CampaignTime.DaysFromNow((float)(-num2));
@@ -400,7 +400,7 @@ public class WarStatisticsTracker
 		//IL_0361: Unknown result type (might be due to invalid IL or missing references)
 		//IL_028f: Unknown result type (might be due to invalid IL or missing references)
 		CampaignTime val = CampaignTime.Now - _lastStatisticsUpdate;
-		if (((CampaignTime)(ref val)).ToHours < 12.0)
+		if ((val).ToHours < 12.0)
 		{
 			return;
 		}
@@ -493,7 +493,7 @@ public class WarStatisticsTracker
 		else
 		{
 			CampaignTime val = CampaignTime.Now - kingdomWarStats.WarsAgainstKingdoms[((MBObjectBase)kingdom2).StringId].WarStartTime;
-			daysAtWar = (int)((CampaignTime)(ref val)).ToDays;
+			daysAtWar = (int)(val).ToDays;
 		}
 		obj.DaysAtWar = daysAtWar;
 		return obj;
@@ -563,7 +563,7 @@ public class WarStatisticsTracker
 				if (value2 != null && value2.IsActive && value2.WarStartTimeDays > 0f)
 				{
 					CampaignTime now = CampaignTime.Now;
-					float val = (float)((CampaignTime)(ref now)).ToDays - value2.WarStartTimeDays;
+					float val = (float)(now).ToDays - value2.WarStartTimeDays;
 					val = Math.Max(0f, val);
 					num8 += Math.Min(val / 30f, 1f) * 10f;
 				}
@@ -592,13 +592,13 @@ public class WarStatisticsTracker
 			};
 			stats.StatsHistory.Add(item);
 			CampaignTime now = CampaignTime.Now;
-			float currentHours = (float)((CampaignTime)(ref now)).ToHours;
+			float currentHours = (float)(now).ToHours;
 			stats.StatsHistory.RemoveAll(delegate(WarStatsSnapshot s)
 			{
 				//IL_0002: Unknown result type (might be due to invalid IL or missing references)
 				//IL_0007: Unknown result type (might be due to invalid IL or missing references)
 				CampaignTime timestamp = s.Timestamp;
-				float num = (float)((CampaignTime)(ref timestamp)).ToHours;
+				float num = (float)(timestamp).ToHours;
 				return currentHours - num > 240f;
 			});
 		}
@@ -668,7 +668,7 @@ public class WarStatisticsTracker
 			if (true)
 			{
 				CampaignTime val2 = CampaignTime.Now - warStats.WarStartTime;
-				int val3 = (int)((CampaignTime)(ref val2)).ToDays;
+				int val3 = (int)(val2).ToDays;
 				val3 = Math.Max(0, val3);
 				if (val3 > num)
 				{
@@ -792,7 +792,7 @@ public class WarStatisticsTracker
 					//IL_0012: Unknown result type (might be due to invalid IL or missing references)
 					//IL_0017: Unknown result type (might be due to invalid IL or missing references)
 					CampaignTime val2 = now - s.Timestamp;
-					float num2 = (float)((CampaignTime)(ref val2)).ToDays;
+					float num2 = (float)(val2).ToDays;
 					return num2 >= periodStartDays && num2 < periodEndDays;
 				})
 				orderby s.Timestamp
@@ -801,7 +801,7 @@ public class WarStatisticsTracker
 			{
 				WarStatsSnapshot warStatsSnapshot = source.Last();
 				CampaignTime val = now - warStatsSnapshot.Timestamp;
-				float num = (float)((CampaignTime)(ref val)).ToDays;
+				float num = (float)(val).ToDays;
 				list.Add($"  - {num:F0} days ago: Troops: {warStatsSnapshot.Troops}, Casualties: {warStatsSnapshot.Casualties}, Lords Captured: {warStatsSnapshot.LordsCaptured}, Lords Killed: {warStatsSnapshot.LordsKilled}, Settlements Lost: {warStatsSnapshot.SettlementsLost}, Caravans Lost: {warStatsSnapshot.CaravansDestroyed}");
 			}
 		}
@@ -841,7 +841,7 @@ public class WarStatisticsTracker
 		int num5 = warStatsSnapshot2.SettlementsLost - warStatsSnapshot.SettlementsLost;
 		int num6 = warStatsSnapshot2.CaravansDestroyed - warStatsSnapshot.CaravansDestroyed;
 		CampaignTime val = warStatsSnapshot2.Timestamp - warStatsSnapshot.Timestamp;
-		float num7 = (float)((CampaignTime)(ref val)).ToDays;
+		float num7 = (float)(val).ToDays;
 		int num8 = warStatsSnapshot2.Troops + num2 - warStatsSnapshot.Troops;
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.Append(string.Format("Changes over {0:F0} days: Troops {1}{2}, ", num7, (num >= 0) ? "+" : "", num));
@@ -912,7 +912,7 @@ public class WarStatisticsTracker
 				WarStatsSnapshot warStatsSnapshot2 = kingdomStats.StatsHistory.OrderBy((WarStatsSnapshot s) => s.Timestamp).Last();
 				int num = warStatsSnapshot2.Troops - warStatsSnapshot.Troops;
 				CampaignTime val = warStatsSnapshot2.Timestamp - warStatsSnapshot.Timestamp;
-				float num2 = (float)((CampaignTime)(ref val)).ToDays;
+				float num2 = (float)(val).ToDays;
 				string text = ((num >= 0) ? "growing" : "declining");
 				stringBuilder.AppendLine(string.Format("  - Trend over {0:F0} days: Troops {1}{2} ({3})", num2, (num >= 0) ? "+" : "", num, text));
 			}
@@ -947,7 +947,7 @@ public class WarStatisticsTracker
 		List<string> list3 = new List<string>();
 		List<string> list4 = new List<string>();
 		CampaignTime val = CampaignTime.Now;
-		float num = (float)((CampaignTime)(ref val)).ToDays;
+		float num = (float)(val).ToDays;
 		float cutoffDays = num - (float)maxDays;
 		foreach (Settlement item in ((IEnumerable<Settlement>)Settlement.All).Where((Settlement s) => s.IsTown || s.IsCastle))
 		{
@@ -961,7 +961,7 @@ public class WarStatisticsTracker
 					//IL_0001: Unknown result type (might be due to invalid IL or missing references)
 					//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 					CampaignTime changeDate = c.ChangeDate;
-					return (float)((CampaignTime)(ref changeDate)).ToDays >= cutoffDays;
+					return (float)(changeDate).ToDays >= cutoffDays;
 				})
 				orderby c.ChangeDate
 				select c).ToList();
@@ -978,7 +978,7 @@ public class WarStatisticsTracker
 					continue;
 				}
 				val = change.ChangeDate;
-				float num2 = num - (float)((CampaignTime)(ref val)).ToDays;
+				float num2 = num - (float)(val).ToDays;
 				string text = (item.IsTown ? "town" : "castle");
 				string text2 = ((change.ChangeReason == "conquest") ? "conquered" : ((change.ChangeReason == "diplomacy") ? "transferred" : ((change.ChangeReason == "rebellion") ? "rebelled" : "changed hands")));
 				if (change.FromKingdomId == ((MBObjectBase)kingdom).StringId)
@@ -1139,7 +1139,7 @@ public class WarStatisticsTracker
 				}
 			}
 			foreach (var item9 in from l in hashSet
-				orderby l.ClanName, l.Name
+				orderby l.Item1, l.Item2
 				select l)
 			{
 				if (item9.Item2 != "Unknown" && !string.IsNullOrEmpty(item9.Item3))

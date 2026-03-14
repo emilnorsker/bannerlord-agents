@@ -90,7 +90,7 @@ public static class DiplomacyPatches
 					val2.SetTextVariable("KINGDOM", (val != null) ? val.Name : TextObject.GetEmpty());
 					if (tribute.DailyAmount > 0)
 					{
-						((ExplainedNumber)(ref __result)).Add(0f - (float)tribute.DailyAmount, val2, (TextObject)null);
+						(__result).Add(0f - (float)tribute.DailyAmount, val2, (TextObject)null);
 					}
 				}
 			}
@@ -105,7 +105,7 @@ public static class DiplomacyPatches
 				val4.SetTextVariable("KINGDOM", (val3 != null) ? val3.Name : TextObject.GetEmpty());
 				if (tribute2.DailyAmount > 0)
 				{
-					((ExplainedNumber)(ref __result)).Add((float)tribute2.DailyAmount, val4, (TextObject)null);
+					(__result).Add((float)tribute2.DailyAmount, val4, (TextObject)null);
 				}
 			}
 		}

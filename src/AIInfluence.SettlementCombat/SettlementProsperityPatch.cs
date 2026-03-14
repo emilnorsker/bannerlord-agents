@@ -35,17 +35,17 @@ public class SettlementProsperityPatch
 				if (activePenalty != null && activePenalty.IsActive())
 				{
 					TextObject val = new TextObject(activePenalty.Reason, (Dictionary<string, object>)null);
-					((ExplainedNumber)(ref __result)).Add(0f - activePenalty.ProsperityPenaltyPerDay, val, (TextObject)null);
+					(__result).Add(0f - activePenalty.ProsperityPenaltyPerDay, val, (TextObject)null);
 				}
 			}
 			if (EconomicEffectsManager.Instance != null && EconomicEffectsManager.Instance.TryGetSettlementDailyEffect(((SettlementComponent)village).Settlement, out var prosperityPerDay, out var foodPerDay, out var reason) && Math.Abs(prosperityPerDay) > 0.001f)
 			{
 				TextObject val2 = new TextObject(reason, (Dictionary<string, object>)null);
-				((ExplainedNumber)(ref __result)).Add(prosperityPerDay, val2, (TextObject)null);
+				(__result).Add(prosperityPerDay, val2, (TextObject)null);
 			}
 			if (DiseaseManager.Instance != null && DiseaseManager.Instance.TryGetQuarantineSettlementEffect(((SettlementComponent)village).Settlement, out var prosperityPerDay2, out foodPerDay, out var _, out var _, out var _, out var reason2) && Math.Abs(prosperityPerDay2) > 0.001f)
 			{
-				((ExplainedNumber)(ref __result)).Add(prosperityPerDay2, new TextObject(reason2, (Dictionary<string, object>)null), (TextObject)null);
+				(__result).Add(prosperityPerDay2, new TextObject(reason2, (Dictionary<string, object>)null), (TextObject)null);
 			}
 		}
 		catch (Exception)
@@ -75,17 +75,17 @@ public class SettlementProsperityPatch
 				if (activePenalty != null && activePenalty.IsActive())
 				{
 					TextObject val = new TextObject(activePenalty.Reason, (Dictionary<string, object>)null);
-					((ExplainedNumber)(ref __result)).Add(0f - activePenalty.ProsperityPenaltyPerDay, val, (TextObject)null);
+					(__result).Add(0f - activePenalty.ProsperityPenaltyPerDay, val, (TextObject)null);
 				}
 			}
 			if (EconomicEffectsManager.Instance != null && EconomicEffectsManager.Instance.TryGetSettlementDailyEffect(((SettlementComponent)fortification).Settlement, out var prosperityPerDay, out var foodPerDay, out var reason) && Math.Abs(prosperityPerDay) > 0.001f)
 			{
 				TextObject val2 = new TextObject(reason, (Dictionary<string, object>)null);
-				((ExplainedNumber)(ref __result)).Add(prosperityPerDay, val2, (TextObject)null);
+				(__result).Add(prosperityPerDay, val2, (TextObject)null);
 			}
 			if (DiseaseManager.Instance != null && DiseaseManager.Instance.TryGetQuarantineSettlementEffect(((SettlementComponent)fortification).Settlement, out var prosperityPerDay2, out foodPerDay, out var _, out var _, out var _, out var reason2) && Math.Abs(prosperityPerDay2) > 0.001f)
 			{
-				((ExplainedNumber)(ref __result)).Add(prosperityPerDay2, new TextObject(reason2, (Dictionary<string, object>)null), (TextObject)null);
+				(__result).Add(prosperityPerDay2, new TextObject(reason2, (Dictionary<string, object>)null), (TextObject)null);
 			}
 		}
 		catch (Exception)

@@ -28,11 +28,11 @@ public class SettlementLoyaltyPatch
 				if (EconomicEffectsManager.Instance != null && EconomicEffectsManager.Instance.TryGetSettlementDailyEffect(((SettlementComponent)town).Settlement, out var prosperityPerDay, out var foodPerDay, out var securityPerDay, out var loyaltyPerDay, out var reason) && Math.Abs(loyaltyPerDay) > 0.001f)
 				{
 					TextObject val = new TextObject(reason, (Dictionary<string, object>)null);
-					((ExplainedNumber)(ref __result)).Add(loyaltyPerDay, val, (TextObject)null);
+					(__result).Add(loyaltyPerDay, val, (TextObject)null);
 				}
 				if (DiseaseManager.Instance != null && DiseaseManager.Instance.TryGetQuarantineSettlementEffect(((SettlementComponent)town).Settlement, out securityPerDay, out foodPerDay, out prosperityPerDay, out var loyaltyPerDay2, out var _, out var reason2) && Math.Abs(loyaltyPerDay2) > 0.001f)
 				{
-					((ExplainedNumber)(ref __result)).Add(loyaltyPerDay2, new TextObject(reason2, (Dictionary<string, object>)null), (TextObject)null);
+					(__result).Add(loyaltyPerDay2, new TextObject(reason2, (Dictionary<string, object>)null), (TextObject)null);
 				}
 			}
 		}

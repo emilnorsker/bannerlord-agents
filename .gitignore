@@ -1,0 +1,5 @@
+src/.bl-refs/
+src/bin/
+src/obj/
+logs/
+mod_log.txt

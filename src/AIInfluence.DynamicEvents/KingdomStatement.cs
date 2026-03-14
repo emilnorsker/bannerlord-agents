@@ -44,11 +44,11 @@ public class KingdomStatement
 			//IL_0015: Unknown result type (might be due to invalid IL or missing references)
 			float campaignDays = CampaignDays;
 			CampaignTime now = CampaignTime.Now;
-			return CampaignTime.DaysFromNow(campaignDays - (float)((CampaignTime)(ref now)).ToDays);
+			return CampaignTime.DaysFromNow(campaignDays - (float)(now).ToDays);
 		}
 		set
 		{
-			CampaignDays = (float)((CampaignTime)(ref value)).ToDays;
+			CampaignDays = (float)(value).ToDays;
 		}
 	}
 

@@ -585,7 +585,7 @@ public class FollowPlayerAction : AIActionBase
 					return;
 				}
 				Vec2 position2D = partyBelongedTo.GetPosition2D();
-				float num = ((Vec2)(ref position2D)).Distance(MobileParty.MainParty.GetPosition2D());
+				float num = (position2D).Distance(MobileParty.MainParty.GetPosition2D());
 				if (partyBelongedTo.IsCaravan || partyBelongedTo.MemberRoster.TotalManCount > 1)
 				{
 					if (num < 15f && !GameVersionCompatibility.HasShips(partyBelongedTo))
@@ -721,7 +721,7 @@ public class FollowPlayerAction : AIActionBase
 					if (partyBelongedTo.BesiegerCamp == null || partyBelongedTo.BesiegerCamp != val.BesiegerCamp)
 					{
 						position2D = partyBelongedTo.GetPosition2D();
-						float num = ((Vec2)(ref position2D)).Distance(besiegedSettlement.GetPosition2D());
+						float num = (position2D).Distance(besiegedSettlement.GetPosition2D());
 						if (num <= 6f)
 						{
 							if (!EnsureWarStateForSiege(base.TargetHero, besiegedSettlement))
@@ -764,7 +764,7 @@ public class FollowPlayerAction : AIActionBase
 			{
 				_lastDistanceCheckTime = CampaignTime.Now;
 				position2D = partyBelongedTo.GetPosition2D();
-				float num2 = ((Vec2)(ref position2D)).Distance(mainParty.GetPosition2D());
+				float num2 = (position2D).Distance(mainParty.GetPosition2D());
 				if (partyBelongedTo.TargetParty == mainParty && (int)partyBelongedTo.DefaultBehavior == 14)
 				{
 					GameVersionCompatibility.ConditionalEnableAi(partyBelongedTo);
@@ -1763,7 +1763,7 @@ public class FollowPlayerAction : AIActionBase
 					//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 					//IL_000f: Unknown result type (might be due to invalid IL or missing references)
 					Vec2 position2D = s.GetPosition2D();
-					return ((Vec2)(ref position2D)).DistanceSquared(party.GetPosition2D());
+					return (position2D).DistanceSquared(party.GetPosition2D());
 				}).FirstOrDefault();
 				if (val != null)
 				{
@@ -1791,7 +1791,7 @@ public class FollowPlayerAction : AIActionBase
 				//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 				//IL_000f: Unknown result type (might be due to invalid IL or missing references)
 				Vec2 position2D = s.GetPosition2D();
-				return ((Vec2)(ref position2D)).DistanceSquared(party.GetPosition2D());
+				return (position2D).DistanceSquared(party.GetPosition2D());
 			}).FirstOrDefault();
 		}
 		if (val == null && party != null)
@@ -1802,7 +1802,7 @@ public class FollowPlayerAction : AIActionBase
 				//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 				//IL_000f: Unknown result type (might be due to invalid IL or missing references)
 				Vec2 position2D = s.GetPosition2D();
-				return ((Vec2)(ref position2D)).DistanceSquared(party.GetPosition2D());
+				return (position2D).DistanceSquared(party.GetPosition2D());
 			}).FirstOrDefault();
 		}
 		return val;

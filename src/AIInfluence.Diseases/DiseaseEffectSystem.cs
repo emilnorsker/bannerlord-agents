@@ -475,7 +475,7 @@ public static class DiseaseEffectSystem
 					int troopTier = DiseaseManager.Instance.GetTroopTier(current2.Character);
 					if (troopTier == item)
 					{
-						int num7 = Math.Min(num5 - num6, ((TroopRosterElement)(ref current2)).Number);
+						int num7 = Math.Min(num5 - num6, (current2).Number);
 						memberRoster.RemoveTroop(current2.Character, num7, default(UniqueTroopDescriptor), 0);
 						num6 += num7;
 					}

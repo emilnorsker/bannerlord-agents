@@ -91,7 +91,7 @@ public class AIInfluenceTextQueryPopupVM : ViewModel
 			if (value != _isInputObfuscated)
 			{
 				_isInputObfuscated = value;
-				((ViewModel)this).OnPropertyChangedWithValue(value, "IsInputObfuscated");
+				base.OnPropertyChangedWithValue(value, "IsInputObfuscated");
 			}
 		}
 	}
@@ -142,7 +142,7 @@ public class AIInfluenceTextQueryPopupVM : ViewModel
 			if (value != _isButtonOkShown)
 			{
 				_isButtonOkShown = value;
-				((ViewModel)this).OnPropertyChangedWithValue(value, "IsButtonOkShown");
+				base.OnPropertyChangedWithValue(value, "IsButtonOkShown");
 			}
 		}
 	}
@@ -159,7 +159,7 @@ public class AIInfluenceTextQueryPopupVM : ViewModel
 			if (value != _isButtonCancelShown)
 			{
 				_isButtonCancelShown = value;
-				((ViewModel)this).OnPropertyChangedWithValue(value, "IsButtonCancelShown");
+				base.OnPropertyChangedWithValue(value, "IsButtonCancelShown");
 			}
 		}
 	}
@@ -176,7 +176,7 @@ public class AIInfluenceTextQueryPopupVM : ViewModel
 			if (value != _isButtonOkEnabled)
 			{
 				_isButtonOkEnabled = value;
-				((ViewModel)this).OnPropertyChangedWithValue(value, "IsButtonOkEnabled");
+				base.OnPropertyChangedWithValue(value, "IsButtonOkEnabled");
 			}
 		}
 	}

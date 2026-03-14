@@ -66,7 +66,7 @@ public class DiseaseTreatmentAiBehavior : CampaignBehaviorBase
 		NavigationType val2 = default(NavigationType);
 		bool flag3 = default(bool);
 		float num2 = default(float);
-		AiHelper.GetBestNavigationTypeAndAdjustedDistanceOfSettlementForMobileParty(mobileParty, settlement, false, ref val2, ref num2, ref flag3);
+		AiHelper.GetBestNavigationTypeAndAdjustedDistanceOfSettlementForMobileParty(mobileParty, settlement, false, out val2, out num2, out flag3);
 		if ((int)val2 == 0)
 		{
 			return;
@@ -82,7 +82,7 @@ public class DiseaseTreatmentAiBehavior : CampaignBehaviorBase
 			NavigationType val3 = default(NavigationType);
 			float num4 = default(float);
 			bool flag5 = default(bool);
-			AiHelper.GetBestNavigationTypeAndAdjustedDistanceOfSettlementForMobileParty(mobileParty, settlement, true, ref val3, ref num4, ref flag5);
+			AiHelper.GetBestNavigationTypeAndAdjustedDistanceOfSettlementForMobileParty(mobileParty, settlement, true, out val3, out num4, out flag5);
 			if ((int)val3 != 0 && num4 < num2)
 			{
 				val2 = val3;
@@ -94,9 +94,9 @@ public class DiseaseTreatmentAiBehavior : CampaignBehaviorBase
 		float val4 = num * (1f - num3 / 6f);
 		val4 = Math.Max(0.5f, Math.Min(10f, val4));
 		AIBehaviorData item = default(AIBehaviorData);
-		((AIBehaviorData)(ref item))._002Ector((IMapPoint)(object)settlement, (AiBehavior)2, val2, false, flag3, flag4);
+		item = new AIBehaviorData((IMapPoint)(object)settlement, (AiBehavior)2, val2, false, flag3, flag4);
 		float num5 = default(float);
-		if (p.TryGetBehaviorScore(ref item, ref num5))
+		if (p.TryGetBehaviorScore(ref item, out num5))
 		{
 			p.SetBehaviorScore(ref item, num5 + val4);
 		}

@@ -97,7 +97,7 @@ public class DiseaseInstance
 			}
 			float value = TreatmentStartDays.Value;
 			CampaignTime now = CampaignTime.Now;
-			float num = value - (float)((CampaignTime)(ref now)).ToDays;
+			float num = value - (float)(now).ToDays;
 			return CampaignTime.DaysFromNow(num);
 		}
 		set
@@ -112,7 +112,7 @@ public class DiseaseInstance
 			else
 			{
 				CampaignTime value2 = value.Value;
-				treatmentStartDays = (float)((CampaignTime)(ref value2)).ToDays;
+				treatmentStartDays = (float)(value2).ToDays;
 			}
 			TreatmentStartDays = treatmentStartDays;
 		}
@@ -132,7 +132,7 @@ public class DiseaseInstance
 			}
 			float value = PreventionEndDays.Value;
 			CampaignTime now = CampaignTime.Now;
-			float num = value - (float)((CampaignTime)(ref now)).ToDays;
+			float num = value - (float)(now).ToDays;
 			return CampaignTime.DaysFromNow(num);
 		}
 		set
@@ -147,7 +147,7 @@ public class DiseaseInstance
 			else
 			{
 				CampaignTime value2 = value.Value;
-				preventionEndDays = (float)((CampaignTime)(ref value2)).ToDays;
+				preventionEndDays = (float)(value2).ToDays;
 			}
 			PreventionEndDays = preventionEndDays;
 		}
@@ -167,7 +167,7 @@ public class DiseaseInstance
 				return 0;
 			}
 			CampaignTime now = CampaignTime.Now;
-			float num = (float)((CampaignTime)(ref now)).ToDays;
+			float num = (float)(now).ToDays;
 			return Math.Max(0, (int)(num - InfectedAt));
 		}
 	}
@@ -186,7 +186,7 @@ public class DiseaseInstance
 				if (0 == 0)
 				{
 					CampaignTime now = CampaignTime.Now;
-					float num = (float)((CampaignTime)(ref now)).ToDays;
+					float num = (float)(now).ToDays;
 					return Math.Max(0, (int)(num - TreatmentStartDays.Value));
 				}
 			}
@@ -220,7 +220,7 @@ public class DiseaseInstance
 		if (true)
 		{
 			CampaignTime now = CampaignTime.Now;
-			InfectedAt = (float)((CampaignTime)(ref now)).ToDays;
+			InfectedAt = (float)(now).ToDays;
 		}
 	}
 
@@ -239,7 +239,7 @@ public class DiseaseInstance
 			return false;
 		}
 		CampaignTime now = CampaignTime.Now;
-		float num = (float)((CampaignTime)(ref now)).ToDays;
+		float num = (float)(now).ToDays;
 		return num >= PreventionEndDays.Value;
 	}
 
@@ -258,7 +258,7 @@ public class DiseaseInstance
 			return true;
 		}
 		CampaignTime now = CampaignTime.Now;
-		return (float)((CampaignTime)(ref now)).ToDays < SeasonalImmunityEndDays.Value;
+		return (float)(now).ToDays < SeasonalImmunityEndDays.Value;
 	}
 
 	public void StartTreatment(float qualityBonus = 1f)
@@ -273,7 +273,7 @@ public class DiseaseInstance
 		if (true)
 		{
 			CampaignTime now = CampaignTime.Now;
-			TreatmentStartDays = (float)((CampaignTime)(ref now)).ToDays;
+			TreatmentStartDays = (float)(now).ToDays;
 		}
 		PostTreatmentRecoveryRate = 0f;
 		PostTreatmentDaysRemaining = 0;
@@ -306,7 +306,7 @@ public class DiseaseInstance
 		if (true)
 		{
 			CampaignTime now = CampaignTime.Now;
-			PreventionEndDays = (float)((CampaignTime)(ref now)).ToDays + (float)durationDays;
+			PreventionEndDays = (float)(now).ToDays + (float)durationDays;
 		}
 	}
 

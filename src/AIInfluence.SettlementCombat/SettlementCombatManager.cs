@@ -1013,7 +1013,7 @@ public class SettlementCombatManager
 				}
 				WieldBestMeleeWeapon(agent);
 				agent.SetWatchState((WatchState)2);
-				agent.SetAgentFlags((AgentFlag)(agent.GetAgentFlags() | 8 | 0x10));
+				agent.SetAgentFlags((AgentFlag)((int)agent.GetAgentFlags() | 8 | 0x10));
 				if (!playerIsAggressor && aggressorAgent != null && aggressorAgent != Agent.Main)
 				{
 					agent.SetLookAgent(aggressorAgent);
@@ -1027,7 +1027,7 @@ public class SettlementCombatManager
 				}
 				WieldBestMeleeWeapon(agent);
 				agent.SetWatchState((WatchState)2);
-				agent.SetAgentFlags((AgentFlag)(agent.GetAgentFlags() | 8 | 0x10));
+				agent.SetAgentFlags((AgentFlag)((int)agent.GetAgentFlags() | 8 | 0x10));
 				if (Agent.Main != null)
 				{
 					agent.SetLookAgent(Agent.Main);
@@ -1398,10 +1398,10 @@ public class SettlementCombatManager
 						WieldBestMeleeWeapon(item);
 						item.SetWatchState((WatchState)2);
 						AgentFlag agentFlags = item.GetAgentFlags();
-						agentFlags = (AgentFlag)(agentFlags | 8);
-						agentFlags = (AgentFlag)(agentFlags | 0x10);
-						agentFlags = (AgentFlag)(agentFlags & -33);
-						agentFlags = (AgentFlag)(agentFlags & -4097);
+						agentFlags = (AgentFlag)((int)agentFlags | 8);
+						agentFlags = (AgentFlag)((int)agentFlags | 0x10);
+						agentFlags = (AgentFlag)((int)agentFlags & -33);
+						agentFlags = (AgentFlag)((int)agentFlags & -4097);
 						item.SetAgentFlags(agentFlags);
 						if (!flag && val != null)
 						{
@@ -1428,7 +1428,7 @@ public class SettlementCombatManager
 					{
 						item.SetLookAgent(val);
 					}
-					item.SetAgentFlags((AgentFlag)(item.GetAgentFlags() | 8 | 0x10));
+					item.SetAgentFlags((AgentFlag)((int)item.GetAgentFlags() | 8 | 0x10));
 					defendersFound++;
 				}
 			}
@@ -1568,17 +1568,17 @@ public class SettlementCombatManager
 				for (EquipmentIndex val = (EquipmentIndex)0; (int)val < 5; val = (EquipmentIndex)(val + 1))
 				{
 					val2 = ((BasicCharacterObject)character).Equipment[val];
-					if (!((EquipmentElement)(ref val2)).IsEmpty)
+					if (!(val2).IsEmpty)
 					{
 						flag = true;
 						break;
 					}
 				}
 				val2 = ((BasicCharacterObject)character).Equipment[(EquipmentIndex)6];
-				if (((EquipmentElement)(ref val2)).IsEmpty)
+				if ((val2).IsEmpty)
 				{
 					val2 = ((BasicCharacterObject)character).Equipment[(EquipmentIndex)5];
-					if (((EquipmentElement)(ref val2)).IsEmpty)
+					if ((val2).IsEmpty)
 					{
 						goto IL_0117;
 					}
@@ -1642,7 +1642,7 @@ public class SettlementCombatManager
 					{
 						val.SetLookAgent(Agent.Main);
 					}
-					val.SetAgentFlags((AgentFlag)(val.GetAgentFlags() | 8 | 0x10));
+					val.SetAgentFlags((AgentFlag)((int)val.GetAgentFlags() | 8 | 0x10));
 					_logger.Log("NPC attacker prepared for combat");
 				}
 			}
@@ -1715,10 +1715,10 @@ public class SettlementCombatManager
 			for (EquipmentIndex val2 = (EquipmentIndex)0; (int)val2 < 5; val2 = (EquipmentIndex)(val2 + 1))
 			{
 				MissionWeapon val3 = agent.Equipment[val2];
-				if (!((MissionWeapon)(ref val3)).IsEmpty)
+				if (!(val3).IsEmpty)
 				{
 					val3 = agent.Equipment[val2];
-					WeaponClass weaponClass = ((MissionWeapon)(ref val3)).CurrentUsageItem.WeaponClass;
+					WeaponClass weaponClass = (val3).CurrentUsageItem.WeaponClass;
 					if ((int)weaponClass == 2 || (int)weaponClass == 3 || (int)weaponClass == 4 || (int)weaponClass == 5 || (int)weaponClass == 6 || (int)weaponClass == 8 || (int)weaponClass == 7 || (int)weaponClass == 1 || (int)weaponClass == 9 || (int)weaponClass == 10 || (int)weaponClass == 11)
 					{
 						val = val2;
@@ -2035,17 +2035,17 @@ public class SettlementCombatManager
 					if (settlement != null && MobileParty.MainParty != null)
 					{
 						CampaignVec2 val = settlement.GatePosition;
-						Vec2 val2 = ((CampaignVec2)(ref val)).ToVec2();
+						Vec2 val2 = (val).ToVec2();
 						val = settlement.Position;
-						Vec2 val3 = ((CampaignVec2)(ref val)).ToVec2();
+						Vec2 val3 = (val).ToVec2();
 						Vec2 val4 = val2 - val3;
-						if (((Vec2)(ref val4)).LengthSquared <= 0.0001f)
+						if ((val4).LengthSquared <= 0.0001f)
 						{
-							((Vec2)(ref val4))._002Ector(1f, 0f);
+							val4 = new Vec2(1f, 0f);
 						}
 						else
 						{
-							val4 = ((Vec2)(ref val4)).Normalized();
+							val4 = (val4).Normalized();
 						}
 						Vec2 val5 = val2 + val4 * 3f;
 						MobileParty.MainParty.Position = new CampaignVec2(val5, true);
@@ -2259,10 +2259,10 @@ public class SettlementCombatManager
 					{
 						continue;
 					}
-					int num3 = ((TroopRosterElement)(ref current)).Number - ((TroopRosterElement)(ref current)).WoundedNumber;
+					int num3 = (current).Number - (current).WoundedNumber;
 					if (num3 > 0)
 					{
-						float num4 = (float)((BasicCharacterObject)current.Character).Level + ((((TroopRosterElement)(ref current)).WoundedNumber > 0) ? (-0.5f) : 0f);
+						float num4 = (float)((BasicCharacterObject)current.Character).Level + (((current).WoundedNumber > 0) ? (-0.5f) : 0f);
 						if (num4 < num2)
 						{
 							num2 = num4;
@@ -2767,7 +2767,7 @@ public class SettlementCombatManager
 					if ((item.IsTown || item.IsCastle) && item.MapFaction == mapFaction)
 					{
 						CampaignVec2 gatePosition = item.GatePosition;
-						float num5 = ((CampaignVec2)(ref gatePosition)).DistanceSquared(settlement.GatePosition);
+						float num5 = (gatePosition).DistanceSquared(settlement.GatePosition);
 						if (num5 < num4)
 						{
 							num4 = num5;
@@ -2834,9 +2834,9 @@ public class SettlementCombatManager
 						for (int num6 = memberRoster.Count - 1; num6 >= 0; num6--)
 						{
 							TroopRosterElement elementCopyAtIndex = memberRoster.GetElementCopyAtIndex(num6);
-							if (elementCopyAtIndex.Character != null && (!((BasicCharacterObject)elementCopyAtIndex.Character).IsHero || elementCopyAtIndex.Character.HeroObject != Hero.MainHero) && ((TroopRosterElement)(ref elementCopyAtIndex)).Number > 0)
+							if (elementCopyAtIndex.Character != null && (!((BasicCharacterObject)elementCopyAtIndex.Character).IsHero || elementCopyAtIndex.Character.HeroObject != Hero.MainHero) && (elementCopyAtIndex).Number > 0)
 							{
-								memberRoster.AddToCounts(elementCopyAtIndex.Character, -((TroopRosterElement)(ref elementCopyAtIndex)).Number, false, 0, 0, true, -1);
+								memberRoster.AddToCounts(elementCopyAtIndex.Character, -(elementCopyAtIndex).Number, false, 0, 0, true, -1);
 							}
 						}
 					}

@@ -567,7 +567,7 @@ public class DefenderSpawner
 					continue;
 				}
 				CampaignVec2 position = val.PartyBelongedTo.Position;
-				float num = ((CampaignVec2)(ref position)).Distance(settlement.Position);
+				float num = (position).Distance(settlement.Position);
 				if (num > 12f)
 				{
 					_logger.Log($"Lord {val.Name} is too far ({num:F1} units) - skipping");
@@ -831,10 +831,10 @@ public class DefenderSpawner
 			if (val != null && val.IsActive())
 			{
 				Vec3 position = val.Position;
-				Vec2 val3 = ((Vec3)(ref position)).AsVec2 - ((Vec3)(ref spawnPosition)).AsVec2;
-				if (((Vec2)(ref val3)).LengthSquared > 0.001f)
+				Vec2 val3 = (position).AsVec2 - (spawnPosition).AsVec2;
+				if ((val3).LengthSquared > 0.001f)
 				{
-					val2 = ((Vec2)(ref val3)).Normalized();
+					val2 = (val3).Normalized();
 				}
 			}
 			Team val4 = (onPlayerSide ? current.PlayerTeam : current.DefenderTeam);
@@ -870,7 +870,7 @@ public class DefenderSpawner
 				if (val != null && val8.IsAIControlled)
 				{
 					val8.SetLookAgent(val);
-					val8.SetAgentFlags((AgentFlag)(val8.GetAgentFlags() | 8 | 0x10));
+					val8.SetAgentFlags((AgentFlag)((int)val8.GetAgentFlags() | 8 | 0x10));
 				}
 				RegisterSpawnedAgent(val8, onPlayerSide);
 				if (sourceParty != null && _partyToLordId.TryGetValue(sourceParty, out var value) && _statistics != null)
@@ -921,7 +921,7 @@ public class DefenderSpawner
 					}
 					float num3 = (float)(_random.NextDouble() * Math.PI * 2.0);
 					float num4 = (float)(_random.NextDouble() * 2.0);
-					((Vec3)(ref val2))._002Ector((float)Math.Cos(num3) * num4, (float)Math.Sin(num3) * num4, 0f, -1f);
+					val2 = new Vec3((float)Math.Cos(num3) * num4, (float)Math.Sin(num3) * num4, 0f, -1f);
 					Vec3 position2 = position + val2;
 					SpawnDefenderAgentAtPosition(val, combat, position2, rolePrefix ?? "", onPlayerSide: false, sourceParty);
 					num++;
@@ -996,9 +996,9 @@ public class DefenderSpawner
 				return;
 			}
 			float z = position.z;
-			current.Scene.GetHeightAtPoint(((Vec3)(ref position)).AsVec2, (BodyFlags)544321929, ref z);
+			current.Scene.GetHeightAtPoint((position).AsVec2, (BodyFlags)544321929, ref z);
 			Vec3 val = default(Vec3);
-			((Vec3)(ref val))._002Ector(position.x, position.y, z, -1f);
+			val = new Vec3(position.x, position.y, z, -1f);
 			Vec3 position2;
 			if (!IsSpawnPositionValid(current, val))
 			{
@@ -1010,7 +1010,7 @@ public class DefenderSpawner
 					return;
 				}
 				position2 = Agent.Main.Position;
-				Vec2 asVec = ((Vec3)(ref position2)).AsVec2;
+				Vec2 asVec = (position2).AsVec2;
 				Vec3 val3 = default(Vec3);
 				for (int i = 0; i < 8; i++)
 				{
@@ -1019,7 +1019,7 @@ public class DefenderSpawner
 					Vec2 val2 = asVec + new Vec2((float)Math.Cos(num) * num2, (float)Math.Sin(num) * num2);
 					float num3 = 0f;
 					current.Scene.GetHeightAtPoint(val2, (BodyFlags)544321929, ref num3);
-					((Vec3)(ref val3))._002Ector(val2.x, val2.y, num3, -1f);
+					val3 = new Vec3(val2.x, val2.y, num3, -1f);
 					if (IsSpawnPositionValid(current, val3))
 					{
 						val = val3;
@@ -1031,7 +1031,7 @@ public class DefenderSpawner
 				{
 					val = Agent.Main.Position + new Vec3(5f, 5f, 0f, -1f);
 					float z2 = val.z;
-					current.Scene.GetHeightAtPoint(((Vec3)(ref val)).AsVec2, (BodyFlags)544321929, ref z2);
+					current.Scene.GetHeightAtPoint((val).AsVec2, (BodyFlags)544321929, ref z2);
 					val.z = z2;
 					_logger.Log("Using last-resort player-offset spawn for " + role);
 				}
@@ -1049,10 +1049,10 @@ public class DefenderSpawner
 			if (val4 != null && val4.IsActive())
 			{
 				position2 = val4.Position;
-				Vec2 val6 = ((Vec3)(ref position2)).AsVec2 - ((Vec3)(ref val)).AsVec2;
-				if (((Vec2)(ref val6)).LengthSquared > 0.001f)
+				Vec2 val6 = (position2).AsVec2 - (val).AsVec2;
+				if ((val6).LengthSquared > 0.001f)
 				{
-					val5 = ((Vec2)(ref val6)).Normalized();
+					val5 = (val6).Normalized();
 				}
 			}
 			Team val7 = (onPlayerSide ? current.PlayerTeam : current.DefenderTeam);
@@ -1093,7 +1093,7 @@ public class DefenderSpawner
 				if (val4 != null && val11.IsAIControlled)
 				{
 					val11.SetLookAgent(val4);
-					val11.SetAgentFlags((AgentFlag)(val11.GetAgentFlags() | 8 | 0x10));
+					val11.SetAgentFlags((AgentFlag)((int)val11.GetAgentFlags() | 8 | 0x10));
 				}
 				RegisterSpawnedAgent(val11, onPlayerSide);
 				if (sourceParty != null && _partyToLordId.TryGetValue(sourceParty, out var value) && _statistics != null)
@@ -1232,7 +1232,7 @@ public class DefenderSpawner
 					val2 = spawnPosition;
 					flag = true;
 					val3 = forward2D;
-					flag2 = ((Vec2)(ref forward2D)).LengthSquared > 0.001f;
+					flag2 = (forward2D).LengthSquared > 0.001f;
 					_logger.Log("  Using PLAYER ENTRANCE spawn (city entrance point)");
 				}
 				else
@@ -1279,7 +1279,7 @@ public class DefenderSpawner
 					}
 					val2 = Agent.Main.Position + new Vec3(10f, 10f, 0f, -1f);
 					float z = val2.z;
-					current.Scene.GetHeightAtPoint(((Vec3)(ref val2)).AsVec2, (BodyFlags)544321929, ref z);
+					current.Scene.GetHeightAtPoint((val2).AsVec2, (BodyFlags)544321929, ref z);
 					val2.z = z;
 					_logger.Log("Using emergency fallback position (player + offset) for " + role);
 				}
@@ -1288,15 +1288,15 @@ public class DefenderSpawner
 			if (val != null && val.IsActive())
 			{
 				Vec3 position = val.Position;
-				Vec2 val5 = ((Vec3)(ref position)).AsVec2 - ((Vec3)(ref val2)).AsVec2;
-				if (((Vec2)(ref val5)).LengthSquared > 0.001f)
+				Vec2 val5 = (position).AsVec2 - (val2).AsVec2;
+				if ((val5).LengthSquared > 0.001f)
 				{
-					val4 = ((Vec2)(ref val5)).Normalized();
+					val4 = (val5).Normalized();
 				}
 			}
-			else if (flag2 && ((Vec2)(ref val3)).LengthSquared > 0.001f)
+			else if (flag2 && (val3).LengthSquared > 0.001f)
 			{
-				val4 = ((Vec2)(ref val3)).Normalized();
+				val4 = (val3).Normalized();
 			}
 			Team val6 = (onPlayerSide ? current.PlayerTeam : current.DefenderTeam);
 			if (val6 == null)
@@ -1336,7 +1336,7 @@ public class DefenderSpawner
 				if (val != null && val10.IsAIControlled)
 				{
 					val10.SetLookAgent(val);
-					val10.SetAgentFlags((AgentFlag)(val10.GetAgentFlags() | 8 | 0x10));
+					val10.SetAgentFlags((AgentFlag)((int)val10.GetAgentFlags() | 8 | 0x10));
 				}
 				RegisterSpawnedAgent(val10, onPlayerSide);
 				if (sourceParty != null && _partyToLordId.TryGetValue(sourceParty, out var value) && _statistics != null)
@@ -1445,28 +1445,28 @@ public class DefenderSpawner
 			}
 			MatrixFrame globalFrame = val.GetGlobalFrame();
 			Vec3 val2 = globalFrame.rotation.f;
-			if (((Vec3)(ref val2)).LengthSquared < 0.001f)
+			if ((val2).LengthSquared < 0.001f)
 			{
 				val2 = globalFrame.rotation.s;
 			}
-			if (((Vec3)(ref val2)).LengthSquared < 0.001f)
+			if ((val2).LengthSquared < 0.001f)
 			{
 				val2 = Vec3.Forward;
 			}
-			((Vec3)(ref val2)).Normalize();
+			(val2).Normalize();
 			Vec3 s = globalFrame.rotation.s;
-			if (((Vec3)(ref s)).LengthSquared < 0.001f)
+			if ((s).LengthSquared < 0.001f)
 			{
-				((Vec3)(ref s))._002Ector(val2.y, 0f - val2.x, 0f, -1f);
+				s = new Vec3(val2.y, 0f - val2.x, 0f, -1f);
 			}
-			((Vec3)(ref s)).Normalize();
+			(s).Normalize();
 			float num = 25f;
 			for (int j = 0; j < 3; j++)
 			{
 				float num2 = (float)(_random.NextDouble() * 8.0) - 4f;
 				Vec3 val3 = globalFrame.origin - val2 * num + s * num2;
 				float z = val3.z;
-				mission.Scene.GetHeightAtPoint(((Vec3)(ref val3)).AsVec2, (BodyFlags)544321929, ref z);
+				mission.Scene.GetHeightAtPoint((val3).AsVec2, (BodyFlags)544321929, ref z);
 				val3.z = z;
 				if (IsSpawnPositionValid(mission, val3, checkPathAccessibility: false))
 				{
@@ -1479,7 +1479,7 @@ public class DefenderSpawner
 			float num3 = 0f;
 			Vec3 val4 = globalFrame.origin - val2 * num + s * num3;
 			float z2 = val4.z;
-			mission.Scene.GetHeightAtPoint(((Vec3)(ref val4)).AsVec2, (BodyFlags)544321929, ref z2);
+			mission.Scene.GetHeightAtPoint((val4).AsVec2, (BodyFlags)544321929, ref z2);
 			val4.z = z2;
 			spawnPosition = val4;
 			forward2D = new Vec2(val2.x, val2.y);
@@ -1571,12 +1571,12 @@ public class DefenderSpawner
 			{
 				_logger.Log(string.Format("Selecting guard templates from garrison roster of {0}{1}", settlement.Name, isIndoor ? " (INDOOR: no cavalry/archers)" : ""));
 				var list2 = (from e in (IEnumerable<TroopRosterElement>)val.MemberRoster.GetTroopRoster()
-					where e.Character != null && !((BasicCharacterObject)e.Character).IsHero && ((TroopRosterElement)(ref e)).Number > 0
+					where e.Character != null && !((BasicCharacterObject)e.Character).IsHero && (e).Number > 0
 					where !isIndoor || (!((BasicCharacterObject)e.Character).IsMounted && !((BasicCharacterObject)e.Character).IsRanged)
 					select new
 					{
 						Character = e.Character,
-						Count = ((TroopRosterElement)(ref e)).Number
+						Count = (e).Number
 					}).ToList();
 				if (list2.Count > 0)
 				{
@@ -1668,7 +1668,7 @@ public class DefenderSpawner
 			TroopRosterElement current = item;
 			if (current.Character != null && !((BasicCharacterObject)current.Character).IsHero)
 			{
-				for (int i = 0; i < ((TroopRosterElement)(ref current)).Number; i++)
+				for (int i = 0; i < (current).Number; i++)
 				{
 					list.Add(current.Character);
 				}
@@ -1705,7 +1705,7 @@ public class DefenderSpawner
 					TroopRosterElement current = item;
 					if (current.Character != null && !((BasicCharacterObject)current.Character).IsHero)
 					{
-						for (int i = 0; i < ((TroopRosterElement)(ref current)).Number; i++)
+						for (int i = 0; i < (current).Number; i++)
 						{
 							list.Add(current.Character);
 						}
@@ -1730,7 +1730,7 @@ public class DefenderSpawner
 							TroopRosterElement current3 = item3;
 							if (current3.Character != null && !((BasicCharacterObject)current3.Character).IsHero)
 							{
-								for (int j = 0; j < ((TroopRosterElement)(ref current3)).Number; j++)
+								for (int j = 0; j < (current3).Number; j++)
 								{
 									list.Add(current3.Character);
 								}
@@ -2070,16 +2070,16 @@ public class DefenderSpawner
 			if (Agent.Main != null)
 			{
 				position = Agent.Main.Position;
-				asVec = ((Vec3)(ref position)).AsVec2;
+				asVec = (position).AsVec2;
 			}
 			else if (targetAgent != null)
 			{
 				position = targetAgent.Position;
-				asVec = ((Vec3)(ref position)).AsVec2;
+				asVec = (position).AsVec2;
 			}
 			else
 			{
-				((Vec2)(ref asVec))._002Ector(0f, 0f);
+				asVec = new Vec2(0f, 0f);
 			}
 			Vec2 val = default(Vec2);
 			Vec3 val3 = default(Vec3);
@@ -2089,11 +2089,11 @@ public class DefenderSpawner
 				float num2 = Math.Max(10f, 40f - (float)i * 3f);
 				float num3 = Math.Max(30f, 80f - (float)i * 5f);
 				float num4 = num2 + (float)(_random.NextDouble() * (double)(num3 - num2));
-				((Vec2)(ref val))._002Ector((float)Math.Cos(num) * num4, (float)Math.Sin(num) * num4);
+				val = new Vec2((float)Math.Cos(num) * num4, (float)Math.Sin(num) * num4);
 				Vec2 val2 = asVec + val;
 				float num5 = 0f;
 				mission.Scene.GetHeightAtPoint(val2, (BodyFlags)544321929, ref num5);
-				((Vec3)(ref val3))._002Ector(val2.x, val2.y, num5, -1f);
+				val3 = new Vec3(val2.x, val2.y, num5, -1f);
 				if (IsSpawnPositionValid(mission, val3))
 				{
 					return val3;
@@ -2110,7 +2110,7 @@ public class DefenderSpawner
 					Vec2 val4 = asVec + new Vec2((float)Math.Cos(num6) * num7, (float)Math.Sin(num6) * num7);
 					float num8 = 0f;
 					mission.Scene.GetHeightAtPoint(val4, (BodyFlags)544321929, ref num8);
-					((Vec3)(ref val5))._002Ector(val4.x, val4.y, num8, -1f);
+					val5 = new Vec3(val4.x, val4.y, num8, -1f);
 					if (IsSpawnPositionValid(mission, val5))
 					{
 						_logger.Log($"Using near-player fallback spawn at {val5}");
@@ -2119,7 +2119,7 @@ public class DefenderSpawner
 				}
 				Vec3 val6 = Agent.Main.Position + new Vec3(5f, 5f, 0f, -1f);
 				float z = val6.z;
-				mission.Scene.GetHeightAtPoint(((Vec3)(ref val6)).AsVec2, (BodyFlags)544321929, ref z);
+				mission.Scene.GetHeightAtPoint((val6).AsVec2, (BodyFlags)544321929, ref z);
 				return new Vec3(val6.x, val6.y, z, -1f);
 			}
 			return new Vec3(0f, 0f, 0f, -1f);
@@ -2185,7 +2185,7 @@ public class DefenderSpawner
 						MatrixFrame globalFrame = item.GetGlobalFrame();
 						Vec3 origin = globalFrame.origin;
 						float z = origin.z;
-						mission.Scene.GetHeightAtPoint(((Vec3)(ref origin)).AsVec2, (BodyFlags)544321929, ref z);
+						mission.Scene.GetHeightAtPoint((origin).AsVec2, (BodyFlags)544321929, ref z);
 						origin.z = z;
 						if (IsSpawnPositionValid(mission, origin, checkPathAccessibility: false))
 						{
@@ -2199,7 +2199,7 @@ public class DefenderSpawner
 				MatrixFrame globalFrame2 = val.GetGlobalFrame();
 				Vec3 origin2 = globalFrame2.origin;
 				float z2 = origin2.z;
-				mission.Scene.GetHeightAtPoint(((Vec3)(ref origin2)).AsVec2, (BodyFlags)544321929, ref z2);
+				mission.Scene.GetHeightAtPoint((origin2).AsVec2, (BodyFlags)544321929, ref z2);
 				origin2.z = z2;
 				return origin2;
 			}
@@ -2423,7 +2423,7 @@ public class DefenderSpawner
 			else
 			{
 				Vec3 position = Agent.Main.Position;
-				val = ((Vec3)(ref position)).AsVec2;
+				val = (position).AsVec2;
 			}
 			Vec2 val2 = val;
 			List<GameEntity> list = new List<GameEntity>();
@@ -2437,8 +2437,8 @@ public class DefenderSpawner
 				Vec3 globalPosition = cachedCityGuardSpawnPoint.GlobalPosition;
 				if (flag)
 				{
-					val3 = ((Vec3)(ref globalPosition)).AsVec2 - val2;
-					float length = ((Vec2)(ref val3)).Length;
+					val3 = (globalPosition).AsVec2 - val2;
+					float length = (val3).Length;
 					if (length < 70f)
 					{
 						continue;
@@ -2464,18 +2464,18 @@ public class DefenderSpawner
 				Vec3 globalPosition2 = val4.GlobalPosition;
 				float num2 = (float)(_random.NextDouble() * Math.PI * 2.0);
 				float num3 = (float)(_random.NextDouble() * 2.0);
-				((Vec2)(ref val5))._002Ector((float)Math.Cos(num2) * num3, (float)Math.Sin(num2) * num3);
-				Vec2 val6 = ((Vec3)(ref globalPosition2)).AsVec2 + val5;
+				val5 = new Vec2((float)Math.Cos(num2) * num3, (float)Math.Sin(num2) * num3);
+				Vec2 val6 = (globalPosition2).AsVec2 + val5;
 				float z = globalPosition2.z;
 				mission.Scene.GetHeightAtPoint(val6, (BodyFlags)544321929, ref z);
-				((Vec3)(ref val7))._002Ector(val6.x, val6.y, z, -1f);
+				val7 = new Vec3(val6.x, val6.y, z, -1f);
 				if (IsSpawnPositionValid(mission, val7, checkPathAccessibility: false))
 				{
 					string arg = "N/A";
 					if (flag)
 					{
 						val3 = val6 - val2;
-						arg = ((Vec2)(ref val3)).Length.ToString("F1");
+						arg = (val3).Length.ToString("F1");
 					}
 					_logger.Log($"Selected city guard spawn: {val4.Name} at {val7} (distance to player: {arg}m)");
 					return val7;
@@ -2485,7 +2485,7 @@ public class DefenderSpawner
 			GameEntity val8 = list[0];
 			Vec3 globalPosition3 = val8.GlobalPosition;
 			float z2 = globalPosition3.z;
-			mission.Scene.GetHeightAtPoint(((Vec3)(ref globalPosition3)).AsVec2, (BodyFlags)544321929, ref z2);
+			mission.Scene.GetHeightAtPoint((globalPosition3).AsVec2, (BodyFlags)544321929, ref z2);
 			return new Vec3(globalPosition3.x, globalPosition3.y, z2, -1f);
 		}
 		catch (Exception ex)
@@ -2553,16 +2553,16 @@ public class DefenderSpawner
 			if (Agent.Main != null)
 			{
 				position = Agent.Main.Position;
-				asVec = ((Vec3)(ref position)).AsVec2;
+				asVec = (position).AsVec2;
 			}
 			else if (targetAgent != null)
 			{
 				position = targetAgent.Position;
-				asVec = ((Vec3)(ref position)).AsVec2;
+				asVec = (position).AsVec2;
 			}
 			else
 			{
-				((Vec2)(ref asVec))._002Ector(0f, 0f);
+				asVec = new Vec2(0f, 0f);
 			}
 			Vec2 val = default(Vec2);
 			Vec3 val6 = default(Vec3);
@@ -2570,16 +2570,16 @@ public class DefenderSpawner
 			{
 				float num = (float)(_random.NextDouble() * Math.PI * 2.0);
 				float num2 = 30f;
-				((Vec2)(ref val))._002Ector((float)Math.Cos(num) * num2, (float)Math.Sin(num) * num2);
+				val = new Vec2((float)Math.Cos(num) * num2, (float)Math.Sin(num) * num2);
 				Vec2 val2 = asVec + val;
 				Vec2 closestBoundaryPosition = mission.GetClosestBoundaryPosition(val2);
 				Vec2 val3 = asVec - closestBoundaryPosition;
-				Vec2 val4 = ((Vec2)(ref val3)).Normalized();
+				Vec2 val4 = (val3).Normalized();
 				float num3 = 5f + (float)(_random.NextDouble() * 5.0);
 				Vec2 val5 = closestBoundaryPosition + val4 * num3;
 				float num4 = 0f;
 				mission.Scene.GetHeightAtPoint(val5, (BodyFlags)544321929, ref num4);
-				((Vec3)(ref val6))._002Ector(val5.x, val5.y, num4, -1f);
+				val6 = new Vec3(val5.x, val5.y, num4, -1f);
 				if (IsSpawnPositionValid(mission, val6))
 				{
 					return val6;
@@ -2587,7 +2587,7 @@ public class DefenderSpawner
 			}
 			_logger.Log("Warning: Could not find flat spawn position after 10 attempts");
 			Vec2 val7 = default(Vec2);
-			((Vec2)(ref val7))._002Ector(1f, 0f);
+			val7 = new Vec2(1f, 0f);
 			Vec2 val8 = asVec + val7 * 20f;
 			float num5 = 0f;
 			mission.Scene.GetHeightAtPoint(val8, (BodyFlags)544321929, ref num5);
@@ -2702,24 +2702,24 @@ public class DefenderSpawner
 				return false;
 			}
 			float z = position.z;
-			mission.Scene.GetHeightAtPoint(((Vec3)(ref position)).AsVec2, (BodyFlags)544321929, ref z);
+			mission.Scene.GetHeightAtPoint((position).AsVec2, (BodyFlags)544321929, ref z);
 			if (z < -10f || z > 1000f)
 			{
 				_logger.Log($"Invalid spawn position: Height out of range ({z:F2}m)");
 				return false;
 			}
 			Vec3 val = default(Vec3);
-			((Vec3)(ref val))._002Ector(position.x, position.y, z, -1f);
+			val = new Vec3(position.x, position.y, z, -1f);
 			if (checkPathAccessibility && Agent.Main != null && Agent.Main.IsActive())
 			{
 				try
 				{
 					WorldPosition val2 = default(WorldPosition);
-					((WorldPosition)(ref val2))._002Ector(mission.Scene, UIntPtr.Zero, val, false);
+					val2 = new WorldPosition(mission.Scene, UIntPtr.Zero, val, false);
 					WorldPosition val3 = default(WorldPosition);
-					((WorldPosition)(ref val3))._002Ector(mission.Scene, UIntPtr.Zero, Agent.Main.Position, false);
+					val3 = new WorldPosition(mission.Scene, UIntPtr.Zero, Agent.Main.Position, false);
 					float num = default(float);
-					if (!mission.Scene.GetPathDistanceBetweenPositions(ref val3, ref val2, 0f, ref num))
+					if (!mission.Scene.GetPathDistanceBetweenPositions(ref val3, ref val2, 0f, out num))
 					{
 						_logger.Log("Invalid spawn position: No path available");
 						return false;
@@ -2741,9 +2741,9 @@ public class DefenderSpawner
 			}
 			try
 			{
-				Vec2 closestBoundaryPosition = mission.GetClosestBoundaryPosition(((Vec3)(ref val)).AsVec2);
-				Vec2 val4 = ((Vec3)(ref val)).AsVec2 - closestBoundaryPosition;
-				float length = ((Vec2)(ref val4)).Length;
+				Vec2 closestBoundaryPosition = mission.GetClosestBoundaryPosition((val).AsVec2);
+				Vec2 val4 = (val).AsVec2 - closestBoundaryPosition;
+				float length = (val4).Length;
 				if (length < 2f)
 				{
 					_logger.Log($"Invalid spawn position: Too close to boundary ({length:F2}m)");
@@ -2754,7 +2754,7 @@ public class DefenderSpawner
 			{
 			}
 			float z2 = val.z;
-			if (!mission.Scene.GetHeightAtPoint(((Vec3)(ref val)).AsVec2, (BodyFlags)544321929, ref z2))
+			if (!mission.Scene.GetHeightAtPoint((val).AsVec2, (BodyFlags)544321929, ref z2))
 			{
 				_logger.Log("Invalid spawn position: Cannot get height at point");
 				return false;
@@ -2826,10 +2826,10 @@ public class DefenderSpawner
 			for (EquipmentIndex val2 = (EquipmentIndex)0; (int)val2 < 5; val2 = (EquipmentIndex)(val2 + 1))
 			{
 				MissionWeapon val3 = agent.Equipment[val2];
-				if (!((MissionWeapon)(ref val3)).IsEmpty)
+				if (!(val3).IsEmpty)
 				{
 					val3 = agent.Equipment[val2];
-					WeaponClass weaponClass = ((MissionWeapon)(ref val3)).CurrentUsageItem.WeaponClass;
+					WeaponClass weaponClass = (val3).CurrentUsageItem.WeaponClass;
 					if ((int)weaponClass == 2 || (int)weaponClass == 3 || (int)weaponClass == 4 || (int)weaponClass == 5 || (int)weaponClass == 6 || (int)weaponClass == 8 || (int)weaponClass == 7 || (int)weaponClass == 1 || (int)weaponClass == 9 || (int)weaponClass == 10 || (int)weaponClass == 11)
 					{
 						val = val2;
@@ -2884,7 +2884,7 @@ public class DefenderSpawner
 				if (_guardsSpawnScheduledTime.HasValue && _guardsSpawnDelay > 0f)
 				{
 					CampaignTime val = CampaignTime.Now - _guardsSpawnScheduledTime.Value;
-					float num2 = (float)((CampaignTime)(ref val)).ToSeconds;
+					float num2 = (float)(val).ToSeconds;
 					num = Math.Max(0f, _guardsSpawnDelay - num2);
 					_logger.Log("=== GUARD SPAWN TIME CALCULATION ===");
 					_logger.Log($"  Original delay: {_guardsSpawnDelay:F1} seconds");

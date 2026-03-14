@@ -162,7 +162,7 @@ public class TributeSystem
 			TributeAgreement tribute = item2.Value;
 			string key = item2.Key;
 			CampaignTime endTime = tribute.EndTime;
-			if (((CampaignTime)(ref endTime)).IsPast)
+			if ((endTime).IsPast)
 			{
 				LogMessage("[TRIBUTE] Tribute expired: " + key);
 				list.Add(key);
@@ -223,7 +223,7 @@ public class TributeSystem
 		//IL_00d6: Unknown result type (might be due to invalid IL or missing references)
 		//IL_00db: Unknown result type (might be due to invalid IL or missing references)
 		CampaignTime val = CampaignTime.Now - tribute.LastPaymentTime;
-		float num = (float)((CampaignTime)(ref val)).ToHours;
+		float num = (float)(val).ToHours;
 		if (num < 24f)
 		{
 			return true;
@@ -247,7 +247,7 @@ public class TributeSystem
 			tribute.LastPaymentTime = CampaignTime.Now;
 			SaveData();
 			val = tribute.EndTime;
-			float remainingDaysFromNow = ((CampaignTime)(ref val)).RemainingDaysFromNow;
+			float remainingDaysFromNow = (val).RemainingDaysFromNow;
 			LogMessage($"[TRIBUTE] Payment processed: {payerKingdom.Name} → {receiverKingdom.Name}: {num2} gold ({remainingDaysFromNow:F0} days remaining)");
 			return true;
 		}
@@ -272,7 +272,7 @@ public class TributeSystem
 			if (t.PayerKingdomId == ((MBObjectBase)kingdom).StringId || t.ReceiverKingdomId == ((MBObjectBase)kingdom).StringId)
 			{
 				CampaignTime endTime = t.EndTime;
-				result = (((CampaignTime)(ref endTime)).IsFuture ? 1 : 0);
+				result = ((endTime).IsFuture ? 1 : 0);
 			}
 			else
 			{
@@ -296,7 +296,7 @@ public class TributeSystem
 			if (t.PayerKingdomId == ((MBObjectBase)kingdom).StringId)
 			{
 				CampaignTime endTime = t.EndTime;
-				result = (((CampaignTime)(ref endTime)).IsFuture ? 1 : 0);
+				result = ((endTime).IsFuture ? 1 : 0);
 			}
 			else
 			{
@@ -320,7 +320,7 @@ public class TributeSystem
 			if (t.ReceiverKingdomId == ((MBObjectBase)kingdom).StringId)
 			{
 				CampaignTime endTime = t.EndTime;
-				result = (((CampaignTime)(ref endTime)).IsFuture ? 1 : 0);
+				result = ((endTime).IsFuture ? 1 : 0);
 			}
 			else
 			{
@@ -343,7 +343,7 @@ public class TributeSystem
 		if (Tributes.ContainsKey(tributeKey))
 		{
 			CampaignTime endTime = Tributes[tributeKey].EndTime;
-			result = (((CampaignTime)(ref endTime)).IsFuture ? 1 : 0);
+			result = ((endTime).IsFuture ? 1 : 0);
 		}
 		else
 		{
@@ -361,7 +361,7 @@ public class TributeSystem
 				//IL_0007: Unknown result type (might be due to invalid IL or missing references)
 				//IL_000c: Unknown result type (might be due to invalid IL or missing references)
 				CampaignTime endTime = kvp.Value.EndTime;
-				return ((CampaignTime)(ref endTime)).IsPast;
+				return (endTime).IsPast;
 			})
 			select kvp.Key).ToList();
 		foreach (string item2 in list)
@@ -485,7 +485,7 @@ public class TributeSystem
 			//IL_0001: Unknown result type (might be due to invalid IL or missing references)
 			//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 			CampaignTime endTime = r.EndTime;
-			return ((CampaignTime)(ref endTime)).ElapsedDaysUntilNow;
+			return (endTime).ElapsedDaysUntilNow;
 		}).Take(maxRecords)
 			.ToList();
 	}
@@ -509,7 +509,7 @@ public class TributeSystem
 			if (r.PayerKingdomId == ((MBObjectBase)kingdom).StringId)
 			{
 				CampaignTime endTime = r.EndTime;
-				result = ((((CampaignTime)(ref endTime)).ToSeconds >= ((CampaignTime)(ref cutoffTime)).ToSeconds) ? 1 : 0);
+				result = (((endTime).ToSeconds >= (cutoffTime).ToSeconds) ? 1 : 0);
 			}
 			else
 			{
@@ -538,7 +538,7 @@ public class TributeSystem
 			if (r.ReceiverKingdomId == ((MBObjectBase)kingdom).StringId)
 			{
 				CampaignTime endTime = r.EndTime;
-				result = ((((CampaignTime)(ref endTime)).ToSeconds >= ((CampaignTime)(ref cutoffTime)).ToSeconds) ? 1 : 0);
+				result = (((endTime).ToSeconds >= (cutoffTime).ToSeconds) ? 1 : 0);
 			}
 			else
 			{
@@ -557,7 +557,7 @@ public class TributeSystem
 				//IL_0001: Unknown result type (might be due to invalid IL or missing references)
 				//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 				CampaignTime endTime = r.EndTime;
-				return ((CampaignTime)(ref endTime)).ElapsedDaysUntilNow;
+				return (endTime).ElapsedDaysUntilNow;
 			}).Take(100).ToList();
 			SaveData();
 			LogMessage("[TRIBUTE] Cleaned old tribute records");
@@ -579,7 +579,7 @@ public class TributeSystem
 			//IL_0001: Unknown result type (might be due to invalid IL or missing references)
 			//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 			CampaignTime endTime2 = t.EndTime;
-			return ((CampaignTime)(ref endTime2)).IsFuture;
+			return (endTime2).IsFuture;
 		}))
 		{
 			Kingdom val = ((IEnumerable<Kingdom>)Kingdom.All).FirstOrDefault((Func<Kingdom, bool>)((Kingdom k) => ((MBObjectBase)k).StringId == tribute.PayerKingdomId));
@@ -587,7 +587,7 @@ public class TributeSystem
 			if (val != null && val2 != null)
 			{
 				CampaignTime endTime = tribute.EndTime;
-				float remainingDaysFromNow = ((CampaignTime)(ref endTime)).RemainingDaysFromNow;
+				float remainingDaysFromNow = (endTime).RemainingDaysFromNow;
 				int num = (int)(remainingDaysFromNow * (float)tribute.DailyAmount);
 				stringBuilder.AppendLine($"- {val.Name} → {val2.Name}: {tribute.DailyAmount} gold/day ({remainingDaysFromNow:F0} days left, ~{num} gold remaining)");
 				stringBuilder.AppendLine($"  Total paid so far: {tribute.TotalPaid} gold");

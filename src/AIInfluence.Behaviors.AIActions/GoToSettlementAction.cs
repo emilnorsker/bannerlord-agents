@@ -473,7 +473,7 @@ public class GoToSettlementAction : AIActionBase
 			Vec2 position2D = _trackedParty.GetPosition2D();
 			Settlement partyTargetSettlement2 = GameVersionCompatibility.GetPartyTargetSettlement(_trackedParty);
 			bool flag = false;
-			if (((Vec2)(ref position2D)).DistanceSquared(_lastPartyPosition.Value) > 0.01f)
+			if ((position2D).DistanceSquared(_lastPartyPosition.Value) > 0.01f)
 			{
 				flag = true;
 				LogAction($"Newly created party started moving (position changed from {_lastPartyPosition.Value} to {position2D})");
@@ -574,7 +574,7 @@ public class GoToSettlementAction : AIActionBase
 			{
 				return;
 			}
-			LogAction(string.Format("Waiting period finished for {0} in {1} (waited {2:F1} days)", base.TargetHero.Name, _destinationName ?? "unknown", ((CampaignTime)(ref _waitDuration)).ToDays));
+			LogAction(string.Format("Waiting period finished for {0} in {1} (waited {2:F1} days)", base.TargetHero.Name, _destinationName ?? "unknown", (_waitDuration).ToDays));
 			bool flag2 = false;
 			try
 			{
@@ -985,7 +985,7 @@ public class GoToSettlementAction : AIActionBase
 		_hasArrived = true;
 		_isWaitingPhase = true;
 		_waitUntil = CampaignTime.Now + _waitDuration;
-		LogAction(string.Format("Hero {0} arrived at {1}; waiting for {2:F1} days", base.TargetHero.Name, _destinationName ?? "unknown", ((CampaignTime)(ref _waitDuration)).ToDays));
+		LogAction(string.Format("Hero {0} arrived at {1}; waiting for {2:F1} days", base.TargetHero.Name, _destinationName ?? "unknown", (_waitDuration).ToDays));
 		try
 		{
 			TaskManager instance = TaskManager.Instance;
@@ -1439,7 +1439,7 @@ public class GoToSettlementAction : AIActionBase
 					//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 					//IL_000f: Unknown result type (might be due to invalid IL or missing references)
 					Vec2 position2D = s.GetPosition2D();
-					return ((Vec2)(ref position2D)).DistanceSquared(party.GetPosition2D());
+					return (position2D).DistanceSquared(party.GetPosition2D());
 				}).FirstOrDefault();
 				if (val != null)
 				{
@@ -1465,7 +1465,7 @@ public class GoToSettlementAction : AIActionBase
 				//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 				//IL_000f: Unknown result type (might be due to invalid IL or missing references)
 				Vec2 position2D = s.GetPosition2D();
-				return ((Vec2)(ref position2D)).DistanceSquared(party.GetPosition2D());
+				return (position2D).DistanceSquared(party.GetPosition2D());
 			}).FirstOrDefault();
 		}
 		if (val == null && party != null)
@@ -1476,7 +1476,7 @@ public class GoToSettlementAction : AIActionBase
 				//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 				//IL_000f: Unknown result type (might be due to invalid IL or missing references)
 				Vec2 position2D = s.GetPosition2D();
-				return ((Vec2)(ref position2D)).DistanceSquared(party.GetPosition2D());
+				return (position2D).DistanceSquared(party.GetPosition2D());
 			}).FirstOrDefault();
 		}
 		return val;
@@ -1497,13 +1497,13 @@ public class GoToSettlementAction : AIActionBase
 		if (_waitUntil.HasValue && _isWaitingPhase)
 		{
 			CampaignTime val = _waitUntil.Value;
-			double toHours = ((CampaignTime)(ref val)).ToHours;
+			double toHours = (val).ToHours;
 			val = CampaignTime.Now;
-			num = MathF.Max(0.1f, (float)(toHours - ((CampaignTime)(ref val)).ToHours));
+			num = MathF.Max(0.1f, (float)(toHours - (val).ToHours));
 		}
 		else
 		{
-			num = (float)((CampaignTime)(ref _waitDuration)).ToHours;
+			num = (float)(_waitDuration).ToHours;
 		}
 		float num2 = ((CampaignTime.HoursInDay > 0) ? ((float)CampaignTime.HoursInDay) : 24f);
 		dictionary["waitDays"] = ((num2 > 0f) ? (num / num2) : 3f).ToString(CultureInfo.InvariantCulture);

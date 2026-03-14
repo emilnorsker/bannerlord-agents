@@ -80,7 +80,7 @@ public class DynamicEvent
 				return 0;
 			}
 			CampaignTime now = CampaignTime.Now;
-			float num = (float)((CampaignTime)(ref now)).ToDays;
+			float num = (float)(now).ToDays;
 			float num2 = num - CreationCampaignDays;
 			DynamicEventsLogger.Instance?.Log($"[DEBUG] DaysSinceCreation: CurrentDays={num:F1}, CreationDays={CreationCampaignDays:F1}, Age={num2:F1} days");
 			return Math.Max(0, (int)num2);
@@ -144,7 +144,7 @@ public class DynamicEvent
 			return false;
 		}
 		CampaignTime now = CampaignTime.Now;
-		float num = (float)((CampaignTime)(ref now)).ToDays;
+		float num = (float)(now).ToDays;
 		int num2 = GlobalSettings<ModSettings>.Instance?.DynamicEventsLifespan ?? 100;
 		float num3 = CreationCampaignDays + (float)num2;
 		return num > ExpirationCampaignDays || num > num3;
@@ -159,7 +159,7 @@ public class DynamicEvent
 			EventHistory = new List<EventUpdate>();
 		}
 		CampaignTime now = CampaignTime.Now;
-		float num = (float)((CampaignTime)(ref now)).ToDays;
+		float num = (float)(now).ToDays;
 		int daysSinceCreation = Math.Max(0, (int)(num - CreationCampaignDays));
 		EventUpdate item = new EventUpdate(newDescription, updateReason)
 		{
@@ -247,7 +247,7 @@ public class DynamicEvent
 			return true;
 		}
 		CampaignTime now = CampaignTime.Now;
-		float num = (float)((CampaignTime)(ref now)).ToDays;
+		float num = (float)(now).ToDays;
 		return num >= NextAnalysisAttemptDays;
 	}
 
@@ -260,7 +260,7 @@ public class DynamicEvent
 		if (true)
 		{
 			CampaignTime now = CampaignTime.Now;
-			float num = (float)((CampaignTime)(ref now)).ToDays;
+			float num = (float)(now).ToDays;
 			NextAnalysisAttemptDays = num + (float)delayDays;
 		}
 	}
@@ -278,7 +278,7 @@ public class DynamicEvent
 		if (NextStatementAttemptDays.TryGetValue(kingdomId, out var value))
 		{
 			CampaignTime now = CampaignTime.Now;
-			float num = (float)((CampaignTime)(ref now)).ToDays;
+			float num = (float)(now).ToDays;
 			return num >= value;
 		}
 		return true;
@@ -293,7 +293,7 @@ public class DynamicEvent
 		if (true)
 		{
 			CampaignTime now = CampaignTime.Now;
-			float num = (float)((CampaignTime)(ref now)).ToDays;
+			float num = (float)(now).ToDays;
 			NextStatementAttemptDays[kingdomId] = num + (float)delayDays;
 		}
 	}

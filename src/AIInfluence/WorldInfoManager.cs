@@ -911,7 +911,7 @@ public class WorldInfoManager
 		if (_cachedWarStatus != null && !(_lastWarStatusUpdate == CampaignTime.Never))
 		{
 			CampaignTime val = CampaignTime.Now - _lastWarStatusUpdate;
-			if (!(((CampaignTime)(ref val)).ToDays >= 1.0))
+			if (!((val).ToDays >= 1.0))
 			{
 				goto IL_0061;
 			}
@@ -973,10 +973,10 @@ public class WorldInfoManager
 				}
 				if (val != null)
 				{
-					if (!((object)val).Equals((object?)item6))
+					if (!((object)val).Equals((object)item6))
 					{
 						Kingdom val5 = (Kingdom)(object)((item7 is Kingdom) ? item7 : null);
-						if (val5 == null || !((object)val).Equals((object?)val5))
+						if (val5 == null || !((object)val).Equals((object)val5))
 						{
 							goto IL_02a0;
 						}
@@ -1335,7 +1335,7 @@ public class WorldInfoManager
 			if (e.Type == "Battle")
 			{
 				CampaignTime val = CampaignTime.Now - e.Timestamp;
-				if (((CampaignTime)(ref val)).ToDays <= 4.0)
+				if ((val).ToDays <= 4.0)
 				{
 					result = ((e.Description.Contains("I lost a battle") || e.Description.Contains("We were defeated in a battle")) ? 1 : 0);
 					goto IL_005d;
@@ -1356,7 +1356,7 @@ public class WorldInfoManager
 			if (e.Type == "Battle")
 			{
 				CampaignTime val = CampaignTime.Now - e.Timestamp;
-				if (((CampaignTime)(ref val)).ToDays <= 4.0)
+				if ((val).ToDays <= 4.0)
 				{
 					result = ((e.Description.Contains("I won a battle") || e.Description.Contains("We won a battle")) ? 1 : 0);
 					goto IL_005d;
@@ -1383,7 +1383,7 @@ public class WorldInfoManager
 					if (e.Type == "WarDeclared")
 					{
 						CampaignTime val = CampaignTime.Now - e.Timestamp;
-						if (((CampaignTime)(ref val)).ToDays <= 10.0)
+						if ((val).ToDays <= 10.0)
 						{
 							result = ((e.Description.Contains("declared war on " + npcFactionName) || e.Description.Contains(npcFactionName + " declared war on")) ? 1 : 0);
 							goto IL_0073;
@@ -1408,7 +1408,7 @@ public class WorldInfoManager
 					if (e.Type == "WarDeclared")
 					{
 						CampaignTime val = CampaignTime.Now - e.Timestamp;
-						if (((CampaignTime)(ref val)).ToDays <= 10.0)
+						if ((val).ToDays <= 10.0)
 						{
 							result = ((e.Description.Contains("declared war on " + npcClanName) || e.Description.Contains(npcClanName + " declared war on")) ? 1 : 0);
 							goto IL_0073;
@@ -1431,7 +1431,7 @@ public class WorldInfoManager
 			if (e.Type == "HeroKilled")
 			{
 				CampaignTime val = CampaignTime.Now - e.Timestamp;
-				if (((CampaignTime)(ref val)).ToDays <= 12.0)
+				if ((val).ToDays <= 12.0)
 				{
 					result = ((!e.Description.Contains("you did not know them")) ? 1 : 0);
 					goto IL_004b;
@@ -1497,7 +1497,7 @@ public class WorldInfoManager
 		//IL_002b: Expected I4, but got Unknown
 		//IL_0120: Unknown result type (might be due to invalid IL or missing references)
 		CampaignTime now = CampaignTime.Now;
-		Seasons getSeasonOfYear = ((CampaignTime)(ref now)).GetSeasonOfYear;
+		Seasons getSeasonOfYear = (now).GetSeasonOfYear;
 		Seasons val = getSeasonOfYear;
 		string season = (int)val switch
 		{
@@ -1507,11 +1507,11 @@ public class WorldInfoManager
 			3 => "winter", 
 			_ => "unknown", 
 		};
-		float num = ((CampaignTime)(ref now)).GetHourOfDay;
+		float num = (now).GetHourOfDay;
 		int num2 = (int)num;
 		string timeOfDay = ((num2 >= 6 && num2 < 12) ? "morning" : ((num2 >= 12 && num2 < 18) ? "day" : ((num2 < 18 || num2 >= 22) ? "night" : "evening")));
-		int getYear = ((CampaignTime)(ref now)).GetYear;
-		int num3 = ((CampaignTime)(ref now)).GetDayOfYear / 30;
+		int getYear = (now).GetYear;
+		int num3 = (now).GetDayOfYear / 30;
 		if (num3 < 1)
 		{
 			num3 = 1;
@@ -1597,8 +1597,8 @@ public class WorldInfoManager
 						if (current3.Character != null && !((BasicCharacterObject)current3.Character).IsHero)
 						{
 							string stringId = ((MBObjectBase)current3.Character).StringId;
-							int number = ((TroopRosterElement)(ref current3)).Number;
-							int woundedNumber = ((TroopRosterElement)(ref current3)).WoundedNumber;
+							int number = (current3).Number;
+							int woundedNumber = (current3).WoundedNumber;
 							if (dictionary.ContainsKey(stringId))
 							{
 								(int, int) tuple = dictionary[stringId];
@@ -1637,8 +1637,8 @@ public class WorldInfoManager
 						{
 							Name = ((object)((BasicCharacterObject)current4.Character).Name).ToString(),
 							StringId = ((MBObjectBase)current4.Character).StringId,
-							Count = ((TroopRosterElement)(ref current4)).Number,
-							WoundedCount = ((TroopRosterElement)(ref current4)).WoundedNumber
+							Count = (current4).Number,
+							WoundedCount = (current4).WoundedNumber
 						});
 					}
 				}
@@ -1794,8 +1794,8 @@ public class WorldInfoManager
 					if (current4.Character != null && !((BasicCharacterObject)current4.Character).IsHero)
 					{
 						string stringId3 = ((MBObjectBase)current4.Character).StringId;
-						int number = ((TroopRosterElement)(ref current4)).Number;
-						int woundedNumber = ((TroopRosterElement)(ref current4)).WoundedNumber;
+						int number = (current4).Number;
+						int woundedNumber = (current4).WoundedNumber;
 						if (dictionary.ContainsKey(stringId3))
 						{
 							(int, int) tuple = dictionary[stringId3];
@@ -1834,8 +1834,8 @@ public class WorldInfoManager
 					{
 						Name = ((object)((BasicCharacterObject)current5.Character).Name).ToString(),
 						StringId = ((MBObjectBase)current5.Character).StringId,
-						Count = ((TroopRosterElement)(ref current5)).Number,
-						WoundedCount = ((TroopRosterElement)(ref current5)).WoundedNumber
+						Count = (current5).Number,
+						WoundedCount = (current5).WoundedNumber
 					});
 				}
 			}
@@ -1903,12 +1903,12 @@ public class WorldInfoManager
 		if (campaignEvent.Timestamp != CampaignTime.Never)
 		{
 			val = CampaignTime.Now - campaignEvent.Timestamp;
-			return ((CampaignTime)(ref val)).ToDays;
+			return (val).ToDays;
 		}
 		if (campaignEvent.EventTimeDays > 0.0)
 		{
 			val = CampaignTime.Now;
-			return ((CampaignTime)(ref val)).ToDays - campaignEvent.EventTimeDays;
+			return (val).ToDays - campaignEvent.EventTimeDays;
 		}
 		return 999.0;
 	}
@@ -1950,7 +1950,7 @@ public class WorldInfoManager
 			return;
 		}
 		CampaignTime now = CampaignTime.Now;
-		int num = (int)((CampaignTime)(ref now)).ToDays;
+		int num = (int)(now).ToDays;
 		int num2 = num - context.LastRomanceInteractionDays;
 		if (num2 <= GlobalSettings<ModSettings>.Instance.RomanceDecayDays)
 		{
@@ -2050,7 +2050,7 @@ public class WorldInfoManager
 		foreach (KeyValuePair<string, (HashSet<string>, CampaignTime)> item2 in _recentBattleParticipantsByCapturer)
 		{
 			CampaignTime val = now - item2.Value.Item2;
-			float num = (float)((CampaignTime)(ref val)).ToHours;
+			float num = (float)(val).ToHours;
 			if (num > 24f)
 			{
 				list2.Add(item2.Key);
@@ -2073,7 +2073,7 @@ public class WorldInfoManager
 		}
 		int i = 0;
 		CampaignTime now = CampaignTime.Now;
-		float currentDays = (float)((CampaignTime)(ref now)).ToDays;
+		float currentDays = (float)(now).ToDays;
 		for (; i < 5; i++)
 		{
 			if (_dailyTickQueue.Count <= 0)
@@ -2671,7 +2671,7 @@ public class WorldInfoManager
 				{
 					IMapScene mapSceneWrapper = Campaign.Current.MapSceneWrapper;
 					CampaignVec2 val2 = new CampaignVec2(bData.Position, true);
-					TerrainType terrainTypeAtPosition = mapSceneWrapper.GetTerrainTypeAtPosition(ref val2);
+					TerrainType terrainTypeAtPosition = mapSceneWrapper.GetTerrainTypeAtPosition(in val2);
 					if ((int)terrainTypeAtPosition == 10 || (int)terrainTypeAtPosition == 8 || (int)terrainTypeAtPosition == 19 || (int)terrainTypeAtPosition == 18 || (int)terrainTypeAtPosition == 11)
 					{
 						text2 = "naval battle";
@@ -2965,7 +2965,7 @@ public class WorldInfoManager
 			if (item.TimeContext != null)
 			{
 				CampaignTime val = CampaignTime.Now - item.TimeContext.LastUpdated;
-				if (!(((CampaignTime)(ref val)).ToHours >= 2.0))
+				if (!((val).ToHours >= 2.0))
 				{
 					continue;
 				}
@@ -3360,7 +3360,7 @@ public class WorldInfoManager
 		//IL_0005: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
 		//IL_002d: Expected I4, but got Unknown
-		return (detail - 1) switch
+		return ((int)detail - 1) switch
 		{
 			0 => (killer != null) ? $"was murdered by {killer.Name} (id:{((MBObjectBase)killer).StringId})" : "was assassinated", 
 			1 => "died during childbirth", 
@@ -3382,7 +3382,7 @@ public class WorldInfoManager
 		//IL_0005: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0025: Expected I4, but got Unknown
-		return (detail - 1) switch
+		return ((int)detail - 1) switch
 		{
 			0 => $"murdered {victim.Name} (id:{((MBObjectBase)victim).StringId})", 
 			3 => $"slayed {victim.Name} (id:{((MBObjectBase)victim).StringId}) in battle", 
@@ -3840,7 +3840,7 @@ public class WorldInfoManager
 		{
 			return;
 		}
-		BattleSideEnum val = (BattleSideEnum)((int)winningSide != 1);
+		BattleSideEnum val = (BattleSideEnum)(1 - (int)winningSide);
 		BattleInitialData battleInitialData = null;
 		if (_battleInitialData.TryGetValue(mapEvent, out var value))
 		{
@@ -4001,14 +4001,14 @@ public class WorldInfoManager
 		else if ((int)mapEvent.EventType == 1)
 		{
 			position = mapEvent.Position;
-			val8 = GetNearestSettlementInfo(((CampaignVec2)(ref position)).ToVec2()).Settlement;
+			val8 = GetNearestSettlementInfo((position).ToVec2()).Settlement;
 		}
 		BattleData obj5 = new BattleData
 		{
 			BattleType = mapEvent.EventType
 		};
 		position = mapEvent.Position;
-		obj5.Position = ((CampaignVec2)(ref position)).ToVec2();
+		obj5.Position = (position).ToVec2();
 		obj5.BattleSettlement = val8;
 		obj5.WinningSide = winningSide;
 		obj5.WinnerHero = val2;
@@ -4642,7 +4642,7 @@ public class WorldInfoManager
 					//IL_000c: Unknown result type (might be due to invalid IL or missing references)
 					//IL_0010: Unknown result type (might be due to invalid IL or missing references)
 					Vec2 position2D = settlement.GetPosition2D();
-					return (Settlement: s, Distance: ((Vec2)(ref position2D)).Distance(s.GetPosition2D()));
+					return (Settlement: s, Distance: (position2D).Distance(s.GetPosition2D()));
 				})
 				where s.Distance <= 50f
 				orderby s.Distance
@@ -4770,8 +4770,8 @@ public class WorldInfoManager
 			foreach (Settlement item3 in (List<Settlement>)(object)Campaign.Current.Settlements)
 			{
 				CampaignVec2 position = npcParty.Position;
-				Vec2 val2 = ((CampaignVec2)(ref position)).ToVec2();
-				float num = ((Vec2)(ref val2)).Distance(item3.GetGatePosition());
+				Vec2 val2 = (position).ToVec2();
+				float num = (val2).Distance(item3.GetGatePosition());
 				if (num <= 20f)
 				{
 					list5.Add((item3, num));
@@ -4780,12 +4780,12 @@ public class WorldInfoManager
 			if (list5.Count > 0)
 			{
 				list5 = (from x in list5
-					group x by ((MBObjectBase)x.Settlement).StringId into g
+					group x by ((MBObjectBase)x.Item1).StringId into g
 					select g.First()).ToList();
 				list5.Sort(((Settlement Settlement, float Distance) a, (Settlement Settlement, float Distance) b) => a.Distance.CompareTo(b.Distance));
 				List<string> values = list5.Select<(Settlement, float), string>(delegate((Settlement Settlement, float Distance) x)
 				{
-					string text60 = (x.Settlement.IsTown ? "city" : (x.Settlement.IsCastle ? "castle" : "village"));
+					string text60 = (x.Item1.IsTown ? "city" : (x.Settlement.IsCastle ? "castle" : "village"));
 					CultureObject culture6 = x.Settlement.Culture;
 					string text61 = ((culture6 == null) ? null : ((object)((BasicCultureObject)culture6).Name)?.ToString()) ?? "unknown culture";
 					IFaction mapFaction7 = x.Settlement.MapFaction;
@@ -4923,8 +4923,8 @@ public class WorldInfoManager
 			else
 			{
 				ItemRosterElement val = v.TradeBound.ItemRoster[0];
-				EquipmentElement equipmentElement = ((ItemRosterElement)(ref val)).EquipmentElement;
-				obj = "produces " + ((object)((EquipmentElement)(ref equipmentElement)).Item.Name).ToString();
+				EquipmentElement equipmentElement = (val).EquipmentElement;
+				obj = "produces " + ((object)(equipmentElement).Item.Name).ToString();
 			}
 			string text2 = (string)obj;
 			string text3 = (((IEnumerable<Hero>)((SettlementComponent)v).Settlement.Notables).Any() ? ("notables: " + string.Join(", ", ((IEnumerable<Hero>)((SettlementComponent)v).Settlement.Notables).Select((Hero n) => ((object)n.Name).ToString()))) : "no notables");
@@ -4956,7 +4956,7 @@ public class WorldInfoManager
 		float num = float.MaxValue;
 		foreach (Settlement item2 in (List<Settlement>)(object)Settlement.All)
 		{
-			float num2 = ((Vec2)(ref position)).Distance(item2.GetPosition2D());
+			float num2 = (position).Distance(item2.GetPosition2D());
 			if (num2 < num)
 			{
 				num = num2;
@@ -5102,13 +5102,13 @@ public class WorldInfoManager
 			Vec2 position = battleData.Position;
 			if (flag2)
 			{
-				AIInfluenceBehavior.Instance?.LogMessage($"[BATTLE-DISTANCE-DEBUG] {npc.Name}: battlePosition=({((Vec2)(ref position)).X:F1}, {((Vec2)(ref position)).Y:F1})");
+				AIInfluenceBehavior.Instance?.LogMessage($"[BATTLE-DISTANCE-DEBUG] {npc.Name}: battlePosition=({(position).X:F1}, {(position).Y:F1})");
 			}
 			if (partyBelongedTo3 != null)
 			{
 				CampaignVec2 position2 = partyBelongedTo3.Position;
-				Vec2 val2 = ((CampaignVec2)(ref position2)).ToVec2();
-				num = ((Vec2)(ref val2)).Distance(position);
+				Vec2 val2 = (position2).ToVec2();
+				num = (val2).Distance(position);
 				if (flag2)
 				{
 					TextObject name = partyBelongedTo3.Name;
@@ -5116,16 +5116,16 @@ public class WorldInfoManager
 					Hero leaderHero = partyBelongedTo3.LeaderHero;
 					string text2 = string.Format("{0} (size: {1}, leader: {2})", name, arg, ((leaderHero == null) ? null : ((object)leaderHero.Name)?.ToString()) ?? "none");
 					string text3 = ((partyBelongedTo3.CurrentSettlement != null) ? ("in " + ((object)partyBelongedTo3.CurrentSettlement.Name).ToString()) : ((partyBelongedTo3.TargetSettlement != null) ? ("heading to " + ((object)partyBelongedTo3.TargetSettlement.Name).ToString()) : "in field"));
-					AIInfluenceBehavior.Instance?.LogMessage($"[BATTLE-DISTANCE-DEBUG] {npc.Name}: party='{text2}', location='{text3}', npcPosition=({((Vec2)(ref val2)).X:F1}, {((Vec2)(ref val2)).Y:F1}), battlePosition=({((Vec2)(ref position)).X:F1}, {((Vec2)(ref position)).Y:F1}), distance={num:F1}");
+					AIInfluenceBehavior.Instance?.LogMessage($"[BATTLE-DISTANCE-DEBUG] {npc.Name}: party='{text2}', location='{text3}', npcPosition=({(val2).X:F1}, {(val2).Y:F1}), battlePosition=({(position).X:F1}, {(position).Y:F1}), distance={num:F1}");
 				}
 			}
 			else if (val != null)
 			{
 				Vec2 position2D = val.GetPosition2D();
-				num = ((Vec2)(ref position2D)).Distance(position);
+				num = (position2D).Distance(position);
 				if (flag2)
 				{
-					AIInfluenceBehavior.Instance?.LogMessage($"[BATTLE-DISTANCE-DEBUG] {npc.Name}: settlementPosition=({((Vec2)(ref position2D)).X:F1}, {((Vec2)(ref position2D)).Y:F1}), distance={num:F1}");
+					AIInfluenceBehavior.Instance?.LogMessage($"[BATTLE-DISTANCE-DEBUG] {npc.Name}: settlementPosition=({(position2D).X:F1}, {(position2D).Y:F1}), distance={num:F1}");
 				}
 			}
 			else
@@ -5519,13 +5519,13 @@ public class WorldInfoManager
 				if (partyBelongedTo != null)
 				{
 					CampaignVec2 position2 = partyBelongedTo.Position;
-					Vec2 val = ((CampaignVec2)(ref position2)).ToVec2();
-					num = ((Vec2)(ref val)).Distance(position);
+					Vec2 val = (position2).ToVec2();
+					num = (val).Distance(position);
 				}
 				else if (currentSettlement != null)
 				{
 					Vec2 position2D = currentSettlement.GetPosition2D();
-					num = ((Vec2)(ref position2D)).Distance(position);
+					num = (position2D).Distance(position);
 				}
 			}
 			else if (eventLocation != null)
@@ -5616,13 +5616,13 @@ public class WorldInfoManager
 				if (partyBelongedTo != null)
 				{
 					CampaignVec2 position2 = partyBelongedTo.Position;
-					Vec2 val = ((CampaignVec2)(ref position2)).ToVec2();
-					num = ((Vec2)(ref val)).Distance(position);
+					Vec2 val = (position2).ToVec2();
+					num = (val).Distance(position);
 				}
 				else if (currentSettlement != null)
 				{
 					Vec2 position2D = currentSettlement.GetPosition2D();
-					num = ((Vec2)(ref position2D)).Distance(position);
+					num = (position2D).Distance(position);
 				}
 			}
 			else if (eventLocation != null)
@@ -5679,7 +5679,7 @@ public class WorldInfoManager
 			if (e.Type == campaignEvent.Type && e.Description == campaignEvent.Description)
 			{
 				CampaignTime val = e.Timestamp - campaignEvent.Timestamp;
-				result = ((Math.Abs(((CampaignTime)(ref val)).ToHours) < 1.0) ? 1 : 0);
+				result = ((Math.Abs((val).ToHours) < 1.0) ? 1 : 0);
 			}
 			else
 			{
@@ -5809,7 +5809,7 @@ public class WorldInfoManager
 			else
 			{
 				CampaignTime timestamp = e.Timestamp;
-				result = ((CampaignTime)(ref timestamp)).ToHours;
+				result = (timestamp).ToHours;
 			}
 			return result;
 		}).Take(count).ToList();
@@ -5944,7 +5944,7 @@ public class WorldInfoManager
 			HashSet<string> item = tuple.Item1;
 			CampaignTime item2 = tuple.Item2;
 			CampaignTime val = CampaignTime.Now - item2;
-			float num = (float)((CampaignTime)(ref val)).ToHours;
+			float num = (float)(val).ToHours;
 			if (num <= maxTimeHours && item != null && item.Count > 0)
 			{
 				return new HashSet<string>(item);
@@ -6226,7 +6226,7 @@ public class WorldInfoManager
 			{
 				StringId = g.Key,
 				Name = ((object)((BasicCharacterObject)g.First().Character).Name).ToString(),
-				Count = g.Sum((TroopRosterElement t) => ((TroopRosterElement)(ref t)).Number)
+				Count = g.Sum((TroopRosterElement t) => (t).Number)
 			}).ToList();
 		if (source2.Any())
 		{
@@ -6355,7 +6355,7 @@ public class WorldInfoManager
 			//IL_000b: Unknown result type (might be due to invalid IL or missing references)
 			//IL_0010: Unknown result type (might be due to invalid IL or missing references)
 			CampaignTime val = CampaignTime.Now - d.DeathTime;
-			return ((CampaignTime)(ref val)).ToDays > 7.0;
+			return (val).ToDays > 7.0;
 		});
 		if (_recentDeaths.Count > 10)
 		{
@@ -6373,7 +6373,7 @@ public class WorldInfoManager
 				//IL_000b: Unknown result type (might be due to invalid IL or missing references)
 				//IL_0010: Unknown result type (might be due to invalid IL or missing references)
 				CampaignTime val = CampaignTime.Now - d.DeathTime;
-				return ((CampaignTime)(ref val)).ToDays <= 20.0;
+				return (val).ToDays <= 20.0;
 			})
 			orderby d.DeathTime descending
 			select d).Take(5).ToList();
@@ -6414,7 +6414,7 @@ public class WorldInfoManager
 				//IL_000b: Unknown result type (might be due to invalid IL or missing references)
 				//IL_0010: Unknown result type (might be due to invalid IL or missing references)
 				CampaignTime val = CampaignTime.Now - m.MarriageTime;
-				return ((CampaignTime)(ref val)).ToDays <= (double)daysThreshold;
+				return (val).ToDays <= (double)daysThreshold;
 			})
 			orderby m.MarriageTime descending
 			select m).Take(maxCount).ToList();
@@ -6473,7 +6473,7 @@ public class WorldInfoManager
 		//IL_0027: Expected I4, but got Unknown
 		if ((int)detail != 1)
 		{
-			return (detail - 4) switch
+			return ((int)detail - 4) switch
 			{
 				0 => "Enemy forces", 
 				2 => "Executioner", 

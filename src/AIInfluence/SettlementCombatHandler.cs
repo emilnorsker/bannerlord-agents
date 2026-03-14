@@ -186,7 +186,7 @@ public class SettlementCombatHandler
 				for (EquipmentIndex val2 = (EquipmentIndex)0; (int)val2 < 5; val2 = (EquipmentIndex)(val2 + 1))
 				{
 					MissionWeapon val3 = val.Equipment[val2];
-					if (!((MissionWeapon)(ref val3)).IsEmpty)
+					if (!(val3).IsEmpty)
 					{
 						val.TryToWieldWeaponInSlot(val2, (WeaponWieldActionType)2, false);
 						break;

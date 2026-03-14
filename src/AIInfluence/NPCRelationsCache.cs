@@ -32,7 +32,7 @@ public class NPCRelationsCache
 		if (!forceRefresh && _relationsCache.ContainsKey(stringId) && _lastUpdateTime.ContainsKey(stringId))
 		{
 			CampaignTime val = CampaignTime.Now - _lastUpdateTime[stringId];
-			if (!(((CampaignTime)(ref val)).ToDays >= 1.0))
+			if (!((val).ToDays >= 1.0))
 			{
 				goto IL_007d;
 			}
@@ -200,7 +200,7 @@ public class NPCRelationsCache
 		foreach (KeyValuePair<string, CampaignTime> item in _lastUpdateTime)
 		{
 			CampaignTime val = CampaignTime.Now - item.Value;
-			if (((CampaignTime)(ref val)).ToDays >= 1.0)
+			if ((val).ToDays >= 1.0)
 			{
 				num3++;
 			}

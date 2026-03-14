@@ -20,7 +20,7 @@ public class ActivePenalty
 		//IL_0001: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 		CampaignTime now = CampaignTime.Now;
-		float num = (float)((CampaignTime)(ref now)).ToDays;
+		float num = (float)(now).ToDays;
 		int val = DurationDays - (int)(num - StartDay);
 		return Math.Max(0, val);
 	}

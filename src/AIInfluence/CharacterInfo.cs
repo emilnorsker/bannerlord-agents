@@ -106,31 +106,31 @@ public static class CharacterInfo
 			List<string> list = new List<string>();
 			List<string> list2 = new List<string>();
 			EquipmentElement val2 = val[(EquipmentIndex)5];
-			ItemObject item = ((EquipmentElement)(ref val2)).Item;
+			ItemObject item = (val2).Item;
 			if (item != null)
 			{
 				list.Add(string.Format("{0} (head, string_id:{1}){2}", item.Name, ((MBObjectBase)item).StringId ?? "unknown", GetItemPriceInfo(item)));
 			}
 			val2 = val[(EquipmentIndex)9];
-			ItemObject item2 = ((EquipmentElement)(ref val2)).Item;
+			ItemObject item2 = (val2).Item;
 			if (item2 != null)
 			{
 				list.Add(string.Format("{0} (shoulders, string_id:{1}){2}", item2.Name, ((MBObjectBase)item2).StringId ?? "unknown", GetItemPriceInfo(item2)));
 			}
 			val2 = val[(EquipmentIndex)6];
-			ItemObject item3 = ((EquipmentElement)(ref val2)).Item;
+			ItemObject item3 = (val2).Item;
 			if (item3 != null)
 			{
 				list.Add(string.Format("{0} (torso, string_id:{1}){2}", item3.Name, ((MBObjectBase)item3).StringId ?? "unknown", GetItemPriceInfo(item3)));
 			}
 			val2 = val[(EquipmentIndex)8];
-			ItemObject item4 = ((EquipmentElement)(ref val2)).Item;
+			ItemObject item4 = (val2).Item;
 			if (item4 != null)
 			{
 				list.Add(string.Format("{0} (hands, string_id:{1}){2}", item4.Name, ((MBObjectBase)item4).StringId ?? "unknown", GetItemPriceInfo(item4)));
 			}
 			val2 = val[(EquipmentIndex)7];
-			ItemObject item5 = ((EquipmentElement)(ref val2)).Item;
+			ItemObject item5 = (val2).Item;
 			if (item5 != null)
 			{
 				list.Add(string.Format("{0} (legs, string_id:{1}){2}", item5.Name, ((MBObjectBase)item5).StringId ?? "unknown", GetItemPriceInfo(item5)));
@@ -138,7 +138,7 @@ public static class CharacterInfo
 			for (EquipmentIndex val3 = (EquipmentIndex)0; (int)val3 <= 3; val3 = (EquipmentIndex)(val3 + 1))
 			{
 				val2 = val[val3];
-				ItemObject item6 = ((EquipmentElement)(ref val2)).Item;
+				ItemObject item6 = (val2).Item;
 				if (item6 != null)
 				{
 					list2.Add(string.Format("{0} (id:{1}){2}", item6.Name, ((MBObjectBase)item6).StringId ?? "unknown", GetItemPriceInfo(item6)));

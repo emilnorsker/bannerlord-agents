@@ -205,7 +205,7 @@ public class ReparationsSystem
 			if (d.PayingKingdomId == ((MBObjectBase)kingdom).StringId)
 			{
 				CampaignTime expirationTime = d.ExpirationTime;
-				result = (((CampaignTime)(ref expirationTime)).IsFuture ? 1 : 0);
+				result = ((expirationTime).IsFuture ? 1 : 0);
 			}
 			else
 			{
@@ -229,7 +229,7 @@ public class ReparationsSystem
 			if (d.DemandingKingdomId == ((MBObjectBase)kingdom).StringId)
 			{
 				CampaignTime expirationTime = d.ExpirationTime;
-				result = (((CampaignTime)(ref expirationTime)).IsFuture ? 1 : 0);
+				result = ((expirationTime).IsFuture ? 1 : 0);
 			}
 			else
 			{
@@ -250,7 +250,7 @@ public class ReparationsSystem
 			//IL_0001: Unknown result type (might be due to invalid IL or missing references)
 			//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 			CampaignTime paymentTime = r.PaymentTime;
-			return ((CampaignTime)(ref paymentTime)).ElapsedDaysUntilNow;
+			return (paymentTime).ElapsedDaysUntilNow;
 		}).Take(maxRecords)
 			.ToList();
 	}
@@ -274,7 +274,7 @@ public class ReparationsSystem
 			if (r.PayingKingdomId == ((MBObjectBase)kingdom).StringId)
 			{
 				CampaignTime paymentTime = r.PaymentTime;
-				result = ((((CampaignTime)(ref paymentTime)).ToSeconds >= ((CampaignTime)(ref cutoffTime)).ToSeconds) ? 1 : 0);
+				result = (((paymentTime).ToSeconds >= (cutoffTime).ToSeconds) ? 1 : 0);
 			}
 			else
 			{
@@ -303,7 +303,7 @@ public class ReparationsSystem
 			if (r.ReceivingKingdomId == ((MBObjectBase)kingdom).StringId)
 			{
 				CampaignTime paymentTime = r.PaymentTime;
-				result = ((((CampaignTime)(ref paymentTime)).ToSeconds >= ((CampaignTime)(ref cutoffTime)).ToSeconds) ? 1 : 0);
+				result = (((paymentTime).ToSeconds >= (cutoffTime).ToSeconds) ? 1 : 0);
 			}
 			else
 			{
@@ -320,7 +320,7 @@ public class ReparationsSystem
 				//IL_0007: Unknown result type (might be due to invalid IL or missing references)
 				//IL_000c: Unknown result type (might be due to invalid IL or missing references)
 				CampaignTime expirationTime = kvp.Value.ExpirationTime;
-				return ((CampaignTime)(ref expirationTime)).IsPast;
+				return (expirationTime).IsPast;
 			})
 			select kvp.Key).ToList();
 		foreach (string item in list)
@@ -376,7 +376,7 @@ public class ReparationsSystem
 				//IL_0001: Unknown result type (might be due to invalid IL or missing references)
 				//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 				CampaignTime expirationTime = d.ExpirationTime;
-				return ((CampaignTime)(ref expirationTime)).IsFuture;
+				return (expirationTime).IsFuture;
 			}))
 			{
 				Kingdom val = ((IEnumerable<Kingdom>)Kingdom.All).FirstOrDefault((Func<Kingdom, bool>)((Kingdom k) => ((MBObjectBase)k).StringId == demand.DemandingKingdomId));
@@ -384,7 +384,7 @@ public class ReparationsSystem
 				if (val != null && val2 != null)
 				{
 					val3 = demand.ExpirationTime;
-					float remainingDaysFromNow = ((CampaignTime)(ref val3)).RemainingDaysFromNow;
+					float remainingDaysFromNow = (val3).RemainingDaysFromNow;
 					stringBuilder.AppendLine($"- {val.Name} demands {demand.Amount} gold from {val2.Name} (expires in {remainingDaysFromNow:F0} days)");
 					stringBuilder.AppendLine("  Reason: " + demand.Reason);
 				}
@@ -395,13 +395,13 @@ public class ReparationsSystem
 			//IL_0001: Unknown result type (might be due to invalid IL or missing references)
 			//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 			CampaignTime paymentTime = r.PaymentTime;
-			return ((CampaignTime)(ref paymentTime)).ElapsedDaysUntilNow <= 30f;
+			return (paymentTime).ElapsedDaysUntilNow <= 30f;
 		}).OrderByDescending(delegate(ReparationRecord r)
 		{
 			//IL_0001: Unknown result type (might be due to invalid IL or missing references)
 			//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 			CampaignTime paymentTime = r.PaymentTime;
-			return ((CampaignTime)(ref paymentTime)).ElapsedDaysUntilNow;
+			return (paymentTime).ElapsedDaysUntilNow;
 		}).ToList();
 		if (list.Any())
 		{
@@ -417,7 +417,7 @@ public class ReparationsSystem
 				if (val4 != null && val5 != null)
 				{
 					val3 = payment.PaymentTime;
-					float elapsedDaysUntilNow = ((CampaignTime)(ref val3)).ElapsedDaysUntilNow;
+					float elapsedDaysUntilNow = (val3).ElapsedDaysUntilNow;
 					stringBuilder.AppendLine($"- {val4.Name} → {val5.Name}: {payment.Amount} gold ({elapsedDaysUntilNow:F0} days ago)");
 					stringBuilder.AppendLine("  Reason: " + payment.Reason);
 				}
@@ -435,7 +435,7 @@ public class ReparationsSystem
 				//IL_0001: Unknown result type (might be due to invalid IL or missing references)
 				//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 				CampaignTime paymentTime = r.PaymentTime;
-				return ((CampaignTime)(ref paymentTime)).ElapsedDaysUntilNow;
+				return (paymentTime).ElapsedDaysUntilNow;
 			}).Take(100).ToList();
 			SaveData();
 			LogMessage("[REPARATIONS] Cleaned old reparation records");

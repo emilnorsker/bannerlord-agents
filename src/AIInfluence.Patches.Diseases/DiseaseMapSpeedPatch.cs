@@ -35,7 +35,7 @@ public static class DiseaseMapSpeedPatch
 				float partySpeedMultiplier = GetPartySpeedMultiplier(mobileParty);
 				if (partySpeedMultiplier < 1f)
 				{
-					((ExplainedNumber)(ref __result)).AddFactor(partySpeedMultiplier - 1f, new TextObject("{=AIInfluence_DiseaseSpeedPenalty}Disease", (Dictionary<string, object>)null));
+					(__result).AddFactor(partySpeedMultiplier - 1f, new TextObject("{=AIInfluence_DiseaseSpeedPenalty}Disease", (Dictionary<string, object>)null));
 				}
 			}
 			catch (Exception)
@@ -67,7 +67,7 @@ public static class DiseaseMapSpeedPatch
 				float partyMoraleModifier = GetPartyMoraleModifier(mobileParty);
 				if (partyMoraleModifier < 0f)
 				{
-					((ExplainedNumber)(ref __result)).Add(partyMoraleModifier, new TextObject("{=AIInfluence_DiseaseMoralePenalty}Disease in party", (Dictionary<string, object>)null), (TextObject)null);
+					(__result).Add(partyMoraleModifier, new TextObject("{=AIInfluence_DiseaseMoralePenalty}Disease in party", (Dictionary<string, object>)null), (TextObject)null);
 				}
 			}
 			catch (Exception)

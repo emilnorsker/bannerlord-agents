@@ -39,6 +39,7 @@ using TaleWorlds.Library;
 using TaleWorlds.Localization;
 using TaleWorlds.MountAndBlade;
 using TaleWorlds.ObjectSystem;
+using KillCharacterAction = TaleWorlds.CampaignSystem.Actions.KillCharacterAction;
 
 namespace AIInfluence;
 
@@ -131,7 +132,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 		finally
 		{
-			((object)this).Finalize();
 		}
 	}
 
@@ -161,7 +161,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			GlobalSettings<ModSettings>.Instance.OnSettingChanged += OnSettingChanged;
 			_settingsSubscribed = true;
 			_settingsOwner = this;
-			LogMessage($"[SYSTEM] Subscribed to settings events for instance {((object)this).GetHashCode()}");
+			LogMessage($"[SYSTEM] Subscribed to settings events for instance {base.GetHashCode()}");
 		}
 		else
 		{
@@ -759,7 +759,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					continue;
 				}
 				Vec2 position2D = partyBelongedTo.GetPosition2D();
-				float num3 = ((Vec2)(ref position2D)).Distance(partyBelongedTo2.GetPosition2D());
+				float num3 = (position2D).Distance(partyBelongedTo2.GetPosition2D());
 				if (!flag && num3 > 30f)
 				{
 					continue;
@@ -928,7 +928,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		string text4 = questAction.ProgressLabel ?? "";
 		string stringId = ((MBObjectBase)npc).StringId;
 		CampaignTime now = CampaignTime.Now;
-		string text5 = $"ai_quest_{stringId}_{(int)((CampaignTime)(ref now)).ToDays}_{_random.Next(1000)}";
+		string text5 = $"ai_quest_{stringId}_{(int)(now).ToDays}_{_random.Next(1000)}";
 		CampaignTime duration = CampaignTime.DaysFromNow((float)num2);
 		AIGeneratedQuest aIGeneratedQuest = new AIGeneratedQuest(text5, npc, duration, num, questAction.Title, questAction.Description, effectiveTargetNpcIds, text3, text2, valueOrDefault, text4);
 		if (context.ActiveAIQuests == null)
@@ -943,7 +943,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			RewardGold = num
 		};
 		now = CampaignTime.Now;
-		obj.CreatedDays = ((CampaignTime)(ref now)).ToDays;
+		obj.CreatedDays = (now).ToDays;
 		obj.DurationDays = num2;
 		obj.QuestGiverNpcId = ((MBObjectBase)npc).StringId;
 		obj.TargetNpcId = ((effectiveTargetNpcIds.Count > 0) ? effectiveTargetNpcIds[0] : null);
@@ -1056,7 +1056,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				Message = text2
 			};
 			CampaignTime now = CampaignTime.Now;
-			obj2.Day = ((CampaignTime)(ref now)).ToDays;
+			obj2.Day = (now).ToDays;
 			obj2.ProgressSetTo = setProgress;
 			updateLogs.Add(obj2);
 		}
@@ -1273,7 +1273,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					CompletedByNpcId = completedByNpcId
 				};
 				CampaignTime now = CampaignTime.Now;
-				obj.Day = ((CampaignTime)(ref now)).ToDays;
+				obj.Day = (now).ToDays;
 				completedQuestHistory.Add(obj);
 				while (nPCContext.CompletedQuestHistory.Count > 3)
 				{
@@ -2110,7 +2110,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				if (item != null && item != mainParty && item.CurrentSettlement == null)
 				{
 					Vec2 position2D = item.GetPosition2D();
-					float num2 = ((Vec2)(ref position2D)).Distance(mainParty.GetPosition2D());
+					float num2 = (position2D).Distance(mainParty.GetPosition2D());
 					if (num2 <= num)
 					{
 						bool flag = item.MapFaction != null && mainParty.MapFaction != null && item.MapFaction.IsAtWarWith(mainParty.MapFaction);
@@ -2231,7 +2231,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				{
 					bool flag = default(bool);
 					bool flag2 = default(bool);
-					string encounterMenu = Campaign.Current.Models.EncounterGameMenuModel.GetEncounterMenu(PlayerEncounter.EncounteredParty, PartyBase.MainParty, ref flag, ref flag2);
+					string encounterMenu = Campaign.Current.Models.EncounterGameMenuModel.GetEncounterMenu(PlayerEncounter.EncounteredParty, PartyBase.MainParty, out flag, out flag2);
 					if (!string.IsNullOrEmpty(encounterMenu))
 					{
 						GameMenu.ActivateGameMenu(encounterMenu);
@@ -2484,7 +2484,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		if (!string.IsNullOrEmpty(aiResult.RomanceIntent) && aiResult.RomanceIntent != "none")
 		{
 			CampaignTime now = CampaignTime.Now;
-			context.LastRomanceInteractionDays = (int)((CampaignTime)(ref now)).ToDays;
+			context.LastRomanceInteractionDays = (int)(now).ToDays;
 			int romanceChange = _random.Next(GlobalSettings<ModSettings>.Instance.MinRomanceChange, GlobalSettings<ModSettings>.Instance.MaxRomanceChange + 1);
 			if (aiResult.RomanceIntent == "romance")
 			{
@@ -2975,7 +2975,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 						IsTreated = item2.IsTreated
 					};
 					CampaignTime now = CampaignTime.Now;
-					obj.DaysInfected = (int)(((CampaignTime)(ref now)).ToDays - (double)item2.InfectedAt);
+					obj.DaysInfected = (int)((now).ToDays - (double)item2.InfectedAt);
 					NPCDiseaseInfo item = obj;
 					context.CurrentDiseases.Add(item);
 					num += item2.DiseaseProgress;
@@ -3072,7 +3072,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		if (context.TimeContext != null)
 		{
 			CampaignTime val = CampaignTime.Now - context.TimeContext.LastUpdated;
-			if (!(((CampaignTime)(ref val)).ToHours >= 2.0))
+			if (!((val).ToHours >= 2.0))
 			{
 				goto IL_04ea;
 			}
@@ -4050,7 +4050,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		else
 		{
 			CampaignTime now = CampaignTime.Now;
-			double d = ((CampaignTime)(ref now)).ToDays - context.LastInteractionTimeDays;
+			double d = (now).ToDays - context.LastInteractionTimeDays;
 			int num = Math.Max(0, (int)Math.Floor(d));
 			Dictionary<string, object> dictionary2 = new Dictionary<string, object> { { "DAYS", num } };
 			item = ((object)new TextObject("{=AIInfluence_MessageDialog_LastInteraction}You last communicated: {DAYS} days ago", dictionary2)).ToString();
@@ -4152,7 +4152,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			LogMessage("[SETTINGS] Ignoring setting change '" + settingName + "' - behavior not initialized yet");
 			return;
 		}
-		LogMessage($"[SETTINGS] Setting '{settingName}' changed to '{value}' for instance {((object)this).GetHashCode()}.");
+		LogMessage($"[SETTINGS] Setting '{settingName}' changed to '{value}' for instance {base.GetHashCode()}.");
 		if (settingName == "ClearAllNPCs" && (bool)value)
 		{
 			GlobalSettings<ModSettings>.Instance.ClearAllNPCs = false;
@@ -4739,9 +4739,9 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		else
 		{
 			CampaignTime val = CampaignTime.Now;
-			double toDays = ((CampaignTime)(ref val)).ToDays;
+			double toDays = (val).ToDays;
 			val = settlementVisit.VisitTime;
-			int num = (int)(toDays - ((CampaignTime)(ref val)).ToDays);
+			int num = (int)(toDays - (val).ToDays);
 			if (num >= 1)
 			{
 				settlementVisit.VisitTime = CampaignTime.Now;
@@ -4754,7 +4754,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				//IL_0001: Unknown result type (might be due to invalid IL or missing references)
 				//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 				CampaignTime visitTime = v.VisitTime;
-				return ((CampaignTime)(ref visitTime)).ToDays;
+				return (visitTime).ToDays;
 			}).Take(10).ToList();
 		}
 	}
@@ -7202,6 +7202,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					return;
 				}
 			}
+			npcKingdom = null;
 			ref Kingdom reference = ref npcKingdom;
 			IFaction mapFaction7 = npc.MapFaction;
 			reference = (Kingdom)(object)((mapFaction7 is Kingdom) ? mapFaction7 : null);
@@ -7386,7 +7387,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 							}
 						}
 						Blow val3 = default(Blow);
-						((Blow)(ref val3))._002Ector(val.Index);
+						val3 = new Blow(val.Index);
 						val3.DamageType = (DamageTypes)0;
 						val3.BoneIndex = val.Monster.HeadLookDirectionBoneIndex;
 						val3.GlobalPosition = val.Position;

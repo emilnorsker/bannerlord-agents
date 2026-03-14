@@ -40,7 +40,7 @@ public class WarStatsAgainstKingdom
 				if (true)
 				{
 					CampaignTime now = CampaignTime.Now;
-					float num = (float)((CampaignTime)(ref now)).ToDays;
+					float num = (float)(now).ToDays;
 					float num2 = num - WarStartTimeDays;
 					return CampaignTime.DaysFromNow(0f - num2);
 				}
@@ -50,7 +50,7 @@ public class WarStatsAgainstKingdom
 		set
 		{
 			bool flag = true;
-			WarStartTimeDays = (float)((CampaignTime)(ref value)).ToDays;
+			WarStartTimeDays = (float)(value).ToDays;
 		}
 	}
 }

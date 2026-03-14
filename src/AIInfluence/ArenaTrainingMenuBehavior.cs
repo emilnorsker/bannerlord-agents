@@ -15,6 +15,8 @@ using TaleWorlds.Core.ImageIdentifiers;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
 using TaleWorlds.ObjectSystem;
+using OnConditionDelegate = TaleWorlds.CampaignSystem.GameMenus.OnConditionDelegate;
+using OnConsequenceDelegate = TaleWorlds.CampaignSystem.GameMenus.OnConsequenceDelegate;
 
 namespace AIInfluence;
 
@@ -201,7 +203,7 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 			return false;
 		}
 		CampaignTime now = CampaignTime.Now;
-		if (((CampaignTime)(ref now)).ToHours >= value)
+		if ((now).ToHours >= value)
 		{
 			_partyCooldownEndHours.Remove(partyId);
 			return false;
@@ -219,7 +221,7 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 		}
 		double num = value;
 		CampaignTime now = CampaignTime.Now;
-		double num2 = num - ((CampaignTime)(ref now)).ToHours;
+		double num2 = num - (now).ToHours;
 		if (num2 <= 0.0)
 		{
 			_partyCooldownEndHours.Remove(partyId);
@@ -236,7 +238,7 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 		{
 			Dictionary<string, double> partyCooldownEndHours = _partyCooldownEndHours;
 			CampaignTime now = CampaignTime.Now;
-			partyCooldownEndHours[partyId] = ((CampaignTime)(ref now)).ToHours + 72.0;
+			partyCooldownEndHours[partyId] = (now).ToHours + 72.0;
 		}
 	}
 
@@ -273,7 +275,7 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 			return;
 		}
 		Settlement currentSettlement = mobileParty.CurrentSettlement;
-		List<(AIBehaviorData, float)> list = ((IEnumerable<(AIBehaviorData, float)>)p.AIBehaviorScores).Where(((AIBehaviorData, float) s) => (int)s.Item1.AiBehavior != 2 || (object)/*isinst with value type is only supported in some contexts*/ != currentSettlement).ToList();
+		List<(AIBehaviorData, float)> list = ((IEnumerable<(AIBehaviorData, float)>)p.AIBehaviorScores).Where(((AIBehaviorData, float) s) => (int)s.Item1.AiBehavior != 2 || true).ToList();
 		foreach (var item in list)
 		{
 			((List<(AIBehaviorData, float)>)(object)p.AIBehaviorScores).Remove(item);
@@ -305,17 +307,17 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 			foreach (FlattenedTroopRosterElement item2 in item.ToFlattenedRoster())
 			{
 				FlattenedTroopRosterElement current2 = item2;
-				if (!((BasicCharacterObject)((FlattenedTroopRosterElement)(ref current2)).Troop).IsHero && !((FlattenedTroopRosterElement)(ref current2)).IsWounded && !((FlattenedTroopRosterElement)(ref current2)).IsKilled && CanTroopBeTrained(((FlattenedTroopRosterElement)(ref current2)).Troop))
+				if (!((BasicCharacterObject)(current2).Troop).IsHero && !(current2).IsWounded && !(current2).IsKilled && CanTroopBeTrained((current2).Troop))
 				{
 					num3++;
-					float num4 = 1f + (float)((FlattenedTroopRosterElement)(ref current2)).Troop.Tier * 0.35f;
+					float num4 = 1f + (float)(current2).Troop.Tier * 0.35f;
 					int num5 = (int)(20f * num4);
-					item.AddXpToTroop(((FlattenedTroopRosterElement)(ref current2)).Troop, num5);
+					item.AddXpToTroop((current2).Troop, num5);
 					num2 += num5;
-					float val = 0.07f - (float)((FlattenedTroopRosterElement)(ref current2)).Troop.Tier * 0.002f;
+					float val = 0.07f - (float)(current2).Troop.Tier * 0.002f;
 					if (MBRandom.RandomFloat <= Math.Max(val, 0.005f))
 					{
-						item.WoundTroop(((FlattenedTroopRosterElement)(ref current2)).Troop, 1, default(UniqueTroopDescriptor));
+						item.WoundTroop((current2).Troop, 1, default(UniqueTroopDescriptor));
 						num++;
 					}
 				}
@@ -493,7 +495,7 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 			_003C_003EO._003C1_003E__TrainTroopsConsequence = val2;
 			obj2 = (object)val2;
 		}
-		starter.AddGameMenuOption("town_arena", "arena_train_troops", "{=AIInfluence_ArenaTrainTroops}Train troops in the arena", (OnConditionDelegate)obj, (OnConsequenceDelegate)obj2, false, 2, false, (object)null);
+		starter.AddGameMenuOption("town_arena", "arena_train_troops", "{=AIInfluence_ArenaTrainTroops}Train troops in the arena", (GameMenuOption.OnConditionDelegate)obj, (GameMenuOption.OnConsequenceDelegate)obj2, false, 2, false, (object)null);
 		starter.AddGameMenu("arena_training_menu", "{ARENA_TRAINING_MENU_TEXT}", new OnInitDelegate(OnTrainingMenuInit), (MenuOverlayType)3, (MenuFlags)0, (object)null);
 		object obj3 = _003C_003EO._003C2_003E__TrainPlayerCondition;
 		if (obj3 == null)
@@ -509,7 +511,7 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 			_003C_003EO._003C3_003E__TrainPlayerConsequence = val4;
 			obj4 = (object)val4;
 		}
-		starter.AddGameMenuOption("arena_training_menu", "arena_train_player", "{=AIInfluence_ArenaTrainMyTroops}Train my troops", (OnConditionDelegate)obj3, (OnConsequenceDelegate)obj4, false, -1, false, (object)null);
+		starter.AddGameMenuOption("arena_training_menu", "arena_train_player", "{=AIInfluence_ArenaTrainMyTroops}Train my troops", (GameMenuOption.OnConditionDelegate)obj3, (GameMenuOption.OnConsequenceDelegate)obj4, false, -1, false, (object)null);
 		object obj5 = _003C_003EO._003C4_003E__TrainCompanionCondition;
 		if (obj5 == null)
 		{
@@ -524,7 +526,7 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 			_003C_003EO._003C5_003E__TrainCompanionSelectConsequence = val6;
 			obj6 = (object)val6;
 		}
-		starter.AddGameMenuOption("arena_training_menu", "arena_train_companion", "{=AIInfluence_ArenaTrainCompanion}Train companion's troops", (OnConditionDelegate)obj5, (OnConsequenceDelegate)obj6, false, -1, false, (object)null);
+		starter.AddGameMenuOption("arena_training_menu", "arena_train_companion", "{=AIInfluence_ArenaTrainCompanion}Train companion's troops", (GameMenuOption.OnConditionDelegate)obj5, (GameMenuOption.OnConsequenceDelegate)obj6, false, -1, false, (object)null);
 		object obj7 = _003C_003EO._003C6_003E__TrainAllCondition;
 		if (obj7 == null)
 		{
@@ -539,7 +541,7 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 			_003C_003EO._003C7_003E__TrainAllConsequence = val8;
 			obj8 = (object)val8;
 		}
-		starter.AddGameMenuOption("arena_training_menu", "arena_train_all", "{=AIInfluence_ArenaTrainAll}Train all troops together", (OnConditionDelegate)obj7, (OnConsequenceDelegate)obj8, false, -1, false, (object)null);
+		starter.AddGameMenuOption("arena_training_menu", "arena_train_all", "{=AIInfluence_ArenaTrainAll}Train all troops together", (GameMenuOption.OnConditionDelegate)obj7, (GameMenuOption.OnConsequenceDelegate)obj8, false, -1, false, (object)null);
 		object obj9 = _003C_003Ec._003C_003E9__39_0;
 		if (obj9 == null)
 		{
@@ -562,7 +564,7 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 			_003C_003Ec._003C_003E9__39_1 = val10;
 			obj10 = (object)val10;
 		}
-		starter.AddGameMenuOption("arena_training_menu", "arena_training_back", "{=AIInfluence_ArenaTrainBack}Back to arena", (OnConditionDelegate)obj9, (OnConsequenceDelegate)obj10, true, -1, false, (object)null);
+		starter.AddGameMenuOption("arena_training_menu", "arena_training_back", "{=AIInfluence_ArenaTrainBack}Back to arena", (GameMenuOption.OnConditionDelegate)obj9, (GameMenuOption.OnConsequenceDelegate)obj10, true, -1, false, (object)null);
 		object obj11 = _003C_003EO._003C8_003E__OnTrainingWaitInit;
 		if (obj11 == null)
 		{
@@ -607,7 +609,7 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 			_003C_003Ec._003C_003E9__39_3 = val15;
 			obj15 = (object)val15;
 		}
-		starter.AddGameMenuOption("arena_training_wait", "arena_training_leave", "{=AIInfluence_ArenaTrainLeave}Stop training and leave", (OnConditionDelegate)obj14, (OnConsequenceDelegate)obj15, false, -1, false, (object)null);
+		starter.AddGameMenuOption("arena_training_wait", "arena_training_leave", "{=AIInfluence_ArenaTrainLeave}Stop training and leave", (GameMenuOption.OnConditionDelegate)obj14, (GameMenuOption.OnConsequenceDelegate)obj15, false, -1, false, (object)null);
 	}
 
 	private static bool TrainTroopsCondition(MenuCallbackArgs args)
@@ -1040,7 +1042,7 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 
 	private static void OnTrainingWaitTick(MenuCallbackArgs args, CampaignTime dt)
 	{
-		_trainingElapsedHours += (float)((CampaignTime)(ref dt)).ToHours;
+		_trainingElapsedHours += (float)(dt).ToHours;
 		while (_hoursDistributed < (int)_trainingElapsedHours)
 		{
 			DistributeHourlyTrainingXp();
@@ -1068,9 +1070,9 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 		foreach (TroopRosterElement item in (List<TroopRosterElement>)(object)roster.GetTroopRoster())
 		{
 			TroopRosterElement current = item;
-			if (!((BasicCharacterObject)current.Character).IsHero && ((TroopRosterElement)(ref current)).Number > 0 && CanTroopBeTrained(current.Character))
+			if (!((BasicCharacterObject)current.Character).IsHero && (current).Number > 0 && CanTroopBeTrained(current.Character))
 			{
-				int num2 = ((TroopRosterElement)(ref current)).Number - ((TroopRosterElement)(ref current)).WoundedNumber;
+				int num2 = (current).Number - (current).WoundedNumber;
 				if (num2 > 0)
 				{
 					num += num2;
@@ -1131,9 +1133,9 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 			foreach (TroopRosterElement item in (List<TroopRosterElement>)(object)roster.GetTroopRoster())
 			{
 				TroopRosterElement current2 = item;
-				if (!((BasicCharacterObject)current2.Character).IsHero && ((TroopRosterElement)(ref current2)).Number > 0 && CanTroopBeTrained(current2.Character))
+				if (!((BasicCharacterObject)current2.Character).IsHero && (current2).Number > 0 && CanTroopBeTrained(current2.Character))
 				{
-					int num4 = ((TroopRosterElement)(ref current2)).Number - ((TroopRosterElement)(ref current2)).WoundedNumber;
+					int num4 = (current2).Number - (current2).WoundedNumber;
 					if (num4 > 0)
 					{
 						float num5 = 1f + (float)current2.Character.Tier * num2;

@@ -21,7 +21,7 @@ public class WorldEventsWindowLayer : GauntletLayer
 
 	private void LoadWindowUI()
 	{
-		_movie = ((GauntletLayer)this).LoadMovie("WorldEventsWindow", (ViewModel)(object)_windowViewModel);
+		_movie = base.LoadMovie("WorldEventsWindow", (ViewModel)(object)_windowViewModel);
 		((ScreenLayer)this).InputRestrictions.SetInputRestrictions(false, (InputUsageMask)7);
 	}
 
@@ -31,7 +31,7 @@ public class WorldEventsWindowLayer : GauntletLayer
 		{
 			try
 			{
-				MethodInfo methodInfo = ((object)this).GetType().BaseType?.GetMethod("ReleaseMovie", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+				MethodInfo methodInfo = base.GetType().BaseType?.GetMethod("ReleaseMovie", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 				if (methodInfo != null)
 				{
 					methodInfo.Invoke(this, new object[1] { _movie });
@@ -43,6 +43,6 @@ public class WorldEventsWindowLayer : GauntletLayer
 			_movie = null;
 		}
 		_windowViewModel = null;
-		((GauntletLayer)this).OnFinalize();
+		base.OnFinalize();
 	}
 }

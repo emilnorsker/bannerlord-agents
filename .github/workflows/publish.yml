@@ -1,0 +1,68 @@
+name: Build and Publish Mod
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install tools
+        run: sudo apt-get install -y p7zip-full libxml2-utils
+
+      - name: Restore & build
+        run: |
+          dotnet restore src/AIInfluence.csproj
+          dotnet build src/AIInfluence.csproj -c Release --no-restore -p:GameFolder="$PWD/_game_folder"
+
+      - name: Get mod version
+        id: version
+        run: |
+          VERSION=$(xmllint --xpath 'string(//Version/@value)' SubModule.xml)
+          if [ -z "$VERSION" ]; then echo "Failed to extract version from SubModule.xml"; exit 1; fi
+          echo "value=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Stage mod files
+        run: |
+          mkdir -p staging/AIInfluence/bin/Win64_Shipping_Client
+          DLL=$(find src/bin -name "AIInfluence.dll" | head -1)
+          if [ -z "$DLL" ]; then echo "AIInfluence.dll not found after build"; exit 1; fi
+          cp "$DLL" staging/AIInfluence/bin/Win64_Shipping_Client/
+          cp SubModule.xml staging/AIInfluence/
+          cp -r GUI staging/AIInfluence/
+          cp bin/Win64_Shipping_Client/OggVorbisEncoder.dll staging/AIInfluence/bin/Win64_Shipping_Client/
+          cp bin/Win64_Shipping_Client/System.Buffers.dll staging/AIInfluence/bin/Win64_Shipping_Client/
+          cp bin/Win64_Shipping_Client/System.Memory.dll staging/AIInfluence/bin/Win64_Shipping_Client/
+          [ -f bin/Win64_Shipping_Client/rhubarb.exe ] && cp bin/Win64_Shipping_Client/rhubarb.exe staging/AIInfluence/bin/Win64_Shipping_Client/
+          cp -r bin/Win64_Shipping_Client/res staging/AIInfluence/bin/Win64_Shipping_Client/
+          # world_secrets.json contains in-game lore (hidden NPC details), not credentials
+          for f in world.txt world_info.json world_secrets.json cultural_traditions.json \
+                   actionrules_description_EN.txt actionrules.txt eventsanalyzerrules.txt \
+                   eventsgeneratorrules.txt kingdomstatementrules.txt playerdescription.txt \
+                   TECHNICAL_GUIDE.en.md TECHNICAL_GUIDE.zh.md; do
+            [ -f "$f" ] && cp "$f" staging/AIInfluence/
+          done
+
+      - name: Create 7zip archive
+        run: cd staging && 7z a ../AIInfluence-${{ steps.version.outputs.value }}.7z AIInfluence/
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.value }}
+          name: AIInfluence ${{ steps.version.outputs.value }}
+          files: AIInfluence-${{ steps.version.outputs.value }}.7z
+          generate_release_notes: true
+          fail_on_unmatched_files: true

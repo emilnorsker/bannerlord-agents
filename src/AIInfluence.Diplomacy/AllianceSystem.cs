@@ -316,7 +316,7 @@ public class AllianceSystem
 			if (AllianceTimes.TryGetValue(allianceKey, out var value))
 			{
 				CampaignTime val = CampaignTime.Now - value;
-				int num = (int)((CampaignTime)(ref val)).ToDays;
+				int num = (int)(val).ToDays;
 				list.Add($"{item.Name} (allied for {num} days)");
 			}
 			else
@@ -349,7 +349,7 @@ public class AllianceSystem
 			if (AllianceTimes.TryGetValue(allianceKey, out var value))
 			{
 				CampaignTime val = CampaignTime.Now - value;
-				int num = (int)((CampaignTime)(ref val)).ToDays;
+				int num = (int)(val).ToDays;
 				text += $"  - {item.Name}: {num} days\n";
 			}
 			else

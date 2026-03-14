@@ -245,7 +245,7 @@ public class TerritoryTransferSystem
 			//IL_000b: Unknown result type (might be due to invalid IL or missing references)
 			//IL_0010: Unknown result type (might be due to invalid IL or missing references)
 			CampaignTime val3 = CampaignTime.Now - t.TransferTime;
-			return ((CampaignTime)(ref val3)).ToDays <= 90.0;
+			return (val3).ToDays <= 90.0;
 		}).ToList();
 		foreach (TerritoryTransferRecord transfer in list2)
 		{
@@ -339,7 +339,7 @@ public class TerritoryTransferSystem
 			if (((ownerClan != null) ? ownerClan.Kingdom : null) == kingdom)
 			{
 				CampaignVec2 gatePosition = settlement.GatePosition;
-				float num2 = ((CampaignVec2)(ref gatePosition)).DistanceSquared(item.GatePosition);
+				float num2 = (gatePosition).DistanceSquared(item.GatePosition);
 				if (num2 < num)
 				{
 					num = num2;
@@ -375,7 +375,7 @@ public class TerritoryTransferSystem
 				if (((ownerClan2 != null) ? ownerClan2.Kingdom : null) == ownerKingdom)
 				{
 					CampaignVec2 gatePosition = settlement.GatePosition;
-					float num2 = ((CampaignVec2)(ref gatePosition)).DistanceSquared(item.GatePosition);
+					float num2 = (gatePosition).DistanceSquared(item.GatePosition);
 					if (num2 < num)
 					{
 						num = num2;
@@ -463,7 +463,7 @@ public class TerritoryTransferSystem
 				foreach (Settlement item8 in list2)
 				{
 					CampaignVec2 gatePosition = item7.GatePosition;
-					float num3 = ((CampaignVec2)(ref gatePosition)).Distance(item8.GatePosition);
+					float num3 = (gatePosition).Distance(item8.GatePosition);
 					if (num3 < num)
 					{
 						num = num3;
@@ -526,7 +526,7 @@ public class TerritoryTransferSystem
 			//IL_0001: Unknown result type (might be due to invalid IL or missing references)
 			//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 			CampaignTime transferTime = t.TransferTime;
-			return ((CampaignTime)(ref transferTime)).ElapsedDaysUntilNow;
+			return (transferTime).ElapsedDaysUntilNow;
 		}).Take(maxRecords)
 			.ToList();
 	}
@@ -543,13 +543,13 @@ public class TerritoryTransferSystem
 			//IL_0001: Unknown result type (might be due to invalid IL or missing references)
 			//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 			CampaignTime transferTime = t.TransferTime;
-			return ((CampaignTime)(ref transferTime)).ToSeconds >= ((CampaignTime)(ref cutoffTime)).ToSeconds;
+			return (transferTime).ToSeconds >= (cutoffTime).ToSeconds;
 		}).OrderByDescending(delegate(TerritoryTransferRecord t)
 		{
 			//IL_0001: Unknown result type (might be due to invalid IL or missing references)
 			//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 			CampaignTime transferTime = t.TransferTime;
-			return ((CampaignTime)(ref transferTime)).ElapsedDaysUntilNow;
+			return (transferTime).ElapsedDaysUntilNow;
 		}).ToList();
 	}
 
@@ -571,7 +571,7 @@ public class TerritoryTransferSystem
 			if (val != null && val2 != null)
 			{
 				CampaignTime transferTime = transfer.TransferTime;
-				float elapsedDaysUntilNow = ((CampaignTime)(ref transferTime)).ElapsedDaysUntilNow;
+				float elapsedDaysUntilNow = (transferTime).ElapsedDaysUntilNow;
 				stringBuilder.AppendLine($"- {transfer.SettlementName}: {val.Name} → {val2.Name} ({elapsedDaysUntilNow:F0} days ago)");
 				stringBuilder.AppendLine("  Reason: " + transfer.Reason);
 			}
@@ -588,7 +588,7 @@ public class TerritoryTransferSystem
 				//IL_0001: Unknown result type (might be due to invalid IL or missing references)
 				//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 				CampaignTime transferTime = t.TransferTime;
-				return ((CampaignTime)(ref transferTime)).ElapsedDaysUntilNow;
+				return (transferTime).ElapsedDaysUntilNow;
 			}).Take(100).ToList();
 			SaveData();
 			LogMessage("[TERRITORY_TRANSFER] Cleaned old transfer records");

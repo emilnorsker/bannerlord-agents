@@ -21,8 +21,8 @@ public static class RPItemTooltipPatch
 		//IL_001c: Invalid comparison between Unknown and I4
 		try
 		{
-			EquipmentElement equipmentElement = ((ItemRosterElement)(ref ((ItemVM)item).ItemRosterElement)).EquipmentElement;
-			if ((int)((EquipmentElement)(ref equipmentElement)).Item.ItemType != 22 || !(((EquipmentElement)(ref equipmentElement)).Item.ItemComponent is RPItemComponent rPItemComponent) || !(rPItemComponent.Description != (TextObject)null) || string.IsNullOrEmpty(((object)rPItemComponent.Description).ToString()))
+			EquipmentElement equipmentElement = ((ItemVM)item).ItemRosterElement.EquipmentElement;
+			if ((int)(equipmentElement).Item.ItemType != 22 || !((equipmentElement).Item.ItemComponent is RPItemComponent rPItemComponent) || !(rPItemComponent.Description != (TextObject)null) || string.IsNullOrEmpty(((object)rPItemComponent.Description).ToString()))
 			{
 				return;
 			}

@@ -85,7 +85,7 @@ public class DynamicEventsManager
 			return;
 		}
 		CampaignTime val = CampaignTime.Now - _lastGenerationTime;
-		double toDays = ((CampaignTime)(ref val)).ToDays;
+		double toDays = (val).ToDays;
 		if (toDays >= (double)GlobalSettings<ModSettings>.Instance.DynamicEventsInterval)
 		{
 			int maxSimultaneousDynamicEvents = GlobalSettings<ModSettings>.Instance.MaxSimultaneousDynamicEvents;
@@ -342,7 +342,7 @@ public class DynamicEventsManager
 				return;
 			}
 			Color val = default(Color);
-			((Color)(ref val))._002Ector(1f, 0.55f, 0f, 1f);
+			val = new Color(1f, 0.55f, 0f, 1f);
 			string text = dynamicEvent.Description ?? "";
 			InformationManager.DisplayMessage(new InformationMessage(text, val));
 			DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Displayed notification: " + dynamicEvent.Description.Substring(0, Math.Min(50, dynamicEvent.Description.Length)) + "...");

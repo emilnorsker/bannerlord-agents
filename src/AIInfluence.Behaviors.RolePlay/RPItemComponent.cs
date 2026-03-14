@@ -37,6 +37,6 @@ public class RPItemComponent : ItemComponent
 
 	public override void Deserialize(MBObjectManager objectManager, XmlNode node)
 	{
-		((MBObjectBase)this).Initialize();
+		base.Initialize();
 	}
 }

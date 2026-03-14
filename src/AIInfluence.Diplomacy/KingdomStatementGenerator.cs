@@ -82,11 +82,11 @@ public class KingdomStatementGenerator
 					goto IL_0317;
 				}
 				CampaignTime timeSinceLastStatement = CampaignTime.Now - _lastStatementTime[kingdomId];
-				if (!(((CampaignTime)(ref timeSinceLastStatement)).ToHours < 2.0))
+				if (!((timeSinceLastStatement).ToHours < 2.0))
 				{
 					goto IL_0317;
 				}
-				DiplomacyLogger.Instance.Log($"[STATEMENT_GEN] Skipping {kingdom.Name} - too soon since last statement ({((CampaignTime)(ref timeSinceLastStatement)).ToHours:F1} hours ago, minimum 2 hours)");
+				DiplomacyLogger.Instance.Log($"[STATEMENT_GEN] Skipping {kingdom.Name} - too soon since last statement ({(timeSinceLastStatement).ToHours:F1} hours ago, minimum 2 hours)");
 				goto end_IL_00e5;
 				IL_0317:
 				KingdomDiplomaticData kingdomData = GatherKingdomData(kingdom, diplomaticEvent);
@@ -331,7 +331,7 @@ public class KingdomStatementGenerator
 			}
 		}
 		CampaignTime now = CampaignTime.Now;
-		float num = (float)((CampaignTime)(ref now)).ToDays;
+		float num = (float)(now).ToDays;
 		kingdomDiplomaticData.PreviousStatements = diplomaticEvent.KingdomStatements.OrderBy((KingdomStatement s) => s.Timestamp).Select(delegate(KingdomStatement s)
 		{
 			//IL_00b9: Unknown result type (might be due to invalid IL or missing references)
@@ -364,9 +364,9 @@ public class KingdomStatementGenerator
 			if (true)
 			{
 				CampaignTime val3 = CampaignTime.Now;
-				double toDays = ((CampaignTime)(ref val3)).ToDays;
+				double toDays = (val3).ToDays;
 				val3 = s.Timestamp;
-				num2 = Math.Max(0, (int)(toDays - ((CampaignTime)(ref val3)).ToDays));
+				num2 = Math.Max(0, (int)(toDays - (val3).ToDays));
 			}
 			return $"{text} (string_id:{s.KingdomId}), {text2}: {s.StatementText} ({num2} days ago)";
 		}).ToList();
@@ -393,7 +393,7 @@ public class KingdomStatementGenerator
 					if (true)
 					{
 						CampaignTime now2 = CampaignTime.Now;
-						num2 = Math.Max(0, (int)(((CampaignTime)(ref now2)).ToDays - (double)e.CreationCampaignDays));
+						num2 = Math.Max(0, (int)((now2).ToDays - (double)e.CreationCampaignDays));
 					}
 					string text = (string.IsNullOrWhiteSpace(e.Title) ? e.Type : e.Title);
 					string text2 = e.Description ?? string.Empty;
@@ -564,7 +564,7 @@ public class KingdomStatementGenerator
 		string text = MBTextManager.ActiveTextLanguage ?? "English";
 		string text2 = WorldInfoManager.Instance.ReadWorldInfo();
 		CampaignTime now = CampaignTime.Now;
-		string seasonName = GetSeasonName(((CampaignTime)(ref now)).GetSeasonOfYear);
+		string seasonName = GetSeasonName((now).GetSeasonOfYear);
 		stringBuilder.AppendLine("# DIPLOMATIC STATEMENT GENERATION");
 		stringBuilder.AppendLine();
 		stringBuilder.AppendLine("You are the official voice of a kingdom in Mount & Blade II: Bannerlord.");
@@ -667,7 +667,7 @@ public class KingdomStatementGenerator
 		stringBuilder.AppendLine("This is NOT narrative - these are FACTS about the current moment.");
 		stringBuilder.AppendLine();
 		stringBuilder.AppendLine("## CURRENT SITUATION:");
-		stringBuilder.AppendLine($"Current Time: Year {((CampaignTime)(ref now)).GetYear}, {seasonName}");
+		stringBuilder.AppendLine($"Current Time: Year {(now).GetYear}, {seasonName}");
 		stringBuilder.AppendLine();
 		Hero leader = kingdom.Leader;
 		if (leader != null)
@@ -822,7 +822,7 @@ public class KingdomStatementGenerator
 					if (val != null)
 					{
 						val2 = item3.EndTime;
-						float num = ((CampaignTime)(ref val2)).RemainingDaysFromNow / (float)CampaignTime.DaysInYear;
+						float num = (val2).RemainingDaysFromNow / (float)CampaignTime.DaysInYear;
 						stringBuilder.AppendLine($"- Trade agreement with {val.Name} (string_id:{((MBObjectBase)val).StringId}), expires in {num:F1} years");
 					}
 				}
@@ -878,7 +878,7 @@ public class KingdomStatementGenerator
 									{
 										float value = item5.QuarantineEndDays.Value;
 										val2 = CampaignTime.Now;
-										int num3 = (int)(value - (float)((CampaignTime)(ref val2)).ToDays);
+										int num3 = (int)(value - (float)(val2).ToDays);
 										if (num3 > num2)
 										{
 											num2 = num3;
@@ -931,7 +931,7 @@ public class KingdomStatementGenerator
 				//IL_0001: Unknown result type (might be due to invalid IL or missing references)
 				//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 				CampaignTime endTime = r.EndTime;
-				return ((CampaignTime)(ref endTime)).ElapsedDaysUntilNow <= 90f;
+				return (endTime).ElapsedDaysUntilNow <= 90f;
 			}).ToList();
 			List<TributeRecord> source4 = source3.Where((TributeRecord r) => r.ReceiverKingdomId == ((MBObjectBase)kingdom).StringId).ToList();
 			List<TributeRecord> source5 = source3.Where((TributeRecord r) => r.PayerKingdomId == ((MBObjectBase)kingdom).StringId).ToList();
@@ -944,7 +944,7 @@ public class KingdomStatementGenerator
 					if (val4 != null)
 					{
 						val2 = tribute.EndTime;
-						float remainingDaysFromNow = ((CampaignTime)(ref val2)).RemainingDaysFromNow;
+						float remainingDaysFromNow = (val2).RemainingDaysFromNow;
 						stringBuilder.AppendLine($"- PAYING {tribute.DailyAmount} gold/day to {val4.Name} (string_id:{((MBObjectBase)val4).StringId}) for {remainingDaysFromNow:F0} more days (total paid: {tribute.TotalPaid})");
 						stringBuilder.AppendLine("  Reason: " + tribute.Reason);
 					}
@@ -955,7 +955,7 @@ public class KingdomStatementGenerator
 					if (val5 != null)
 					{
 						val2 = tribute2.EndTime;
-						float remainingDaysFromNow2 = ((CampaignTime)(ref val2)).RemainingDaysFromNow;
+						float remainingDaysFromNow2 = (val2).RemainingDaysFromNow;
 						stringBuilder.AppendLine($"- RECEIVING {tribute2.DailyAmount} gold/day from {val5.Name} (string_id:{((MBObjectBase)val5).StringId}) for {remainingDaysFromNow2:F0} more days (total received: {tribute2.TotalPaid})");
 						stringBuilder.AppendLine("  Reason: " + tribute2.Reason);
 					}
@@ -972,16 +972,16 @@ public class KingdomStatementGenerator
 						//IL_0001: Unknown result type (might be due to invalid IL or missing references)
 						//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 						CampaignTime endTime = r.EndTime;
-						return ((CampaignTime)(ref endTime)).ElapsedDaysUntilNow;
+						return (endTime).ElapsedDaysUntilNow;
 					}))
 					{
 						Kingdom val6 = ((IEnumerable<Kingdom>)Kingdom.All).FirstOrDefault((Func<Kingdom, bool>)((Kingdom val20) => ((MBObjectBase)val20).StringId == tribute3.PayerKingdomId && !val20.IsEliminated));
 						if (val6 != null)
 						{
 							val2 = tribute3.EndTime;
-							float elapsedDaysUntilNow = ((CampaignTime)(ref val2)).ElapsedDaysUntilNow;
+							float elapsedDaysUntilNow = (val2).ElapsedDaysUntilNow;
 							val2 = tribute3.EndTime - tribute3.StartTime;
-							float num5 = (float)((CampaignTime)(ref val2)).ToDays;
+							float num5 = (float)(val2).ToDays;
 							stringBuilder.AppendLine($"- {val6.Name} (string_id:{((MBObjectBase)val6).StringId}) ALREADY PAID tribute to you ({elapsedDaysUntilNow:F0} days ago, completed)");
 							stringBuilder.AppendLine($"  Amount: {tribute3.DailyAmount} gold/day, Total paid: {tribute3.TotalPaid} gold, Duration: {num5:F0} days");
 							stringBuilder.AppendLine("  Reason: " + tribute3.Reason);
@@ -1001,16 +1001,16 @@ public class KingdomStatementGenerator
 						//IL_0001: Unknown result type (might be due to invalid IL or missing references)
 						//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 						CampaignTime endTime = r.EndTime;
-						return ((CampaignTime)(ref endTime)).ElapsedDaysUntilNow;
+						return (endTime).ElapsedDaysUntilNow;
 					}))
 					{
 						Kingdom val7 = ((IEnumerable<Kingdom>)Kingdom.All).FirstOrDefault((Func<Kingdom, bool>)((Kingdom val20) => ((MBObjectBase)val20).StringId == tribute4.ReceiverKingdomId && !val20.IsEliminated));
 						if (val7 != null)
 						{
 							val2 = tribute4.EndTime;
-							float elapsedDaysUntilNow2 = ((CampaignTime)(ref val2)).ElapsedDaysUntilNow;
+							float elapsedDaysUntilNow2 = (val2).ElapsedDaysUntilNow;
 							val2 = tribute4.EndTime - tribute4.StartTime;
-							float num6 = (float)((CampaignTime)(ref val2)).ToDays;
+							float num6 = (float)(val2).ToDays;
 							stringBuilder.AppendLine($"- You ALREADY PAID tribute to {val7.Name} (string_id:{((MBObjectBase)val7).StringId}) ({elapsedDaysUntilNow2:F0} days ago, completed)");
 							stringBuilder.AppendLine($"  Amount: {tribute4.DailyAmount} gold/day, Total paid: {tribute4.TotalPaid} gold, Duration: {num6:F0} days");
 							stringBuilder.AppendLine("  Reason: " + tribute4.Reason);
@@ -1032,7 +1032,7 @@ public class KingdomStatementGenerator
 				//IL_0001: Unknown result type (might be due to invalid IL or missing references)
 				//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 				CampaignTime paymentTime = r.PaymentTime;
-				return ((CampaignTime)(ref paymentTime)).ElapsedDaysUntilNow <= 60f;
+				return (paymentTime).ElapsedDaysUntilNow <= 60f;
 			}).ToList();
 			List<ReparationRecord> source7 = source6.Where((ReparationRecord r) => r.ReceivingKingdomId == ((MBObjectBase)kingdom).StringId).ToList();
 			List<ReparationRecord> source8 = source6.Where((ReparationRecord r) => r.PayingKingdomId == ((MBObjectBase)kingdom).StringId).ToList();
@@ -1045,7 +1045,7 @@ public class KingdomStatementGenerator
 					if (val8 != null)
 					{
 						val2 = demand.ExpirationTime;
-						float remainingDaysFromNow3 = ((CampaignTime)(ref val2)).RemainingDaysFromNow;
+						float remainingDaysFromNow3 = (val2).RemainingDaysFromNow;
 						stringBuilder.AppendLine($"- {val8.Name} (string_id:{((MBObjectBase)val8).StringId}) DEMANDS {demand.Amount} gold from you (expires in {remainingDaysFromNow3:F0} days, status: {demand.Status})");
 						stringBuilder.AppendLine("  Reason: " + demand.Reason);
 					}
@@ -1056,7 +1056,7 @@ public class KingdomStatementGenerator
 					if (val9 != null)
 					{
 						val2 = demand2.ExpirationTime;
-						float remainingDaysFromNow4 = ((CampaignTime)(ref val2)).RemainingDaysFromNow;
+						float remainingDaysFromNow4 = (val2).RemainingDaysFromNow;
 						stringBuilder.AppendLine($"- You DEMAND {demand2.Amount} gold from {val9.Name} (string_id:{((MBObjectBase)val9).StringId}) (expires in {remainingDaysFromNow4:F0} days, status: {demand2.Status})");
 						stringBuilder.AppendLine("  Reason: " + demand2.Reason);
 					}
@@ -1073,14 +1073,14 @@ public class KingdomStatementGenerator
 						//IL_0001: Unknown result type (might be due to invalid IL or missing references)
 						//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 						CampaignTime paymentTime = r.PaymentTime;
-						return ((CampaignTime)(ref paymentTime)).ElapsedDaysUntilNow;
+						return (paymentTime).ElapsedDaysUntilNow;
 					}))
 					{
 						Kingdom val10 = ((IEnumerable<Kingdom>)Kingdom.All).FirstOrDefault((Func<Kingdom, bool>)((Kingdom val20) => ((MBObjectBase)val20).StringId == payment.PayingKingdomId && !val20.IsEliminated));
 						if (val10 != null)
 						{
 							val2 = payment.PaymentTime;
-							float elapsedDaysUntilNow3 = ((CampaignTime)(ref val2)).ElapsedDaysUntilNow;
+							float elapsedDaysUntilNow3 = (val2).ElapsedDaysUntilNow;
 							stringBuilder.AppendLine($"- {val10.Name} (string_id:{((MBObjectBase)val10).StringId}) ALREADY PAID {payment.Amount} gold to you ({elapsedDaysUntilNow3:F0} days ago)");
 							stringBuilder.AppendLine("  Reason: " + payment.Reason);
 							stringBuilder.AppendLine("  **IMPORTANT: These reparations have been FULLY PAID. Consider this when making diplomatic decisions.**");
@@ -1099,14 +1099,14 @@ public class KingdomStatementGenerator
 						//IL_0001: Unknown result type (might be due to invalid IL or missing references)
 						//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 						CampaignTime paymentTime = r.PaymentTime;
-						return ((CampaignTime)(ref paymentTime)).ElapsedDaysUntilNow;
+						return (paymentTime).ElapsedDaysUntilNow;
 					}))
 					{
 						Kingdom val11 = ((IEnumerable<Kingdom>)Kingdom.All).FirstOrDefault((Func<Kingdom, bool>)((Kingdom val20) => ((MBObjectBase)val20).StringId == payment2.ReceivingKingdomId && !val20.IsEliminated));
 						if (val11 != null)
 						{
 							val2 = payment2.PaymentTime;
-							float elapsedDaysUntilNow4 = ((CampaignTime)(ref val2)).ElapsedDaysUntilNow;
+							float elapsedDaysUntilNow4 = (val2).ElapsedDaysUntilNow;
 							stringBuilder.AppendLine($"- You ALREADY PAID {payment2.Amount} gold to {val11.Name} (string_id:{((MBObjectBase)val11).StringId}) ({elapsedDaysUntilNow4:F0} days ago)");
 							stringBuilder.AppendLine("  Reason: " + payment2.Reason);
 						}
@@ -1125,7 +1125,7 @@ public class KingdomStatementGenerator
 				//IL_0001: Unknown result type (might be due to invalid IL or missing references)
 				//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 				CampaignTime transferTime = t.TransferTime;
-				return ((CampaignTime)(ref transferTime)).ElapsedDaysUntilNow <= 90f;
+				return (transferTime).ElapsedDaysUntilNow <= 90f;
 			}).ToList();
 			List<TerritoryTransferRecord> source10 = source9.Where((TerritoryTransferRecord t) => t.ToKingdomId == ((MBObjectBase)kingdom).StringId).ToList();
 			List<TerritoryTransferRecord> source11 = source9.Where((TerritoryTransferRecord t) => t.FromKingdomId == ((MBObjectBase)kingdom).StringId).ToList();
@@ -1140,14 +1140,14 @@ public class KingdomStatementGenerator
 						//IL_0001: Unknown result type (might be due to invalid IL or missing references)
 						//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 						CampaignTime transferTime = t.TransferTime;
-						return ((CampaignTime)(ref transferTime)).ElapsedDaysUntilNow;
+						return (transferTime).ElapsedDaysUntilNow;
 					}))
 					{
 						Kingdom val12 = ((IEnumerable<Kingdom>)Kingdom.All).FirstOrDefault((Func<Kingdom, bool>)((Kingdom val20) => ((MBObjectBase)val20).StringId == transfer.FromKingdomId && !val20.IsEliminated));
 						if (val12 != null)
 						{
 							val2 = transfer.TransferTime;
-							float elapsedDaysUntilNow5 = ((CampaignTime)(ref val2)).ElapsedDaysUntilNow;
+							float elapsedDaysUntilNow5 = (val2).ElapsedDaysUntilNow;
 							stringBuilder.AppendLine($"- {transfer.SettlementName} (string_id:{transfer.SettlementId}) was TRANSFERRED from {val12.Name} (string_id:{((MBObjectBase)val12).StringId}) to you ({elapsedDaysUntilNow5:F0} days ago)");
 							stringBuilder.AppendLine("  Reason: " + transfer.Reason);
 							stringBuilder.AppendLine("  **IMPORTANT: This territory has been ALREADY TRANSFERRED. Consider this when making diplomatic decisions.**");
@@ -1166,14 +1166,14 @@ public class KingdomStatementGenerator
 						//IL_0001: Unknown result type (might be due to invalid IL or missing references)
 						//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 						CampaignTime transferTime = t.TransferTime;
-						return ((CampaignTime)(ref transferTime)).ElapsedDaysUntilNow;
+						return (transferTime).ElapsedDaysUntilNow;
 					}))
 					{
 						Kingdom val13 = ((IEnumerable<Kingdom>)Kingdom.All).FirstOrDefault((Func<Kingdom, bool>)((Kingdom val20) => ((MBObjectBase)val20).StringId == transfer2.ToKingdomId && !val20.IsEliminated));
 						if (val13 != null)
 						{
 							val2 = transfer2.TransferTime;
-							float elapsedDaysUntilNow6 = ((CampaignTime)(ref val2)).ElapsedDaysUntilNow;
+							float elapsedDaysUntilNow6 = (val2).ElapsedDaysUntilNow;
 							stringBuilder.AppendLine($"- {transfer2.SettlementName} (string_id:{transfer2.SettlementId}) was TRANSFERRED from you to {val13.Name} (string_id:{((MBObjectBase)val13).StringId}) ({elapsedDaysUntilNow6:F0} days ago)");
 							stringBuilder.AppendLine("  Reason: " + transfer2.Reason);
 						}
@@ -1596,13 +1596,13 @@ public class KingdomStatementGenerator
 				if (npcContext.ConversationHistory != null && npcContext.ConversationHistory.Any() && npcContext.LastInteractionTime != CampaignTime.Never)
 				{
 					val2 = CampaignTime.Now;
-					double toHours = ((CampaignTime)(ref val2)).ToHours;
+					double toHours = (val2).ToHours;
 					val2 = npcContext.LastInteractionTime;
-					double num17 = toHours - ((CampaignTime)(ref val2)).ToHours;
+					double num17 = toHours - (val2).ToHours;
 					val2 = CampaignTime.Now;
-					double toDays = ((CampaignTime)(ref val2)).ToDays;
+					double toDays = (val2).ToDays;
 					val2 = npcContext.LastInteractionTime;
-					double num18 = toDays - ((CampaignTime)(ref val2)).ToDays;
+					double num18 = toDays - (val2).ToDays;
 					if (num17 < 1.0 / 60.0)
 					{
 						text19 = "now (currently in conversation)";
@@ -2196,7 +2196,7 @@ public class KingdomStatementGenerator
 					Kingdom kingdomById = GetKingdomById(text);
 					if (kingdomById != null && tradeAgreementSystem.HasTradeAgreement(kingdom, kingdomById, out var endTime))
 					{
-						float num = ((CampaignTime)(ref endTime)).RemainingDaysFromNow / (float)CampaignTime.DaysInYear;
+						float num = (endTime).RemainingDaysFromNow / (float)CampaignTime.DaysInYear;
 						DiplomacyLogger.Instance.Log($"[STATEMENT_GEN] {((kingdom != null) ? kingdom.Name : null)} proposing trade agreement extension with {kingdomById.Name} (current agreement expires in {num:F1} years)");
 					}
 				}
@@ -2217,7 +2217,7 @@ public class KingdomStatementGenerator
 					if (kingdomById2 != null && tradeAgreementSystem2.HasTradeAgreement(kingdom, kingdomById2, out var endTime2))
 					{
 						flag3 = true;
-						float num2 = ((CampaignTime)(ref endTime2)).RemainingDaysFromNow / (float)CampaignTime.DaysInYear;
+						float num2 = (endTime2).RemainingDaysFromNow / (float)CampaignTime.DaysInYear;
 						DiplomacyLogger.Instance.Log($"[STATEMENT_GEN] {((kingdom != null) ? kingdom.Name : null)} accepting trade agreement extension with {kingdomById2.Name} (current agreement expires in {num2:F1} years)");
 					}
 				}
@@ -2399,7 +2399,7 @@ public class KingdomStatementGenerator
 					Kingdom kingdomById2 = GetKingdomById(text);
 					if (kingdomById2 != null && tradeAgreementSystem2.HasTradeAgreement(kingdom, kingdomById2, out var endTime2))
 					{
-						float num2 = ((CampaignTime)(ref endTime2)).RemainingDaysFromNow / (float)CampaignTime.DaysInYear;
+						float num2 = (endTime2).RemainingDaysFromNow / (float)CampaignTime.DaysInYear;
 						DiplomacyLogger.Instance.Log($"[STATEMENT_GEN] {((kingdom != null) ? kingdom.Name : null)} proposing trade agreement extension with {kingdomById2.Name} (current agreement expires in {num2:F1} years)");
 					}
 				}
@@ -2420,7 +2420,7 @@ public class KingdomStatementGenerator
 					if (kingdomById != null && tradeAgreementSystem.HasTradeAgreement(kingdom, kingdomById, out var endTime))
 					{
 						flag2 = true;
-						float num = ((CampaignTime)(ref endTime)).RemainingDaysFromNow / (float)CampaignTime.DaysInYear;
+						float num = (endTime).RemainingDaysFromNow / (float)CampaignTime.DaysInYear;
 						DiplomacyLogger.Instance.Log($"[STATEMENT_GEN] {((kingdom != null) ? kingdom.Name : null)} accepting trade agreement extension with {kingdomById.Name} (current agreement expires in {num:F1} years)");
 					}
 				}
@@ -2711,9 +2711,9 @@ public class KingdomStatementGenerator
 							if (true)
 							{
 								CampaignTime val2 = CampaignTime.Now;
-								double toDays = ((CampaignTime)(ref val2)).ToDays;
+								double toDays = (val2).ToDays;
 								val2 = statement.Timestamp;
-								daysAgo = Math.Max(0, (int)(toDays - ((CampaignTime)(ref val2)).ToDays));
+								daysAgo = Math.Max(0, (int)(toDays - (val2).ToDays));
 							}
 							string item = FormatProposalDescription(action, targetKingdomName, targetKingdomId, statement, daysAgo, item2.Id);
 							list.Add(item);
@@ -3104,7 +3104,7 @@ public class KingdomStatementGenerator
 			}
 			WarStatsAgainstKingdom warStatsAgainstKingdom = kingdomStats.WarsAgainstKingdoms[((MBObjectBase)kingdom2).StringId];
 			CampaignTime val = CampaignTime.Now - warStatsAgainstKingdom.WarStartTime;
-			int val2 = (int)((CampaignTime)(ref val)).ToDays;
+			int val2 = (int)(val).ToDays;
 			return Math.Max(0, val2);
 		}
 		catch
@@ -3394,7 +3394,7 @@ public class KingdomStatementGenerator
 		foreach (WorldInfoManager.DeathRecord item2 in recentDeaths)
 		{
 			CampaignTime val = CampaignTime.Now - item2.DeathTime;
-			if (((CampaignTime)(ref val)).ToDays > (double)daysThreshold)
+			if ((val).ToDays > (double)daysThreshold)
 			{
 				continue;
 			}
@@ -3459,7 +3459,7 @@ public class KingdomStatementGenerator
 			}
 			obj2.KingdomStringId = (string)obj4;
 			val = CampaignTime.Now - item2.DeathTime;
-			obj2.DaysAgo = (int)((CampaignTime)(ref val)).ToDays;
+			obj2.DaysAgo = (int)(val).ToDays;
 			DeathInfo item = obj2;
 			list.Add(item);
 		}
@@ -3504,9 +3504,9 @@ public class KingdomStatementGenerator
 					if (true)
 					{
 						CampaignTime val = CampaignTime.Now;
-						double toDays = ((CampaignTime)(ref val)).ToDays;
+						double toDays = (val).ToDays;
 						val = statement.Timestamp;
-						int num6 = (int)(toDays - ((CampaignTime)(ref val)).ToDays);
+						int num6 = (int)(toDays - (val).ToDays);
 						if (num6 > 30)
 						{
 							flag = true;

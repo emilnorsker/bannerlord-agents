@@ -139,7 +139,7 @@ public class ReturnToPlayerAction : AIActionBase
 			if (partyBelongedTo != null && mainParty != null && partyBelongedTo.CurrentSettlement == null && mainParty.CurrentSettlement == null)
 			{
 				Vec2 position2D = partyBelongedTo.GetPosition2D();
-				float num = ((Vec2)(ref position2D)).Distance(mainParty.GetPosition2D());
+				float num = (position2D).Distance(mainParty.GetPosition2D());
 				if (num <= 2f && !_dialogShown)
 				{
 					ShowReturnDialog();
