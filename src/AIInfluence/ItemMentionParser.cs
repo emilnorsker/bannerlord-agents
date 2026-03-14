@@ -20,7 +20,7 @@ public static class ItemMentionParser
 
 	private static readonly object CacheLock = new object();
 
-	private static List<(string NormalizedName, ItemObject Item)> _normalizedItems;
+	private static volatile List<(string NormalizedName, ItemObject Item)> _normalizedItems;
 
 	private static volatile List<(string NormalizedName, CharacterObject Troop)> _normalizedTroops;
 
@@ -245,7 +245,7 @@ public static class ItemMentionParser
 			{
 				return;
 			}
-			_normalizedItems = new List<(string, ItemObject)>();
+			var temp = new List<(string, ItemObject)>();
 			foreach (ItemObject item in (List<ItemObject>)(object)Items.All)
 			{
 				if (item == null)
@@ -258,7 +258,7 @@ public static class ItemMentionParser
 					string text2 = NormalizeText(text);
 					if (!string.IsNullOrEmpty(text2))
 					{
-						_normalizedItems.Add((text2, item));
+						temp.Add((text2, item));
 					}
 				}
 				if (!string.IsNullOrWhiteSpace(((MBObjectBase)item).StringId))
@@ -266,10 +266,11 @@ public static class ItemMentionParser
 					string text3 = NormalizeText(((MBObjectBase)item).StringId);
 					if (!string.IsNullOrEmpty(text3))
 					{
-						_normalizedItems.Add((text3, item));
+						temp.Add((text3, item));
 					}
 				}
 			}
+			_normalizedItems = temp;
 		}
 	}
 
@@ -316,7 +317,7 @@ public static class ItemMentionParser
 			{
 				return;
 			}
-			_normalizedTroops = new List<(string, CharacterObject)>();
+			var tempTroops = new List<(string, CharacterObject)>();
 			foreach (CharacterObject troop in CharacterObject.All)
 			{
 				if (troop == null)
@@ -329,7 +330,7 @@ public static class ItemMentionParser
 					string normalized = NormalizeText(text);
 					if (!string.IsNullOrEmpty(normalized))
 					{
-						_normalizedTroops.Add((normalized, troop));
+						tempTroops.Add((normalized, troop));
 					}
 				}
 				if (!string.IsNullOrWhiteSpace(((MBObjectBase)troop).StringId))
@@ -337,10 +338,11 @@ public static class ItemMentionParser
 					string normalized2 = NormalizeText(((MBObjectBase)troop).StringId);
 					if (!string.IsNullOrEmpty(normalized2))
 					{
-						_normalizedTroops.Add((normalized2, troop));
+						tempTroops.Add((normalized2, troop));
 					}
 				}
 			}
+			_normalizedTroops = tempTroops;
 		}
 	}
 
