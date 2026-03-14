@@ -29,6 +29,8 @@ using TaleWorlds.CampaignSystem.Extensions;
 using TaleWorlds.CampaignSystem.GameMenus;
 using TaleWorlds.CampaignSystem.MapEvents;
 using TaleWorlds.CampaignSystem.Party;
+using TaleWorlds.CampaignSystem.Party.PartyComponents;
+using TaleWorlds.CampaignSystem.Roster;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.CampaignSystem.Settlements.Workshops;
 using TaleWorlds.CampaignSystem.ViewModelCollection;
@@ -952,6 +954,15 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		obj.CompleterNpcId = text2;
 		obj.ProgressTarget = valueOrDefault;
 		obj.ProgressLabel = text4;
+		obj.RewardItems = questAction.RewardItems ?? new List<QuestItemReward>();
+		obj.RewardSkill = questAction.RewardSkill ?? "";
+		obj.RewardSkillXp = Math.Max(0, Math.Min(questAction.RewardSkillXp, 10000));
+		obj.CrimeRatingChange = questAction.CrimeRatingChange.HasValue
+			? (int?)Math.Max(-100, Math.Min(questAction.CrimeRatingChange.Value, 100))
+			: null;
+		obj.InfluenceChange = questAction.InfluenceChange.HasValue
+			? (int?)Math.Max(-200, Math.Min(questAction.InfluenceChange.Value, 200))
+			: null;
 		AIQuestInfo item = obj;
 		context.ActiveAIQuests.Add(item);
 		SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
@@ -1000,7 +1011,189 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage("[QUEST] Error adding quest to target NPC '" + targetNpcId + "': " + ex.Message);
 			}
 		}
+		if (questAction.SpawnHostileParty)
+		{
+			SpawnQuestHostileParty(npc, item, questAction);
+			SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
+		}
 		LogMessage(string.Format("[QUEST] Created quest '{0}' (ID: {1}) from {2}, reward: {3}, duration: {4} days, targets: [{5}]", questAction.Title, text5, text, num, num2, string.Join(", ", effectiveTargetNpcIds)) + ((!string.IsNullOrEmpty(text2)) ? (", completer: " + text2) : "") + ((valueOrDefault > 0) ? $", progress: 0/{valueOrDefault} ({text4})" : ""));
+	}
+
+	private void SpawnQuestHostileParty(Hero questGiver, AIQuestInfo questInfo, QuestActionData questAction)
+	{
+		try
+		{
+			int rawSize = questAction.HostilePartySize;
+			int troopCount = Math.Max(5, Math.Min(rawSize, 1500));
+			if (rawSize != troopCount)
+			{
+				LogMessage($"[QUEST] HostilePartySize {rawSize} clamped to {troopCount}");
+			}
+			string partyLabel = string.IsNullOrEmpty(questAction.HostilePartyLabel) ? "Quest Enemies" : questAction.HostilePartyLabel;
+			Clan banditClan = Clan.BanditFactions?.FirstOrDefault();
+			if (banditClan == null)
+			{
+				LogMessage("[QUEST] No bandit clan found for hostile party spawn");
+				return;
+			}
+			Vec2 spawnPos = questGiver?.CurrentSettlement?.GatePosition ?? questGiver?.GetPosition2D ?? MobileParty.MainParty.Position2D;
+			CharacterObject basicTroop = null;
+			if (!string.IsNullOrEmpty(questAction.HostileTroopName))
+			{
+				basicTroop = ItemMentionParser.FindBestTroopMatch(questAction.HostileTroopName);
+				if (basicTroop != null)
+				{
+					LogMessage($"[QUEST] Resolved troop '{questAction.HostileTroopName}' → '{((BasicCharacterObject)basicTroop).Name}'");
+				}
+			}
+			basicTroop = basicTroop ?? banditClan.BasicTroop;
+			if (basicTroop == null)
+			{
+				LogMessage("[QUEST] No troop type found for hostile party spawn");
+				return;
+			}
+			Hideout anyHideout = Settlement.All?
+				.Where((Settlement s) => s.IsHideout && s.Hideout != null)
+				.Select((Settlement s) => s.Hideout)
+				.FirstOrDefault();
+			if (anyHideout == null)
+			{
+				LogMessage("[QUEST] No hideout found on map — cannot spawn hostile party");
+				return;
+			}
+			TroopRoster memberRoster = new TroopRoster((PartyBase)null);
+			memberRoster.AddToCounts(basicTroop, troopCount, false, 0, 0, true, -1);
+			MobileParty party = BanditPartyComponent.CreateBanditParty("quest_party_" + questInfo.QuestId, banditClan, anyHideout, false);
+			if (party == null)
+			{
+				LogMessage("[QUEST] BanditPartyComponent.CreateBanditParty returned null");
+				return;
+			}
+			questInfo.SpawnedPartyId = ((MBObjectBase)party).StringId;
+			try
+			{
+				party.InitializeMobilePartyAroundPosition(memberRoster, new TroopRoster(party.Party), spawnPos, 5f, 0f);
+				party.SetCustomName(new TextObject(partyLabel, (Dictionary<string, object>)null));
+				party.Ai.SetMovePatrolAroundPoint(spawnPos);
+			}
+			catch (Exception setupEx)
+			{
+				LogMessage("[QUEST] Error initializing hostile party, destroying it: " + setupEx.Message);
+				DestroyPartyAction.Apply((PartyBase)null, party);
+				questInfo.SpawnedPartyId = null;
+				throw;
+			}
+			LogMessage($"[QUEST] Spawned hostile party '{partyLabel}' ({troopCount} troops) near player for quest '{questInfo.Title}'");
+			InformationManager.DisplayMessage(new InformationMessage($"A hostile party '{partyLabel}' has appeared on the map!", ExtraColors.RedAIInfluence));
+		}
+		catch (Exception ex)
+		{
+			LogMessage("[QUEST] Error spawning hostile party: " + ex.Message + "\n" + ex.StackTrace);
+		}
+	}
+
+	private void ApplyQuestItemRewards(AIQuestInfo questInfo)
+	{
+		if (questInfo.RewardItems == null || questInfo.RewardItems.Count == 0)
+		{
+			return;
+		}
+		foreach (QuestItemReward reward in questInfo.RewardItems)
+		{
+			if (string.IsNullOrEmpty(reward.ItemName) || reward.Count <= 0)
+			{
+				continue;
+			}
+			ItemObject item = ItemMentionParser.FindBestItemMatch(reward.ItemName);
+			if (item != null)
+			{
+				int clampedCount = Math.Max(1, Math.Min(reward.Count, 100));
+				MobileParty.MainParty.ItemRoster.Add(new ItemRosterElement(item, clampedCount, (ItemModifier)null));
+				LogMessage($"[QUEST] Gave {clampedCount}x '{item.Name}' (resolved from '{reward.ItemName}') as quest item reward");
+			}
+			else
+			{
+				LogMessage($"[QUEST] Item reward '{reward.ItemName}' could not be resolved to any game item");
+			}
+		}
+	}
+
+	private void ApplyQuestSkillReward(AIQuestInfo questInfo)
+	{
+		if (string.IsNullOrEmpty(questInfo.RewardSkill) || questInfo.RewardSkillXp <= 0)
+		{
+			return;
+		}
+		SkillObject skill = DefaultSkills.GetAllSkills()?.FirstOrDefault((SkillObject s) => ((MBObjectBase)s).StringId == questInfo.RewardSkill);
+		if (skill != null)
+		{
+			Hero mainHero = Hero.MainHero;
+			if (mainHero?.HeroDeveloper != null)
+			{
+				mainHero.HeroDeveloper.AddSkillXp(skill, (float)questInfo.RewardSkillXp, true, true);
+				LogMessage($"[QUEST] Gave {questInfo.RewardSkillXp} XP in {questInfo.RewardSkill} as quest skill reward");
+			}
+			else
+			{
+				LogMessage($"[QUEST] Skill reward skipped — MainHero or HeroDeveloper is null");
+			}
+		}
+		else
+		{
+			LogMessage($"[QUEST] Skill '{questInfo.RewardSkill}' not found in game skills");
+		}
+	}
+
+	private void ApplyQuestPoliticalEffects(AIQuestInfo questInfo)
+	{
+		if (questInfo.CrimeRatingChange.HasValue && questInfo.CrimeRatingChange.Value != 0)
+		{
+			Kingdom kingdom = Hero.MainHero?.Clan?.Kingdom ?? Hero.MainHero?.MapFaction as Kingdom;
+			if (kingdom != null)
+			{
+				ChangeCrimeRatingAction.Apply(kingdom, (float)questInfo.CrimeRatingChange.Value, true);
+				LogMessage($"[QUEST] Crime rating changed by {questInfo.CrimeRatingChange.Value} in {kingdom.Name}");
+			}
+			else
+			{
+				LogMessage($"[QUEST] Crime rating change of {questInfo.CrimeRatingChange.Value} skipped — player has no kingdom affiliation");
+			}
+		}
+		if (questInfo.InfluenceChange.HasValue && questInfo.InfluenceChange.Value != 0)
+		{
+			Clan playerClan = Clan.PlayerClan;
+			if (playerClan != null)
+			{
+				ChangeClanInfluenceAction.Apply(playerClan, (float)questInfo.InfluenceChange.Value);
+				LogMessage($"[QUEST] Clan influence changed by {questInfo.InfluenceChange.Value}");
+			}
+			else
+			{
+				LogMessage($"[QUEST] Influence change of {questInfo.InfluenceChange.Value} skipped — player clan is null");
+			}
+		}
+	}
+
+	private void CleanupSpawnedQuestParty(AIQuestInfo questInfo)
+	{
+		if (string.IsNullOrEmpty(questInfo.SpawnedPartyId))
+		{
+			return;
+		}
+		try
+		{
+			MobileParty party = MobileParty.All?.FirstOrDefault((MobileParty p) => ((MBObjectBase)p).StringId == questInfo.SpawnedPartyId);
+			if (party != null)
+			{
+				DestroyPartyAction.Apply((PartyBase)null, party);
+				LogMessage($"[QUEST] Destroyed spawned party '{questInfo.SpawnedPartyId}' on quest end");
+				questInfo.SpawnedPartyId = null;
+			}
+		}
+		catch (Exception ex)
+		{
+			LogMessage("[QUEST] Error destroying spawned party: " + ex.Message);
+		}
 	}
 
 	private void ProcessUpdateQuest(Hero npc, NPCContext context, QuestActionData questAction)
@@ -1129,6 +1322,9 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				questInfo.ProgressCurrent = num;
 			}
 			val.CompleteQuestWithSuccess();
+			ApplyQuestItemRewards(questInfo);
+			ApplyQuestSkillReward(questInfo);
+			ApplyQuestPoliticalEffects(questInfo);
 			LogMessage("[QUEST] Completed quest '" + questInfo.Title + "' (game object found)");
 		}
 		else
@@ -1142,6 +1338,9 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			{
 				ChangeRelationAction.ApplyPlayerRelation(val3, 5, true, true);
 			}
+			ApplyQuestItemRewards(questInfo);
+			ApplyQuestSkillReward(questInfo);
+			ApplyQuestPoliticalEffects(questInfo);
 			LogMessage("[QUEST] Completed quest '" + questInfo.Title + "' (manual reward, game object not found)");
 			InformationManager.DisplayMessage(new InformationMessage($"Quest completed: {questInfo.Title} (Reward: {questInfo.RewardGold} denars)", ExtraColors.GreenAIInfluence));
 		}
@@ -1379,6 +1578,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	private void CleanupQuestFromAllNpcs(Hero excludeNpc, AIQuestInfo questInfo)
 	{
+		CleanupSpawnedQuestParty(questInfo);
 		try
 		{
 			HashSet<string> hashSet = new HashSet<string>();
@@ -4184,6 +4384,21 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			LogMessage($"[SETTINGS] AI Backend change detected. New value: {arg} (index: {num})");
 			return;
 		}
+		if (settingName == "DebugSpawnTestQuest" && (bool)value)
+		{
+			DebugSpawnTestQuest();
+			return;
+		}
+		if (settingName == "DebugViewActiveQuests" && (bool)value)
+		{
+			DebugViewActiveQuests();
+			return;
+		}
+		if (settingName == "DebugFailAllQuests" && (bool)value)
+		{
+			DebugFailAllQuests();
+			return;
+		}
 		if (settingName == "ForceGenerateEvent" && (bool)value)
 		{
 			LogMessage("[SETTINGS] Force generating dynamic event and clearing diplomatic data...");
@@ -4237,6 +4452,120 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		else if (!flag)
 		{
 			LogMessage("[SETTINGS] Diplomacy system disabled");
+		}
+	}
+
+	private void DebugSpawnTestQuest()
+	{
+		try
+		{
+			Hero questGiver = Hero.FindAll((Hero h) => !h.IsMainHero && h.IsAlive && h.IsActive && !h.IsWanderer)
+				?.OrderBy((Hero h) => h.GetPosition2D.Distance(Hero.MainHero.GetPosition2D))
+				?.FirstOrDefault();
+			if (questGiver == null)
+			{
+				InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] No suitable NPC found for test quest.", ExtraColors.RedAIInfluence));
+				return;
+			}
+			NPCContext context = GetOrCreateNPCContext(questGiver);
+			QuestActionData testAction = new QuestActionData
+			{
+				Action = "create_quest",
+				Title = "[DEBUG] Test Quest",
+				Description = "A debug quest to verify all reward and spawn systems.",
+				DurationDays = 14,
+				RewardGold = 500,
+				RewardItems = new List<QuestItemReward> { new QuestItemReward { ItemName = "grain", Count = 10 } },
+				RewardSkill = "Charm",
+				RewardSkillXp = 300,
+				InfluenceChange = 5,
+				CrimeRatingChange = -10,
+				SpawnHostileParty = true,
+				HostilePartySize = 8,
+				HostileTroopName = "looter",
+				HostilePartyLabel = "[DEBUG] Test Bandits",
+				AIVerificationNotes = "Debug quest — always completable.",
+				ProgressTarget = 3,
+				ProgressLabel = "steps completed"
+			};
+			ProcessCreateQuest(questGiver, context, testAction);
+			InformationManager.DisplayMessage(new InformationMessage($"[QuestDebug] Test quest created on {questGiver.Name}.", ExtraColors.GreenAIInfluence));
+		}
+		catch (Exception ex)
+		{
+			LogMessage("[QuestDebug] DebugSpawnTestQuest error: " + ex.Message);
+			InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Error — see mod_log.txt", ExtraColors.RedAIInfluence));
+		}
+	}
+
+	private void DebugViewActiveQuests()
+	{
+		try
+		{
+			int total = 0;
+			foreach (KeyValuePair<string, NPCContext> kv in _npcContexts)
+			{
+				List<AIQuestInfo> quests = kv.Value?.ActiveAIQuests;
+				if (quests == null || quests.Count == 0)
+				{
+					continue;
+				}
+				foreach (AIQuestInfo q in quests)
+				{
+					string progress = q.ProgressTarget > 0 ? $" [{q.ProgressCurrent}/{q.ProgressTarget} {q.ProgressLabel}]" : "";
+					string party = !string.IsNullOrEmpty(q.SpawnedPartyId) ? $" | party:{q.SpawnedPartyId}" : "";
+					InformationManager.DisplayMessage(new InformationMessage(
+						$"[Quest] \"{q.Title}\" giver:{q.QuestGiverNpcId} gold:{q.RewardGold}{progress}{party}", ExtraColors.GreenAIInfluence));
+					LogMessage($"[QuestDebug] Active quest: {q.QuestId} | {q.Title} | giver:{q.QuestGiverNpcId} | gold:{q.RewardGold}{progress}{party}");
+					total++;
+				}
+			}
+			if (total == 0)
+			{
+				InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] No active AI quests found.", ExtraColors.GreenAIInfluence));
+			}
+		}
+		catch (Exception ex)
+		{
+			LogMessage("[QuestDebug] DebugViewActiveQuests error: " + ex.Message);
+		}
+	}
+
+	private void DebugFailAllQuests()
+	{
+		try
+		{
+			int count = 0;
+			foreach (KeyValuePair<string, NPCContext> kv in _npcContexts)
+			{
+				List<AIQuestInfo> quests = kv.Value?.ActiveAIQuests?.ToList();
+				if (quests == null)
+				{
+					continue;
+				}
+				foreach (AIQuestInfo q in quests)
+				{
+					Hero giver = Hero.FindFirst((Hero h) => ((MBObjectBase)h).StringId == q.QuestGiverNpcId);
+					if (giver == null)
+					{
+						continue;
+					}
+					QuestActionData failAction = new QuestActionData
+					{
+						Action = "fail_quest",
+						QuestId = q.QuestId,
+						CompletionReason = "Debug: force-failed via MCM"
+					};
+					ProcessFailQuest(giver, kv.Value, failAction);
+					count++;
+				}
+			}
+			InformationManager.DisplayMessage(new InformationMessage($"[QuestDebug] Failed {count} active quest(s).", ExtraColors.GreenAIInfluence));
+			LogMessage($"[QuestDebug] DebugFailAllQuests: failed {count} quest(s)");
+		}
+		catch (Exception ex)
+		{
+			LogMessage("[QuestDebug] DebugFailAllQuests error: " + ex.Message);
 		}
 	}
 
