@@ -51,6 +51,33 @@ public class QuestActionData
 	[JsonProperty("progress_label")]
 	public string ProgressLabel { get; set; }
 
+	[JsonProperty("reward_items")]
+	public List<QuestItemReward> RewardItems { get; set; }
+
+	[JsonProperty("reward_skill")]
+	public string RewardSkill { get; set; }
+
+	[JsonProperty("reward_skill_xp")]
+	public int RewardSkillXp { get; set; }
+
+	[JsonProperty("crime_rating_change")]
+	public int? CrimeRatingChange { get; set; }
+
+	[JsonProperty("influence_change")]
+	public int? InfluenceChange { get; set; }
+
+	[JsonProperty("spawn_hostile_party")]
+	public bool SpawnHostileParty { get; set; }
+
+	[JsonProperty("hostile_party_size")]
+	public int HostilePartySize { get; set; }
+
+	[JsonProperty("hostile_party_label")]
+	public string HostilePartyLabel { get; set; }
+
+	[JsonProperty("hostile_troop_name")]
+	public string HostileTroopName { get; set; }
+
 	public List<string> GetEffectiveTargetNpcIds()
 	{
 		if (TargetNpcIds != null && TargetNpcIds.Count > 0)
