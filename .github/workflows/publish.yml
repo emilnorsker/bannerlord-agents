@@ -33,6 +33,7 @@ jobs:
           VERSION=$(xmllint --xpath 'string(//Version/@value)' SubModule.xml)
           if [ -z "$VERSION" ]; then echo "Failed to extract version from SubModule.xml"; exit 1; fi
           echo "value=$VERSION" >> $GITHUB_OUTPUT
+          echo "build_tag=${VERSION}-build.${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}" >> $GITHUB_OUTPUT
 
       - name: Stage mod files
         run: |
@@ -56,13 +57,13 @@ jobs:
           done
 
       - name: Create 7zip archive
-        run: cd staging && 7z a ../AIInfluence-${{ steps.version.outputs.value }}.7z AIInfluence/
+        run: cd staging && 7z a ../AIInfluence-${{ steps.version.outputs.build_tag }}.7z AIInfluence/
 
       - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.version.outputs.value }}
-          name: AIInfluence ${{ steps.version.outputs.value }}
-          files: AIInfluence-${{ steps.version.outputs.value }}.7z
+          tag_name: ${{ steps.version.outputs.build_tag }}
+          name: AIInfluence ${{ steps.version.outputs.build_tag }}
+          files: AIInfluence-${{ steps.version.outputs.build_tag }}.7z
           generate_release_notes: true
           fail_on_unmatched_files: true
