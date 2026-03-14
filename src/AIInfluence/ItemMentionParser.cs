@@ -22,6 +22,8 @@ public static class ItemMentionParser
 
 	private static List<(string NormalizedName, ItemObject Item)> _normalizedItems;
 
+	private static volatile List<(string NormalizedName, CharacterObject Troop)> _normalizedTroops;
+
 	public static string GetMentionedItemsSummary(ItemRoster roster, IEnumerable<string> conversationHistory, int lastMessageCount = 6, bool isPlayerInventory = false, Hero contextHero = null)
 	{
 		//IL_015e: Unknown result type (might be due to invalid IL or missing references)
@@ -300,6 +302,117 @@ public static class ItemMentionParser
 			}
 		}
 		return stringBuilder.ToString().Trim();
+	}
+
+	private static void EnsureTroopLookup()
+	{
+		if (_normalizedTroops != null)
+		{
+			return;
+		}
+		lock (CacheLock)
+		{
+			if (_normalizedTroops != null)
+			{
+				return;
+			}
+			_normalizedTroops = new List<(string, CharacterObject)>();
+			foreach (CharacterObject troop in CharacterObject.All)
+			{
+				if (troop == null)
+				{
+					continue;
+				}
+				string text = ((object)troop.Name)?.ToString();
+				if (!string.IsNullOrWhiteSpace(text))
+				{
+					string normalized = NormalizeText(text);
+					if (!string.IsNullOrEmpty(normalized))
+					{
+						_normalizedTroops.Add((normalized, troop));
+					}
+				}
+				if (!string.IsNullOrWhiteSpace(((MBObjectBase)troop).StringId))
+				{
+					string normalized2 = NormalizeText(((MBObjectBase)troop).StringId);
+					if (!string.IsNullOrEmpty(normalized2))
+					{
+						_normalizedTroops.Add((normalized2, troop));
+					}
+				}
+			}
+		}
+	}
+
+	public static CharacterObject FindBestTroopMatch(string troopName)
+	{
+		if (string.IsNullOrWhiteSpace(troopName))
+		{
+			return null;
+		}
+		EnsureTroopLookup();
+		string normalized = NormalizeText(troopName);
+		if (string.IsNullOrEmpty(normalized))
+		{
+			return null;
+		}
+		string[] tokens = normalized.Split(new char[1] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+		CharacterObject best = null;
+		int bestScore = 0;
+		foreach (var (candidateName, troop) in _normalizedTroops)
+		{
+			int score = ScoreItemMatch(tokens, normalized, candidateName);
+			if (score > bestScore)
+			{
+				bestScore = score;
+				best = troop;
+			}
+		}
+		return bestScore > 0 ? best : null;
+	}
+
+	public static ItemObject FindBestItemMatch(string itemName)
+	{
+		if (string.IsNullOrWhiteSpace(itemName))
+		{
+			return null;
+		}
+		EnsureLookup();
+		string normalized = NormalizeText(itemName);
+		if (string.IsNullOrEmpty(normalized))
+		{
+			return null;
+		}
+		string[] tokens = normalized.Split(new char[1] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+		ItemObject best = null;
+		int bestScore = 0;
+		foreach (var (candidateName, item) in _normalizedItems)
+		{
+			int score = ScoreItemMatch(tokens, normalized, candidateName);
+			if (score > bestScore)
+			{
+				bestScore = score;
+				best = item;
+			}
+		}
+		return bestScore > 0 ? best : null;
+	}
+
+	private static int ScoreItemMatch(string[] queryTokens, string queryNormalized, string candidateNormalized)
+	{
+		if (candidateNormalized == queryNormalized)
+		{
+			return 100;
+		}
+		if (candidateNormalized.StartsWith(queryNormalized, StringComparison.Ordinal) || queryNormalized.StartsWith(candidateNormalized, StringComparison.Ordinal))
+		{
+			return 80;
+		}
+		if (IsApproximateMatch(queryTokens, candidateNormalized))
+		{
+			return 50;
+		}
+		return 0;
 	}
 
 	private static bool IsApproximateMatch(string[] messageTokens, string normalizedTerm)
