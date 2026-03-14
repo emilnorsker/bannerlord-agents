@@ -13,31 +13,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
-
-      - name: Restore packages
-        run: dotnet restore src/AIInfluence.csproj
-
-      - name: Extract Bannerlord reference DLLs
-        run: |
-          PKG_ROOT=$(dotnet nuget locals global-packages --list | sed 's/global-packages: //')
-          mkdir -p src/.bl-refs
-          cp "${PKG_ROOT}bannerlord.referenceassemblies.core/1.3.15.110062/ref/net472/"*.dll src/.bl-refs/
-          cp "${PKG_ROOT}bannerlord.referenceassemblies.native/1.3.15.110062/ref/net472/"*.dll src/.bl-refs/
-          cp "${PKG_ROOT}bannerlord.referenceassemblies.sandbox/1.3.15.110062/ref/net472/"*.dll src/.bl-refs/
-          echo "Extracted $(ls src/.bl-refs/*.dll | wc -l) reference DLLs"
-
-      - name: Verify reference DLLs
-        run: |
-          echo "DLLs in src/.bl-refs: $(ls src/.bl-refs/*.dll | wc -l)"
-          ls src/.bl-refs/TaleWorlds.CampaignSystem.dll
-          echo "Absolute path: $(realpath src/.bl-refs/TaleWorlds.CampaignSystem.dll)"
-
-      - name: Build
-        run: dotnet build src/AIInfluence.csproj -c Release --no-restore -v:minimal
-
       - name: Install tools
         run: sudo apt-get install -y p7zip-full libxml2-utils
 
@@ -50,12 +25,13 @@ jobs:
 
       - name: Stage mod files
         run: |
+          if [ ! -f bin/Win64_Shipping_Client/AIInfluence.dll ]; then
+            echo "AIInfluence.dll not found in bin/Win64_Shipping_Client/"; exit 1
+          fi
           mkdir -p staging/AIInfluence/bin/Win64_Shipping_Client
           cp SubModule.xml staging/AIInfluence/
           cp -r GUI staging/AIInfluence/
-          DLL=$(find src/bin -name "AIInfluence.dll" | head -1)
-          if [ -z "$DLL" ]; then echo "AIInfluence.dll not found after build"; exit 1; fi
-          cp "$DLL" staging/AIInfluence/bin/Win64_Shipping_Client/
+          cp bin/Win64_Shipping_Client/AIInfluence.dll staging/AIInfluence/bin/Win64_Shipping_Client/
           cp bin/Win64_Shipping_Client/OggVorbisEncoder.dll staging/AIInfluence/bin/Win64_Shipping_Client/
           cp bin/Win64_Shipping_Client/System.Buffers.dll staging/AIInfluence/bin/Win64_Shipping_Client/
           cp bin/Win64_Shipping_Client/System.Memory.dll staging/AIInfluence/bin/Win64_Shipping_Client/
