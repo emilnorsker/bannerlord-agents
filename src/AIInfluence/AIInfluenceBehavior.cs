@@ -1060,10 +1060,20 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage("[QUEST] BanditPartyComponent.CreateBanditParty returned null");
 				return;
 			}
-			party.InitializeMobilePartyAroundPosition(memberRoster, new TroopRoster(party.Party), spawnPos, 5f, 0f);
-			party.SetCustomName(new TextObject(partyLabel, (Dictionary<string, object>)null));
-			party.Ai.SetMovePatrolAroundPoint(spawnPos);
 			questInfo.SpawnedPartyId = ((MBObjectBase)party).StringId;
+			try
+			{
+				party.InitializeMobilePartyAroundPosition(memberRoster, new TroopRoster(party.Party), spawnPos, 5f, 0f);
+				party.SetCustomName(new TextObject(partyLabel, (Dictionary<string, object>)null));
+				party.Ai.SetMovePatrolAroundPoint(spawnPos);
+			}
+			catch (Exception setupEx)
+			{
+				LogMessage("[QUEST] Error initializing hostile party, destroying it: " + setupEx.Message);
+				DestroyPartyAction.Apply((PartyBase)null, party);
+				questInfo.SpawnedPartyId = null;
+				throw;
+			}
 			LogMessage($"[QUEST] Spawned hostile party '{partyLabel}' ({troopCount} troops) near player for quest '{questInfo.Title}'");
 		}
 		catch (Exception ex)
@@ -1087,8 +1097,9 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			ItemObject item = ItemMentionParser.FindBestItemMatch(reward.ItemName);
 			if (item != null)
 			{
-				MobileParty.MainParty.ItemRoster.Add(new ItemRosterElement(item, reward.Count, (ItemModifier)null));
-				LogMessage($"[QUEST] Gave {reward.Count}x '{item.Name}' (resolved from '{reward.ItemName}') as quest item reward");
+				int clampedCount = Math.Max(1, Math.Min(reward.Count, 100));
+				MobileParty.MainParty.ItemRoster.Add(new ItemRosterElement(item, clampedCount, (ItemModifier)null));
+				LogMessage($"[QUEST] Gave {clampedCount}x '{item.Name}' (resolved from '{reward.ItemName}') as quest item reward");
 			}
 			else
 			{
@@ -1106,6 +1117,10 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			{
 				ChangeCrimeRatingAction.Apply(kingdom, (float)questInfo.CrimeRatingChange.Value, true);
 				LogMessage($"[QUEST] Crime rating changed by {questInfo.CrimeRatingChange.Value} in {kingdom.Name}");
+			}
+			else
+			{
+				LogMessage($"[QUEST] Crime rating change of {questInfo.CrimeRatingChange.Value} skipped — player has no kingdom affiliation");
 			}
 		}
 		if (questInfo.InfluenceChange.HasValue && questInfo.InfluenceChange.Value != 0)
