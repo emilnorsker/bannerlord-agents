@@ -466,7 +466,7 @@ public class DiplomacyManager
 			return;
 		}
 		Kingdom val = ((IEnumerable<Kingdom>)Kingdom.All).FirstOrDefault((Func<Kingdom, bool>)((Kingdom k) => ((MBObjectBase)k).StringId == actionInfo.SourceKingdomId));
-		bool flag = actionInfo.Action != DiplomaticAction.ExpelClan && actionInfo.Action != DiplomaticAction.QuarantineSettlement;
+		bool flag = actionInfo.Action != DiplomaticAction.ExpelClan && actionInfo.Action != DiplomaticAction.QuarantineSettlement && actionInfo.Action != DiplomaticAction.FoundKingdom;
 		Kingdom val2 = (flag ? ((IEnumerable<Kingdom>)Kingdom.All).FirstOrDefault((Func<Kingdom, bool>)((Kingdom k) => ((MBObjectBase)k).StringId == actionInfo.TargetKingdomId)) : null);
 		if (val == null)
 		{
@@ -1817,7 +1817,7 @@ public class DiplomacyManager
 					{
 						continue;
 					}
-					bool isInternalAction = action == DiplomaticAction.ExpelClan || action == DiplomaticAction.QuarantineSettlement;
+					bool isInternalAction = action == DiplomaticAction.ExpelClan || action == DiplomaticAction.QuarantineSettlement || action == DiplomaticAction.FoundKingdom;
 					if (!targetKingdomIds.Any() && !isInternalAction)
 					{
 						DiplomacyLogger.Instance.Log($"[DIPLOMACY_MGR] No target kingdoms found for action {action} from {statement.KingdomId}, skipping");
@@ -2117,7 +2117,7 @@ public class DiplomacyManager
 						continue;
 					}
 					string targetKingdomId;
-					if ((action2 == DiplomaticAction.ExpelClan || action2 == DiplomaticAction.QuarantineSettlement) && !targetKingdomIds.Any())
+					if ((action2 == DiplomaticAction.ExpelClan || action2 == DiplomaticAction.QuarantineSettlement || action2 == DiplomaticAction.FoundKingdom) && !targetKingdomIds.Any())
 					{
 						targetKingdomId = null;
 					}
@@ -2909,7 +2909,7 @@ public class DiplomacyManager
 				{
 					continue;
 				}
-				bool isNoTargetAction = action == DiplomaticAction.QuarantineSettlement || action == DiplomaticAction.ExpelClan;
+				bool isNoTargetAction = action == DiplomaticAction.QuarantineSettlement || action == DiplomaticAction.ExpelClan || action == DiplomaticAction.FoundKingdom;
 				if (!targetKingdomIds.Any() && !isNoTargetAction)
 				{
 					DiplomacyLogger.Instance.Log($"[PLAYER_DIPLO] No target kingdoms found for action {action}, skipping");
