@@ -1036,7 +1036,17 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage("[QUEST] No bandit clan found for hostile party spawn");
 				return;
 			}
-			Vec2 spawnPos = questGiver?.CurrentSettlement?.GatePosition ?? questGiver?.GetPosition2D ?? MobileParty.MainParty.Position2D;
+			Settlement currentSettlement = questGiver?.CurrentSettlement;
+			Vec2 spawnPos;
+			if (currentSettlement != null)
+			{
+				CampaignVec2 gate = currentSettlement.GatePosition;
+				spawnPos = ((CampaignVec2)(ref gate)).ToVec2();
+			}
+			else
+			{
+				spawnPos = questGiver?.GetPosition2D ?? MobileParty.MainParty.Position2D;
+			}
 			CharacterObject basicTroop = null;
 			if (!string.IsNullOrEmpty(questAction.HostileTroopName))
 			{
@@ -1074,7 +1084,9 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			{
 				party.InitializeMobilePartyAroundPosition(memberRoster, new TroopRoster(party.Party), spawnPos, 5f, 0f);
 				party.SetCustomName(new TextObject(partyLabel, (Dictionary<string, object>)null));
-				party.Ai.SetMovePatrolAroundPoint(spawnPos);
+				CampaignVec2 patrolPos = default(CampaignVec2);
+				((CampaignVec2)(ref patrolPos))._002Ector(spawnPos, true);
+				party.SetMovePatrolAroundPoint(patrolPos, (NavigationType)3);
 			}
 			catch (Exception setupEx)
 			{
@@ -1082,6 +1094,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				DestroyPartyAction.Apply((PartyBase)null, party);
 				questInfo.SpawnedPartyId = null;
 				throw;
+			}
+			QuestBase questBase = Campaign.Current?.QuestManager?.Quests?.FirstOrDefault((Func<QuestBase, bool>)((QuestBase q) => ((MBObjectBase)q).StringId == questInfo.QuestId && q.IsOngoing));
+			if (questBase != null)
+			{
+				questBase.AddTrackedObject((ITrackableCampaignObject)(object)party);
 			}
 			LogMessage($"[QUEST] Spawned hostile party '{partyLabel}' ({troopCount} troops) near player for quest '{questInfo.Title}'");
 			InformationManager.DisplayMessage(new InformationMessage($"A hostile party '{partyLabel}' has appeared on the map!", ExtraColors.RedAIInfluence));
@@ -1128,14 +1145,14 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		if (skill != null)
 		{
 			Hero mainHero = Hero.MainHero;
-			if (mainHero?.HeroDeveloper != null)
+			if (mainHero != null)
 			{
-				mainHero.HeroDeveloper.AddSkillXp(skill, (float)questInfo.RewardSkillXp, true, true);
+				mainHero.AddSkillXp(skill, (float)questInfo.RewardSkillXp);
 				LogMessage($"[QUEST] Gave {questInfo.RewardSkillXp} XP in {questInfo.RewardSkill} as quest skill reward");
 			}
 			else
 			{
-				LogMessage($"[QUEST] Skill reward skipped — MainHero or HeroDeveloper is null");
+				LogMessage($"[QUEST] Skill reward skipped — MainHero is null");
 			}
 		}
 		else
