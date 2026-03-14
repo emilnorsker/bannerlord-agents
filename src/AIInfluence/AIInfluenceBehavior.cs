@@ -4777,9 +4777,9 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				{
 					try
 					{
-						_npcContexts = JsonConvert.DeserializeObject<Dictionary<string, NPCContext>>(_npcContextsJson) ?? _npcContexts;
-						LogMessage($"[LOAD] Restored {_npcContexts.Count} NPC contexts from game save");
-					}
+					_npcContexts = JsonConvert.DeserializeObject<Dictionary<string, NPCContext>>(_npcContextsJson) ?? _npcContexts;
+					_npcContextsJson = null; // free the raw string now that objects are materialized
+					LogMessage($"[LOAD] Restored {_npcContexts.Count} NPC contexts from game save");
 					catch (Exception ex)
 					{
 						LogMessage($"[ERROR] Failed to deserialize NPC contexts from save, will fall back to JSON files: {ex.Message}");
