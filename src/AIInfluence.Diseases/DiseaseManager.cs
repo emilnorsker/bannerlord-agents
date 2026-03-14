@@ -399,7 +399,7 @@ public class DiseaseManager
 		if (_diseases.Count > 0)
 		{
 			CampaignTime now = CampaignTime.Now;
-			float num = (float)((CampaignTime)(ref now)).ToDays;
+			float num = (float)(now).ToDays;
 			float num2 = _diseases.Max((Disease d) => d.CreatedAt);
 			float num3 = num - num2;
 			if (num3 < (float)instance2.DiseaseMinDaysBetweenOutbreaks)
@@ -894,11 +894,11 @@ public class DiseaseManager
 				int troopTier = GetTroopTier(current.Character);
 				if (dictionary.ContainsKey(troopTier))
 				{
-					dictionary[troopTier] += ((TroopRosterElement)(ref current)).Number;
+					dictionary[troopTier] += (current).Number;
 				}
 				else
 				{
-					dictionary[troopTier] = ((TroopRosterElement)(ref current)).Number;
+					dictionary[troopTier] = (current).Number;
 				}
 			}
 		}
@@ -1009,7 +1009,7 @@ public class DiseaseManager
 				if (true)
 				{
 					CampaignTime now = CampaignTime.Now;
-					float num = (float)((CampaignTime)(ref now)).ToDays;
+					float num = (float)(now).ToDays;
 					float num2 = num;
 					if (_manualQuarantine.TryGetValue(((MBObjectBase)settlement).StringId, out var value) && value.HasValue && value.Value > num)
 					{
@@ -1134,7 +1134,7 @@ public class DiseaseManager
 			return;
 		}
 		CampaignTime now = CampaignTime.Now;
-		float num = (float)((CampaignTime)(ref now)).ToDays;
+		float num = (float)(now).ToDays;
 		List<string> list = new List<string>();
 		foreach (KeyValuePair<string, float?> item in _manualQuarantine)
 		{
@@ -1420,7 +1420,7 @@ public class DiseaseManager
 				}
 				if (current.Character != null && !((BasicCharacterObject)current.Character).IsHero)
 				{
-					int num6 = Math.Min(num5, ((TroopRosterElement)(ref current)).Number);
+					int num6 = Math.Min(num5, (current).Number);
 					memberRoster.RemoveTroop(current.Character, num6, default(UniqueTroopDescriptor), 0);
 					num5 -= num6;
 				}
@@ -1476,7 +1476,7 @@ public class DiseaseManager
 					if (num > 0f)
 					{
 						CampaignTime now = CampaignTime.Now;
-						item.SeasonalImmunityEndDays = (float)((CampaignTime)(ref now)).ToDays + num;
+						item.SeasonalImmunityEndDays = (float)(now).ToDays + num;
 						_heroSeasonalImmunityIndex[item.TargetId] = item;
 						if (val == Hero.MainHero)
 						{
@@ -1963,7 +1963,7 @@ public class DiseaseManager
 			TroopRosterElement elementCopyAtIndex = party.PrisonRoster.GetElementCopyAtIndex(num4);
 			if (elementCopyAtIndex.Character != null && !((BasicCharacterObject)elementCopyAtIndex.Character).IsHero)
 			{
-				int num5 = Math.Min(((TroopRosterElement)(ref elementCopyAtIndex)).Number, num2 - num3);
+				int num5 = Math.Min((elementCopyAtIndex).Number, num2 - num3);
 				party.PrisonRoster.AddToCounts(elementCopyAtIndex.Character, -num5, false, 0, 0, true, -1);
 				num3 += num5;
 			}

@@ -38,7 +38,7 @@ public class WorldEventEntry : ViewModel
 			if (value != _title)
 			{
 				_title = value;
-				((ViewModel)this).OnPropertyChanged("Title");
+				base.OnPropertyChanged("Title");
 			}
 		}
 	}
@@ -55,7 +55,7 @@ public class WorldEventEntry : ViewModel
 			if (value != _category)
 			{
 				_category = value;
-				((ViewModel)this).OnPropertyChanged("Category");
+				base.OnPropertyChanged("Category");
 			}
 		}
 	}
@@ -72,7 +72,7 @@ public class WorldEventEntry : ViewModel
 			if (value != _categoryColor)
 			{
 				_categoryColor = value;
-				((ViewModel)this).OnPropertyChanged("CategoryColor");
+				base.OnPropertyChanged("CategoryColor");
 			}
 		}
 	}
@@ -89,7 +89,7 @@ public class WorldEventEntry : ViewModel
 			if (value != _declarationContent)
 			{
 				_declarationContent = value;
-				((ViewModel)this).OnPropertyChanged("DeclarationContent");
+				base.OnPropertyChanged("DeclarationContent");
 			}
 		}
 	}
@@ -106,7 +106,7 @@ public class WorldEventEntry : ViewModel
 			if (value != _issuedTime)
 			{
 				_issuedTime = value;
-				((ViewModel)this).OnPropertyChanged("IssuedTime");
+				base.OnPropertyChanged("IssuedTime");
 			}
 		}
 	}
@@ -123,7 +123,7 @@ public class WorldEventEntry : ViewModel
 			if (value != _involvedFactions)
 			{
 				_involvedFactions = value;
-				((ViewModel)this).OnPropertyChanged("InvolvedFactions");
+				base.OnPropertyChanged("InvolvedFactions");
 			}
 		}
 	}
@@ -140,7 +140,7 @@ public class WorldEventEntry : ViewModel
 			if (value != _locationHint)
 			{
 				_locationHint = value;
-				((ViewModel)this).OnPropertyChanged("LocationHint");
+				base.OnPropertyChanged("LocationHint");
 			}
 		}
 	}
@@ -157,7 +157,7 @@ public class WorldEventEntry : ViewModel
 			if (value != _faction1Name)
 			{
 				_faction1Name = value;
-				((ViewModel)this).OnPropertyChanged("Faction1Name");
+				base.OnPropertyChanged("Faction1Name");
 			}
 		}
 	}
@@ -174,7 +174,7 @@ public class WorldEventEntry : ViewModel
 			if (value != _faction2Name)
 			{
 				_faction2Name = value;
-				((ViewModel)this).OnPropertyChanged("Faction2Name");
+				base.OnPropertyChanged("Faction2Name");
 			}
 		}
 	}
@@ -202,7 +202,7 @@ public class WorldEventEntry : ViewModel
 			if (value != _entryOrder)
 			{
 				_entryOrder = value;
-				((ViewModel)this).OnPropertyChanged("EntryOrder");
+				base.OnPropertyChanged("EntryOrder");
 			}
 		}
 	}

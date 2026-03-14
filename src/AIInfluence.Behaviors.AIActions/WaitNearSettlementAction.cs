@@ -349,7 +349,7 @@ public sealed class WaitNearSettlementAction : AIActionBase
 			val.SetTextVariable("SETTLEMENT_NAME", ((object)_targetSettlement.Name)?.ToString() ?? "Unknown");
 			val.SetTextVariable("RADIUS", _desiredRadius.ToString("0.0"));
 			InformationManager.DisplayMessage(new InformationMessage(((object)val).ToString(), ExtraColors.GreenAIInfluence));
-			LogAction($"Arrived near {_targetSettlement.Name}, waiting for {((CampaignTime)(ref _waitDuration)).ToDays:F1} days at radius {_desiredRadius}");
+			LogAction($"Arrived near {_targetSettlement.Name}, waiting for {(_waitDuration).ToDays:F1} days at radius {_desiredRadius}");
 			_arrivalAnnounced = true;
 		}
 	}
@@ -389,18 +389,18 @@ public sealed class WaitNearSettlementAction : AIActionBase
 		try
 		{
 			CampaignVec2 val = _targetSettlement.Position;
-			Vec2 val2 = ((CampaignVec2)(ref val)).ToVec2();
+			Vec2 val2 = (val).ToVec2();
 			val = _targetSettlement.GatePosition;
-			Vec2 val3 = ((CampaignVec2)(ref val)).ToVec2();
+			Vec2 val3 = (val).ToVec2();
 			Vec2 val4 = val3 - val2;
-			if (((Vec2)(ref val4)).LengthSquared < 0.25f)
+			if ((val4).LengthSquared < 0.25f)
 			{
-				((Vec2)(ref val4))._002Ector(1f, 0f);
+				val4 = new Vec2(1f, 0f);
 			}
-			((Vec2)(ref val4)).Normalize();
+			(val4).Normalize();
 			Vec2 val5 = val2 + val4 * MathF.Clamp(_desiredRadius, 7f, 18f);
 			CampaignVec2 val6 = default(CampaignVec2);
-			((CampaignVec2)(ref val6))._002Ector(val5, true);
+			val6 = new CampaignVec2(val5, true);
 			_heroParty.SetMovePatrolAroundPoint(val6, (NavigationType)3);
 			GameVersionCompatibility.ConditionalEnableAi(_heroParty);
 			_lastOrderTime = CampaignTime.Now;
@@ -449,7 +449,7 @@ public sealed class WaitNearSettlementAction : AIActionBase
 		}
 		Vec2 position2D = _heroParty.GetPosition2D();
 		CampaignVec2 position = _targetSettlement.Position;
-		return ((Vec2)(ref position2D)).Distance(((CampaignVec2)(ref position)).ToVec2());
+		return (position2D).Distance((position).ToVec2());
 	}
 
 	private MobileParty EnsurePartyForWaiting(out bool createdNew)
@@ -575,13 +575,13 @@ public sealed class WaitNearSettlementAction : AIActionBase
 		if (_isWaiting && _waitUntil.HasValue)
 		{
 			CampaignTime val = _waitUntil.Value;
-			double toHours = ((CampaignTime)(ref val)).ToHours;
+			double toHours = (val).ToHours;
 			val = CampaignTime.Now;
-			num = MathF.Max(0.1f, (float)(toHours - ((CampaignTime)(ref val)).ToHours));
+			num = MathF.Max(0.1f, (float)(toHours - (val).ToHours));
 		}
 		else
 		{
-			num = (float)((CampaignTime)(ref _waitDuration)).ToHours;
+			num = (float)(_waitDuration).ToHours;
 		}
 		dictionary["remainingHours"] = num.ToString(CultureInfo.InvariantCulture);
 		return dictionary;

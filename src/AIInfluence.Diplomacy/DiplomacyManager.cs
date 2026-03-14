@@ -18,6 +18,7 @@ using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Core;
 using TaleWorlds.Library;
 using TaleWorlds.ObjectSystem;
+using KillCharacterAction = TaleWorlds.CampaignSystem.Actions.KillCharacterAction;
 
 namespace AIInfluence.Diplomacy;
 
@@ -1025,11 +1026,11 @@ public class DiplomacyManager
 			foreach (FlattenedTroopRosterElement item in roster)
 			{
 				FlattenedTroopRosterElement current = item;
-				if (((FlattenedTroopRosterElement)(ref current)).Troop == null || !((BasicCharacterObject)((FlattenedTroopRosterElement)(ref current)).Troop).IsHero)
+				if ((current).Troop == null || !((BasicCharacterObject)(current).Troop).IsHero)
 				{
 					continue;
 				}
-				Hero heroObject = ((FlattenedTroopRosterElement)(ref current)).Troop.HeroObject;
+				Hero heroObject = (current).Troop.HeroObject;
 				if (heroObject != null && heroObject.IsLord)
 				{
 					PartyBase partyBelongedToAsPrisoner = heroObject.PartyBelongedToAsPrisoner;
@@ -1619,9 +1620,9 @@ public class DiplomacyManager
 				continue;
 			}
 			val = item2.Value;
-			double toDays = ((CampaignTime)(ref val)).ToDays;
+			double toDays = (val).ToDays;
 			val = CampaignTime.Now;
-			float num = (float)(toDays - ((CampaignTime)(ref val)).ToDays);
+			float num = (float)(toDays - (val).ToDays);
 			if (num > 0f && !(num < 100f))
 			{
 			}
@@ -1658,9 +1659,9 @@ public class DiplomacyManager
 						{
 							(Kingdom, CampaignTime) tuple = _statementQueue[eventId].Peek();
 							ScheduleNextStatement(eventId, tuple.Item1, tuple.Item2);
-							double toDays2 = ((CampaignTime)(ref tuple.Item2)).ToDays;
+							double toDays2 = (tuple.Item2).ToDays;
 							val = CampaignTime.Now;
-							int num2 = (int)(toDays2 - ((CampaignTime)(ref val)).ToDays);
+							int num2 = (int)(toDays2 - (val).ToDays);
 							DiplomacyLogger.Instance.Log($"[DIPLOMACY_MGR] Scheduled next queued statement for {tuple.Item1.Name} in {num2} days. {_statementQueue[eventId].Count} remaining in queue.");
 						}
 						else
@@ -1694,9 +1695,9 @@ public class DiplomacyManager
 				{
 					(Kingdom, CampaignTime) tuple2 = queue.Peek();
 					ScheduleNextStatement(eventId, tuple2.Item1, tuple2.Item2);
-					double toDays3 = ((CampaignTime)(ref tuple2.Item2)).ToDays;
+					double toDays3 = (tuple2.Item2).ToDays;
 					val = CampaignTime.Now;
-					int num3 = (int)(toDays3 - ((CampaignTime)(ref val)).ToDays);
+					int num3 = (int)(toDays3 - (val).ToDays);
 					DiplomacyLogger.Instance.Log($"[DIPLOMACY_MGR] Scheduled next queued statement for {tuple2.Item1.Name} in {num3} days. {queue.Count} remaining in queue.");
 				}
 				else
@@ -2569,7 +2570,7 @@ public class DiplomacyManager
 		try
 		{
 			Color val = default(Color);
-			((Color)(ref val))._002Ector(1f, 0.55f, 0f, 1f);
+			val = new Color(1f, 0.55f, 0f, 1f);
 			InformationManager.DisplayMessage(new InformationMessage(eventUpdate, val));
 		}
 		catch (Exception ex)
@@ -3074,9 +3075,9 @@ public class DiplomacyManager
 				CreationTime = DateTime.Now
 			};
 			CampaignTime now = CampaignTime.Now;
-			obj.CreationCampaignDays = (float)((CampaignTime)(ref now)).ToDays;
+			obj.CreationCampaignDays = (float)(now).ToDays;
 			now = CampaignTime.Now;
-			obj.ExpirationCampaignDays = (float)(((CampaignTime)(ref now)).ToDays + (double)GlobalSettings<ModSettings>.Instance.DynamicEventsLifespan);
+			obj.ExpirationCampaignDays = (float)((now).ToDays + (double)GlobalSettings<ModSettings>.Instance.DynamicEventsLifespan);
 			obj.ExpirationTime = DateTime.Now.AddDays(GlobalSettings<ModSettings>.Instance.DynamicEventsLifespan);
 			obj.ApplicableNPCs = new List<string> { "faction_leaders", "clan_leaders" };
 			DynamicEvent diplomaticEvent = obj;

@@ -10,6 +10,8 @@ using TaleWorlds.Core;
 using TaleWorlds.Core.ImageIdentifiers;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
+using OnConditionDelegate = TaleWorlds.CampaignSystem.GameMenus.GameMenuOption.OnConditionDelegate;
+using OnConsequenceDelegate = TaleWorlds.CampaignSystem.GameMenus.GameMenuOption.OnConsequenceDelegate;
 
 namespace AIInfluence.Diseases;
 
@@ -215,7 +217,7 @@ public class QuarantineMenuBehavior : CampaignBehaviorBase
 				{
 					float value = disease.QuarantineEndDays.Value;
 					CampaignTime now = CampaignTime.Now;
-					int num = (int)(value - (float)((CampaignTime)(ref now)).ToDays);
+					int num = (int)(value - (float)(now).ToDays);
 					if (num > 0)
 					{
 						TextObject val2 = new TextObject("{=AIInfluence_QuarantineDaysLeft}Days remaining: {DAYS}", (Dictionary<string, object>)null);

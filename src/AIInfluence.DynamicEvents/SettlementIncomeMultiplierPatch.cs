@@ -161,7 +161,7 @@ public class SettlementIncomeMultiplierPatch
 			}
 			List<ActiveEconomicEffect> list = EconomicEffectsManager.Instance?.GetActiveEffects();
 			CampaignTime now = CampaignTime.Now;
-			float currentDay = (float)((CampaignTime)(ref now)).ToDays;
+			float currentDay = (float)(now).ToDays;
 			foreach (Town item in (List<Town>)(object)clan.Fiefs)
 			{
 				if (((item != null) ? ((SettlementComponent)item).Settlement : null) == null)
@@ -198,7 +198,7 @@ public class SettlementIncomeMultiplierPatch
 								text += $" ({list2.Count} effects)";
 							}
 							TextObject val = new TextObject(text, (Dictionary<string, object>)null);
-							((ExplainedNumber)(ref goldChange)).Add(num2, val, ((SettlementComponent)item).Name);
+							(goldChange).Add(num2, val, ((SettlementComponent)item).Name);
 						}
 					}
 				}
@@ -209,7 +209,7 @@ public class SettlementIncomeMultiplierPatch
 					{
 						float num5 = num * (quarantineIncomeMultiplier - 1f);
 						TextObject val2 = new TextObject("{=AIInfluence_QuarantinePenaltyReason}Quarantine", (Dictionary<string, object>)null);
-						((ExplainedNumber)(ref goldChange)).Add(num5, val2, ((SettlementComponent)item).Name);
+						(goldChange).Add(num5, val2, ((SettlementComponent)item).Name);
 					}
 				}
 			}
@@ -250,9 +250,9 @@ public class SettlementIncomeMultiplierPatch
 			}
 			float num = 0f;
 			ExplainedNumber val = Campaign.Current.Models.SettlementTaxModel.CalculateTownTax(town, false);
-			num += ((ExplainedNumber)(ref val)).ResultNumber;
+			num += (val).ResultNumber;
 			ExplainedNumber val2 = Campaign.Current.Models.ClanFinanceModel.CalculateTownIncomeFromTariffs(clan, town, false);
-			num += ((ExplainedNumber)(ref val2)).ResultNumber;
+			num += (val2).ResultNumber;
 			int num2 = Campaign.Current.Models.ClanFinanceModel.CalculateTownIncomeFromProjects(town);
 			num += (float)num2;
 			if (town.Villages != null)

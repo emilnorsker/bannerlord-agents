@@ -39,7 +39,7 @@ public class TradeAgreementInfo
 				if (true)
 				{
 					CampaignTime now = CampaignTime.Now;
-					float num = (float)((CampaignTime)(ref now)).ToDays;
+					float num = (float)(now).ToDays;
 					float num2 = num - StartTimeDays;
 					return CampaignTime.DaysFromNow(0f - num2);
 				}
@@ -49,7 +49,7 @@ public class TradeAgreementInfo
 		set
 		{
 			bool flag = true;
-			StartTimeDays = (float)((CampaignTime)(ref value)).ToDays;
+			StartTimeDays = (float)(value).ToDays;
 		}
 	}
 
@@ -72,7 +72,7 @@ public class TradeAgreementInfo
 				if (true)
 				{
 					CampaignTime now = CampaignTime.Now;
-					float num = (float)((CampaignTime)(ref now)).ToDays;
+					float num = (float)(now).ToDays;
 					float num2 = num - EndTimeDays;
 					return CampaignTime.DaysFromNow(0f - num2);
 				}
@@ -82,7 +82,7 @@ public class TradeAgreementInfo
 		set
 		{
 			bool flag = true;
-			EndTimeDays = (float)((CampaignTime)(ref value)).ToDays;
+			EndTimeDays = (float)(value).ToDays;
 		}
 	}
 }

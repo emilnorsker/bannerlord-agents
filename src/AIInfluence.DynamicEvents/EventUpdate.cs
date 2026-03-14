@@ -35,11 +35,11 @@ public class EventUpdate
 			//IL_0015: Unknown result type (might be due to invalid IL or missing references)
 			float campaignDays = CampaignDays;
 			CampaignTime now = CampaignTime.Now;
-			return CampaignTime.DaysFromNow(campaignDays - (float)((CampaignTime)(ref now)).ToDays);
+			return CampaignTime.DaysFromNow(campaignDays - (float)(now).ToDays);
 		}
 		set
 		{
-			CampaignDays = (float)((CampaignTime)(ref value)).ToDays;
+			CampaignDays = (float)(value).ToDays;
 		}
 	}
 
@@ -48,7 +48,7 @@ public class EventUpdate
 		//IL_0014: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0019: Unknown result type (might be due to invalid IL or missing references)
 		CampaignTime now = CampaignTime.Now;
-		CampaignDays = (float)((CampaignTime)(ref now)).ToDays;
+		CampaignDays = (float)(now).ToDays;
 		UpdateReason = "Event Update";
 		EconomicEffects = new List<EconomicEffect>();
 	}
@@ -58,7 +58,7 @@ public class EventUpdate
 		//IL_0014: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0019: Unknown result type (might be due to invalid IL or missing references)
 		CampaignTime now = CampaignTime.Now;
-		CampaignDays = (float)((CampaignTime)(ref now)).ToDays;
+		CampaignDays = (float)(now).ToDays;
 		Description = description;
 		UpdateReason = updateReason;
 		EconomicEffects = new List<EconomicEffect>();

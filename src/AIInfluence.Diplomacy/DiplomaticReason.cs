@@ -37,7 +37,7 @@ public class DiplomaticReason
 				if (true)
 				{
 					CampaignTime now = CampaignTime.Now;
-					float num = (float)((CampaignTime)(ref now)).ToDays;
+					float num = (float)(now).ToDays;
 					float num2 = num - TimestampDays;
 					return CampaignTime.DaysFromNow(0f - num2);
 				}
@@ -47,7 +47,7 @@ public class DiplomaticReason
 		set
 		{
 			bool flag = true;
-			TimestampDays = (float)((CampaignTime)(ref value)).ToDays;
+			TimestampDays = (float)(value).ToDays;
 		}
 	}
 

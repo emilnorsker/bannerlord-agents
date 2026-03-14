@@ -51,11 +51,11 @@ public static class DiseaseTreatmentExpensePatch
 			{
 				if (includeDescriptions)
 				{
-					((ExplainedNumber)(ref __result)).Add((float)(-value), new TextObject("{=AIInfluence_DiseaseTreatmentExpense}Disease treatment", (Dictionary<string, object>)null), (TextObject)null);
+					(__result).Add((float)(-value), new TextObject("{=AIInfluence_DiseaseTreatmentExpense}Disease treatment", (Dictionary<string, object>)null), (TextObject)null);
 				}
 				else
 				{
-					((ExplainedNumber)(ref __result)).Add((float)(-value), (TextObject)null, (TextObject)null);
+					(__result).Add((float)(-value), (TextObject)null, (TextObject)null);
 				}
 				if (applyWithdrawals)
 				{

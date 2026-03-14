@@ -99,7 +99,7 @@ public class TradeAgreementSystem
 		{
 			TradeAgreementInfo tradeAgreementInfo = TradeAgreements[agreementKey];
 			CampaignTime endTime2 = tradeAgreementInfo.EndTime;
-			if (((CampaignTime)(ref endTime2)).IsFuture)
+			if ((endTime2).IsFuture)
 			{
 				endTime = tradeAgreementInfo.EndTime;
 				return true;
@@ -243,19 +243,19 @@ public class TradeAgreementSystem
 		}
 		TradeAgreementInfo tradeAgreementInfo = TradeAgreements[agreementKey];
 		CampaignTime val = tradeAgreementInfo.EndTime;
-		CampaignTime val2 = (tradeAgreementInfo.EndTime = ((!((CampaignTime)(ref val)).IsFuture) ? (CampaignTime.Now + CampaignTime.Years(additionalYears)) : (tradeAgreementInfo.EndTime + CampaignTime.Years(additionalYears))));
-		double toDays = ((CampaignTime)(ref val2)).ToDays;
+		CampaignTime val2 = (tradeAgreementInfo.EndTime = ((!(val).IsFuture) ? (CampaignTime.Now + CampaignTime.Years(additionalYears)) : (tradeAgreementInfo.EndTime + CampaignTime.Years(additionalYears))));
+		double toDays = (val2).ToDays;
 		val = tradeAgreementInfo.StartTime;
-		tradeAgreementInfo.DurationYears = (float)((toDays - ((CampaignTime)(ref val)).ToDays) / (double)CampaignTime.DaysInYear);
+		tradeAgreementInfo.DurationYears = (float)((toDays - (val).ToDays) / (double)CampaignTime.DaysInYear);
 		if (_vanillaBehavior != null)
 		{
 			DiplomacyPatches.WithBypass(delegate
 			{
 				_vanillaBehavior.EndTradeAgreement(kingdom1, kingdom2);
 			});
-			double toDays2 = ((CampaignTime)(ref val2)).ToDays;
+			double toDays2 = (val2).ToDays;
 			val = CampaignTime.Now;
-			float num = (float)((toDays2 - ((CampaignTime)(ref val)).ToDays) / (double)CampaignTime.DaysInYear);
+			float num = (float)((toDays2 - (val).ToDays) / (double)CampaignTime.DaysInYear);
 			if (num > 0f)
 			{
 				CampaignTime totalDuration = CampaignTime.Years(num);
@@ -297,7 +297,7 @@ public class TradeAgreementSystem
 			if (a.Kingdom1Id == ((MBObjectBase)kingdom).StringId || a.Kingdom2Id == ((MBObjectBase)kingdom).StringId)
 			{
 				CampaignTime endTime = a.EndTime;
-				result = (((CampaignTime)(ref endTime)).IsFuture ? 1 : 0);
+				result = ((endTime).IsFuture ? 1 : 0);
 			}
 			else
 			{
@@ -332,7 +332,7 @@ public class TradeAgreementSystem
 			//IL_0007: Unknown result type (might be due to invalid IL or missing references)
 			//IL_000c: Unknown result type (might be due to invalid IL or missing references)
 			CampaignTime endTime = kvp.Value.EndTime;
-			return ((CampaignTime)(ref endTime)).IsPast;
+			return (endTime).IsPast;
 		}).ToList();
 		foreach (KeyValuePair<string, TradeAgreementInfo> item in list)
 		{
@@ -401,7 +401,7 @@ public class TradeAgreementSystem
 			//IL_0001: Unknown result type (might be due to invalid IL or missing references)
 			//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 			CampaignTime endTime2 = a.EndTime;
-			return ((CampaignTime)(ref endTime2)).IsFuture;
+			return (endTime2).IsFuture;
 		}))
 		{
 			Kingdom val = ((IEnumerable<Kingdom>)Kingdom.All).FirstOrDefault((Func<Kingdom, bool>)((Kingdom k) => ((MBObjectBase)k).StringId == agreement.Kingdom1Id));
@@ -409,7 +409,7 @@ public class TradeAgreementSystem
 			if (val != null && val2 != null)
 			{
 				CampaignTime endTime = agreement.EndTime;
-				float num = ((CampaignTime)(ref endTime)).RemainingDaysFromNow / (float)CampaignTime.DaysInYear;
+				float num = (endTime).RemainingDaysFromNow / (float)CampaignTime.DaysInYear;
 				stringBuilder.AppendLine($"- {val.Name} ↔ {val2.Name} (expires in {num:F1} years)");
 			}
 		}
@@ -441,7 +441,7 @@ public class TradeAgreementSystem
 				if (TradeAgreements.ContainsKey(agreementKey))
 				{
 					endTime = TradeAgreements[agreementKey].EndTime;
-					num3 = (((CampaignTime)(ref endTime)).IsFuture ? 1 : 0);
+					num3 = ((endTime).IsFuture ? 1 : 0);
 				}
 				else
 				{
@@ -462,7 +462,7 @@ public class TradeAgreementSystem
 					}
 					TradeAgreementInfo tradeAgreementInfo = TradeAgreements[agreementKey];
 					endTime = tradeAgreementInfo.EndTime;
-					float num4 = ((CampaignTime)(ref endTime)).RemainingDaysFromNow / (float)CampaignTime.DaysInYear;
+					float num4 = (endTime).RemainingDaysFromNow / (float)CampaignTime.DaysInYear;
 					if (num4 > 0f)
 					{
 						LogMessage($"[TRADE_AGREEMENT] Synchronizing: Creating missing trade agreement {kingdom1.Name} ↔ {item.Name} (remaining: {num4:F1} years)");

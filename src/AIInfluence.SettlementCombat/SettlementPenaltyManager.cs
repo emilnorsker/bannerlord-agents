@@ -83,7 +83,7 @@ public class SettlementPenaltyManager : CampaignBehaviorBase
 				ProsperityPenaltyPerDay = prosperityPenaltyPerDay
 			};
 			CampaignTime now = CampaignTime.Now;
-			obj.StartDay = (float)((CampaignTime)(ref now)).ToDays;
+			obj.StartDay = (float)(now).ToDays;
 			obj.DurationDays = durationDays;
 			obj.Reason = reason;
 			ActivePenalty value = obj;
@@ -108,7 +108,7 @@ public class SettlementPenaltyManager : CampaignBehaviorBase
 		if (_activePenalties.TryGetValue(((MBObjectBase)settlement).StringId, out var value))
 		{
 			CampaignTime now = CampaignTime.Now;
-			float num = (float)((CampaignTime)(ref now)).ToDays;
+			float num = (float)(now).ToDays;
 			if (num < value.StartDay + (float)value.DurationDays)
 			{
 				return value;
@@ -174,7 +174,7 @@ public class SettlementPenaltyManager : CampaignBehaviorBase
 				{
 					break;
 				}
-				int num3 = Math.Min(((TroopRosterElement)(ref current)).Number, num - num2);
+				int num3 = Math.Min((current).Number, num - num2);
 				val.MemberRoster.AddToCounts(current.Character, -num3, false, 0, 0, true, -1);
 				num2 += num3;
 			}
@@ -193,7 +193,7 @@ public class SettlementPenaltyManager : CampaignBehaviorBase
 		try
 		{
 			CampaignTime now = CampaignTime.Now;
-			float num = (float)((CampaignTime)(ref now)).ToDays;
+			float num = (float)(now).ToDays;
 			List<string> list = new List<string>();
 			foreach (KeyValuePair<string, ActivePenalty> activePenalty in _activePenalties)
 			{

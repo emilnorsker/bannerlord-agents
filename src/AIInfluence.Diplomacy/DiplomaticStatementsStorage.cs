@@ -109,7 +109,7 @@ public class DiplomaticStatementsStorage
 				if (s.CampaignDays > 0f)
 				{
 					CampaignTime now = CampaignTime.Now;
-					float num = (float)((CampaignTime)(ref now)).ToDays;
+					float num = (float)(now).ToDays;
 					int num2 = Math.Max(0, (int)(num - s.CampaignDays));
 					return num2 <= maxDays;
 				}
@@ -210,7 +210,7 @@ public class DiplomaticStatementsStorage
 			if (s.CampaignDays > 0f)
 			{
 				CampaignTime now = CampaignTime.Now;
-				float num2 = (float)((CampaignTime)(ref now)).ToDays;
+				float num2 = (float)(now).ToDays;
 				int num3 = Math.Max(0, (int)(num2 - s.CampaignDays));
 				return num3 > maxAgeDays;
 			}

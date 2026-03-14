@@ -95,7 +95,7 @@ public class SettlementCombatBoundaryPatch
 						{
 							num++;
 							Vec3 val6 = item.Position - val2;
-							if (((Vec3)(ref val6)).LengthSquared <= 15f)
+							if ((val6).LengthSquared <= 15f)
 							{
 								num2++;
 							}

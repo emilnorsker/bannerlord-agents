@@ -52,12 +52,12 @@ public class SettlementDiseaseInstance
 			//IL_0020: Unknown result type (might be due to invalid IL or missing references)
 			float startDays = StartDays;
 			CampaignTime now = CampaignTime.Now;
-			float num = startDays - (float)((CampaignTime)(ref now)).ToDays;
+			float num = startDays - (float)(now).ToDays;
 			return CampaignTime.DaysFromNow(num);
 		}
 		set
 		{
-			StartDays = (float)((CampaignTime)(ref value)).ToDays;
+			StartDays = (float)(value).ToDays;
 		}
 	}
 
@@ -75,7 +75,7 @@ public class SettlementDiseaseInstance
 			}
 			float value = EndDays.Value;
 			CampaignTime now = CampaignTime.Now;
-			float num = value - (float)((CampaignTime)(ref now)).ToDays;
+			float num = value - (float)(now).ToDays;
 			return CampaignTime.DaysFromNow(num);
 		}
 		set
@@ -90,7 +90,7 @@ public class SettlementDiseaseInstance
 			else
 			{
 				CampaignTime value2 = value.Value;
-				endDays = (float)((CampaignTime)(ref value2)).ToDays;
+				endDays = (float)(value2).ToDays;
 			}
 			EndDays = endDays;
 		}
@@ -108,12 +108,12 @@ public class SettlementDiseaseInstance
 			//IL_0020: Unknown result type (might be due to invalid IL or missing references)
 			float lastAutoTreatmentDays = LastAutoTreatmentDays;
 			CampaignTime now = CampaignTime.Now;
-			float num = lastAutoTreatmentDays - (float)((CampaignTime)(ref now)).ToDays;
+			float num = lastAutoTreatmentDays - (float)(now).ToDays;
 			return CampaignTime.DaysFromNow(num);
 		}
 		set
 		{
-			LastAutoTreatmentDays = (float)((CampaignTime)(ref value)).ToDays;
+			LastAutoTreatmentDays = (float)(value).ToDays;
 		}
 	}
 
@@ -131,7 +131,7 @@ public class SettlementDiseaseInstance
 				return 0;
 			}
 			CampaignTime now = CampaignTime.Now;
-			float num = (float)((CampaignTime)(ref now)).ToDays;
+			float num = (float)(now).ToDays;
 			return Math.Max(0, (int)(num - StartDays));
 		}
 	}
@@ -150,7 +150,7 @@ public class SettlementDiseaseInstance
 				return 0;
 			}
 			CampaignTime now = CampaignTime.Now;
-			float num = (float)((CampaignTime)(ref now)).ToDays;
+			float num = (float)(now).ToDays;
 			return Math.Max(0, (int)(num - LastAutoTreatmentDays));
 		}
 	}
@@ -164,7 +164,7 @@ public class SettlementDiseaseInstance
 		if (true)
 		{
 			CampaignTime now = CampaignTime.Now;
-			StartDays = (float)((CampaignTime)(ref now)).ToDays;
+			StartDays = (float)(now).ToDays;
 			LastAutoTreatmentDays = StartDays;
 		}
 	}
@@ -183,7 +183,7 @@ public class SettlementDiseaseInstance
 		if (true)
 		{
 			CampaignTime now = CampaignTime.Now;
-			LastAutoTreatmentDays = (float)((CampaignTime)(ref now)).ToDays;
+			LastAutoTreatmentDays = (float)(now).ToDays;
 		}
 	}
 
@@ -196,7 +196,7 @@ public class SettlementDiseaseInstance
 		if (true)
 		{
 			CampaignTime now = CampaignTime.Now;
-			EndDays = (float)((CampaignTime)(ref now)).ToDays;
+			EndDays = (float)(now).ToDays;
 		}
 		InfectionProgress = 0f;
 		InfectedPercentage = 0f;

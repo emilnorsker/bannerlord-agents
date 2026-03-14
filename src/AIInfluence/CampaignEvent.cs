@@ -31,7 +31,7 @@ public class CampaignEvent
 				else
 				{
 					CampaignTime timestamp = Timestamp;
-					result = ((CampaignTime)(ref timestamp)).ToDays;
+					result = (timestamp).ToDays;
 				}
 				return result;
 			}
@@ -49,7 +49,7 @@ public class CampaignEvent
 			if (value > 0.0)
 			{
 				CampaignTime now = CampaignTime.Now;
-				double num = ((CampaignTime)(ref now)).ToDays - value;
+				double num = (now).ToDays - value;
 				Timestamp = CampaignTime.DaysFromNow(0f - (float)num);
 			}
 			else

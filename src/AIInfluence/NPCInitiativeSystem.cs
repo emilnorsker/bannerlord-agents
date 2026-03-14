@@ -240,7 +240,7 @@ public class NPCInitiativeSystem
 				dictionary2[partyId3] = (val3, "NPC is prisoner");
 				continue;
 			}
-			float elapsedDaysUntilNow = ((CampaignTime)(ref value.DetectTime)).ElapsedDaysUntilNow;
+			float elapsedDaysUntilNow = (value.DetectTime).ElapsedDaysUntilNow;
 			bool flag = false;
 			string item3 = "";
 			float num = value.TimeoutDays;
@@ -267,7 +267,7 @@ public class NPCInitiativeSystem
 			else if (!value.IsHostile && !value.DialogShown)
 			{
 				Vec2 position2D = val3.GetPosition2D();
-				float num3 = ((Vec2)(ref position2D)).Distance(MobileParty.MainParty.GetPosition2D());
+				float num3 = (position2D).Distance(MobileParty.MainParty.GetPosition2D());
 				if (num3 <= 2f)
 				{
 					ShowMapInitiativeInquiry(val3.LeaderHero, value);
@@ -400,7 +400,7 @@ public class NPCInitiativeSystem
 		if (_lastInitiativeCheckDay != CampaignTime.Never)
 		{
 			CampaignTime now = CampaignTime.Now;
-			float num = (float)(((CampaignTime)(ref now)).ToDays - ((CampaignTime)(ref _lastInitiativeCheckDay)).ToDays);
+			float num = (float)((now).ToDays - (_lastInitiativeCheckDay).ToDays);
 			if (num < 3f)
 			{
 				LogMessage($"[NPC_INITIATIVE] Skipping daily check - only {num:F1} days since last check (need 3 days)");
@@ -551,9 +551,9 @@ public class NPCInitiativeSystem
 		if (context.LastInteractionTime != CampaignTime.Never)
 		{
 			CampaignTime val = CampaignTime.Now;
-			double toDays = ((CampaignTime)(ref val)).ToDays;
+			double toDays = (val).ToDays;
 			val = context.LastInteractionTime;
-			float num2 = (float)(toDays - ((CampaignTime)(ref val)).ToDays);
+			float num2 = (float)(toDays - (val).ToDays);
 			if (num2 > 20f)
 			{
 				num += GlobalSettings<ModSettings>.Instance.NPCInitiativeLongTimeSinceContactBonus;
@@ -731,7 +731,7 @@ public class NPCInitiativeSystem
 		if (_lastResetDay != CampaignTime.Never)
 		{
 			now = CampaignTime.Now;
-			float num = (float)(((CampaignTime)(ref now)).ToDays - ((CampaignTime)(ref _lastResetDay)).ToDays);
+			float num = (float)((now).ToDays - (_lastResetDay).ToDays);
 			if (num >= 1f)
 			{
 				_requestsShownToday = 0;
@@ -750,7 +750,7 @@ public class NPCInitiativeSystem
 		if (_lastRequestShown != CampaignTime.Never)
 		{
 			now = CampaignTime.Now;
-			float num2 = (float)(((CampaignTime)(ref now)).ToHours - ((CampaignTime)(ref _lastRequestShown)).ToHours);
+			float num2 = (float)((now).ToHours - (_lastRequestShown).ToHours);
 			if (num2 < 4f)
 			{
 				return;
@@ -826,7 +826,7 @@ public class NPCInitiativeSystem
 
 	private void ShowMessengerRequest(NPCInitiativeRequest request)
 	{
-		GenerateAndShowMessengerMessage(request);
+		_ = GenerateAndShowMessengerMessage(request);
 	}
 
 	public void InitiateMessengerFlow(Hero npc)
@@ -1025,7 +1025,7 @@ public class NPCInitiativeSystem
 				}
 			}
 			CampaignTime now = CampaignTime.Now;
-			double sentAtDays = ((CampaignTime)(ref now)).ToDays;
+			double sentAtDays = (now).ToDays;
 			request.Context.ConversationHistory.Add($"{npcName}: {message} [YOU ALREADY SENT THIS MESSAGE VIA MESSENGER EARLIER - DO NOT REPEAT IT] [sent_at_days={sentAtDays:F3}]");
 			request.Context.LastDynamicResponse = message;
 			_behavior.SaveNPCContext(((MBObjectBase)request.NPC).StringId, request.NPC, request.Context);
@@ -1132,7 +1132,7 @@ public class NPCInitiativeSystem
 			request.NPC.SetHasMet();
 			LogMessage($"[NPC_INITIATIVE] Made {request.NPC.Name} known to player (SetHasMet) before processing request");
 		}
-		GenerateAndStartPartyConversation(request);
+		_ = GenerateAndStartPartyConversation(request);
 	}
 
 	public async Task StartConversationAfterReturn(NPCInitiativeRequest request)
@@ -1246,7 +1246,7 @@ public class NPCInitiativeSystem
 			}
 			val = npc.HomeSettlement.GetPosition2D;
 		}
-		return ((Vec2)(ref position2D)).Distance(val);
+		return (position2D).Distance(val);
 	}
 
 	private int CalculateMessengerCost(float distance)
@@ -1293,7 +1293,7 @@ public class NPCInitiativeSystem
 		else
 		{
 			CampaignTime now = CampaignTime.Now;
-			double d = ((CampaignTime)(ref now)).ToDays - context.LastInteractionTimeDays;
+			double d = (now).ToDays - context.LastInteractionTimeDays;
 			int num = Math.Max(0, (int)Math.Floor(d));
 			Dictionary<string, object> dictionary2 = new Dictionary<string, object> { { "DAYS", num } };
 			item = ((object)new TextObject("{=AIInfluence_MessageDialog_LastInteraction}You last communicated: {DAYS} days ago", dictionary2)).ToString();
@@ -1427,7 +1427,7 @@ public class NPCInitiativeSystem
 		_pendingPlayerLetters.Add(item);
 		string arg = ((object)Hero.MainHero.Name).ToString();
 		CampaignTime now = CampaignTime.Now;
-		double toDays = ((CampaignTime)(ref now)).ToDays;
+		double toDays = (now).ToDays;
 		request.Context.ConversationHistory.Add($"{arg}: {playerMessage} [SENT VIA MESSENGER BY PLAYER] [sent_at_days={toDays:F3}]");
 		request.Context.LastInteractionTime = CampaignTime.Now;
 		_behavior.SaveNPCContext(((MBObjectBase)request.TargetNPC).StringId, request.TargetNPC, request.Context);
@@ -1467,9 +1467,9 @@ public class NPCInitiativeSystem
 		foreach (PendingPlayerLetter letter in _pendingPlayerLetters)
 		{
 			CampaignTime val = CampaignTime.Now;
-			double toHours = ((CampaignTime)(ref val)).ToHours;
+			double toHours = (val).ToHours;
 			val = letter.ExpectedArrivalTime;
-			if (toHours >= ((CampaignTime)(ref val)).ToHours)
+			if (toHours >= (val).ToHours)
 			{
 				Hero val2 = Hero.FindFirst((Func<Hero, bool>)((Hero h) => ((h != null) ? ((MBObjectBase)h).StringId : null) == letter.TargetNPCStringId));
 				if (val2 != null && val2.IsAlive && !val2.IsPrisoner)
@@ -1552,7 +1552,7 @@ public class NPCInitiativeSystem
 			string message = response.Response;
 			message = UnescapeFormatting(message);
 			CampaignTime now = CampaignTime.Now;
-			double sentAtDays = ((CampaignTime)(ref now)).ToDays;
+			double sentAtDays = (now).ToDays;
 			context.ConversationHistory.Add($"{npcName}: {message} [SENT VIA MESSENGER AS REPLY] [sent_at_days={sentAtDays:F3}]");
 			context.LastAIResponseJson = cleanedResponse;
 			if (!string.IsNullOrEmpty(response.CharacterPersonality) && string.IsNullOrEmpty(context.AIGeneratedPersonality))
@@ -1656,7 +1656,7 @@ public class NPCInitiativeSystem
 		//IL_0010: Unknown result type (might be due to invalid IL or missing references)
 		CampaignTime item = CampaignTime.HoursFromNow(deliveryHours);
 		_pendingNPCResponses.Enqueue((npc, message, item));
-		LogMessage($"[NPC_MESSENGER] Scheduled response from {npc.Name} for delivery at {((CampaignTime)(ref item)).ToHours:F1} hours");
+		LogMessage($"[NPC_MESSENGER] Scheduled response from {npc.Name} for delivery at {(item).ToHours:F1} hours");
 	}
 
 	public void CheckPendingNPCResponses()
@@ -1676,7 +1676,7 @@ public class NPCInitiativeSystem
 			string item2 = tuple.message;
 			CampaignTime item3 = tuple.arrivalTime;
 			CampaignTime now = CampaignTime.Now;
-			if (((CampaignTime)(ref now)).ToHours >= ((CampaignTime)(ref item3)).ToHours)
+			if ((now).ToHours >= (item3).ToHours)
 			{
 				_pendingNPCResponses.Dequeue();
 				if (item == null || !item.IsAlive || item.IsPrisoner)
@@ -1866,7 +1866,7 @@ public class NPCInitiativeSystem
 			return;
 		}
 		ExplainedNumber partySpottingRange = Campaign.Current.Models.MapVisibilityModel.GetPartySpottingRange(MobileParty.MainParty, false);
-		float resultNumber = ((ExplainedNumber)(ref partySpottingRange)).ResultNumber;
+		float resultNumber = (partySpottingRange).ResultNumber;
 		List<(MobileParty, Hero, bool)> list = new List<(MobileParty, Hero, bool)>();
 		foreach (MobileParty item in (List<MobileParty>)(object)MobileParty.All)
 		{
@@ -1875,7 +1875,7 @@ public class NPCInitiativeSystem
 				continue;
 			}
 			Vec2 position2D = item.GetPosition2D();
-			if (!(((Vec2)(ref position2D)).DistanceSquared(MobileParty.MainParty.GetPosition2D()) <= resultNumber * resultNumber) || _approachingParties.ContainsKey(((MBObjectBase)item).StringId) || item.MapEvent != null || item.SiegeEvent != null)
+			if (!((position2D).DistanceSquared(MobileParty.MainParty.GetPosition2D()) <= resultNumber * resultNumber) || _approachingParties.ContainsKey(((MBObjectBase)item).StringId) || item.MapEvent != null || item.SiegeEvent != null)
 			{
 				continue;
 			}
@@ -2452,7 +2452,7 @@ public class NPCInitiativeSystem
 				else
 				{
 					CampaignTime now = CampaignTime.Now;
-					num3 = (float)(((CampaignTime)(ref now)).ToDays - ((CampaignTime)(ref _lastHostileInitiativeTime)).ToDays);
+					num3 = (float)((now).ToDays - (_lastHostileInitiativeTime).ToDays);
 				}
 				if (num3 >= (float)GlobalSettings<ModSettings>.Instance.HostileInitiativeCooldown)
 				{

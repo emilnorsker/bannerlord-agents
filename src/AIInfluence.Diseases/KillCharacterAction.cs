@@ -2,6 +2,7 @@ using System;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.ObjectSystem;
+using KillCharacterAction = TaleWorlds.CampaignSystem.Actions.KillCharacterAction;
 
 namespace AIInfluence.Diseases;
 

@@ -55,7 +55,7 @@ public class SubModule : MBSubModuleBase
 	{
 		//IL_009b: Unknown result type (might be due to invalid IL or missing references)
 		//IL_00a5: Expected O, but got Unknown
-		((MBSubModuleBase)this).OnSubModuleLoad();
+		base.OnSubModuleLoad();
 		_uiExtender.Register(typeof(SubModule).Assembly);
 		_uiExtender.Enable();
 		try
@@ -93,7 +93,7 @@ public class SubModule : MBSubModuleBase
 
 	protected override void OnGameStart(Game game, IGameStarter gameStarter)
 	{
-		((MBSubModuleBase)this).OnGameStart(game, gameStarter);
+		base.OnGameStart(game, gameStarter);
 		CampaignGameStarter val = (CampaignGameStarter)(object)((gameStarter is CampaignGameStarter) ? gameStarter : null);
 		if (val != null)
 		{
@@ -111,7 +111,7 @@ public class SubModule : MBSubModuleBase
 
 	public override void OnGameEnd(Game game)
 	{
-		((MBSubModuleBase)this).OnGameEnd(game);
+		base.OnGameEnd(game);
 		Console.WriteLine("[SUBMODULE] OnGameEnd called - resetting systems");
 		if (_aiInfluenceBehavior != null)
 		{
@@ -133,7 +133,7 @@ public class SubModule : MBSubModuleBase
 		//IL_0049: Expected O, but got Unknown
 		//IL_00a4: Unknown result type (might be due to invalid IL or missing references)
 		//IL_00ae: Expected O, but got Unknown
-		((MBSubModuleBase)this).OnApplicationTick(dt);
+		base.OnApplicationTick(dt);
 		if (!_loadMessageDisplayed)
 		{
 			_loadMessageTimer += dt;

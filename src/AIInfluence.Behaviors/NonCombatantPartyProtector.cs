@@ -155,7 +155,7 @@ public class NonCombatantPartyProtector : CampaignBehaviorBase
 			return true;
 		}
 		CampaignTime val = _lastWarningTime[hero];
-		return ((CampaignTime)(ref val)).ElapsedHoursUntilNow >= 24f;
+		return (val).ElapsedHoursUntilNow >= 24f;
 	}
 
 	private void ShowNonCombatantWarning(Hero leader, string actionName)
@@ -383,7 +383,7 @@ public class NonCombatantPartyProtector : CampaignBehaviorBase
 				//IL_0002: Unknown result type (might be due to invalid IL or missing references)
 				//IL_0007: Unknown result type (might be due to invalid IL or missing references)
 				CampaignTime value = kvp.Value;
-				return ((CampaignTime)(ref value)).ElapsedHoursUntilNow > 48f;
+				return (value).ElapsedHoursUntilNow > 48f;
 			})
 			select kvp.Key).ToList();
 		foreach (Hero item in list)

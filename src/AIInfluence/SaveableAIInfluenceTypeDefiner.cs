@@ -15,7 +15,7 @@ public class SaveableAIInfluenceTypeDefiner : SaveableTypeDefiner
 	{
 		try
 		{
-			((SaveableTypeDefiner)this).AddClassDefinition(typeof(AIGeneratedQuest), 1, (IObjectResolver)null);
+			base.AddClassDefinition(typeof(AIGeneratedQuest), 1, (IObjectResolver)null);
 		}
 		catch (ArgumentException)
 		{

@@ -477,9 +477,9 @@ public sealed class PatrolSettlementAction : AIActionBase
 			["settlementId"] = ((MBObjectBase)_targetSettlement).StringId,
 			["autoReturn"] = _autoReturn.ToString()
 		};
-		double toHours = ((CampaignTime)(ref _patrolUntil)).ToHours;
+		double toHours = (_patrolUntil).ToHours;
 		CampaignTime now = CampaignTime.Now;
-		dictionary["remainingHours"] = MathF.Max(0.1f, (float)(toHours - ((CampaignTime)(ref now)).ToHours)).ToString(CultureInfo.InvariantCulture);
+		dictionary["remainingHours"] = MathF.Max(0.1f, (float)(toHours - (now).ToHours)).ToString(CultureInfo.InvariantCulture);
 		return dictionary;
 	}
 }

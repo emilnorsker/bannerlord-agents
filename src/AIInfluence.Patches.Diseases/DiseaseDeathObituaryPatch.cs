@@ -6,10 +6,11 @@ using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.Localization;
 using TaleWorlds.ObjectSystem;
+using KillCharacterAction = TaleWorlds.CampaignSystem.Actions.KillCharacterAction;
 
 namespace AIInfluence.Patches.Diseases;
 
-[HarmonyPatch(typeof(KillCharacterAction), "CreateObituary")]
+[HarmonyPatch(typeof(TaleWorlds.CampaignSystem.Actions.KillCharacterAction), "CreateObituary")]
 public static class DiseaseDeathObituaryPatch
 {
 	[HarmonyPostfix]
@@ -73,7 +74,7 @@ public static class DiseaseDeathObituaryPatch
 			val2.SetTextVariable("DISEASE_NAME", value);
 			val2.SetTextVariable("REPUTATION", CharacterHelper.GetReputationDescription(hero.CharacterObject));
 			CampaignTime now = CampaignTime.Now;
-			val2.SetTextVariable("YEAR", ((CampaignTime)(ref now)).GetYear.ToString());
+			val2.SetTextVariable("YEAR", (now).GetYear.ToString());
 			val.SetTextVariable("FURTHER_DETAILS", val2);
 			__result = val;
 		}

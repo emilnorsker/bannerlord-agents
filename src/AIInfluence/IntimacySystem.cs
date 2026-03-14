@@ -74,9 +74,9 @@ public static class IntimacySystem
 		{
 			context.RomanceLevel = Math.Min(100f, context.RomanceLevel + romanceIncrease);
 			CampaignTime now = CampaignTime.Now;
-			context.LastRomanceInteractionDays = (int)((CampaignTime)(ref now)).ToDays;
+			context.LastRomanceInteractionDays = (int)(now).ToDays;
 			now = CampaignTime.Now;
-			context.LastIntimateInteractionDays = (int)((CampaignTime)(ref now)).ToDays;
+			context.LastIntimateInteractionDays = (int)(now).ToDays;
 			_behavior.LogMessage($"[INTIMACY] Romance level increased by {romanceIncrease:F1} to {context.RomanceLevel:F1}");
 			_behavior.SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
 		}

@@ -158,7 +158,7 @@ public class SaveQueueManager
 		if (list.Count > 0)
 		{
 			Interlocked.Add(ref _activeTasks, list.Count);
-			ProcessTasksAsync(list);
+			_ = ProcessTasksAsync(list);
 		}
 	}
 
@@ -267,7 +267,7 @@ public class SaveQueueManager
 		if (list.Count > 0)
 		{
 			Interlocked.Add(ref _activeTasks, list.Count);
-			ProcessTasksAsync(list);
+			_ = ProcessTasksAsync(list);
 		}
 	}
 

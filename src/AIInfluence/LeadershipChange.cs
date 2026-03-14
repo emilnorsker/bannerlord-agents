@@ -97,7 +97,7 @@ public class LeadershipChange
 			_ = _changeDate;
 			if (true)
 			{
-				_changeDateString = $"{((CampaignTime)(ref _changeDate)).GetYear}.{(object)(Seasons)(((CampaignTime)(ref _changeDate)).GetSeasonOfYear + 1)}.{((CampaignTime)(ref _changeDate)).GetDayOfSeason + 1}";
+				_changeDateString = $"{(_changeDate).GetYear}.{(object)(Seasons)((_changeDate).GetSeasonOfYear + 1)}.{(_changeDate).GetDayOfSeason + 1}";
 				return;
 			}
 		}

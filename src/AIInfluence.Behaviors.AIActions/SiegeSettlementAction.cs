@@ -199,7 +199,7 @@ public sealed class SiegeSettlementAction : AIActionBase
 			if (!_warDeclared)
 			{
 				Vec2 position2D = _heroParty.GetPosition2D();
-				float num = ((Vec2)(ref position2D)).DistanceSquared(_targetSettlement.GetPosition2D());
+				float num = (position2D).DistanceSquared(_targetSettlement.GetPosition2D());
 				if (num <= 4f)
 				{
 					if (!EnsureWarState())
@@ -336,7 +336,7 @@ public sealed class SiegeSettlementAction : AIActionBase
 				return;
 			}
 			Vec2 position2D = _heroParty.GetPosition2D();
-			float num = ((Vec2)(ref position2D)).DistanceSquared(_targetSettlement.GetPosition2D());
+			float num = (position2D).DistanceSquared(_targetSettlement.GetPosition2D());
 			if (!(num <= 9f))
 			{
 				return;
@@ -379,7 +379,7 @@ public sealed class SiegeSettlementAction : AIActionBase
 			if (_heroParty.BesiegerCamp == null)
 			{
 				Vec2 position2D = _heroParty.GetPosition2D();
-				float num = ((Vec2)(ref position2D)).Distance(_targetSettlement.GetPosition2D());
+				float num = (position2D).Distance(_targetSettlement.GetPosition2D());
 				if (num <= 6f)
 				{
 					_heroParty.BesiegerCamp = siegeEvent.BesiegerCamp;
@@ -437,7 +437,7 @@ public sealed class SiegeSettlementAction : AIActionBase
 			try
 			{
 				Vec2 position2D = _heroParty.GetPosition2D();
-				float num = ((Vec2)(ref position2D)).Distance(_targetSettlement.GetPosition2D());
+				float num = (position2D).Distance(_targetSettlement.GetPosition2D());
 				if (num > 9f)
 				{
 					GameVersionCompatibility.SetMoveBesiegeSettlement(_heroParty, _targetSettlement);

@@ -506,7 +506,7 @@ public class CivilianBehavior
 		}
 		else if ((int)val != 15)
 		{
-			switch (val - 21)
+			switch ((int)val - 21)
 			{
 			case 0:
 			case 2:
@@ -675,7 +675,7 @@ public class CivilianBehavior
 			for (EquipmentIndex val2 = (EquipmentIndex)0; (int)val2 < 5; val2 = (EquipmentIndex)(val2 + 1))
 			{
 				MissionWeapon val3 = civilian.Equipment[val2];
-				if (((MissionWeapon)(ref val3)).IsEmpty)
+				if ((val3).IsEmpty)
 				{
 					val = val2;
 					break;
@@ -713,7 +713,7 @@ public class CivilianBehavior
 			{
 				ItemObject val4 = list[_random.Next(list.Count)];
 				MissionWeapon val5 = default(MissionWeapon);
-				((MissionWeapon)(ref val5))._002Ector(val4, (ItemModifier)null, (Banner)null);
+				val5 = new MissionWeapon(val4, (ItemModifier)null, (Banner)null);
 				civilian.Equipment[val.Value] = val5;
 				_logger.Log($"Gave tier 1 weapon '{((MBObjectBase)val4).StringId}' to civilian {civilian.Name} in slot {val.Value}");
 			}
@@ -787,10 +787,10 @@ public class CivilianBehavior
 			for (EquipmentIndex val2 = (EquipmentIndex)0; (int)val2 < 5; val2 = (EquipmentIndex)(val2 + 1))
 			{
 				MissionWeapon val3 = agent.Equipment[val2];
-				if (!((MissionWeapon)(ref val3)).IsEmpty)
+				if (!(val3).IsEmpty)
 				{
 					val3 = agent.Equipment[val2];
-					WeaponClass weaponClass = ((MissionWeapon)(ref val3)).CurrentUsageItem.WeaponClass;
+					WeaponClass weaponClass = (val3).CurrentUsageItem.WeaponClass;
 					if ((int)weaponClass == 2 || (int)weaponClass == 3 || (int)weaponClass == 4 || (int)weaponClass == 5 || (int)weaponClass == 6 || (int)weaponClass == 8 || (int)weaponClass == 7 || (int)weaponClass == 1 || (int)weaponClass == 9 || (int)weaponClass == 10 || (int)weaponClass == 11)
 					{
 						val = val2;
@@ -903,9 +903,9 @@ public class CivilianBehavior
 					_logger.Log("WARNING: Fighting civilian " + item.Name + " has no weapon, converting to panic!");
 					_fightingCivilians.Remove(item);
 					AgentFlag agentFlags = item.GetAgentFlags();
-					agentFlags = (AgentFlag)(agentFlags & -9);
-					agentFlags = (AgentFlag)(agentFlags & -17);
-					agentFlags = (AgentFlag)(agentFlags | 0x20);
+					agentFlags = (AgentFlag)((int)agentFlags & -9);
+					agentFlags = (AgentFlag)((int)agentFlags & -17);
+					agentFlags = (AgentFlag)((int)agentFlags | 0x20);
 					item.SetAgentFlags(agentFlags);
 					item.SetAlarmState((AIStateFlag)0);
 					item.SetLookAgent((Agent)null);
@@ -926,10 +926,10 @@ public class CivilianBehavior
 				AgentFlag agentFlags2 = item.GetAgentFlags();
 				if (!Extensions.HasAnyFlag<AgentFlag>(agentFlags2, (AgentFlag)24))
 				{
-					agentFlags2 = (AgentFlag)(agentFlags2 | 8);
-					agentFlags2 = (AgentFlag)(agentFlags2 | 0x10);
-					agentFlags2 = (AgentFlag)(agentFlags2 & -33);
-					agentFlags2 = (AgentFlag)(agentFlags2 & -4097);
+					agentFlags2 = (AgentFlag)((int)agentFlags2 | 8);
+					agentFlags2 = (AgentFlag)((int)agentFlags2 | 0x10);
+					agentFlags2 = (AgentFlag)((int)agentFlags2 & -33);
+					agentFlags2 = (AgentFlag)((int)agentFlags2 & -4097);
 					item.SetAgentFlags(agentFlags2);
 				}
 			}
@@ -997,15 +997,15 @@ public class CivilianBehavior
 				bool flag = false;
 				if (Extensions.HasAnyFlag<AgentFlag>(val, (AgentFlag)24))
 				{
-					val = (AgentFlag)(val & -9);
-					val = (AgentFlag)(val & -17);
-					val = (AgentFlag)(val | 0x20);
-					val = (AgentFlag)(val & -4097);
+					val = (AgentFlag)((int)val & -9);
+					val = (AgentFlag)((int)val & -17);
+					val = (AgentFlag)((int)val | 0x20);
+					val = (AgentFlag)((int)val & -4097);
 					flag = true;
 				}
 				if (!Extensions.HasAnyFlag<AgentFlag>(val, (AgentFlag)32))
 				{
-					val = (AgentFlag)(val | 0x20);
+					val = (AgentFlag)((int)val | 0x20);
 					flag = true;
 				}
 				if (HasUsableWeapon(item))
@@ -1102,7 +1102,7 @@ public class CivilianBehavior
 					if (item2 != null && item2.IsActive())
 					{
 						position = item.Position;
-						float num2 = ((Vec3)(ref position)).DistanceSquared(item2.Position);
+						float num2 = (position).DistanceSquared(item2.Position);
 						if (num2 < num)
 						{
 							num = num2;
@@ -1119,24 +1119,24 @@ public class CivilianBehavior
 				{
 					item.SetLookAgent((Agent)null);
 					position = item.Position;
-					Vec2 asVec = ((Vec3)(ref position)).AsVec2;
+					Vec2 asVec = (position).AsVec2;
 					position = val.Position;
-					Vec2 val2 = asVec - ((Vec3)(ref position)).AsVec2;
-					float num4 = ((Vec2)(ref val2)).Normalize();
+					Vec2 val2 = asVec - (position).AsVec2;
+					float num4 = (val2).Normalize();
 					if (num4 < 0.1f)
 					{
 						float num5 = (float)(_random.NextDouble() * Math.PI * 2.0);
-						((Vec2)(ref val2))._002Ector(MathF.Cos(num5), MathF.Sin(num5));
+						val2 = new Vec2(MathF.Cos(num5), MathF.Sin(num5));
 					}
 					WorldPosition value2 = FindSafeFleePosition(item, val2, val, 35f);
-					if (!((WorldPosition)(ref value2)).IsValid)
+					if (!(value2).IsValid)
 					{
 						position = item.Position;
-						Vec2 val3 = ((Vec3)(ref position)).AsVec2 + val2 * 35f;
-						((Vec3)(ref val4))._002Ector(val3.x, val3.y, item.Position.z, -1f);
-						((WorldPosition)(ref val5))._002Ector(Mission.Current.Scene, UIntPtr.Zero, val4, false);
-						Vec3 groundVec = ((WorldPosition)(ref val5)).GetGroundVec3();
-						((WorldPosition)(ref value2))._002Ector(Mission.Current.Scene, UIntPtr.Zero, groundVec, false);
+						Vec2 val3 = (position).AsVec2 + val2 * 35f;
+						val4 = new Vec3(val3.x, val3.y, item.Position.z, -1f);
+						val5 = new WorldPosition(Mission.Current.Scene, UIntPtr.Zero, val4, false);
+						Vec3 groundVec = (val5).GetGroundVec3();
+						value2 = new WorldPosition(Mission.Current.Scene, UIntPtr.Zero, groundVec, false);
 					}
 					item.SetScriptedPosition(ref value2, false, (AIScriptedFrameFlags)0);
 					_lastFleePositions[item] = value2;
@@ -1242,7 +1242,7 @@ public class CivilianBehavior
 				return WorldPosition.Invalid;
 			}
 			Vec3 position = civilian.Position;
-			Vec2 asVec = ((Vec3)(ref position)).AsVec2;
+			Vec2 asVec = (position).AsVec2;
 			Vec3 position2 = civilian.Position;
 			List<Vec2> list = new List<Vec2>();
 			list.Add(preferredDirection);
@@ -1314,15 +1314,15 @@ public class CivilianBehavior
 				if (aggressor != null && aggressor.IsActive())
 				{
 					position = aggressor.Position;
-					Vec2 asVec2 = ((Vec3)(ref position)).AsVec2;
-					float num12 = ((Vec2)(ref val)).DistanceSquared(asVec2);
+					Vec2 asVec2 = (position).AsVec2;
+					float num12 = (val).DistanceSquared(asVec2);
 					if (num12 < 4f)
 					{
 						continue;
 					}
 				}
-				((Vec3)(ref val4))._002Ector(val.x, val.y, num7, -1f);
-				((WorldPosition)(ref result))._002Ector(Mission.Current.Scene, UIntPtr.Zero, val4, false);
+				val4 = new Vec3(val.x, val.y, num7, -1f);
+				result = new WorldPosition(Mission.Current.Scene, UIntPtr.Zero, val4, false);
 				return result;
 			}
 			return WorldPosition.Invalid;
@@ -1485,7 +1485,7 @@ public class CivilianBehavior
 			for (EquipmentIndex val = (EquipmentIndex)0; (int)val < 5; val = (EquipmentIndex)(val + 1))
 			{
 				MissionWeapon val2 = agent.Equipment[val];
-				if (!((MissionWeapon)(ref val2)).IsEmpty)
+				if (!(val2).IsEmpty)
 				{
 					agent.DropItem(val, (WeaponClass)0);
 				}
@@ -1652,10 +1652,10 @@ public class CivilianBehavior
 			EnsureAgentTeam(civilian);
 			civilian.SetIsAIPaused(false);
 			AgentFlag agentFlags = civilian.GetAgentFlags();
-			agentFlags = (AgentFlag)(agentFlags & -9);
-			agentFlags = (AgentFlag)(agentFlags & -17);
-			agentFlags = (AgentFlag)(agentFlags | 0x20);
-			agentFlags = (AgentFlag)(agentFlags & -4097);
+			agentFlags = (AgentFlag)((int)agentFlags & -9);
+			agentFlags = (AgentFlag)((int)agentFlags & -17);
+			agentFlags = (AgentFlag)((int)agentFlags | 0x20);
+			agentFlags = (AgentFlag)((int)agentFlags & -4097);
 			civilian.SetAgentFlags(agentFlags);
 			AgentFlag agentFlags2 = civilian.GetAgentFlags();
 			if (Extensions.HasAnyFlag<AgentFlag>(agentFlags2, (AgentFlag)24))
@@ -1702,9 +1702,9 @@ public class CivilianBehavior
 				EnsureAgentTeam(civilian);
 				civilian.SetIsAIPaused(false);
 				AgentFlag agentFlags = civilian.GetAgentFlags();
-				agentFlags = (AgentFlag)(agentFlags & -9);
-				agentFlags = (AgentFlag)(agentFlags & -17);
-				agentFlags = (AgentFlag)(agentFlags | 0x20);
+				agentFlags = (AgentFlag)((int)agentFlags & -9);
+				agentFlags = (AgentFlag)((int)agentFlags & -17);
+				agentFlags = (AgentFlag)((int)agentFlags | 0x20);
 				civilian.SetAgentFlags(agentFlags);
 				civilian.SetLookAgent((Agent)null);
 				DropAllWeapons(civilian);
@@ -1768,9 +1768,9 @@ public class CivilianBehavior
 					_logger.Log("WARNING: Civilian " + civilian.Name + " cannot fight without weapon, converting to panic!");
 					_fightingCivilians.Remove(civilian);
 					AgentFlag agentFlags = civilian.GetAgentFlags();
-					agentFlags = (AgentFlag)(agentFlags & -9);
-					agentFlags = (AgentFlag)(agentFlags & -17);
-					agentFlags = (AgentFlag)(agentFlags | 0x20);
+					agentFlags = (AgentFlag)((int)agentFlags & -9);
+					agentFlags = (AgentFlag)((int)agentFlags & -17);
+					agentFlags = (AgentFlag)((int)agentFlags | 0x20);
 					civilian.SetAgentFlags(agentFlags);
 					civilian.SetAlarmState((AIStateFlag)0);
 					civilian.SetLookAgent((Agent)null);
@@ -1812,10 +1812,10 @@ public class CivilianBehavior
 			for (EquipmentIndex val = (EquipmentIndex)0; (int)val < 5; val = (EquipmentIndex)(val + 1))
 			{
 				MissionWeapon val2 = agent.Equipment[val];
-				if (!((MissionWeapon)(ref val2)).IsEmpty)
+				if (!(val2).IsEmpty)
 				{
 					val2 = agent.Equipment[val];
-					if (((MissionWeapon)(ref val2)).Item != null)
+					if ((val2).Item != null)
 					{
 						return true;
 					}

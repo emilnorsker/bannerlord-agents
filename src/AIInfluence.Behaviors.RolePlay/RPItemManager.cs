@@ -160,7 +160,7 @@ public class RPItemManager : IGameStateManagerListener
 						CreatedBy = createdBy
 					};
 					now = CampaignTime.Now;
-					obj.CreatedDay = (int)((CampaignTime)(ref now)).ToDays;
+					obj.CreatedDay = (int)(now).ToDays;
 					obj.Metadata = metadata ?? new Dictionary<string, object>();
 					obj.Owner = null;
 					RPItemData itemData = obj;
@@ -211,7 +211,7 @@ public class RPItemManager : IGameStateManagerListener
 				CreatedBy = createdBy
 			};
 			now = CampaignTime.Now;
-			obj2.CreatedDay = (int)((CampaignTime)(ref now)).ToDays;
+			obj2.CreatedDay = (int)(now).ToDays;
 			((ItemComponent)obj2).Item = val2;
 			RPItemComponent value3 = obj2;
 			SetPrivateProperty(val2, "ItemComponent", value3);
@@ -248,7 +248,7 @@ public class RPItemManager : IGameStateManagerListener
 					CreatedBy = createdBy
 				};
 				now = CampaignTime.Now;
-				obj3.CreatedDay = (int)((CampaignTime)(ref now)).ToDays;
+				obj3.CreatedDay = (int)(now).ToDays;
 				obj3.Metadata = metadata ?? new Dictionary<string, object>();
 				obj3.Owner = null;
 				RPItemData value4 = obj3;

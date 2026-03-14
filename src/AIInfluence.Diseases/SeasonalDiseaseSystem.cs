@@ -99,7 +99,7 @@ public static class SeasonalDiseaseSystem
 			return (Seasons)1;
 		}
 		CampaignTime now = CampaignTime.Now;
-		return ((CampaignTime)(ref now)).GetSeasonOfYear;
+		return (now).GetSeasonOfYear;
 	}
 
 	public static float GetSeasonAdditiveBonus()
@@ -167,7 +167,7 @@ public static class SeasonalDiseaseSystem
 			WeatherEvent weatherEventInPosition = val2.GetWeatherEventInPosition(position2D);
 			WeatherEvent val3 = weatherEventInPosition;
 			WeatherEvent val4 = val3;
-			switch (val4 - 1)
+			switch ((int)val4 - 1)
 			{
 			case 0:
 				num += WeatherLightRainAdd;
@@ -276,7 +276,7 @@ public static class SeasonalDiseaseSystem
 			WeatherEvent weatherEventInPosition = val.GetWeatherEventInPosition(position2D);
 			WeatherEvent val2 = weatherEventInPosition;
 			WeatherEvent val3 = val2;
-			switch (val3 - 1)
+			switch ((int)val3 - 1)
 			{
 			case 0:
 				num += WeatherLightRainAdd;

@@ -120,8 +120,8 @@ public class WorldEventsWindowViewModel : ViewModel
 					}
 				}
 				List<WorldEventEntry> list7 = (from e in list5
-					orderby e.sortTime descending, e.sequenceOrder descending
-					select e.entry).ToList();
+					orderby e.Item3 descending, e.Item2 descending
+					select e.Item1).ToList();
 				foreach (WorldEventEntry item5 in list7)
 				{
 					((Collection<WorldEventEntry>)(object)DeclarationList).Add(item5);
@@ -303,7 +303,7 @@ public class WorldEventsWindowViewModel : ViewModel
 			if (true)
 			{
 				CampaignTime now = CampaignTime.Now;
-				float num2 = (float)((CampaignTime)(ref now)).ToDays;
+				float num2 = (float)(now).ToDays;
 				num = Math.Max(0, (int)(num2 - statement.CampaignDays));
 			}
 		}
@@ -419,12 +419,8 @@ public class WorldEventsWindowViewModel : ViewModel
 		//IL_0012: Unknown result type (might be due to invalid IL or missing references)
 		//IL_001c: Expected O, but got Unknown
 		_ = CampaignTime.Now;
-		if (false)
-		{
-			return ((object)new TextObject("{=AIInfluence_Unknown}Unknown", (Dictionary<string, object>)null)).ToString();
-		}
 		CampaignTime now = CampaignTime.Now;
-		float num = (float)((CampaignTime)(ref now)).ToDays;
+		float num = (float)(now).ToDays;
 		int daysAgo = Math.Max(0, (int)(num - campaignDays));
 		return FormatDaysAgo(daysAgo);
 	}

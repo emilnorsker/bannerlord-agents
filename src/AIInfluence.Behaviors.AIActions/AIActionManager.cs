@@ -1664,7 +1664,7 @@ public class AIActionManager
 			}
 			MobileParty partyBelongedTo = key.PartyBelongedTo;
 			Vec2 position2D = partyBelongedTo.GetPosition2D();
-			float num = ((Vec2)(ref position2D)).Distance(MobileParty.MainParty.GetPosition2D());
+			float num = (position2D).Distance(MobileParty.MainParty.GetPosition2D());
 			if (num <= 3f)
 			{
 				try

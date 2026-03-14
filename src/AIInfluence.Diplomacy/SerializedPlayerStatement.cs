@@ -74,7 +74,7 @@ public class SerializedPlayerStatement
 		Kingdom playerKingdom = delayed.PlayerKingdom;
 		obj.PlayerKingdomId = ((playerKingdom != null) ? ((MBObjectBase)playerKingdom).StringId : null);
 		CampaignTime publicationTime = delayed.PublicationTime;
-		obj.PublicationTimeHours = (float)((CampaignTime)(ref publicationTime)).ToHours;
+		obj.PublicationTimeHours = (float)(publicationTime).ToHours;
 		obj.SettlementId = delayed.SettlementId;
 		obj.DailyTributeAmount = delayed.DailyTributeAmount;
 		obj.TributeDurationDays = delayed.TributeDurationDays;

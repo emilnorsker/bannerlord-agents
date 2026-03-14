@@ -48,7 +48,7 @@ public class SettlementCombatMissionLogic : MissionLogic
 
 	public override void AfterStart()
 	{
-		((MissionBehavior)this).AfterStart();
+		base.AfterStart();
 		if (!_eventSubscribed && Mission.Current != null)
 		{
 			Mission.Current.GetOverriddenFleePositionForAgent += GetOverriddenFleePositionForAgent;
@@ -83,7 +83,7 @@ public class SettlementCombatMissionLogic : MissionLogic
 		{
 			return;
 		}
-		((MissionBehavior)this).OnMissionTick(dt);
+		base.OnMissionTick(dt);
 		try
 		{
 			_civilianBehavior?.OnTick(dt);
@@ -145,7 +145,7 @@ public class SettlementCombatMissionLogic : MissionLogic
 		{
 			return;
 		}
-		((MissionBehavior)this).OnAgentCreated(agent);
+		base.OnAgentCreated(agent);
 		try
 		{
 			if (agent != null && agent.IsHuman)
@@ -306,7 +306,7 @@ public class SettlementCombatMissionLogic : MissionLogic
 		{
 			_logger.LogError("OnRemoveBehavior", ex.Message, ex);
 		}
-		((MissionBehavior)this).OnRemoveBehavior();
+		base.OnRemoveBehavior();
 	}
 
 	public override InquiryData OnEndMissionRequest(out bool canPlayerLeave)

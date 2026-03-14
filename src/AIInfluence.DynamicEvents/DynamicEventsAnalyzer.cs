@@ -601,7 +601,7 @@ public class DynamicEventsAnalyzer
 					if (val6 != null)
 					{
 						val7 = item6.EndTime;
-						float num3 = ((CampaignTime)(ref val7)).RemainingDaysFromNow / (float)CampaignTime.DaysInYear;
+						float num3 = (val7).RemainingDaysFromNow / (float)CampaignTime.DaysInYear;
 						stringBuilder.AppendLine($"  - {item5.Name} ↔ {val6.Name} (string_id:{partnerId}): expires in {num3:F1} years");
 					}
 				}
@@ -624,7 +624,7 @@ public class DynamicEventsAnalyzer
 				if (val8 != null)
 				{
 					val7 = tribute.EndTime;
-					float remainingDaysFromNow = ((CampaignTime)(ref val7)).RemainingDaysFromNow;
+					float remainingDaysFromNow = (val7).RemainingDaysFromNow;
 					stringBuilder.AppendLine($"  - {item7.Name} → {val8.Name} (string_id:{((MBObjectBase)val8).StringId}): {tribute.DailyAmount} gold/day for {remainingDaysFromNow:F0} more days (reason: {tribute.Reason})");
 					flag5 = true;
 				}
@@ -635,7 +635,7 @@ public class DynamicEventsAnalyzer
 				if (val9 != null)
 				{
 					val7 = tribute2.EndTime;
-					float remainingDaysFromNow2 = ((CampaignTime)(ref val7)).RemainingDaysFromNow;
+					float remainingDaysFromNow2 = (val7).RemainingDaysFromNow;
 					stringBuilder.AppendLine($"  - {val9.Name} (string_id:{((MBObjectBase)val9).StringId}) → {item7.Name}: {tribute2.DailyAmount} gold/day for {remainingDaysFromNow2:F0} more days (reason: {tribute2.Reason})");
 					flag5 = true;
 				}
@@ -658,7 +658,7 @@ public class DynamicEventsAnalyzer
 				if (val10 != null)
 				{
 					val7 = demand.ExpirationTime;
-					float remainingDaysFromNow3 = ((CampaignTime)(ref val7)).RemainingDaysFromNow;
+					float remainingDaysFromNow3 = (val7).RemainingDaysFromNow;
 					stringBuilder.AppendLine($"  - {item8.Name} demands {demand.Amount} gold from {val10.Name} (string_id:{((MBObjectBase)val10).StringId}) (expires in {remainingDaysFromNow3:F0} days, status: {demand.Status}, reason: {demand.Reason})");
 					flag6 = true;
 				}
@@ -669,7 +669,7 @@ public class DynamicEventsAnalyzer
 				if (val11 != null)
 				{
 					val7 = demand2.ExpirationTime;
-					float remainingDaysFromNow4 = ((CampaignTime)(ref val7)).RemainingDaysFromNow;
+					float remainingDaysFromNow4 = (val7).RemainingDaysFromNow;
 					stringBuilder.AppendLine($"  - {val11.Name} (string_id:{((MBObjectBase)val11).StringId}) demands {demand2.Amount} gold from {item8.Name} (expires in {remainingDaysFromNow4:F0} days, status: {demand2.Status}, reason: {demand2.Reason})");
 					flag6 = true;
 				}
@@ -982,7 +982,7 @@ public class DynamicEventsAnalyzer
 		if (list2.Any())
 		{
 			val7 = CampaignTime.Now;
-			float num7 = (float)((CampaignTime)(ref val7)).ToDays;
+			float num7 = (float)(val7).ToDays;
 			int num8 = 0;
 			foreach (KingdomStatement statement2 in list2)
 			{
@@ -1300,7 +1300,7 @@ public class DynamicEventsAnalyzer
 		{
 			KingdomStatement kingdomStatement = diplomaticEvent.KingdomStatements.OrderByDescending((KingdomStatement s) => s.CampaignDays).First();
 			CampaignTime val2 = CampaignTime.Now - kingdomStatement.Timestamp;
-			flag2 = ((CampaignTime)(ref val2)).ToHours >= 6.0;
+			flag2 = (val2).ToHours >= 6.0;
 		}
 		return flag || flag2;
 	}
@@ -1377,7 +1377,7 @@ public class DynamicEventsAnalyzer
 		foreach (WorldInfoManager.DeathRecord item2 in recentDeaths)
 		{
 			CampaignTime val = CampaignTime.Now - item2.DeathTime;
-			if (((CampaignTime)(ref val)).ToDays > (double)daysThreshold)
+			if ((val).ToDays > (double)daysThreshold)
 			{
 				continue;
 			}
@@ -1442,7 +1442,7 @@ public class DynamicEventsAnalyzer
 			}
 			obj2.KingdomStringId = (string)obj4;
 			val = CampaignTime.Now - item2.DeathTime;
-			obj2.DaysAgo = (int)((CampaignTime)(ref val)).ToDays;
+			obj2.DaysAgo = (int)(val).ToDays;
 			DeathInfo item = obj2;
 			list.Add(item);
 		}
@@ -1466,7 +1466,7 @@ public class DynamicEventsAnalyzer
 				return "No active economic effects.";
 			}
 			CampaignTime now = CampaignTime.Now;
-			float currentDay = (float)((CampaignTime)(ref now)).ToDays;
+			float currentDay = (float)(now).ToDays;
 			List<ActiveEconomicEffect> list = activeEffects.Where((ActiveEconomicEffect e) => currentDay < e.StartDay + (float)e.DurationDays).ToList();
 			if (!list.Any())
 			{
@@ -1659,7 +1659,7 @@ public class DynamicEventsAnalyzer
 				List<string> list3 = new List<string>();
 				List<string> list4 = new List<string>();
 				CampaignTime val = CampaignTime.Now;
-				float num = (float)((CampaignTime)(ref val)).ToDays;
+				float num = (float)(val).ToDays;
 				foreach (Settlement item in ((IEnumerable<Settlement>)Settlement.All).Where((Settlement s) => s.IsTown || s.IsCastle))
 				{
 					SettlementOwnershipHistory settlementOwnershipHistory = SettlementOwnershipTracker.Instance?.GetOwnershipHistory(((MBObjectBase)item).StringId);
@@ -1673,7 +1673,7 @@ public class DynamicEventsAnalyzer
 						continue;
 					}
 					val = lastChange.ChangeDate;
-					float num2 = num - (float)((CampaignTime)(ref val)).ToDays;
+					float num2 = num - (float)(val).ToDays;
 					if (!(num2 <= 20f))
 					{
 						continue;
@@ -1820,7 +1820,7 @@ public class DynamicEventsAnalyzer
 						//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 						//IL_000f: Unknown result type (might be due to invalid IL or missing references)
 						Vec2 position2D = s.GetPosition2D();
-						return ((Vec2)(ref position2D)).DistanceSquared(party.GetPosition2D());
+						return (position2D).DistanceSquared(party.GetPosition2D());
 					}).FirstOrDefault();
 					string text10 = ((val7 == null) ? null : ((object)val7.Name)?.ToString()) ?? "Unknown location";
 					sb.AppendLine($"    - {text7} ({item4.TotalTroops} troops) - Leader: {text5} (string_id:{text6})");

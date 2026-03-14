@@ -53,13 +53,13 @@ public class CombatPhrasesDisplay : MissionLogic
 
 	public override void AfterStart()
 	{
-		((MissionBehavior)this).AfterStart();
+		base.AfterStart();
 		CombatPhrasePopupView.EnsureCreated();
 	}
 
 	public override void OnMissionTick(float dt)
 	{
-		((MissionBehavior)this).OnMissionTick(dt);
+		base.OnMissionTick(dt);
 		if (!_initialized || _analysis == null || Agent.Main == null)
 		{
 			return;
@@ -106,7 +106,7 @@ public class CombatPhrasesDisplay : MissionLogic
 				continue;
 			}
 			Vec3 position2 = item.Position;
-			float num = ((Vec3)(ref position2)).Distance(position);
+			float num = (position2).Distance(position);
 			if (num <= 15f)
 			{
 				string phraseForAgent = GetPhraseForAgent(item);
@@ -157,7 +157,7 @@ public class CombatPhrasesDisplay : MissionLogic
 
 	public override void OnRemoveBehavior()
 	{
-		((MissionBehavior)this).OnRemoveBehavior();
+		base.OnRemoveBehavior();
 		try
 		{
 			_agentsWhoSpoke.Clear();
