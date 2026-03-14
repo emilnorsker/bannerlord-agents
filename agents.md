@@ -88,6 +88,37 @@ CampaignVec2 campaignPos = default(CampaignVec2);
 ((CampaignVec2)(ref campaignPos))._002Ector(vec2, true);
 ```
 
+### Double-Checked Locking Pattern — Required for Static Caches
+
+When using double-checked locking for a static cache, the field MUST be `volatile` AND the list must be populated into a local variable before being assigned to the field:
+
+```csharp
+// CORRECT
+private static volatile List<...> _cache;
+
+private static void EnsureCache()
+{
+    if (_cache != null) return;
+    lock (CacheLock)
+    {
+        if (_cache != null) return;
+        var temp = new List<...>();
+        // ... populate temp ...
+        _cache = temp;  // single atomic assignment as final step
+    }
+}
+```
+
+Both `volatile` and the local-variable assignment are required. Without `volatile`, the JIT/CPU can reorder the outer `if` check. Without the local variable, an exception during population leaves the field non-null but empty — permanently poisoning the cache for the session.
+
+### Dictionary Iteration Safety
+
+Never iterate a `Dictionary<K,V>` with `foreach` if any code path inside the loop writes to the same dictionary (even assigning existing keys). Always snapshot first: `foreach (var kv in dict.ToList())`.
+
+### Skill StringId Casing
+
+Bannerlord skill `StringId` values are **lowercase** (e.g., `"charm"`, `"leadership"`, `"medicine"`). AI output naturally uses title case. Always use `StringComparison.OrdinalIgnoreCase` when matching skills by StringId.
+
 ### Common Hallucination Patterns to Avoid
 
 - `DefaultSkills.GetAllSkills()` — **does not exist**. Use `Skills.All`.
