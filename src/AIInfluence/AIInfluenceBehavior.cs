@@ -1131,6 +1131,10 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				ChangeClanInfluenceAction.Apply(playerClan, (float)questInfo.InfluenceChange.Value);
 				LogMessage($"[QUEST] Clan influence changed by {questInfo.InfluenceChange.Value}");
 			}
+			else
+			{
+				LogMessage($"[QUEST] Influence change of {questInfo.InfluenceChange.Value} skipped — player clan is null");
+			}
 		}
 	}
 
