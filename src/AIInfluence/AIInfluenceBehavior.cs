@@ -51,6 +51,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	private string _currentSaveFolder;
 
+	private string _npcContextsJson;
+
 	private Dictionary<string, NPCContext> _npcContexts = new Dictionary<string, NPCContext>();
 
 	private Dictionary<string, string> _stringIdToContextKey = new Dictionary<string, string>();
@@ -3448,6 +3450,13 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			{
 				return new NPCContext();
 			}
+			if (_npcContexts.TryGetValue(npcId, out var cached))
+			{
+				if (cached.ConversationHistory == null) cached.ConversationHistory = new List<string>();
+				if (cached.RecentEvents == null) cached.RecentEvents = new List<CampaignEvent>();
+				if (cached.ProcessedMessageHashes == null) cached.ProcessedMessageHashes = new HashSet<string>();
+				return cached;
+			}
 			if (string.IsNullOrEmpty(_currentSaveFolder))
 			{
 				_currentSaveFolder = GetActiveSaveDirectory();
@@ -3638,9 +3647,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			{
 				_npcFilePathCache[context.StringId] = text2;
 			}
-			NPCContext nPCContext = null;
-			string path = text3 ?? text2;
-			bool flag2 = !File.Exists(path);
+			bool flag2 = !File.Exists(text3 ?? text2);
 			if (flag2)
 			{
 				bool flag3 = context.InteractionCount > 0 || (context.LastInteractionTime != CampaignTime.Never && context.LastInteractionTimeDays >= 0.0);
@@ -3654,29 +3661,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					return;
 				}
 			}
-			if (File.Exists(path))
-			{
-				try
-				{
-					string text4 = File.ReadAllText(path);
-					nPCContext = JsonConvert.DeserializeObject<NPCContext>(text4);
-					if (nPCContext == null)
-					{
-						LogMessage("[NPC] Failed to deserialize existing JSON for " + npcId + ". Using current data.");
-					}
-				}
-				catch (JsonException ex)
-				{
-					JsonException ex2 = ex;
-					LogMessage("[ERROR] Failed to parse existing JSON for " + npcId + ": " + ((Exception)(object)ex2).Message + ". Using current data.");
-					nPCContext = null;
-				}
-			}
-			else
-			{
-				LogMessage("[NPC] No existing JSON file found for " + npcId + ". Using current data.");
-			}
-			if (nPCContext != null)
+			_npcContexts.TryGetValue(npcId, out NPCContext nPCContext);
+			if (nPCContext != null && !ReferenceEquals(nPCContext, context))
 			{
 				if (nPCContext.ConversationHistory != null && nPCContext.ConversationHistory.Any())
 				{
@@ -4779,11 +4765,36 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					LogMessage($"[SAVE] Saving {_followingHeroIds.Count} following hero IDs to game save");
 					LogMessage($"[SAVE] Serialized AI actions length: {_serializedActionState?.Length ?? 0}");
 				}
+				int maxHistory = GlobalSettings<ModSettings>.Instance?.PromptMaxHistory ?? 100;
+				Dictionary<string, NPCContext> contextsToSave = _npcContexts
+					.Where(kvp => kvp.Value.InteractionCount > 0 || kvp.Value.LastInteractionTimeDays >= 0.0)
+					.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+				foreach (NPCContext ctx in contextsToSave.Values)
+				{
+					if (ctx.ConversationHistory?.Count > maxHistory)
+						ctx.ConversationHistory = ctx.ConversationHistory.Skip(ctx.ConversationHistory.Count - maxHistory).ToList();
+				}
+				_npcContextsJson = JsonConvert.SerializeObject(contextsToSave);
+				LogMessage($"[SAVE] Serialized {contextsToSave.Count}/{_npcContexts.Count} NPC contexts into game save (history capped at {maxHistory})");
 			}
 			dataStore.SyncData<List<string>>("followingHeroIds", ref _followingHeroIds);
 			dataStore.SyncData<string>("aiActionState", ref _serializedActionState);
+			dataStore.SyncData<string>("npcContexts", ref _npcContextsJson);
 			if (dataStore.IsLoading)
 			{
+				if (!string.IsNullOrEmpty(_npcContextsJson))
+				{
+					try
+					{
+						_npcContexts = JsonConvert.DeserializeObject<Dictionary<string, NPCContext>>(_npcContextsJson) ?? _npcContexts;
+						_npcContextsJson = null; // free the raw string now that objects are materialized
+						LogMessage($"[LOAD] Restored {_npcContexts.Count} NPC contexts from game save");
+					}
+					catch (Exception ex)
+					{
+						LogMessage($"[ERROR] Failed to deserialize NPC contexts from save, will fall back to JSON files: {ex.Message}");
+					}
+				}
 				if (_followingHeroIds == null)
 				{
 					_followingHeroIds = new List<string>();
