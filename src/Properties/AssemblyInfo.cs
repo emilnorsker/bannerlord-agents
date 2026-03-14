@@ -11,4 +11,3 @@ using System.Runtime.Versioning;
 [assembly: AssemblyProduct("AIInfluence")]
 [assembly: AssemblyTitle("AIInfluence - AI-Powered Mod for Mount & Blade II: Bannerlord")]
 [assembly: AssemblyVersion("1.0.0.0")]
-[module: RefSafetyRules(11)]
