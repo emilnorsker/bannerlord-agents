@@ -82,7 +82,7 @@ public class NpcChatWindowVM : ViewModel
         RelationText = $"{label} ({relation:+#;-#;0})";
         RelationColor = relation >= 0 ? "#6FCF6FFF" : "#CF6F6FFF";
         TrustLabel = context.TrustLevel >= 60 ? "High Trust" : context.TrustLevel >= 30 ? "Moderate Trust" : "Low Trust";
-        EmotionLabel = context.EmotionalState?.ToString() ?? "";
+        EmotionLabel = context.EmotionalState?.Mood ?? "";
     }
 
     private void PopulateHistory(NPCContext context)
@@ -127,8 +127,8 @@ public class NpcChatWindowVM : ViewModel
         StatList.Add(new TextItemVM($"Relation: {rel:+#;-#;0}", rel >= 0 ? "#6FCF6FFF" : "#CF6F6FFF"));
         StatList.Add(new TextItemVM($"Trust: {context?.TrustLevel:F0}"));
         StatList.Add(new TextItemVM($"Interactions: {context?.InteractionCount ?? 0}"));
-        if (!string.IsNullOrWhiteSpace(context?.EmotionalState?.ToString()))
-            StatList.Add(new TextItemVM($"Mood: {context.EmotionalState}"));
+        if (!string.IsNullOrWhiteSpace(context?.EmotionalState?.Mood))
+            StatList.Add(new TextItemVM($"Mood: {context.EmotionalState.Mood}"));
     }
 
     // ── Segment parser ────────────────────────────────────────────────────

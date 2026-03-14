@@ -6,401 +6,415 @@
     <Constant Name="Window.Height"      Value="760" />
     <Constant Name="Gold"               Value="#C6AC8DFF" />
     <Constant Name="DarkBg"             Value="#0D0B09EE" />
-    <Constant Name="MidBg"             Value="#1A1612EE" />
-    <Constant Name="SpeechBg"          Value="#2A2218CC" />
-    <Constant Name="Red"               Value="#CF4444FF" />
-    <Constant Name="Purple"            Value="#9B59B6FF" />
+    <Constant Name="MidBg"              Value="#1A1612EE" />
+    <Constant Name="SpeechBg"           Value="#2A2218CC" />
+    <Constant Name="Red"                Value="#CF4444FF" />
+    <Constant Name="Purple"             Value="#9B59B6FF" />
+    <Constant Name="SubText"            Value="#AAAAAAFF" />
   </Constants>
 
   <Window Id="ChatInterfaceWindow" Layer="Overlay">
-    <!-- Root: full-width 3-column row, centered -->
+
+    <!-- Root: centered fixed container -->
     <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed"
-            SuggestedWidth="1140" SuggestedHeight="!Window.Height"
+            SuggestedWidth="1152" SuggestedHeight="!Window.Height"
             HorizontalAlignment="Center" VerticalAlignment="Center"
             DoNotAcceptEvents="false">
       <Children>
 
-        <!-- ══════════════════════════════════════════════════════
-             LEFT PANEL  –  Portrait + trait overlay at top
-        ═══════════════════════════════════════════════════════════ -->
-        <Widget Id="LeftPanel"
-                WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent"
-                SuggestedWidth="!Panel.Left.Width"
-                Sprite="BlankWhiteSquare_9" Color="!DarkBg"
-                PositionXOffset="0">
+        <!-- ── 3-column horizontal row ───────────────────────────────── -->
+        <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                   StackLayout.LayoutMethod="Horizontal">
           <Children>
 
-            <!-- Portrait fills the panel -->
-            <AIInfluencePortraitWidget
-                WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                HorizontalAlignment="Center" VerticalAlignment="Center" />
-
-            <!-- Trait overlay strip pinned to TOP -->
-            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                    VerticalAlignment="Top"
-                    Sprite="BlankWhiteSquare_9" Color="#00000088"
-                    MarginTop="0">
+            <!-- ══════════════════════════════════════════════════════
+                 LEFT PANEL  –  Portrait + trait overlay at top
+            ═══════════════════════════════════════════════════════════ -->
+            <Widget Id="LeftPanel"
+                    WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent"
+                    SuggestedWidth="!Panel.Left.Width"
+                    Sprite="BlankWhiteSquare_9" Color="!DarkBg">
               <Children>
-                <!-- Relation row: value left, label right -->
+
+                <!-- Portrait fills the panel -->
+                <AIInfluencePortraitWidget
+                    WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                    HorizontalAlignment="Center" VerticalAlignment="Center" />
+
+                <!-- Trait overlay strip pinned to TOP -->
                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                        Margin="12,8,12,4">
+                        VerticalAlignment="Top"
+                        Sprite="BlankWhiteSquare_9" Color="#000000AA">
                   <Children>
-                    <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                   HorizontalAlignment="Left" VerticalAlignment="Center"
-                                   Brush="ConversationScreen.Relation.Text"
-                                   Brush.FontSize="20" Brush.Color="@RelationColor"
-                                   Text="@RelationText" IsDisabled="true" />
-                    <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                   HorizontalAlignment="Right" VerticalAlignment="Center"
-                                   Brush="ConversationScreen.Relation.Text"
-                                   Brush.FontSize="14" Brush.Color="#AAAAААFF"
-                                   Text="@TrustLabel" IsDisabled="true" />
-                  </Children>
-                </Widget>
-                <!-- Emotion label -->
-                <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                               HorizontalAlignment="Left" VerticalAlignment="Top"
-                               Margin="12,0,0,8"
-                               Brush="ConversationScreen.Relation.Text"
-                               Brush.FontSize="13" Brush.Color="#AAAAААFF"
-                               Text="@EmotionLabel" IsDisabled="true" />
-              </Children>
-            </Widget>
-
-          </Children>
-        </Widget>
-
-        <!-- ══════════════════════════════════════════════════════
-             CENTER PANEL  –  Header + chat + input
-        ═══════════════════════════════════════════════════════════ -->
-        <Widget Id="CenterPanel"
-                WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent"
-                SuggestedWidth="!Panel.Center.Width"
-                Sprite="BlankWhiteSquare_9" Color="!MidBg"
-                PositionXOffset="4">
-          <Children>
-
-            <!-- Header: NPC name + title -->
-            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
-                    SuggestedHeight="64"
-                    VerticalAlignment="Top"
-                    Sprite="BlankWhiteSquare_9" Color="#00000055">
-              <Children>
-                <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                               HorizontalAlignment="Center" VerticalAlignment="Top"
-                               PositionYOffset="10"
-                               Brush="Recruitment.Popup.Title.Text"
-                               Brush.FontSize="22" Brush.Color="!Gold"
-                               Text="@NpcName" IsDisabled="true" />
-                <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                               HorizontalAlignment="Center" VerticalAlignment="Bottom"
-                               PositionYOffset="-10"
-                               Brush="Recruitment.Popup.Title.Text"
-                               Brush.FontSize="14" Brush.Color="#AAAAААFF"
-                               Text="@NpcTitle" IsDisabled="true" />
-              </Children>
-            </Widget>
-
-            <!-- Message scroll area -->
-            <ScrollablePanel Id="MessagesScrollPanel"
-                             WidthSizePolicy="StretchToParent"
-                             HeightSizePolicy="Fixed" SuggestedHeight="596"
-                             VerticalAlignment="Top"
-                             PositionYOffset="68"
-                             AutoHideScrollBars="true"
-                             ClipRect="MsgClipRect"
-                             InnerPanel="MsgClipRect\MsgList"
-                             VerticalScrollbar="..\MsgScrollbar\Scrollbar">
-              <Children>
-                <Widget Id="MsgClipRect"
-                        WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                        ClipContents="true">
-                  <Children>
-                    <ListPanel Id="MsgList"
-                               DataSource="{MessageList}"
-                               WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                    <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                StackLayout.LayoutMethod="Vertical"
-                               MarginTop="8" MarginBottom="8">
-                      <ItemTemplate>
-                        <!-- Each segment is rendered by MessageType -->
-                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                MarginBottom="2" MarginLeft="12" MarginRight="12">
+                               Margin="12,8,12,8">
+                      <Children>
+                        <!-- Relation row -->
+                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren">
                           <Children>
-
-                            <!-- SENDER label (MessageType == "sender") -->
-                            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                    IsVisible="@IsSender">
-                              <Children>
-                                <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                               Brush="Recruitment.Popup.Title.Text"
-                                               Brush.FontSize="15" Brush.Color="@SenderColor"
-                                               Text="@SenderName"
-                                               IsDisabled="true" />
-                                <!-- Underline via a thin widget -->
-                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
-                                        SuggestedHeight="1"
-                                        PositionYOffset="20"
-                                        Sprite="BlankWhiteSquare_9" Color="@SenderColor" />
-                              </Children>
-                            </Widget>
-
-                            <!-- SPEECH bubble (MessageType == "speech") -->
-                            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                    MarginTop="2" MarginBottom="4"
-                                    Sprite="BlankWhiteSquare_9" Color="!SpeechBg"
-                                    IsVisible="@IsSpeech">
-                              <Children>
-                                <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                               Margin="10,6,10,6"
-                                               Brush="Recruitment.Popup.Title.Text"
-                                               Brush.FontSize="14" Brush.Color="#E8DCC8FF"
-                                               Text="@MessageText"
-                                               IsDisabled="true" />
-                              </Children>
-                            </Widget>
-
-                            <!-- EMOTE line (MessageType == "emote") red ambient -->
-                            <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                           MarginTop="2"
+                            <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                           HorizontalAlignment="Left" VerticalAlignment="Center"
                                            Brush="Recruitment.Popup.Title.Text"
-                                           Brush.FontSize="13" Brush.Color="!Red"
-                                           Brush.FontStyle="Italic"
-                                           Text="@MessageText"
-                                           IsVisible="@IsEmote"
-                                           IsDisabled="true" />
-
-                            <!-- ACTION line (MessageType == "action") purple -->
-                            <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                           MarginTop="2"
+                                           Brush.FontSize="20" Brush.Color="@RelationColor"
+                                           Text="@RelationText" IsDisabled="true" />
+                            <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                           HorizontalAlignment="Right" VerticalAlignment="Center"
                                            Brush="Recruitment.Popup.Title.Text"
-                                           Brush.FontSize="13" Brush.Color="!Purple"
-                                           Text="@MessageText"
-                                           IsVisible="@IsAction"
-                                           IsDisabled="true" />
-
+                                           Brush.FontSize="14" Brush.Color="!SubText"
+                                           Text="@TrustLabel" IsDisabled="true" />
                           </Children>
                         </Widget>
-                      </ItemTemplate>
+                        <!-- Emotion label -->
+                        <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                       MarginTop="2"
+                                       Brush="Recruitment.Popup.Title.Text"
+                                       Brush.FontSize="13" Brush.Color="!SubText"
+                                       Text="@EmotionLabel" IsDisabled="true" />
+                      </Children>
                     </ListPanel>
                   </Children>
                 </Widget>
+
               </Children>
-            </ScrollablePanel>
+            </Widget>
 
-            <Standard.VerticalScrollbar Id="MsgScrollbar"
-                                        HorizontalAlignment="Right"
-                                        VerticalAlignment="Top"
-                                        PositionYOffset="68"
-                                        HeightSizePolicy="Fixed" SuggestedHeight="596" />
+            <!-- 4px gap -->
+            <Widget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent"
+                    SuggestedWidth="4" />
 
-            <!-- Input bar pinned to bottom -->
-            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
-                    SuggestedHeight="52"
-                    VerticalAlignment="Bottom"
-                    Sprite="BlankWhiteSquare_9" Color="#00000077">
+            <!-- ══════════════════════════════════════════════════════
+                 CENTER PANEL  –  Header + chat + input
+            ═══════════════════════════════════════════════════════════ -->
+            <Widget Id="CenterPanel"
+                    WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent"
+                    SuggestedWidth="!Panel.Center.Width"
+                    Sprite="BlankWhiteSquare_9" Color="!MidBg">
               <Children>
-                <EditableTextWidget Id="MessageInput"
-                                    WidthSizePolicy="Fixed" SuggestedWidth="400"
-                                    HeightSizePolicy="Fixed" SuggestedHeight="36"
-                                    HorizontalAlignment="Left" VerticalAlignment="Center"
-                                    PositionXOffset="10"
-                                    Brush="Recruitment.Popup.Title.Text"
-                                    Brush.FontSize="14"
-                                    Text="@InputText"
-                                    Command.TextChanged="OnTextChanged" />
 
-                <ButtonWidget WidthSizePolicy="Fixed" SuggestedWidth="90"
+                <!-- Header: NPC name + title -->
+                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
+                        SuggestedHeight="64"
+                        VerticalAlignment="Top"
+                        Sprite="BlankWhiteSquare_9" Color="#00000055">
+                  <Children>
+                    <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                   HorizontalAlignment="Center" VerticalAlignment="Top"
+                                   PositionYOffset="10"
+                                   Brush="Recruitment.Popup.Title.Text"
+                                   Brush.FontSize="22" Brush.Color="!Gold"
+                                   Text="@NpcName" IsDisabled="true" />
+                    <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                   HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                                   PositionYOffset="-10"
+                                   Brush="Recruitment.Popup.Title.Text"
+                                   Brush.FontSize="14" Brush.Color="!SubText"
+                                   Text="@NpcTitle" IsDisabled="true" />
+                  </Children>
+                </Widget>
+
+                <!-- Message scroll area -->
+                <ScrollablePanel Id="MessagesScrollPanel"
+                                 WidthSizePolicy="StretchToParent"
+                                 HeightSizePolicy="Fixed" SuggestedHeight="644"
+                                 VerticalAlignment="Top"
+                                 PositionYOffset="68"
+                                 AutoHideScrollBars="true"
+                                 ClipRect="MsgClipRect"
+                                 InnerPanel="MsgClipRect\MsgList"
+                                 VerticalScrollbar="..\MsgScrollbar\Scrollbar">
+                  <Children>
+                    <Widget Id="MsgClipRect"
+                            WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                            ClipContents="true">
+                      <Children>
+                        <NavigatableListPanel Id="MsgList"
+                                             DataSource="{MessageList}"
+                                             WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                             StackLayout.LayoutMethod="Vertical"
+                                             MarginTop="8" MarginBottom="8">
+                          <ItemTemplate>
+                            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                    MarginBottom="2" MarginLeft="12" MarginRight="12">
+                              <Children>
+
+                                <!-- SENDER label: name underlined, always first -->
+                                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                           StackLayout.LayoutMethod="Vertical"
+                                           IsVisible="@IsSender">
+                                  <Children>
+                                    <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                   Brush="Recruitment.Popup.Title.Text"
+                                                   Brush.FontSize="15" Brush.Color="@SenderColor"
+                                                   Text="@SenderName"
+                                                   IsDisabled="true" />
+                                    <!-- Underline: stacked directly below text -->
+                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
+                                            SuggestedHeight="1"
+                                            Sprite="BlankWhiteSquare_9" Color="@SenderColor" />
+                                  </Children>
+                                </ListPanel>
+
+                                <!-- SPEECH bubble -->
+                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                        MarginTop="2" MarginBottom="4"
+                                        Sprite="BlankWhiteSquare_9" Color="!SpeechBg"
+                                        IsVisible="@IsSpeech">
+                                  <Children>
+                                    <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                   Margin="10,6,10,6"
+                                                   Brush="Recruitment.Popup.Title.Text"
+                                                   Brush.FontSize="14" Brush.Color="#E8DCC8FF"
+                                                   Text="@MessageText"
+                                                   IsDisabled="true" />
+                                  </Children>
+                                </Widget>
+
+                                <!-- EMOTE  – red, italic via small font size, no bubble -->
+                                <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                               MarginTop="2"
+                                               Brush="Recruitment.Popup.Title.Text"
+                                               Brush.FontSize="13" Brush.Color="!Red"
+                                               Text="@MessageText"
+                                               IsVisible="@IsEmote"
+                                               IsDisabled="true" />
+
+                                <!-- ACTION – purple inline -->
+                                <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                               MarginTop="2"
+                                               Brush="Recruitment.Popup.Title.Text"
+                                               Brush.FontSize="13" Brush.Color="!Purple"
+                                               Text="@MessageText"
+                                               IsVisible="@IsAction"
+                                               IsDisabled="true" />
+
+                              </Children>
+                            </Widget>
+                          </ItemTemplate>
+                        </NavigatableListPanel>
+                      </Children>
+                    </Widget>
+                  </Children>
+                </ScrollablePanel>
+
+                <Standard.VerticalScrollbar Id="MsgScrollbar"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Top"
+                                            PositionYOffset="68"
+                                            HeightSizePolicy="Fixed" SuggestedHeight="644" />
+
+                <!-- Input bar pinned to bottom -->
+                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
+                        SuggestedHeight="48"
+                        VerticalAlignment="Bottom"
+                        Sprite="BlankWhiteSquare_9" Color="#00000077">
+                  <Children>
+                    <EditableTextWidget Id="MessageInput"
+                                        WidthSizePolicy="Fixed" SuggestedWidth="400"
+                                        HeightSizePolicy="Fixed" SuggestedHeight="36"
+                                        HorizontalAlignment="Left" VerticalAlignment="Center"
+                                        PositionXOffset="10"
+                                        Brush="Recruitment.Popup.Title.Text"
+                                        Brush.FontSize="14"
+                                        Text="@InputText"
+                                        Command.TextChanged="OnTextChanged" />
+
+                    <ButtonWidget WidthSizePolicy="Fixed" SuggestedWidth="90"
+                                  HeightSizePolicy="Fixed" SuggestedHeight="36"
+                                  HorizontalAlignment="Right" VerticalAlignment="Center"
+                                  PositionXOffset="-10"
+                                  IsEnabled="@IsSendEnabled"
+                                  Brush="ButtonBrush1"
+                                  UpdateChildrenStates="true"
+                                  DoNotPassEventsToChildren="true"
+                                  Command.Click="ExecuteSendMessage">
+                      <Children>
+                        <TextWidget Text="Send"
+                                    WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                                    Brush="Popup.Button.Text" Brush.FontSize="14"
+                                    HorizontalAlignment="Center" VerticalAlignment="Center" />
+                      </Children>
+                    </ButtonWidget>
+                  </Children>
+                </Widget>
+
+              </Children>
+            </Widget>
+
+            <!-- 4px gap -->
+            <Widget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent"
+                    SuggestedWidth="4" />
+
+            <!-- ══════════════════════════════════════════════════════
+                 RIGHT PANEL  –  Diplomacy & Relation
+            ═══════════════════════════════════════════════════════════ -->
+            <Widget Id="RightPanel"
+                    WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent"
+                    SuggestedWidth="!Panel.Right.Width"
+                    Sprite="BlankWhiteSquare_9" Color="!DarkBg">
+              <Children>
+
+                <!-- Title -->
+                <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                               HorizontalAlignment="Center" VerticalAlignment="Top"
+                               PositionYOffset="14"
+                               Brush="Recruitment.Popup.Title.Text"
+                               Brush.FontSize="20" Brush.Color="!Gold"
+                               Text="Diplomacy &amp; Relation" IsDisabled="true" />
+
+                <!-- Separator -->
+                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
+                        SuggestedHeight="1" VerticalAlignment="Top"
+                        PositionYOffset="44"
+                        Margin="12,0,12,0"
+                        Sprite="BlankWhiteSquare_9" Color="#C6AC8D55" />
+
+                <!-- Scrollable right content -->
+                <ScrollablePanel Id="RightScrollPanel"
+                                 WidthSizePolicy="StretchToParent"
+                                 HeightSizePolicy="Fixed" SuggestedHeight="660"
+                                 VerticalAlignment="Top" PositionYOffset="52"
+                                 AutoHideScrollBars="true"
+                                 ClipRect="RightClipRect"
+                                 InnerPanel="RightClipRect\RightList"
+                                 VerticalScrollbar="..\RightScrollbar\Scrollbar">
+                  <Children>
+                    <Widget Id="RightClipRect"
+                            WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                            ClipContents="true">
+                      <Children>
+                        <!-- Static layout container — NO DataSource -->
+                        <ListPanel Id="RightList"
+                                   WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                   StackLayout.LayoutMethod="Vertical"
+                                   Margin="12,0,12,0">
+                          <Children>
+
+                            <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                           MarginTop="8" MarginBottom="6"
+                                           Brush="Recruitment.Popup.Title.Text"
+                                           Brush.FontSize="13" Brush.Color="#888888FF"
+                                           Text="WORLD EVENTS" IsDisabled="true" />
+
+                            <NavigatableListPanel DataSource="{WorldEventList}"
+                                                 WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                 StackLayout.LayoutMethod="Vertical">
+                              <ItemTemplate>
+                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                        MarginBottom="6"
+                                        Sprite="BlankWhiteSquare_9" Color="#1A1612CC">
+                                  <Children>
+                                    <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                   Margin="8,6,8,6"
+                                                   Brush="Recruitment.Popup.Title.Text"
+                                                   Brush.FontSize="12" Brush.Color="@Color"
+                                                   Text="@Text" IsDisabled="true" />
+                                  </Children>
+                                </Widget>
+                              </ItemTemplate>
+                            </NavigatableListPanel>
+
+                            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
+                                    SuggestedHeight="1" MarginTop="8" MarginBottom="4"
+                                    Sprite="BlankWhiteSquare_9" Color="#C6AC8D33" />
+
+                            <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                           MarginTop="4" MarginBottom="6"
+                                           Brush="Recruitment.Popup.Title.Text"
+                                           Brush.FontSize="13" Brush.Color="#888888FF"
+                                           Text="WHAT WE KNOW" IsDisabled="true" />
+
+                            <NavigatableListPanel DataSource="{KnowledgeList}"
+                                                 WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                 StackLayout.LayoutMethod="Vertical">
+                              <ItemTemplate>
+                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                        MarginBottom="4">
+                                  <Children>
+                                    <RichTextWidget WidthSizePolicy="Fixed" HeightSizePolicy="CoverChildren"
+                                                   SuggestedWidth="14"
+                                                   HorizontalAlignment="Left" VerticalAlignment="Top"
+                                                   Brush="Recruitment.Popup.Title.Text"
+                                                   Brush.FontSize="14" Brush.Color="!Gold"
+                                                   Text="•" IsDisabled="true" />
+                                    <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                   Margin="16,0,0,0"
+                                                   Brush="Recruitment.Popup.Title.Text"
+                                                   Brush.FontSize="12" Brush.Color="#C8BEA8FF"
+                                                   Text="@Text" IsDisabled="true" />
+                                  </Children>
+                                </Widget>
+                              </ItemTemplate>
+                            </NavigatableListPanel>
+
+                            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
+                                    SuggestedHeight="1" MarginTop="8" MarginBottom="4"
+                                    Sprite="BlankWhiteSquare_9" Color="#C6AC8D33" />
+
+                            <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                           MarginTop="4" MarginBottom="6"
+                                           Brush="Recruitment.Popup.Title.Text"
+                                           Brush.FontSize="13" Brush.Color="#888888FF"
+                                           Text="CHARACTER" IsDisabled="true" />
+
+                            <NavigatableListPanel DataSource="{StatList}"
+                                                 WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                 StackLayout.LayoutMethod="Vertical">
+                              <ItemTemplate>
+                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                        MarginBottom="4">
+                                  <Children>
+                                    <RichTextWidget WidthSizePolicy="Fixed" HeightSizePolicy="CoverChildren"
+                                                   SuggestedWidth="14"
+                                                   HorizontalAlignment="Left" VerticalAlignment="Top"
+                                                   Brush="Recruitment.Popup.Title.Text"
+                                                   Brush.FontSize="14" Brush.Color="!Gold"
+                                                   Text="•" IsDisabled="true" />
+                                    <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                   Margin="16,0,0,0"
+                                                   Brush="Recruitment.Popup.Title.Text"
+                                                   Brush.FontSize="12" Brush.Color="@Color"
+                                                   Text="@Text" IsDisabled="true" />
+                                  </Children>
+                                </Widget>
+                              </ItemTemplate>
+                            </NavigatableListPanel>
+
+                          </Children>
+                        </ListPanel>
+                      </Children>
+                    </Widget>
+                  </Children>
+                </ScrollablePanel>
+
+                <Standard.VerticalScrollbar Id="RightScrollbar"
+                                            HorizontalAlignment="Right"
+                                            VerticalAlignment="Top"
+                                            PositionYOffset="52"
+                                            HeightSizePolicy="Fixed" SuggestedHeight="660" />
+
+                <!-- Close button -->
+                <ButtonWidget WidthSizePolicy="Fixed" SuggestedWidth="120"
                               HeightSizePolicy="Fixed" SuggestedHeight="36"
-                              HorizontalAlignment="Right" VerticalAlignment="Center"
-                              PositionXOffset="-10"
-                              IsEnabled="@IsSendEnabled"
+                              HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                              PositionYOffset="-8"
                               Brush="ButtonBrush1"
                               UpdateChildrenStates="true"
                               DoNotPassEventsToChildren="true"
-                              Command.Click="ExecuteSendMessage">
+                              Command.Click="ExecuteReturn">
                   <Children>
-                    <TextWidget Text="Send"
+                    <TextWidget Text="Close"
                                 WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                 Brush="Popup.Button.Text" Brush.FontSize="14"
                                 HorizontalAlignment="Center" VerticalAlignment="Center" />
                   </Children>
                 </ButtonWidget>
+
               </Children>
             </Widget>
 
           </Children>
-        </Widget>
-
-        <!-- ══════════════════════════════════════════════════════
-             RIGHT PANEL  –  Diplomacy & Relation
-        ═══════════════════════════════════════════════════════════ -->
-        <Widget Id="RightPanel"
-                WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent"
-                SuggestedWidth="!Panel.Right.Width"
-                Sprite="BlankWhiteSquare_9" Color="!DarkBg"
-                PositionXOffset="8">
-          <Children>
-
-            <!-- Title -->
-            <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                           HorizontalAlignment="Center" VerticalAlignment="Top"
-                           PositionYOffset="14"
-                           Brush="Recruitment.Popup.Title.Text"
-                           Brush.FontSize="20" Brush.Color="!Gold"
-                           Text="Diplomacy &amp; Relation" IsDisabled="true" />
-
-            <!-- Separator -->
-            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
-                    SuggestedHeight="1" VerticalAlignment="Top"
-                    PositionYOffset="44"
-                    Margin="12,0,12,0"
-                    Sprite="BlankWhiteSquare_9" Color="#C6AC8D55" />
-
-            <!-- Scrollable right content -->
-            <ScrollablePanel Id="RightScrollPanel"
-                             WidthSizePolicy="StretchToParent"
-                             HeightSizePolicy="Fixed" SuggestedHeight="668"
-                             VerticalAlignment="Top" PositionYOffset="52"
-                             AutoHideScrollBars="true"
-                             ClipRect="RightClipRect"
-                             InnerPanel="RightClipRect\RightList"
-                             VerticalScrollbar="..\RightScrollbar\Scrollbar">
-              <Children>
-                <Widget Id="RightClipRect"
-                        WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                        ClipContents="true">
-                  <Children>
-                    <ListPanel Id="RightList"
-                               WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                               StackLayout.LayoutMethod="Vertical"
-                               Margin="12,0,12,0">
-
-                      <!-- World Events section -->
-                      <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                     MarginTop="8" MarginBottom="6"
-                                     Brush="Recruitment.Popup.Title.Text"
-                                     Brush.FontSize="13" Brush.Color="#888888FF"
-                                     Text="WORLD EVENTS" IsDisabled="true" />
-
-                      <ListPanel DataSource="{WorldEventList}"
-                                 WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                 StackLayout.LayoutMethod="Vertical">
-                        <ItemTemplate>
-                          <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                  MarginBottom="6"
-                                  Sprite="BlankWhiteSquare_9" Color="#1A1612CC">
-                            <Children>
-                              <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                             Margin="8,6,8,6"
-                                             Brush="Recruitment.Popup.Title.Text"
-                                             Brush.FontSize="12" Brush.Color="@Color"
-                                             Text="@Text" IsDisabled="true" />
-                            </Children>
-                          </Widget>
-                        </ItemTemplate>
-                      </ListPanel>
-
-                      <!-- Separator -->
-                      <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
-                              SuggestedHeight="1" MarginTop="8" MarginBottom="4"
-                              Sprite="BlankWhiteSquare_9" Color="#C6AC8D33" />
-
-                      <!-- What We Know section -->
-                      <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                     MarginTop="4" MarginBottom="6"
-                                     Brush="Recruitment.Popup.Title.Text"
-                                     Brush.FontSize="13" Brush.Color="#888888FF"
-                                     Text="WHAT WE KNOW" IsDisabled="true" />
-
-                      <ListPanel DataSource="{KnowledgeList}"
-                                 WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                 StackLayout.LayoutMethod="Vertical">
-                        <ItemTemplate>
-                          <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                  MarginBottom="4">
-                            <Children>
-                              <RichTextWidget WidthSizePolicy="Fixed" HeightSizePolicy="CoverChildren"
-                                             SuggestedWidth="6"
-                                             VerticalAlignment="Top" PositionYOffset="4"
-                                             Brush="Recruitment.Popup.Title.Text"
-                                             Brush.FontSize="14" Brush.Color="!Gold"
-                                             Text="•" IsDisabled="true" />
-                              <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                             Margin="14,0,0,0"
-                                             Brush="Recruitment.Popup.Title.Text"
-                                             Brush.FontSize="12" Brush.Color="#C8BEA8FF"
-                                             Text="@Text" IsDisabled="true" />
-                            </Children>
-                          </Widget>
-                        </ItemTemplate>
-                      </ListPanel>
-
-                      <!-- Separator -->
-                      <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
-                              SuggestedHeight="1" MarginTop="8" MarginBottom="4"
-                              Sprite="BlankWhiteSquare_9" Color="#C6AC8D33" />
-
-                      <!-- Stats section -->
-                      <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                     MarginTop="4" MarginBottom="6"
-                                     Brush="Recruitment.Popup.Title.Text"
-                                     Brush.FontSize="13" Brush.Color="#888888FF"
-                                     Text="CHARACTER" IsDisabled="true" />
-
-                      <ListPanel DataSource="{StatList}"
-                                 WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                 StackLayout.LayoutMethod="Vertical">
-                        <ItemTemplate>
-                          <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                  MarginBottom="4">
-                            <Children>
-                              <RichTextWidget WidthSizePolicy="Fixed" HeightSizePolicy="CoverChildren"
-                                             SuggestedWidth="6"
-                                             VerticalAlignment="Top" PositionYOffset="4"
-                                             Brush="Recruitment.Popup.Title.Text"
-                                             Brush.FontSize="14" Brush.Color="!Gold"
-                                             Text="•" IsDisabled="true" />
-                              <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                             Margin="14,0,0,0"
-                                             Brush="Recruitment.Popup.Title.Text"
-                                             Brush.FontSize="12" Brush.Color="@Color"
-                                             Text="@Text" IsDisabled="true" />
-                            </Children>
-                          </Widget>
-                        </ItemTemplate>
-                      </ListPanel>
-
-                    </ListPanel>
-                  </Children>
-                </Widget>
-              </Children>
-            </ScrollablePanel>
-
-            <Standard.VerticalScrollbar Id="RightScrollbar"
-                                        HorizontalAlignment="Right"
-                                        VerticalAlignment="Top"
-                                        PositionYOffset="52"
-                                        HeightSizePolicy="Fixed" SuggestedHeight="668" />
-
-            <!-- Close / Return button -->
-            <ButtonWidget WidthSizePolicy="Fixed" SuggestedWidth="120"
-                          HeightSizePolicy="Fixed" SuggestedHeight="36"
-                          HorizontalAlignment="Center" VerticalAlignment="Bottom"
-                          PositionYOffset="-10"
-                          Brush="ButtonBrush1"
-                          UpdateChildrenStates="true"
-                          DoNotPassEventsToChildren="true"
-                          Command.Click="ExecuteReturn">
-              <Children>
-                <TextWidget Text="Close"
-                            WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                            Brush="Popup.Button.Text" Brush.FontSize="14"
-                            HorizontalAlignment="Center" VerticalAlignment="Center" />
-              </Children>
-            </ButtonWidget>
-
-          </Children>
-        </Widget>
+        </ListPanel>
 
       </Children>
     </Widget>
