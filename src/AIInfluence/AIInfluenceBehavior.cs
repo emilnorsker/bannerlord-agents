@@ -1082,11 +1082,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			questInfo.SpawnedPartyId = ((MBObjectBase)party).StringId;
 			try
 			{
-				party.InitializeMobilePartyAroundPosition(memberRoster, new TroopRoster(party.Party), spawnPos, 5f, 0f);
-				party.SetCustomName(new TextObject(partyLabel, (Dictionary<string, object>)null));
-				CampaignVec2 patrolPos = default(CampaignVec2);
-				((CampaignVec2)(ref patrolPos))._002Ector(spawnPos, true);
-				party.SetMovePatrolAroundPoint(patrolPos, (NavigationType)3);
+				CampaignVec2 campaignSpawnPos = default(CampaignVec2);
+				((CampaignVec2)(ref campaignSpawnPos))._002Ector(spawnPos, true);
+				party.InitializeMobilePartyAroundPosition(memberRoster, new TroopRoster(party.Party), campaignSpawnPos, 5f, 0f);
+				party.Party.SetCustomName(new TextObject(partyLabel, (Dictionary<string, object>)null));
+				party.SetMovePatrolAroundPoint(campaignSpawnPos, (NavigationType)3);
 			}
 			catch (Exception setupEx)
 			{
