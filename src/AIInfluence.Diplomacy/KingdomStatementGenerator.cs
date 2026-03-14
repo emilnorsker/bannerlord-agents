@@ -475,7 +475,7 @@ public class KingdomStatementGenerator
 		stringBuilder.AppendLine();
 		stringBuilder.AppendLine("**STEP 6: VERIFY ACTION VALIDITY**");
 		stringBuilder.AppendLine("- Actions valid? propose_peace → AT WAR | declare_war → NOT at war | accept/reject → pending proposals exist | break_alliance → ALLIED | propose_alliance → NOT allied | territory → available settlements");
-		stringBuilder.AppendLine("- All parameters? (settlement_id for territory, amounts for tribute/reparations) **CRITICAL:** expel_clan → target_clan_id (NOT target_kingdom_id).");
+		stringBuilder.AppendLine("- All parameters? (settlement_id for territory, amounts for tribute/reparations) **CRITICAL:** expel_clan → target_clan_id (NOT target_kingdom_id). found_kingdom → target_clan_id (clan that owns a castle/town) + new_kingdom_name + new_kingdom_informal_name (NO target_kingdom_id).");
 		stringBuilder.AppendLine();
 		if (flag)
 		{
@@ -602,7 +602,7 @@ public class KingdomStatementGenerator
 		stringBuilder.AppendLine();
 		stringBuilder.AppendLine("## ACTIONS:");
 		stringBuilder.AppendLine("**RULES:** Propose peace (if at war) | Declare war (if not at war, breaks ally) | Alliance (propose/accept/reject/break) | Alliance = support in wars");
-		stringBuilder.AppendLine("**BASIC:** none, declare_war, propose_peace, accept/reject_peace, propose/accept/reject/break_alliance, expel_clan (needs target_clan_id)");
+		stringBuilder.AppendLine("**BASIC:** none, declare_war, propose_peace, accept/reject_peace, propose/accept/reject/break_alliance, expel_clan (needs target_clan_id), found_kingdom (needs target_clan_id + new_kingdom_name + new_kingdom_informal_name)");
 		stringBuilder.AppendLine("**EXTENDED:**");
 		stringBuilder.AppendLine("  - Trade: propose_trade_agreement, accept_trade_agreement, reject_trade_agreement, end_trade_agreement");
 		stringBuilder.AppendLine("  - Territory: demand_territory, transfer_territory, reject_territory (requires settlement_id)");
@@ -643,7 +643,9 @@ public class KingdomStatementGenerator
 		stringBuilder.AppendLine("  \"tribute_duration_days\": 0,");
 		stringBuilder.AppendLine("  \"reparations_amount\": 0,");
 		stringBuilder.AppendLine("  \"trade_agreement_duration_years\": 1.0,");
-		stringBuilder.AppendLine("  \"quarantine_duration_days\": 0 // For quarantine_settlement: positive integer (days), minimum 1, auto-lifts after");
+		stringBuilder.AppendLine("  \"quarantine_duration_days\": 0, // For quarantine_settlement: positive integer (days), minimum 1, auto-lifts after");
+		stringBuilder.AppendLine("  \"new_kingdom_name\": \"Name\", // REQUIRED for found_kingdom: formal name of the new kingdom");
+		stringBuilder.AppendLine("  \"new_kingdom_informal_name\": \"Name\" // REQUIRED for found_kingdom: informal/short name (e.g. 'Battanian Highlands' → informal 'Highlands')");
 		stringBuilder.AppendLine("}");
 		stringBuilder.AppendLine();
 		stringBuilder.AppendLine("**CRITICAL: Action-Target Pairing by Index**");
