@@ -56,6 +56,15 @@ public class SerializedPlayerStatement
 	[JsonProperty("quarantine_duration_days")]
 	public int QuarantineDurationDays { get; set; }
 
+	[JsonProperty("target_clan_id")]
+	public string TargetClanId { get; set; }
+
+	[JsonProperty("new_kingdom_name")]
+	public string NewKingdomName { get; set; }
+
+	[JsonProperty("new_kingdom_informal_name")]
+	public string NewKingdomInformalName { get; set; }
+
 	public static SerializedPlayerStatement FromDelayed(DelayedPlayerStatement delayed)
 	{
 		//IL_00e7: Unknown result type (might be due to invalid IL or missing references)
