@@ -419,10 +419,6 @@ public class WorldEventsWindowViewModel : ViewModel
 		//IL_0012: Unknown result type (might be due to invalid IL or missing references)
 		//IL_001c: Expected O, but got Unknown
 		_ = CampaignTime.Now;
-		if (false)
-		{
-			return ((object)new TextObject("{=AIInfluence_Unknown}Unknown", (Dictionary<string, object>)null)).ToString();
-		}
 		CampaignTime now = CampaignTime.Now;
 		float num = (float)(now).ToDays;
 		int daysAgo = Math.Max(0, (int)(num - campaignDays));

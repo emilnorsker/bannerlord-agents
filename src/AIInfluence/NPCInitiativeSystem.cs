@@ -826,7 +826,7 @@ public class NPCInitiativeSystem
 
 	private void ShowMessengerRequest(NPCInitiativeRequest request)
 	{
-		GenerateAndShowMessengerMessage(request);
+		_ = GenerateAndShowMessengerMessage(request);
 	}
 
 	public void InitiateMessengerFlow(Hero npc)
@@ -1132,7 +1132,7 @@ public class NPCInitiativeSystem
 			request.NPC.SetHasMet();
 			LogMessage($"[NPC_INITIATIVE] Made {request.NPC.Name} known to player (SetHasMet) before processing request");
 		}
-		GenerateAndStartPartyConversation(request);
+		_ = GenerateAndStartPartyConversation(request);
 	}
 
 	public async Task StartConversationAfterReturn(NPCInitiativeRequest request)

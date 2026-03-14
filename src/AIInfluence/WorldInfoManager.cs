@@ -973,10 +973,10 @@ public class WorldInfoManager
 				}
 				if (val != null)
 				{
-					if (!((object)val).Equals((object?)item6))
+					if (!((object)val).Equals((object)item6))
 					{
 						Kingdom val5 = (Kingdom)(object)((item7 is Kingdom) ? item7 : null);
-						if (val5 == null || !((object)val).Equals((object?)val5))
+						if (val5 == null || !((object)val).Equals((object)val5))
 						{
 							goto IL_02a0;
 						}
@@ -2671,7 +2671,7 @@ public class WorldInfoManager
 				{
 					IMapScene mapSceneWrapper = Campaign.Current.MapSceneWrapper;
 					CampaignVec2 val2 = new CampaignVec2(bData.Position, true);
-					TerrainType terrainTypeAtPosition = mapSceneWrapper.GetTerrainTypeAtPosition(ref val2);
+					TerrainType terrainTypeAtPosition = mapSceneWrapper.GetTerrainTypeAtPosition(in val2);
 					if ((int)terrainTypeAtPosition == 10 || (int)terrainTypeAtPosition == 8 || (int)terrainTypeAtPosition == 19 || (int)terrainTypeAtPosition == 18 || (int)terrainTypeAtPosition == 11)
 					{
 						text2 = "naval battle";

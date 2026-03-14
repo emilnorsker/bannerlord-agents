@@ -1187,11 +1187,11 @@ public static class PromptGenerator
 				{
 					if (item2 != null)
 					{
-						object? value2 = field2.GetValue(item2);
+						object value2 = field2.GetValue(item2);
 						Hero val = (Hero)((value2 is Hero) ? value2 : null);
 						if (val == mother)
 						{
-							object? value3 = field3.GetValue(item2);
+							object value3 = field3.GetValue(item2);
 							return (Hero)((value3 is Hero) ? value3 : null);
 						}
 					}
