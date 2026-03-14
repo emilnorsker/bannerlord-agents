@@ -4467,6 +4467,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			DebugSpawnTestQuest();
 			return;
 		}
+		if (settingName == "DebugGenerateQuestFromPrompt" && (bool)value)
+		{
+			DebugGenerateQuestFromPrompt();
+			return;
+		}
 		if (settingName == "DebugViewActiveQuests" && (bool)value)
 		{
 			DebugViewActiveQuests();
@@ -4537,14 +4542,14 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	{
 		try
 		{
-		Vec2 mainPos = MobileParty.MainParty?.GetPosition2D() ?? default;
-		Hero questGiver = Hero.FindAll((Hero h) => h != Hero.MainHero && h.IsAlive && h.IsActive && !h.IsWanderer)
-			?.OrderBy((Hero h) =>
-			{
-				Vec2 pos = h.PartyBelongedTo != null ? h.PartyBelongedTo.GetPosition2D() : (h.CurrentSettlement?.GetPosition2D() ?? default);
-				return pos.Distance(mainPos);
-			})
-			?.FirstOrDefault();
+			Vec2 mainPos = MobileParty.MainParty?.GetPosition2D() ?? default;
+			Hero questGiver = Hero.FindAll((Hero h) => h != Hero.MainHero && h.IsAlive && h.IsActive && !h.IsWanderer)
+				?.OrderBy((Hero h) =>
+				{
+					Vec2 pos = h.PartyBelongedTo != null ? h.PartyBelongedTo.GetPosition2D() : (h.CurrentSettlement?.GetPosition2D() ?? default);
+					return pos.Distance(mainPos);
+				})
+				?.FirstOrDefault();
 			if (questGiver == null)
 			{
 				InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] No suitable NPC found for test quest.", ExtraColors.RedAIInfluence));
@@ -4578,6 +4583,67 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			LogMessage("[QuestDebug] DebugSpawnTestQuest error: " + ex.Message);
 			InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Error — see mod_log.txt", ExtraColors.RedAIInfluence));
+		}
+	}
+
+	private void DebugGenerateQuestFromPrompt()
+	{
+		string prompt = GlobalSettings<ModSettings>.Instance?.DebugQuestGenerationPrompt?.Trim();
+		if (string.IsNullOrEmpty(prompt))
+		{
+			InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Quest Generation Prompt is empty.", ExtraColors.RedAIInfluence));
+			return;
+		}
+		try
+		{
+			Vec2 mainPos = MobileParty.MainParty?.GetPosition2D() ?? default;
+			Hero questGiver = Hero.FindAll((Hero h) => h != Hero.MainHero && h.IsAlive && h.IsActive && !h.IsWanderer)
+				?.OrderBy((Hero h) =>
+				{
+					Vec2 pos = h.PartyBelongedTo != null ? h.PartyBelongedTo.GetPosition2D() : (h.CurrentSettlement?.GetPosition2D() ?? default);
+					return pos.Distance(mainPos);
+				})
+				?.FirstOrDefault();
+			if (questGiver == null)
+			{
+				InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] No suitable NPC found for prompt quest.", ExtraColors.RedAIInfluence));
+				return;
+			}
+			NPCContext context = GetOrCreateNPCContext(questGiver);
+			string requestPrompt = "You are generating a Bannerlord quest action for debugging.\nReturn ONLY valid JSON in this exact wrapper:\n{\"quest_action\":{...}}\nInside quest_action provide action=create_quest with fields title, description, duration_days (7-60), reward_gold (0-5000), optional target_npc_ids, completer_npc_id, ai_verification_notes, progress_target, progress_label, reward_items, reward_skill, reward_skill_xp, crime_rating_change, influence_change, spawn_hostile_party, hostile_party_size, hostile_party_label, hostile_troop_name.\nDo not add explanations.\nPlayer quest request: " + prompt;
+			string rawResponse = SendAIRequestRaw(requestPrompt).GetAwaiter().GetResult();
+			if (string.IsNullOrEmpty(rawResponse) || rawResponse.StartsWith("Error:"))
+			{
+				LogMessage("[QuestDebug] Prompt quest AI request failed: " + (rawResponse ?? "empty response"));
+				InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Prompt quest generation failed: " + (rawResponse ?? "empty response"), ExtraColors.RedAIInfluence));
+				return;
+			}
+			string cleanedResponse = JsonCleaner.CleanJsonGeneric(rawResponse) ?? rawResponse;
+			AIResponse aiResponse = JsonConvert.DeserializeObject<AIResponse>(cleanedResponse);
+			QuestActionData questAction = aiResponse?.QuestAction;
+			if (questAction == null)
+			{
+				questAction = JsonConvert.DeserializeObject<QuestActionData>(cleanedResponse);
+			}
+			if (questAction == null)
+			{
+				LogMessage("[QuestDebug] Prompt quest parse failed. Raw response: " + rawResponse);
+				InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Prompt quest parse failed. See mod_log.txt.", ExtraColors.RedAIInfluence));
+				return;
+			}
+			if (!"create_quest".Equals(questAction.Action, StringComparison.OrdinalIgnoreCase))
+			{
+				LogMessage("[QuestDebug] Prompt quest response had unsupported action: " + (questAction.Action ?? "null"));
+				InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Prompt quest response action must be create_quest.", ExtraColors.RedAIInfluence));
+				return;
+			}
+			ProcessCreateQuest(questGiver, context, questAction);
+			InformationManager.DisplayMessage(new InformationMessage($"[QuestDebug] Prompt quest created on {questGiver.Name}.", ExtraColors.GreenAIInfluence));
+		}
+		catch (Exception ex)
+		{
+			LogMessage("[QuestDebug] DebugGenerateQuestFromPrompt error: " + ex.Message + "\n" + ex.StackTrace);
+			InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Prompt quest error — see mod_log.txt", ExtraColors.RedAIInfluence));
 		}
 	}
 
