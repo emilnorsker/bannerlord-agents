@@ -87,19 +87,19 @@
 									</Children>
 								</DimensionSyncWidget>
 
-							<!--Text Input Area-->
-							<Widget Id="TextInputArea" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="70" MarginLeft="25" MarginRight="25" MarginBottom="15" Sprite="BlankWhite" Color="#000000FF" AlphaFactor="0.2" IsVisible="@IsButtonOkShown">
+						<!--Text Input Area-->
+						<Widget Id="TextInputArea" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="70" MarginLeft="25" MarginRight="25" MarginBottom="15" Sprite="BlankWhite" Color="#000000FF" AlphaFactor="0.2" IsVisible="@IsButtonOkShown">
+							<Children>
+								<!-- Inner Frame -->
+								<Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="frame_9" ExtendLeft="5" ExtendTop="5" ExtendRight="5" ExtendBottom="5" AlphaFactor="0.25" />
+								
+								<Widget Id="TextInputParent" DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="50" HorizontalAlignment="Center" VerticalAlignment="Center" MarginLeft="10" MarginRight="10" Sprite="General\CharacterCreation\name_input_area">
 									<Children>
-										<!-- Inner Frame -->
-										<Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="frame_9" ExtendLeft="5" ExtendTop="5" ExtendRight="5" ExtendBottom="5" AlphaFactor="0.25" />
-										
-										<Widget Id="TextInputParent" DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="50" HorizontalAlignment="Center" VerticalAlignment="Center" MarginLeft="10" MarginRight="10" Sprite="General\CharacterCreation\name_input_area">
-											<Children>
-												<EditableTextWidget Id="TextInputWidget" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Center" VerticalAlignment="Center" MarginLeft="10" MarginRight="10" MarginTop="8" MarginBottom="8" Brush="Review.NameInput.Text" RealText="@InputText" IsObfuscationEnabled="@IsInputObfuscated" KeyboardInfoText="@TitleText"/>
-											</Children>
-										</Widget>
+										<EditableTextWidget Id="TextInputWidget" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" HorizontalAlignment="Center" VerticalAlignment="Center" MarginLeft="10" MarginRight="10" MarginTop="8" MarginBottom="8" Brush="Review.NameInput.Text" RealText="@InputText" IsObfuscationEnabled="@IsInputObfuscated" KeyboardInfoText="@TitleText"/>
 									</Children>
 								</Widget>
+							</Children>
+						</Widget>
 
 								<!--Control Buttons-->
 								<NavigationForcedScopeCollectionTargeter CollectionParent="..\." />
