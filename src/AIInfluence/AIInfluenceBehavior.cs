@@ -4448,7 +4448,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		try
 		{
 			Hero questGiver = Hero.FindAll((Hero h) => !h.IsMainHero && h.IsAlive && h.IsActive && !h.IsWanderer)
-				?.OrderBy((Hero h) => h.GetPosition2D.Distance(Hero.MainHero.GetPosition2D))
+			Hero questGiver = Hero.FindAll((Hero h) => !h.IsMainHero && h.IsAlive && h.IsActive && !h.IsWanderer)
+				?.OrderBy((Hero h) => h.GetPosition2D.Distance(Hero.MainHero?.GetPosition2D ?? MobileParty.MainParty.Position2D))
 				?.FirstOrDefault();
 			if (questGiver == null)
 			{
