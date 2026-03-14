@@ -1144,13 +1144,20 @@ public class DynamicEventsAnalyzer
 				{
 					string actionStr = item.action?.ToString() ?? "none";
 					DiplomaticAction action = ParseActionString(actionStr);
-					diplomaticAnalysisResult2.ActionsToExecute.Add(new DiplomaticActionInfo
-					{
-						Action = action,
-						SourceKingdomId = (item.source_kingdom_id?.ToString() ?? ""),
-						TargetKingdomId = (item.target_kingdom_id?.ToString() ?? ""),
-						Reason = (item.reason?.ToString() ?? "")
-					});
+				DiplomaticActionInfo diplomaticActionInfo = new DiplomaticActionInfo
+				{
+					Action = action,
+					SourceKingdomId = (item.source_kingdom_id?.ToString() ?? ""),
+					TargetKingdomId = (item.target_kingdom_id?.ToString() ?? ""),
+					TargetClanId = (item.target_clan_id?.ToString() ?? ""),
+					Reason = (item.reason?.ToString() ?? "")
+				};
+				if (action == DiplomaticAction.FoundKingdom)
+				{
+					diplomaticActionInfo.NewKingdomName = item.new_kingdom_name?.ToString() ?? "";
+					diplomaticActionInfo.NewKingdomInformalName = item.new_kingdom_informal_name?.ToString() ?? "";
+				}
+				diplomaticAnalysisResult2.ActionsToExecute.Add(diplomaticActionInfo);
 				}
 			}
 			DynamicEventsLogger.Instance.Log("[EVENTS_ANALYZER] Parsing relation changes");
@@ -1256,8 +1263,9 @@ public class DynamicEventsAnalyzer
 			"propose_alliance" => DiplomaticAction.ProposeAlliance, 
 			"accept_alliance" => DiplomaticAction.AcceptAlliance, 
 			"reject_alliance" => DiplomaticAction.RejectAlliance, 
-			"break_alliance" => DiplomaticAction.BreakAlliance, 
-			_ => DiplomaticAction.None, 
+		"break_alliance" => DiplomaticAction.BreakAlliance, 
+		"found_kingdom" => DiplomaticAction.FoundKingdom, 
+		_ => DiplomaticAction.None, 
 		};
 	}
 
