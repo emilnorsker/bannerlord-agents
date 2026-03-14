@@ -563,7 +563,7 @@ public class DialogManager
 				obj10 = (object)val10;
 			}
 			SafeAddDialogLine(starter, "end_conversation", "end_conversation", "hero_main_options", "{=AIInfluence_EndConversation}...", (OnConditionDelegate)obj10, null);
-			SafeAddDialogLine(starter, "aiinfluence_processing", "aiinfluence_processing", "aiinfluence_waiting", "{=AIInfluence_NPCProcessing}(Send a message and wait for the NPC's response)", null, null);
+			SafeAddDialogLine(starter, "aiinfluence_processing", "aiinfluence_processing", "aiinfluence_input", "{=AIInfluence_NPCProcessing}(Send a message and wait for the NPC's response)", null, null);
 			object obj11 = _003C_003Ec._003C_003E9__6_27;
 			if (obj11 == null)
 			{
