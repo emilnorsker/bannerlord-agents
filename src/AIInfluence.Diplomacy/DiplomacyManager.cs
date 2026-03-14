@@ -441,9 +441,14 @@ public class DiplomacyManager
 					diplomaticActionInfo.DailyTributeAmount = statement.DailyTributeAmount;
 					diplomaticActionInfo.TributeDurationDays = statement.TributeDurationDays;
 				}
-				if (diplomaticAction == DiplomaticAction.DemandReparations)
-				{
-					diplomaticActionInfo.ReparationsAmount = statement.ReparationsAmount;
+			if (diplomaticAction == DiplomaticAction.FoundKingdom)
+			{
+				diplomaticActionInfo.NewKingdomName = statement.NewKingdomName;
+				diplomaticActionInfo.NewKingdomInformalName = statement.NewKingdomInformalName;
+			}
+			if (diplomaticAction == DiplomaticAction.DemandReparations)
+			{
+				diplomaticActionInfo.ReparationsAmount = statement.ReparationsAmount;
 				}
 				if (diplomaticAction == DiplomaticAction.QuarantineSettlement)
 				{
@@ -761,11 +766,58 @@ public class DiplomacyManager
 			{
 				DiplomacyLogger.Instance.Log("[DIPLOMACY_MGR] Cannot quarantine: no settlement specified");
 			}
-			break;
-		default:
-			DiplomacyLogger.Instance.Log($"[DIPLOMACY_MGR] Unknown action: {actionInfo.Action}");
-			break;
+		break;
+	case DiplomaticAction.FoundKingdom:
+		FoundKingdom(val, actionInfo.TargetClanId, actionInfo.NewKingdomName, actionInfo.NewKingdomInformalName, actionInfo.Reason);
+		break;
+	default:
+		DiplomacyLogger.Instance.Log($"[DIPLOMACY_MGR] Unknown action: {actionInfo.Action}");
+		break;
+	}
+}
+
+	private void FoundKingdom(Kingdom sourceKingdom, string founderClanId, string kingdomName, string informalName, string reason)
+	{
+		if (string.IsNullOrEmpty(founderClanId))
+		{
+			DiplomacyLogger.Instance.Log("[DIPLOMACY_MGR] FoundKingdom: no founder clan specified");
+			return;
 		}
+		Clan founderClan = ((IEnumerable<Clan>)Clan.All).FirstOrDefault((Func<Clan, bool>)((Clan c) => ((MBObjectBase)c).StringId == founderClanId));
+		if (founderClan == null)
+		{
+			DiplomacyLogger.Instance.Log("[DIPLOMACY_MGR] FoundKingdom: founder clan not found: " + founderClanId);
+			return;
+		}
+		if (founderClan.Kingdom != sourceKingdom)
+		{
+			DiplomacyLogger.Instance.Log($"[DIPLOMACY_MGR] FoundKingdom: clan {founderClan.Name} is not in source kingdom {sourceKingdom.Name}");
+			return;
+		}
+		if (founderClan == sourceKingdom.RulingClan)
+		{
+			DiplomacyLogger.Instance.Log("[DIPLOMACY_MGR] FoundKingdom: ruling clan cannot found a new kingdom while it leads the current one");
+			return;
+		}
+		if (!((IEnumerable<Settlement>)founderClan.Settlements).Any((Func<Settlement, bool>)((Settlement s) => s.IsTown || s.IsCastle)))
+		{
+			DiplomacyLogger.Instance.Log($"[DIPLOMACY_MGR] FoundKingdom: clan {founderClan.Name} owns no castle or town — cannot found a kingdom");
+			return;
+		}
+		string name = (!string.IsNullOrWhiteSpace(kingdomName)) ? kingdomName : (((object)founderClan.Leader.Name)?.ToString() + "'s Kingdom");
+		string informal = (!string.IsNullOrWhiteSpace(informalName)) ? informalName : name;
+		DiplomacyPatches.WithBypass(delegate
+		{
+			Kingdom newKingdom = GameVersionCompatibility.CreateKingdom(new TextObject(name), new TextObject(informal), founderClan.Culture, founderClan.Banner);
+			if (newKingdom == null)
+			{
+				DiplomacyLogger.Instance.Log("[DIPLOMACY_MGR] FoundKingdom: Kingdom.CreateKingdom returned null");
+				return;
+			}
+			ChangeKingdomAction.ApplyByCreateKingdom(founderClan, newKingdom, true);
+			DiplomacyLogger.Instance.LogDiplomaticAction("kingdom_founded", ((MBObjectBase)sourceKingdom).StringId, founderClanId, reason);
+			DiplomacyLogger.Instance.Log($"[DIPLOMACY_MGR] SUCCESS: Kingdom '{name}' founded by {founderClan.Name} (broke away from {sourceKingdom.Name})");
+		});
 	}
 
 	private void DeclareWar(Kingdom kingdom1, Kingdom kingdom2, string reason)
