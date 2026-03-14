@@ -2,7 +2,7 @@ name: Build and Publish Mod
 
 on:
   push:
-    branches: [main, cursor/ci-mod-publishing-3421]
+    branches: [main]
 
 jobs:
   publish:
