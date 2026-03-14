@@ -1554,6 +1554,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			{
 				DestroyPartyAction.Apply((PartyBase)null, party);
 				LogMessage($"[QUEST] Destroyed spawned party '{questInfo.SpawnedPartyId}' on quest end");
+				questInfo.SpawnedPartyId = null;
 			}
 		}
 		catch (Exception ex)
