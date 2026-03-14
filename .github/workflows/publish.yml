@@ -23,8 +23,8 @@ jobs:
       - name: Build
         run: dotnet build src/AIInfluence.csproj -c Release --no-restore
 
-      - name: Install 7zip
-        run: sudo apt-get install -y p7zip-full
+      - name: Install tools
+        run: sudo apt-get install -y p7zip-full libxml2-utils
 
       - name: Get mod version
         id: version
