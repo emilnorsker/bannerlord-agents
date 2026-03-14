@@ -160,6 +160,7 @@ public class SubModule : MBSubModuleBase
 			}
 		}
 		AIInfluenceTextQueryPopupManager.Tick();
+		AIInfluence.UI.NpcChatWindowManager.Tick();
 		if (Campaign.Current != null)
 		{
 			Campaign.Current.GetCampaignBehavior<AIInfluenceBehavior>()?.Tick(dt);

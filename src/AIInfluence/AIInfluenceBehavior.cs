@@ -2367,16 +2367,50 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 		context.IsNPCInitiatedConversation = false;
 		UpdateContextData(context, npc);
-		CharacterInfo.UpdateEncyclopediaDescription(npc, context.AIGeneratedBackstory, context.AIGeneratedPersonality);
-		string title = ((object)new TextObject("{=AIInfluence_PlayerInputTitle}Your message to {npcName}:", new Dictionary<string, object> { { "npcName", npcName } })).ToString();
-		string description = BuildDialogueInputDescription(context, npcName);
-		string playerInput = await TextInput(title, description, npc);
-		if (string.IsNullOrEmpty(playerInput))
+	CharacterInfo.UpdateEncyclopediaDescription(npc, context.AIGeneratedBackstory, context.AIGeneratedPersonality);
+	// Set NPC portrait for the chat window
+		if (((npc != null) ? npc.CharacterObject : null) != null)
 		{
-			LogMessage("[DEBUG] Player cancelled or entered empty input.");
-			MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", ((object)new TextObject("{=AIInfluence_PlayerSilent}You remain silent.", (Dictionary<string, object>)null)).ToString(), false);
-			return;
+			try
+			{
+				CharacterCode charCode = CampaignUIHelper.GetCharacterCode(npc.CharacterObject, false);
+				AIInfluencePortraitWidget.PendingCharacterCode = ((charCode != null) ? charCode.Code : null);
+			}
+			catch { AIInfluencePortraitWidget.PendingCharacterCode = null; }
 		}
+		else { AIInfluencePortraitWidget.PendingCharacterCode = null; }
+		string npcTitle = (npc.Clan != null) ? ((object)npc.Clan.Name).ToString() : "";
+		bool capturedIsNPCInitiated = isNPCInitiated;
+		var chatVM = new AIInfluence.UI.NpcChatWindowVM(
+			npcName,
+			npcTitle,
+			async (input) => await ProcessChatMessageAsync(npc, input, capturedIsNPCInitiated),
+			() => {
+				AIInfluencePortraitWidget.PendingCharacterCode = null;
+				AIInfluence.UI.NpcChatWindowManager.Close();
+				TaleWorlds.CampaignSystem.Campaign.Current?.ConversationManager?.EndConversation();
+			}
+		);
+		foreach (string msg in context.ConversationHistory ?? new System.Collections.Generic.List<string>())
+		{
+			bool isNpcMsg = msg.StartsWith(npcName + ":");
+			string sender = isNpcMsg ? npcName : "You";
+			string text = isNpcMsg ? msg.Substring(npcName.Length + 1).Trim()
+				: (msg.StartsWith("Player: ") ? msg.Substring(8) : msg);
+			chatVM.AddMessage(sender, text, isNpcMsg);
+		}
+		AIInfluence.UI.NpcChatWindowManager.Show(chatVM);
+}
+
+	public async Task<string> ProcessChatMessageAsync(Hero npc, string playerInput, bool isNPCInitiated = false)
+	{
+		if (!GlobalSettings<ModSettings>.Instance.EnableModification) return null;
+		if (npc == null || string.IsNullOrEmpty(playerInput)) return null;
+		string npcId = ((MBObjectBase)npc).StringId;
+		string npcName = ((object)npc.Name)?.ToString() ?? "Unknown";
+		Clan clan = npc.Clan;
+		string faction = ((clan == null) ? null : ((object)clan.Name)?.ToString()) ?? "No faction";
+		NPCContext context = GetOrCreateNPCContext(npc);
 		LogMessage("[PLAYER_INPUT] " + playerInput);
 		context.AddMessage("Player: " + playerInput);
 		SaveNPCContext(npcId, npc, context);
@@ -2843,9 +2877,9 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				}
 			}
 		}
-	DialogManager.Instance.ExecutePendingResponseProcessing(npc);
-	await ShowNPCResponsePopup(npcName, aiResult.Response, npc);
-}
+		DialogManager.Instance.ExecutePendingResponseProcessing(npc);
+		return aiResult?.Response;
+	}
 
 	public async Task HandlePlayerDiplomaticInput()
 	{
