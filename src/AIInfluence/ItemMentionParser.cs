@@ -320,7 +320,7 @@ public static class ItemMentionParser
 			var tempTroops = new List<(string, CharacterObject)>();
 			foreach (CharacterObject troop in CharacterObject.All)
 			{
-				if (troop == null)
+				if (troop == null || ((BasicCharacterObject)troop).IsHero)
 				{
 					continue;
 				}
