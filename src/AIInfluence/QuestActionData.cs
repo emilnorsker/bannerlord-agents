@@ -51,6 +51,9 @@ public class QuestActionData
 	[JsonProperty("progress_label")]
 	public string ProgressLabel { get; set; }
 
+	[JsonProperty("reward_items")]
+	public List<QuestItemReward> RewardItems { get; set; }
+
 	public List<string> GetEffectiveTargetNpcIds()
 	{
 		if (TargetNpcIds != null && TargetNpcIds.Count > 0)

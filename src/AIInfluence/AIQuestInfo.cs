@@ -51,6 +51,9 @@ public class AIQuestInfo
 	[JsonProperty("update_logs")]
 	public List<AIQuestUpdateLog> UpdateLogs { get; set; } = new List<AIQuestUpdateLog>();
 
+	[JsonProperty("reward_items")]
+	public List<QuestItemReward> RewardItems { get; set; } = new List<QuestItemReward>();
+
 	public List<string> GetEffectiveTargetNpcIds()
 	{
 		if (TargetNpcIds != null && TargetNpcIds.Count > 0)

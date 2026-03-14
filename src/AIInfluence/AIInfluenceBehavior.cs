@@ -952,6 +952,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		obj.CompleterNpcId = text2;
 		obj.ProgressTarget = valueOrDefault;
 		obj.ProgressLabel = text4;
+		obj.RewardItems = questAction.RewardItems ?? new List<QuestItemReward>();
 		AIQuestInfo item = obj;
 		context.ActiveAIQuests.Add(item);
 		SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
@@ -1001,6 +1002,31 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			}
 		}
 		LogMessage(string.Format("[QUEST] Created quest '{0}' (ID: {1}) from {2}, reward: {3}, duration: {4} days, targets: [{5}]", questAction.Title, text5, text, num, num2, string.Join(", ", effectiveTargetNpcIds)) + ((!string.IsNullOrEmpty(text2)) ? (", completer: " + text2) : "") + ((valueOrDefault > 0) ? $", progress: 0/{valueOrDefault} ({text4})" : ""));
+	}
+
+	private void ApplyQuestItemRewards(AIQuestInfo questInfo)
+	{
+		if (questInfo.RewardItems == null || questInfo.RewardItems.Count == 0)
+		{
+			return;
+		}
+		foreach (QuestItemReward reward in questInfo.RewardItems)
+		{
+			if (string.IsNullOrEmpty(reward.ItemId) || reward.Count <= 0)
+			{
+				continue;
+			}
+			ItemObject item = MBObjectManager.Instance.GetObject<ItemObject>(reward.ItemId);
+			if (item != null)
+			{
+				MobileParty.MainParty.ItemRoster.Add(new ItemRosterElement(item, reward.Count, (ItemModifier)null));
+				LogMessage($"[QUEST] Gave {reward.Count}x {reward.ItemId} as quest item reward");
+			}
+			else
+			{
+				LogMessage($"[QUEST] Item reward '{reward.ItemId}' not found in item database");
+			}
+		}
 	}
 
 	private void ProcessUpdateQuest(Hero npc, NPCContext context, QuestActionData questAction)
@@ -1129,6 +1155,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				questInfo.ProgressCurrent = num;
 			}
 			val.CompleteQuestWithSuccess();
+			ApplyQuestItemRewards(questInfo);
 			LogMessage("[QUEST] Completed quest '" + questInfo.Title + "' (game object found)");
 		}
 		else
@@ -1137,6 +1164,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			{
 				GiveGoldAction.ApplyBetweenCharacters((Hero)null, Hero.MainHero, questInfo.RewardGold, false);
 			}
+			ApplyQuestItemRewards(questInfo);
 			Hero val3 = ((!string.IsNullOrEmpty(questInfo.QuestGiverNpcId)) ? Hero.FindFirst((Func<Hero, bool>)((Hero h) => ((MBObjectBase)h).StringId == questInfo.QuestGiverNpcId)) : npc);
 			if (val3 != null)
 			{
