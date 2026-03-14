@@ -564,14 +564,6 @@ public class DialogManager
 			}
 			SafeAddDialogLine(starter, "end_conversation", "end_conversation", "hero_main_options", "{=AIInfluence_EndConversation}...", (OnConditionDelegate)obj10, null);
 			SafeAddDialogLine(starter, "aiinfluence_processing", "aiinfluence_processing", "aiinfluence_input", "{=AIInfluence_NPCProcessing}(Send a message and wait for the NPC's response)", null, null);
-			object obj11 = _003C_003Ec._003C_003E9__6_27;
-			if (obj11 == null)
-			{
-				OnConditionDelegate val11 = () => Hero.OneToOneConversationHero != null;
-				_003C_003Ec._003C_003E9__6_27 = val11;
-				obj11 = (object)val11;
-			}
-			SafeAddPlayerLine(starter, "aiinfluence_waiting", "aiinfluence_waiting", "aiinfluence_dynamic_response", "{=AIInfluence_PlayerAsk}View NPC's response", (OnConditionDelegate)obj11, null);
 			object obj12 = _003C_003Ec._003C_003E9__6_28;
 			if (obj12 == null)
 			{
