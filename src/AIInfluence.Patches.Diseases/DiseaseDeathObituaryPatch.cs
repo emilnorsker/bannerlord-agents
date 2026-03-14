@@ -9,7 +9,7 @@ using TaleWorlds.ObjectSystem;
 
 namespace AIInfluence.Patches.Diseases;
 
-[HarmonyPatch(typeof(KillCharacterAction), "CreateObituary")]
+[HarmonyPatch(typeof(TaleWorlds.CampaignSystem.Actions.KillCharacterAction), "CreateObituary")]
 public static class DiseaseDeathObituaryPatch
 {
 	[HarmonyPostfix]
