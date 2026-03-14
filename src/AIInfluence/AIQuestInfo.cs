@@ -54,6 +54,12 @@ public class AIQuestInfo
 	[JsonProperty("reward_items")]
 	public List<QuestItemReward> RewardItems { get; set; } = new List<QuestItemReward>();
 
+	[JsonProperty("reward_skill")]
+	public string RewardSkill { get; set; }
+
+	[JsonProperty("reward_skill_xp")]
+	public int RewardSkillXp { get; set; }
+
 	public List<string> GetEffectiveTargetNpcIds()
 	{
 		if (TargetNpcIds != null && TargetNpcIds.Count > 0)

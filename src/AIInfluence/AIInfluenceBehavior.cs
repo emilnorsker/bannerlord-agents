@@ -953,6 +953,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		obj.ProgressTarget = valueOrDefault;
 		obj.ProgressLabel = text4;
 		obj.RewardItems = questAction.RewardItems ?? new List<QuestItemReward>();
+		obj.RewardSkill = questAction.RewardSkill ?? "";
+		obj.RewardSkillXp = Math.Max(0, Math.Min(questAction.RewardSkillXp, 10000));
 		AIQuestInfo item = obj;
 		context.ActiveAIQuests.Add(item);
 		SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
@@ -1026,6 +1028,24 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			{
 				LogMessage($"[QUEST] Item reward '{reward.ItemId}' not found in item database");
 			}
+		}
+	}
+
+	private void ApplyQuestSkillReward(AIQuestInfo questInfo)
+	{
+		if (string.IsNullOrEmpty(questInfo.RewardSkill) || questInfo.RewardSkillXp <= 0)
+		{
+			return;
+		}
+		SkillObject skill = DefaultSkills.GetAllSkills()?.FirstOrDefault((SkillObject s) => string.Equals(((MBObjectBase)s).StringId, questInfo.RewardSkill, StringComparison.OrdinalIgnoreCase));
+		if (skill != null)
+		{
+			Hero.MainHero.HeroDeveloper.AddSkillXp(skill, (float)questInfo.RewardSkillXp, true, true);
+			LogMessage($"[QUEST] Gave {questInfo.RewardSkillXp} XP in {questInfo.RewardSkill} as quest skill reward");
+		}
+		else
+		{
+			LogMessage($"[QUEST] Skill reward '{questInfo.RewardSkill}' not found in DefaultSkills");
 		}
 	}
 
@@ -1156,6 +1176,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			}
 			val.CompleteQuestWithSuccess();
 			ApplyQuestItemRewards(questInfo);
+			ApplyQuestSkillReward(questInfo);
 			LogMessage("[QUEST] Completed quest '" + questInfo.Title + "' (game object found)");
 		}
 		else
@@ -1165,6 +1186,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				GiveGoldAction.ApplyBetweenCharacters((Hero)null, Hero.MainHero, questInfo.RewardGold, false);
 			}
 			ApplyQuestItemRewards(questInfo);
+			ApplyQuestSkillReward(questInfo);
 			Hero val3 = ((!string.IsNullOrEmpty(questInfo.QuestGiverNpcId)) ? Hero.FindFirst((Func<Hero, bool>)((Hero h) => ((MBObjectBase)h).StringId == questInfo.QuestGiverNpcId)) : npc);
 			if (val3 != null)
 			{
