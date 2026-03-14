@@ -4099,15 +4099,22 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			AIInfluencePortraitWidget.PendingCharacterCode = null;
 		}
-		TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
-		TextObject closeText = new TextObject("{=AIInfluence_Close}Close", (Dictionary<string, object>)null);
-		AIInfluenceTextQueryPopupManager.Show(new TextInquiryData(npcName, response, false, true, null, ((object)closeText).ToString(), null, (Action)delegate
-		{
-			AIInfluencePortraitWidget.PendingCharacterCode = null;
-			tcs.TrySetResult(true);
-		}, false, (Func<string, Tuple<bool, string>>)null, "", ""));
-		await tcs.Task;
+	TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
+	TextObject closeText = new TextObject("{=AIInfluence_Close}Close", (Dictionary<string, object>)null);
+	AIInfluenceTextQueryPopupManager.Show(new TextInquiryData(npcName, response, false, true, null, ((object)closeText).ToString(), null, (Action)delegate
+	{
+		AIInfluencePortraitWidget.PendingCharacterCode = null;
+		tcs.TrySetResult(true);
+	}, false, (Func<string, Tuple<bool, string>>)null, "", ""));
+	Task timeoutTask = Task.Delay(TimeSpan.FromMinutes(5));
+	Task completed = await Task.WhenAny(tcs.Task, timeoutTask);
+	if (completed == timeoutTask)
+	{
+		AIInfluencePortraitWidget.PendingCharacterCode = null;
+		AIInfluenceTextQueryPopupManager.Close();
+		LogMessage("[WARNING] ShowNPCResponsePopup timed out waiting for player to close popup.");
 	}
+}
 
 	private void OnSessionLaunched(CampaignGameStarter campaignGameStarter)
 	{
