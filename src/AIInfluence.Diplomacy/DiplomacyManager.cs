@@ -1907,6 +1907,11 @@ public class DiplomacyManager
 					{
 						actionInfo.QuarantineDurationDays = statement.QuarantineDurationDays;
 					}
+					if (action == DiplomaticAction.FoundKingdom)
+					{
+						actionInfo.NewKingdomName = statement.NewKingdomName;
+						actionInfo.NewKingdomInformalName = statement.NewKingdomInformalName;
+					}
 					ExecuteDiplomaticAction(actionInfo);
 				}
 			}
@@ -2231,6 +2236,11 @@ public class DiplomacyManager
 					if (action2 == DiplomaticAction.QuarantineSettlement)
 					{
 						actionInfo.QuarantineDurationDays = statement.QuarantineDurationDays;
+					}
+					if (action2 == DiplomaticAction.FoundKingdom)
+					{
+						actionInfo.NewKingdomName = statement.NewKingdomName;
+						actionInfo.NewKingdomInformalName = statement.NewKingdomInformalName;
 					}
 					ExecuteDiplomaticAction(actionInfo);
 				}
