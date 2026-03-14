@@ -33,7 +33,7 @@ jobs:
           VERSION=$(xmllint --xpath 'string(//Version/@value)' SubModule.xml)
           if [ -z "$VERSION" ]; then echo "Failed to extract version from SubModule.xml"; exit 1; fi
           echo "value=$VERSION" >> $GITHUB_OUTPUT
-          echo "build_tag=${VERSION}-build.${GITHUB_RUN_NUMBER}" >> $GITHUB_OUTPUT
+          echo "build_tag=${VERSION}-build.${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}" >> $GITHUB_OUTPUT
 
       - name: Stage mod files
         run: |
