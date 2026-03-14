@@ -29,6 +29,8 @@ using TaleWorlds.CampaignSystem.Extensions;
 using TaleWorlds.CampaignSystem.GameMenus;
 using TaleWorlds.CampaignSystem.MapEvents;
 using TaleWorlds.CampaignSystem.Party;
+using TaleWorlds.CampaignSystem.Party.PartyComponents;
+using TaleWorlds.CampaignSystem.Roster;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.CampaignSystem.Settlements.Workshops;
 using TaleWorlds.CampaignSystem.ViewModelCollection;
@@ -1005,7 +1007,53 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage("[QUEST] Error adding quest to target NPC '" + targetNpcId + "': " + ex.Message);
 			}
 		}
+		if (questAction.SpawnHostileParty)
+		{
+			SpawnQuestHostileParty(npc, item, questAction);
+			SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
+		}
 		LogMessage(string.Format("[QUEST] Created quest '{0}' (ID: {1}) from {2}, reward: {3}, duration: {4} days, targets: [{5}]", questAction.Title, text5, text, num, num2, string.Join(", ", effectiveTargetNpcIds)) + ((!string.IsNullOrEmpty(text2)) ? (", completer: " + text2) : "") + ((valueOrDefault > 0) ? $", progress: 0/{valueOrDefault} ({text4})" : ""));
+	}
+
+	private void SpawnQuestHostileParty(Hero questGiver, AIQuestInfo questInfo, QuestActionData questAction)
+	{
+		try
+		{
+			int troopCount = Math.Max(5, Math.Min(questAction.HostilePartySize, 50));
+			string partyLabel = string.IsNullOrEmpty(questAction.HostilePartyLabel) ? "Quest Enemies" : questAction.HostilePartyLabel;
+			Clan banditClan = Clan.BanditFactions?.FirstOrDefault();
+			if (banditClan == null)
+			{
+				LogMessage("[QUEST] No bandit clan found for hostile party spawn");
+				return;
+			}
+			Vec2 spawnPos = questGiver?.CurrentSettlement?.GatePosition ?? questGiver?.GetPosition2D ?? MobileParty.MainParty.Position2D;
+			Hideout nearestHideout = Settlement.All?
+				.Where((Settlement s) => s.IsHideout)
+				.Select((Settlement s) => s.Hideout)
+				.FirstOrDefault();
+			TroopRoster memberRoster = new TroopRoster((PartyBase)null);
+			CharacterObject basicTroop = banditClan.BasicTroop;
+			if (basicTroop != null)
+			{
+				memberRoster.AddToCounts(basicTroop, troopCount, false, 0, 0, true, -1);
+			}
+			MobileParty party = BanditPartyComponent.CreateBanditParty("quest_party_" + questInfo.QuestId, banditClan, nearestHideout, false);
+			if (party == null)
+			{
+				LogMessage("[QUEST] BanditPartyComponent.CreateBanditParty returned null");
+				return;
+			}
+			party.InitializeMobilePartyAroundPosition(memberRoster, new TroopRoster(party.Party), spawnPos, 5f, 0f);
+			party.SetCustomName(new TextObject(partyLabel, (Dictionary<string, object>)null));
+			party.Ai.SetMovePatrolAroundPoint(spawnPos);
+			questInfo.SpawnedPartyId = ((MBObjectBase)party).StringId;
+			LogMessage($"[QUEST] Spawned hostile party '{partyLabel}' ({troopCount} troops) near player for quest '{questInfo.Title}'");
+		}
+		catch (Exception ex)
+		{
+			LogMessage("[QUEST] Error spawning hostile party: " + ex.Message + "\n" + ex.StackTrace);
+		}
 	}
 
 	private void ApplyQuestItemRewards(AIQuestInfo questInfo)
@@ -1453,8 +1501,30 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 	}
 
+	private void CleanupSpawnedQuestParty(AIQuestInfo questInfo)
+	{
+		if (string.IsNullOrEmpty(questInfo.SpawnedPartyId))
+		{
+			return;
+		}
+		try
+		{
+			MobileParty party = MobileParty.All?.FirstOrDefault((MobileParty p) => ((MBObjectBase)p).StringId == questInfo.SpawnedPartyId);
+			if (party != null)
+			{
+				DestroyPartyAction.Apply((PartyBase)null, party);
+				LogMessage($"[QUEST] Destroyed spawned party '{questInfo.SpawnedPartyId}' on quest end");
+			}
+		}
+		catch (Exception ex)
+		{
+			LogMessage("[QUEST] Error destroying spawned party: " + ex.Message);
+		}
+	}
+
 	private void CleanupQuestFromAllNpcs(Hero excludeNpc, AIQuestInfo questInfo)
 	{
+		CleanupSpawnedQuestParty(questInfo);
 		try
 		{
 			HashSet<string> hashSet = new HashSet<string>();

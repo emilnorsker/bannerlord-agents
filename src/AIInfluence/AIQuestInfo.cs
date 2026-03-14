@@ -66,6 +66,9 @@ public class AIQuestInfo
 	[JsonProperty("influence_change")]
 	public int? InfluenceChange { get; set; }
 
+	[JsonProperty("spawned_party_id")]
+	public string SpawnedPartyId { get; set; }
+
 	public List<string> GetEffectiveTargetNpcIds()
 	{
 		if (TargetNpcIds != null && TargetNpcIds.Count > 0)

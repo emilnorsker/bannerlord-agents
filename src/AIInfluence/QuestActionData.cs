@@ -66,6 +66,15 @@ public class QuestActionData
 	[JsonProperty("influence_change")]
 	public int? InfluenceChange { get; set; }
 
+	[JsonProperty("spawn_hostile_party")]
+	public bool SpawnHostileParty { get; set; }
+
+	[JsonProperty("hostile_party_size")]
+	public int HostilePartySize { get; set; }
+
+	[JsonProperty("hostile_party_label")]
+	public string HostilePartyLabel { get; set; }
+
 	public List<string> GetEffectiveTargetNpcIds()
 	{
 		if (TargetNpcIds != null && TargetNpcIds.Count > 0)
