@@ -37,4 +37,10 @@ public class DiplomaticActionInfo
 
 	[JsonProperty("quarantine_duration_days")]
 	public int QuarantineDurationDays { get; set; }
+
+	[JsonProperty("new_kingdom_name")]
+	public string NewKingdomName { get; set; }
+
+	[JsonProperty("new_kingdom_informal_name")]
+	public string NewKingdomInformalName { get; set; }
 }
