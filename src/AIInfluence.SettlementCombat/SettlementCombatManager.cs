@@ -879,6 +879,7 @@ public class SettlementCombatManager
 				catch (Exception ex2)
 				{
 					_logger.LogError("KillCharacterAfterRoleplayDeath", ex2.Message, ex2);
+					_activeCombat = null;
 					return;
 				}
 			}
