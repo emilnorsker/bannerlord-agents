@@ -3452,6 +3452,9 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			}
 			if (_npcContexts.TryGetValue(npcId, out var cached))
 			{
+				if (cached.ConversationHistory == null) cached.ConversationHistory = new List<string>();
+				if (cached.RecentEvents == null) cached.RecentEvents = new List<CampaignEvent>();
+				if (cached.ProcessedMessageHashes == null) cached.ProcessedMessageHashes = new HashSet<string>();
 				return cached;
 			}
 			if (string.IsNullOrEmpty(_currentSaveFolder))
@@ -3644,23 +3647,23 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			{
 				_npcFilePathCache[context.StringId] = text2;
 			}
-		bool flag2 = !File.Exists(text3 ?? text2);
-		if (flag2)
-		{
-			bool flag3 = context.InteractionCount > 0 || (context.LastInteractionTime != CampaignTime.Never && context.LastInteractionTimeDays >= 0.0);
-			if (!flag3 && GlobalSettings<ModSettings>.Instance.EnableNearbyNPCInitialization && context.IsPlayerKnown)
+			bool flag2 = !File.Exists(text3 ?? text2);
+			if (flag2)
 			{
-				flag3 = true;
+				bool flag3 = context.InteractionCount > 0 || (context.LastInteractionTime != CampaignTime.Never && context.LastInteractionTimeDays >= 0.0);
+				if (!flag3 && GlobalSettings<ModSettings>.Instance.EnableNearbyNPCInitialization && context.IsPlayerKnown)
+				{
+					flag3 = true;
+				}
+				if (!flag3)
+				{
+					LogMessage($"[NPC] Skipping save for temporary context: {npc.Name} (id:{npcId}) - file doesn't exist and context wasn't properly initialized (InteractionCount={context.InteractionCount}, LastInteractionTimeDays={context.LastInteractionTimeDays})");
+					return;
+				}
 			}
-			if (!flag3)
+			_npcContexts.TryGetValue(npcId, out NPCContext nPCContext);
+			if (nPCContext != null && !ReferenceEquals(nPCContext, context))
 			{
-				LogMessage($"[NPC] Skipping save for temporary context: {npc.Name} (id:{npcId}) - file doesn't exist and context wasn't properly initialized (InteractionCount={context.InteractionCount}, LastInteractionTimeDays={context.LastInteractionTimeDays})");
-				return;
-			}
-		}
-		_npcContexts.TryGetValue(npcId, out NPCContext nPCContext);
-		if (nPCContext != null && !ReferenceEquals(nPCContext, context))
-		{
 				if (nPCContext.ConversationHistory != null && nPCContext.ConversationHistory.Any())
 				{
 					bool flag4 = false;
@@ -4772,8 +4775,15 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			{
 				if (!string.IsNullOrEmpty(_npcContextsJson))
 				{
-					_npcContexts = JsonConvert.DeserializeObject<Dictionary<string, NPCContext>>(_npcContextsJson) ?? _npcContexts;
-					LogMessage($"[LOAD] Restored {_npcContexts.Count} NPC contexts from game save");
+					try
+					{
+						_npcContexts = JsonConvert.DeserializeObject<Dictionary<string, NPCContext>>(_npcContextsJson) ?? _npcContexts;
+						LogMessage($"[LOAD] Restored {_npcContexts.Count} NPC contexts from game save");
+					}
+					catch (Exception ex)
+					{
+						LogMessage($"[ERROR] Failed to deserialize NPC contexts from save, will fall back to JSON files: {ex.Message}");
+					}
 				}
 				if (_followingHeroIds == null)
 				{
