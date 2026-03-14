@@ -4765,8 +4765,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					LogMessage($"[SAVE] Saving {_followingHeroIds.Count} following hero IDs to game save");
 					LogMessage($"[SAVE] Serialized AI actions length: {_serializedActionState?.Length ?? 0}");
 				}
-				_npcContextsJson = JsonConvert.SerializeObject(_npcContexts);
-				LogMessage($"[SAVE] Serialized {_npcContexts.Count} NPC contexts into game save");
+				Dictionary<string, NPCContext> contextsToSave = _npcContexts
+					.Where(kvp => kvp.Value.InteractionCount > 0 || kvp.Value.LastInteractionTimeDays >= 0.0)
+					.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+				_npcContextsJson = JsonConvert.SerializeObject(contextsToSave);
+				LogMessage($"[SAVE] Serialized {contextsToSave.Count}/{_npcContexts.Count} NPC contexts into game save");
 			}
 			dataStore.SyncData<List<string>>("followingHeroIds", ref _followingHeroIds);
 			dataStore.SyncData<string>("aiActionState", ref _serializedActionState);
@@ -4777,9 +4780,10 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				{
 					try
 					{
-					_npcContexts = JsonConvert.DeserializeObject<Dictionary<string, NPCContext>>(_npcContextsJson) ?? _npcContexts;
-					_npcContextsJson = null; // free the raw string now that objects are materialized
-					LogMessage($"[LOAD] Restored {_npcContexts.Count} NPC contexts from game save");
+						_npcContexts = JsonConvert.DeserializeObject<Dictionary<string, NPCContext>>(_npcContextsJson) ?? _npcContexts;
+						_npcContextsJson = null; // free the raw string now that objects are materialized
+						LogMessage($"[LOAD] Restored {_npcContexts.Count} NPC contexts from game save");
+					}
 					catch (Exception ex)
 					{
 						LogMessage($"[ERROR] Failed to deserialize NPC contexts from save, will fall back to JSON files: {ex.Message}");
