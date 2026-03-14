@@ -2,7 +2,6 @@ using Newtonsoft.Json;
 
 namespace AIInfluence;
 
-[JsonSerializable]
 public class QuestItemReward
 {
 	[JsonProperty("item_name")]

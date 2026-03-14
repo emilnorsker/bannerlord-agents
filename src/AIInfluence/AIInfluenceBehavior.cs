@@ -1019,7 +1019,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	{
 		try
 		{
-		int rawSize = questAction.HostilePartySize;
+			int rawSize = questAction.HostilePartySize;
 			int troopCount = Math.Max(5, Math.Min(rawSize, 1500));
 			if (rawSize != troopCount)
 			{
