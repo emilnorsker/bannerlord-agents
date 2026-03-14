@@ -2843,9 +2843,14 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				}
 			}
 		}
-	DialogManager.Instance.ExecutePendingResponseProcessing(npc);
-	await ShowNPCResponsePopup(npcName, aiResult.Response, npc);
-}
+		if (DialogManager.Instance == null)
+		{
+			LogMessage("[ERROR] DialogManager.Instance is null; cannot process NPC response for " + npcName);
+			return;
+		}
+		DialogManager.Instance.ExecutePendingResponseProcessing(npc);
+		await ShowNPCResponsePopup(npcName, aiResult.Response, npc);
+	}
 
 	public async Task HandlePlayerDiplomaticInput()
 	{
