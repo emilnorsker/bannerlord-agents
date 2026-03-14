@@ -2843,22 +2843,9 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				}
 			}
 		}
-		string messageText = ((object)new TextObject("{=AIInfluence_NPCReady}{npcName} is ready to respond.", new Dictionary<string, object> { { "npcName", npcName } })).ToString();
-		LogMessage("[DEBUG] Displayed notification: " + npcName + " is ready to respond.");
-		InformationManager.DisplayMessage(new InformationMessage(messageText, Colors.White));
-		if (!(GlobalSettings<ModSettings>.Instance?.EnableResponseReadySound ?? false))
-		{
-			return;
-		}
-		try
-		{
-			SoundEvent.PlaySound2D("event:/ui/notification/alert");
-		}
-		catch (Exception ex9)
-		{
-			LogMessage("[SOUND] PlaySound2D failed: " + ex9.Message);
-		}
-	}
+	DialogManager.Instance.ExecutePendingResponseProcessing(npc);
+	await ShowNPCResponsePopup(npcName, aiResult.Response, npc);
+}
 
 	public async Task HandlePlayerDiplomaticInput()
 	{
