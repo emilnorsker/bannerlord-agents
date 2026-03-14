@@ -128,6 +128,7 @@ Bannerlord skill `StringId` values are **lowercase** (e.g., `"charm"`, `"leaders
 - `BanditPartyComponent.CreateBanditParty(stringId, clan, hideout, isBossParty)` — wrong in v1.3.4, needs 6 args including `PartyTemplateObject` and `CampaignVec2`.
 - `HeroDeveloper.AddSkillXp(skill, xp, bool, bool)` — wrong call path. Use `hero.AddSkillXp(skill, xp)` directly.
 - `Hero.IsMainHero` — does NOT exist in v1.3.4. Use `h == Hero.MainHero` (reference comparison) or `h.IsHumanPlayerCharacter`.
+- `Hero.GetPosition2D` — does NOT exist (no property, no extension method). To get a Hero's map position, follow the NPCInitiativeSystem.cs pattern: `hero.PartyBelongedTo.GetPosition2D()` if in a party, else `hero.CurrentSettlement.GetPosition2D` or `hero.HomeSettlement.GetPosition2D`.
 - `new ItemRosterElement(item, count, null)` — constructor unverified. Use `ItemRoster.AddToCounts(ItemObject, int)` instead.
 - `ItemObject.Name` / `BasicCharacterObject.Name` — these ARE valid `.Name` properties returning `TextObject`. `GetName()` is a separate override method, not the same thing.
 - `InitializeMobilePartyAroundPosition(..., Vec2, ...)` — wrong in v1.3.4. Position arg is `CampaignVec2`.

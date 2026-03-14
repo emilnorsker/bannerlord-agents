@@ -1043,10 +1043,14 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				CampaignVec2 gate = currentSettlement.GatePosition;
 				spawnPos = ((CampaignVec2)(ref gate)).ToVec2();
 			}
-			else
-			{
-				spawnPos = questGiver?.GetPosition2D ?? MobileParty.MainParty?.Position2D ?? default;
-			}
+		else if (questGiver?.PartyBelongedTo != null)
+		{
+			spawnPos = questGiver.PartyBelongedTo.GetPosition2D();
+		}
+		else
+		{
+			spawnPos = MobileParty.MainParty?.GetPosition2D() ?? default;
+		}
 			CharacterObject basicTroop = null;
 			if (!string.IsNullOrEmpty(questAction.HostileTroopName))
 			{
@@ -4479,9 +4483,13 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	{
 		try
 		{
-		Vec2 mainPos = Hero.MainHero?.GetPosition2D ?? MobileParty.MainParty?.Position2D ?? default;
+		Vec2 mainPos = MobileParty.MainParty?.GetPosition2D() ?? default;
 		Hero questGiver = Hero.FindAll((Hero h) => h != Hero.MainHero && h.IsAlive && h.IsActive && !h.IsWanderer)
-			?.OrderBy((Hero h) => h.GetPosition2D.Distance(mainPos))
+			?.OrderBy((Hero h) =>
+			{
+				Vec2 pos = h.PartyBelongedTo != null ? h.PartyBelongedTo.GetPosition2D() : (h.CurrentSettlement?.GetPosition2D ?? default);
+				return pos.Distance(mainPos);
+			})
 			?.FirstOrDefault();
 			if (questGiver == null)
 			{
