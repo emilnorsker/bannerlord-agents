@@ -135,7 +135,7 @@ public class SettlementCaptureManager
 			return false;
 		}
 		CampaignTime val = CampaignTime.Now - value;
-		double toDays = ((CampaignTime)(ref val)).ToDays;
+		double toDays = (val).ToDays;
 		return toDays <= (double)daysThreshold;
 	}
 
@@ -150,7 +150,7 @@ public class SettlementCaptureManager
 			return -1;
 		}
 		CampaignTime val = CampaignTime.Now - value;
-		return (int)((CampaignTime)(ref val)).ToDays;
+		return (int)(val).ToDays;
 	}
 
 	public CampaignTime GetCaptureTime(string settlementStringId)
@@ -193,7 +193,7 @@ public class SettlementCaptureManager
 			string key = settlementCaptureTime.Key;
 			CampaignTime value = settlementCaptureTime.Value;
 			CampaignTime val = CampaignTime.Now - value;
-			double toDays = ((CampaignTime)(ref val)).ToDays;
+			double toDays = (val).ToDays;
 			if (!(toDays > (double)daysThreshold) && _settlementPreviousOwners.TryGetValue(key, out var value2) && value2 == destroyedKingdom)
 			{
 				list.Add(key);

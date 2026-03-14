@@ -308,11 +308,11 @@ public static class DiseaseCombatModifierPatch
 				}
 				if (num < -0.001f)
 				{
-					((ExplainedNumber)(ref __result)).AddFactor(num, new TextObject("{=AIInfluence_DiseaseCombatAtk}Disease (attacker)", (Dictionary<string, object>)null));
+					(__result).AddFactor(num, new TextObject("{=AIInfluence_DiseaseCombatAtk}Disease (attacker)", (Dictionary<string, object>)null));
 				}
 				if (num2 > 0.001f)
 				{
-					((ExplainedNumber)(ref __result)).AddFactor(num2, new TextObject("{=AIInfluence_DiseaseCombatDef}Disease (defender)", (Dictionary<string, object>)null));
+					(__result).AddFactor(num2, new TextObject("{=AIInfluence_DiseaseCombatDef}Disease (defender)", (Dictionary<string, object>)null));
 				}
 			}
 			catch (Exception)

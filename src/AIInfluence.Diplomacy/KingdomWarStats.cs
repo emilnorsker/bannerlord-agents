@@ -80,7 +80,7 @@ public class KingdomWarStats
 				if (true)
 				{
 					CampaignTime now = CampaignTime.Now;
-					float num = (float)((CampaignTime)(ref now)).ToDays;
+					float num = (float)(now).ToDays;
 					float num2 = num - LastUpdateTimeDays;
 					return CampaignTime.DaysFromNow(0f - num2);
 				}
@@ -90,7 +90,7 @@ public class KingdomWarStats
 		set
 		{
 			bool flag = true;
-			LastUpdateTimeDays = (float)((CampaignTime)(ref value)).ToDays;
+			LastUpdateTimeDays = (float)(value).ToDays;
 		}
 	}
 

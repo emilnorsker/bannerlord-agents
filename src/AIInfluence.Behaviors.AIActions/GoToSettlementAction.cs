@@ -574,7 +574,7 @@ public class GoToSettlementAction : AIActionBase
 			{
 				return;
 			}
-			LogAction(string.Format("Waiting period finished for {0} in {1} (waited {2:F1} days)", base.TargetHero.Name, _destinationName ?? "unknown", ((CampaignTime)(ref _waitDuration)).ToDays));
+			LogAction(string.Format("Waiting period finished for {0} in {1} (waited {2:F1} days)", base.TargetHero.Name, _destinationName ?? "unknown", (_waitDuration).ToDays));
 			bool flag2 = false;
 			try
 			{
@@ -985,7 +985,7 @@ public class GoToSettlementAction : AIActionBase
 		_hasArrived = true;
 		_isWaitingPhase = true;
 		_waitUntil = CampaignTime.Now + _waitDuration;
-		LogAction(string.Format("Hero {0} arrived at {1}; waiting for {2:F1} days", base.TargetHero.Name, _destinationName ?? "unknown", ((CampaignTime)(ref _waitDuration)).ToDays));
+		LogAction(string.Format("Hero {0} arrived at {1}; waiting for {2:F1} days", base.TargetHero.Name, _destinationName ?? "unknown", (_waitDuration).ToDays));
 		try
 		{
 			TaskManager instance = TaskManager.Instance;
@@ -1497,13 +1497,13 @@ public class GoToSettlementAction : AIActionBase
 		if (_waitUntil.HasValue && _isWaitingPhase)
 		{
 			CampaignTime val = _waitUntil.Value;
-			double toHours = ((CampaignTime)(ref val)).ToHours;
+			double toHours = (val).ToHours;
 			val = CampaignTime.Now;
-			num = MathF.Max(0.1f, (float)(toHours - ((CampaignTime)(ref val)).ToHours));
+			num = MathF.Max(0.1f, (float)(toHours - (val).ToHours));
 		}
 		else
 		{
-			num = (float)((CampaignTime)(ref _waitDuration)).ToHours;
+			num = (float)(_waitDuration).ToHours;
 		}
 		float num2 = ((CampaignTime.HoursInDay > 0) ? ((float)CampaignTime.HoursInDay) : 24f);
 		dictionary["waitDays"] = ((num2 > 0f) ? (num / num2) : 3f).ToString(CultureInfo.InvariantCulture);

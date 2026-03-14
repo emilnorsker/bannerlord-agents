@@ -1568,17 +1568,17 @@ public class SettlementCombatManager
 				for (EquipmentIndex val = (EquipmentIndex)0; (int)val < 5; val = (EquipmentIndex)(val + 1))
 				{
 					val2 = ((BasicCharacterObject)character).Equipment[val];
-					if (!((EquipmentElement)(ref val2)).IsEmpty)
+					if (!(val2).IsEmpty)
 					{
 						flag = true;
 						break;
 					}
 				}
 				val2 = ((BasicCharacterObject)character).Equipment[(EquipmentIndex)6];
-				if (((EquipmentElement)(ref val2)).IsEmpty)
+				if ((val2).IsEmpty)
 				{
 					val2 = ((BasicCharacterObject)character).Equipment[(EquipmentIndex)5];
-					if (((EquipmentElement)(ref val2)).IsEmpty)
+					if ((val2).IsEmpty)
 					{
 						goto IL_0117;
 					}
@@ -1715,10 +1715,10 @@ public class SettlementCombatManager
 			for (EquipmentIndex val2 = (EquipmentIndex)0; (int)val2 < 5; val2 = (EquipmentIndex)(val2 + 1))
 			{
 				MissionWeapon val3 = agent.Equipment[val2];
-				if (!((MissionWeapon)(ref val3)).IsEmpty)
+				if (!(val3).IsEmpty)
 				{
 					val3 = agent.Equipment[val2];
-					WeaponClass weaponClass = ((MissionWeapon)(ref val3)).CurrentUsageItem.WeaponClass;
+					WeaponClass weaponClass = (val3).CurrentUsageItem.WeaponClass;
 					if ((int)weaponClass == 2 || (int)weaponClass == 3 || (int)weaponClass == 4 || (int)weaponClass == 5 || (int)weaponClass == 6 || (int)weaponClass == 8 || (int)weaponClass == 7 || (int)weaponClass == 1 || (int)weaponClass == 9 || (int)weaponClass == 10 || (int)weaponClass == 11)
 					{
 						val = val2;
@@ -2259,10 +2259,10 @@ public class SettlementCombatManager
 					{
 						continue;
 					}
-					int num3 = ((TroopRosterElement)(ref current)).Number - ((TroopRosterElement)(ref current)).WoundedNumber;
+					int num3 = (current).Number - (current).WoundedNumber;
 					if (num3 > 0)
 					{
-						float num4 = (float)((BasicCharacterObject)current.Character).Level + ((((TroopRosterElement)(ref current)).WoundedNumber > 0) ? (-0.5f) : 0f);
+						float num4 = (float)((BasicCharacterObject)current.Character).Level + (((current).WoundedNumber > 0) ? (-0.5f) : 0f);
 						if (num4 < num2)
 						{
 							num2 = num4;
@@ -2834,9 +2834,9 @@ public class SettlementCombatManager
 						for (int num6 = memberRoster.Count - 1; num6 >= 0; num6--)
 						{
 							TroopRosterElement elementCopyAtIndex = memberRoster.GetElementCopyAtIndex(num6);
-							if (elementCopyAtIndex.Character != null && (!((BasicCharacterObject)elementCopyAtIndex.Character).IsHero || elementCopyAtIndex.Character.HeroObject != Hero.MainHero) && ((TroopRosterElement)(ref elementCopyAtIndex)).Number > 0)
+							if (elementCopyAtIndex.Character != null && (!((BasicCharacterObject)elementCopyAtIndex.Character).IsHero || elementCopyAtIndex.Character.HeroObject != Hero.MainHero) && (elementCopyAtIndex).Number > 0)
 							{
-								memberRoster.AddToCounts(elementCopyAtIndex.Character, -((TroopRosterElement)(ref elementCopyAtIndex)).Number, false, 0, 0, true, -1);
+								memberRoster.AddToCounts(elementCopyAtIndex.Character, -(elementCopyAtIndex).Number, false, 0, 0, true, -1);
 							}
 						}
 					}

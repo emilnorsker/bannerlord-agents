@@ -349,7 +349,7 @@ public sealed class WaitNearSettlementAction : AIActionBase
 			val.SetTextVariable("SETTLEMENT_NAME", ((object)_targetSettlement.Name)?.ToString() ?? "Unknown");
 			val.SetTextVariable("RADIUS", _desiredRadius.ToString("0.0"));
 			InformationManager.DisplayMessage(new InformationMessage(((object)val).ToString(), ExtraColors.GreenAIInfluence));
-			LogAction($"Arrived near {_targetSettlement.Name}, waiting for {((CampaignTime)(ref _waitDuration)).ToDays:F1} days at radius {_desiredRadius}");
+			LogAction($"Arrived near {_targetSettlement.Name}, waiting for {(_waitDuration).ToDays:F1} days at radius {_desiredRadius}");
 			_arrivalAnnounced = true;
 		}
 	}
@@ -575,13 +575,13 @@ public sealed class WaitNearSettlementAction : AIActionBase
 		if (_isWaiting && _waitUntil.HasValue)
 		{
 			CampaignTime val = _waitUntil.Value;
-			double toHours = ((CampaignTime)(ref val)).ToHours;
+			double toHours = (val).ToHours;
 			val = CampaignTime.Now;
-			num = MathF.Max(0.1f, (float)(toHours - ((CampaignTime)(ref val)).ToHours));
+			num = MathF.Max(0.1f, (float)(toHours - (val).ToHours));
 		}
 		else
 		{
-			num = (float)((CampaignTime)(ref _waitDuration)).ToHours;
+			num = (float)(_waitDuration).ToHours;
 		}
 		dictionary["remainingHours"] = num.ToString(CultureInfo.InvariantCulture);
 		return dictionary;

@@ -94,7 +94,7 @@ public class DiseaseTreatmentAiBehavior : CampaignBehaviorBase
 		float val4 = num * (1f - num3 / 6f);
 		val4 = Math.Max(0.5f, Math.Min(10f, val4));
 		AIBehaviorData item = default(AIBehaviorData);
-		((AIBehaviorData)(ref item))._002Ector((IMapPoint)(object)settlement, (AiBehavior)2, val2, false, flag3, flag4);
+		(item)._002Ector((IMapPoint)(object)settlement, (AiBehavior)2, val2, false, flag3, flag4);
 		float num5 = default(float);
 		if (p.TryGetBehaviorScore(ref item, ref num5))
 		{

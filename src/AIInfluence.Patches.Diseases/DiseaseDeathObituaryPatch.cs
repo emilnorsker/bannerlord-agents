@@ -73,7 +73,7 @@ public static class DiseaseDeathObituaryPatch
 			val2.SetTextVariable("DISEASE_NAME", value);
 			val2.SetTextVariable("REPUTATION", CharacterHelper.GetReputationDescription(hero.CharacterObject));
 			CampaignTime now = CampaignTime.Now;
-			val2.SetTextVariable("YEAR", ((CampaignTime)(ref now)).GetYear.ToString());
+			val2.SetTextVariable("YEAR", (now).GetYear.ToString());
 			val.SetTextVariable("FURTHER_DETAILS", val2);
 			__result = val;
 		}

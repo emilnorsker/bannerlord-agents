@@ -303,7 +303,7 @@ public class WorldEventsWindowViewModel : ViewModel
 			if (true)
 			{
 				CampaignTime now = CampaignTime.Now;
-				float num2 = (float)((CampaignTime)(ref now)).ToDays;
+				float num2 = (float)(now).ToDays;
 				num = Math.Max(0, (int)(num2 - statement.CampaignDays));
 			}
 		}
@@ -424,7 +424,7 @@ public class WorldEventsWindowViewModel : ViewModel
 			return ((object)new TextObject("{=AIInfluence_Unknown}Unknown", (Dictionary<string, object>)null)).ToString();
 		}
 		CampaignTime now = CampaignTime.Now;
-		float num = (float)((CampaignTime)(ref now)).ToDays;
+		float num = (float)(now).ToDays;
 		int daysAgo = Math.Max(0, (int)(num - campaignDays));
 		return FormatDaysAgo(daysAgo);
 	}

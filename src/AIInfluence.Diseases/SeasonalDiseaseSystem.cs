@@ -99,7 +99,7 @@ public static class SeasonalDiseaseSystem
 			return (Seasons)1;
 		}
 		CampaignTime now = CampaignTime.Now;
-		return ((CampaignTime)(ref now)).GetSeasonOfYear;
+		return (now).GetSeasonOfYear;
 	}
 
 	public static float GetSeasonAdditiveBonus()

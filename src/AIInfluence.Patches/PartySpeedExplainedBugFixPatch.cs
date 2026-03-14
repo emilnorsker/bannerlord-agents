@@ -24,7 +24,7 @@ public static class PartySpeedExplainedBugFixPatch
 		{
 			ExplainedNumber val = Campaign.Current.Models.PartySpeedCalculatingModel.CalculateBaseSpeed(__instance, true, 0, 0);
 			val = Campaign.Current.Models.PartySpeedCalculatingModel.CalculateFinalSpeed(__instance, val);
-			LastCalculatedSpeedRef.Invoke(__instance) = ((ExplainedNumber)(ref val)).ResultNumber;
+			LastCalculatedSpeedRef.Invoke(__instance) = (val).ResultNumber;
 			__result = val;
 			return false;
 		}

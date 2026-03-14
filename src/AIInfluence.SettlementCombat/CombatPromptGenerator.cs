@@ -1574,7 +1574,7 @@ public class CombatPromptGenerator
 		try
 		{
 			CampaignTime now = CampaignTime.Now;
-			float num = ((CampaignTime)(ref now)).GetHourOfDay;
+			float num = (now).GetHourOfDay;
 			if (num >= 5f && num < 8f)
 			{
 				return $"Dawn ({num:F1}h)";

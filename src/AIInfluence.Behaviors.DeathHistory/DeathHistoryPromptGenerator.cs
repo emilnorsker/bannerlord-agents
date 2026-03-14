@@ -377,12 +377,12 @@ public static class DeathHistoryPromptGenerator
 		}
 		try
 		{
-			int getYear = ((CampaignTime)(ref campaignTime)).GetYear;
+			int getYear = (campaignTime).GetYear;
 			if (getYear < 0 || getYear > 2000)
 			{
 				return false;
 			}
-			double toDays = ((CampaignTime)(ref campaignTime)).ToDays;
+			double toDays = (campaignTime).ToDays;
 			if (toDays < 0.0 || toDays > 1000000.0)
 			{
 				return false;
@@ -414,8 +414,8 @@ public static class DeathHistoryPromptGenerator
 		}
 		try
 		{
-			int getYear = ((CampaignTime)(ref campaignTime)).GetYear;
-			int num = (int)((CampaignTime)(ref campaignTime)).GetSeasonOfYear;
+			int getYear = (campaignTime).GetYear;
+			int num = (int)(campaignTime).GetSeasonOfYear;
 			if (num < 0 || num > 3)
 			{
 				return $"Year {getYear}";
@@ -427,7 +427,7 @@ public static class DeathHistoryPromptGenerator
 		{
 			try
 			{
-				int getYear2 = ((CampaignTime)(ref campaignTime)).GetYear;
+				int getYear2 = (campaignTime).GetYear;
 				if (getYear2 >= 0 && getYear2 <= 2000)
 				{
 					return $"Year {getYear2}";

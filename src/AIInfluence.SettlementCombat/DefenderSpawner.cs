@@ -1571,12 +1571,12 @@ public class DefenderSpawner
 			{
 				_logger.Log(string.Format("Selecting guard templates from garrison roster of {0}{1}", settlement.Name, isIndoor ? " (INDOOR: no cavalry/archers)" : ""));
 				var list2 = (from e in (IEnumerable<TroopRosterElement>)val.MemberRoster.GetTroopRoster()
-					where e.Character != null && !((BasicCharacterObject)e.Character).IsHero && ((TroopRosterElement)(ref e)).Number > 0
+					where e.Character != null && !((BasicCharacterObject)e.Character).IsHero && (e).Number > 0
 					where !isIndoor || (!((BasicCharacterObject)e.Character).IsMounted && !((BasicCharacterObject)e.Character).IsRanged)
 					select new
 					{
 						Character = e.Character,
-						Count = ((TroopRosterElement)(ref e)).Number
+						Count = (e).Number
 					}).ToList();
 				if (list2.Count > 0)
 				{
@@ -1668,7 +1668,7 @@ public class DefenderSpawner
 			TroopRosterElement current = item;
 			if (current.Character != null && !((BasicCharacterObject)current.Character).IsHero)
 			{
-				for (int i = 0; i < ((TroopRosterElement)(ref current)).Number; i++)
+				for (int i = 0; i < (current).Number; i++)
 				{
 					list.Add(current.Character);
 				}
@@ -1705,7 +1705,7 @@ public class DefenderSpawner
 					TroopRosterElement current = item;
 					if (current.Character != null && !((BasicCharacterObject)current.Character).IsHero)
 					{
-						for (int i = 0; i < ((TroopRosterElement)(ref current)).Number; i++)
+						for (int i = 0; i < (current).Number; i++)
 						{
 							list.Add(current.Character);
 						}
@@ -1730,7 +1730,7 @@ public class DefenderSpawner
 							TroopRosterElement current3 = item3;
 							if (current3.Character != null && !((BasicCharacterObject)current3.Character).IsHero)
 							{
-								for (int j = 0; j < ((TroopRosterElement)(ref current3)).Number; j++)
+								for (int j = 0; j < (current3).Number; j++)
 								{
 									list.Add(current3.Character);
 								}
@@ -2715,9 +2715,9 @@ public class DefenderSpawner
 				try
 				{
 					WorldPosition val2 = default(WorldPosition);
-					((WorldPosition)(ref val2))._002Ector(mission.Scene, UIntPtr.Zero, val, false);
+					(val2)._002Ector(mission.Scene, UIntPtr.Zero, val, false);
 					WorldPosition val3 = default(WorldPosition);
-					((WorldPosition)(ref val3))._002Ector(mission.Scene, UIntPtr.Zero, Agent.Main.Position, false);
+					(val3)._002Ector(mission.Scene, UIntPtr.Zero, Agent.Main.Position, false);
 					float num = default(float);
 					if (!mission.Scene.GetPathDistanceBetweenPositions(ref val3, ref val2, 0f, ref num))
 					{
@@ -2826,10 +2826,10 @@ public class DefenderSpawner
 			for (EquipmentIndex val2 = (EquipmentIndex)0; (int)val2 < 5; val2 = (EquipmentIndex)(val2 + 1))
 			{
 				MissionWeapon val3 = agent.Equipment[val2];
-				if (!((MissionWeapon)(ref val3)).IsEmpty)
+				if (!(val3).IsEmpty)
 				{
 					val3 = agent.Equipment[val2];
-					WeaponClass weaponClass = ((MissionWeapon)(ref val3)).CurrentUsageItem.WeaponClass;
+					WeaponClass weaponClass = (val3).CurrentUsageItem.WeaponClass;
 					if ((int)weaponClass == 2 || (int)weaponClass == 3 || (int)weaponClass == 4 || (int)weaponClass == 5 || (int)weaponClass == 6 || (int)weaponClass == 8 || (int)weaponClass == 7 || (int)weaponClass == 1 || (int)weaponClass == 9 || (int)weaponClass == 10 || (int)weaponClass == 11)
 					{
 						val = val2;
@@ -2884,7 +2884,7 @@ public class DefenderSpawner
 				if (_guardsSpawnScheduledTime.HasValue && _guardsSpawnDelay > 0f)
 				{
 					CampaignTime val = CampaignTime.Now - _guardsSpawnScheduledTime.Value;
-					float num2 = (float)((CampaignTime)(ref val)).ToSeconds;
+					float num2 = (float)(val).ToSeconds;
 					num = Math.Max(0f, _guardsSpawnDelay - num2);
 					_logger.Log("=== GUARD SPAWN TIME CALCULATION ===");
 					_logger.Log($"  Original delay: {_guardsSpawnDelay:F1} seconds");

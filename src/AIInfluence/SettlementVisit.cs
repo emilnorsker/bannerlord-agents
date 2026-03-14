@@ -28,7 +28,7 @@ public class SettlementVisit
 		{
 			//IL_0001: Unknown result type (might be due to invalid IL or missing references)
 			//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-			VisitTimeDays = ((value == CampaignTime.Never) ? 0.0 : ((CampaignTime)(ref value)).ToDays);
+			VisitTimeDays = ((value == CampaignTime.Never) ? 0.0 : (value).ToDays);
 		}
 	}
 
@@ -57,8 +57,8 @@ public class SettlementVisit
 			return -1;
 		}
 		CampaignTime val = CampaignTime.Now;
-		double toDays = ((CampaignTime)(ref val)).ToDays;
+		double toDays = (val).ToDays;
 		val = VisitTime;
-		return (int)(toDays - ((CampaignTime)(ref val)).ToDays);
+		return (int)(toDays - (val).ToDays);
 	}
 }

@@ -233,7 +233,7 @@ public class BattleHistoryManager
 			//IL_000b: Unknown result type (might be due to invalid IL or missing references)
 			//IL_0010: Unknown result type (might be due to invalid IL or missing references)
 			CampaignTime val16 = CampaignTime.Now - b.BattleTime;
-			return ((CampaignTime)(ref val16)).ToDays > 30.0;
+			return (val16).ToDays > 30.0;
 		});
 		_battleInitialTroops.Remove(mapEvent);
 	}
@@ -431,7 +431,7 @@ public class BattleHistoryManager
 		foreach (BattleInfo recentBattle in _recentBattles)
 		{
 			CampaignTime val = CampaignTime.Now - recentBattle.BattleTime;
-			recentBattle.DaysAgo = (int)((CampaignTime)(ref val)).ToDays;
+			recentBattle.DaysAgo = (int)(val).ToDays;
 		}
 		return _recentBattles.ToList();
 	}

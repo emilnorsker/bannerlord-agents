@@ -54,7 +54,7 @@ public class EconomicEffectsManager : CampaignBehaviorBase
 		try
 		{
 			CampaignTime now = CampaignTime.Now;
-			float currentDay = (float)((CampaignTime)(ref now)).ToDays;
+			float currentDay = (float)(now).ToDays;
 			return _activeEffects.Where((ActiveEconomicEffect e) => currentDay < e.StartDay + (float)e.DurationDays).ToList();
 		}
 		catch
@@ -87,7 +87,7 @@ public class EconomicEffectsManager : CampaignBehaviorBase
 		{
 			string id = ((MBObjectBase)settlement).StringId;
 			CampaignTime now = CampaignTime.Now;
-			float currentDay = (float)((CampaignTime)(ref now)).ToDays;
+			float currentDay = (float)(now).ToDays;
 			List<ActiveEconomicEffect> list = _activeEffects.Where((ActiveEconomicEffect e) => e.TargetType == "settlement" && e.TargetId == id && currentDay < e.StartDay + (float)e.DurationDays).ToList();
 			if (!list.Any())
 			{
@@ -135,7 +135,7 @@ public class EconomicEffectsManager : CampaignBehaviorBase
 		{
 			string id = ((MBObjectBase)settlement).StringId;
 			CampaignTime now = CampaignTime.Now;
-			float currentDay = (float)((CampaignTime)(ref now)).ToDays;
+			float currentDay = (float)(now).ToDays;
 			List<ActiveEconomicEffect> list = _activeEffects.Where((ActiveEconomicEffect e) => e.TargetType == "settlement" && e.TargetId == id && currentDay < e.StartDay + (float)e.DurationDays && Math.Abs(e.IncomeMultiplier - 1f) > 0.001f).ToList();
 			if (!list.Any())
 			{
@@ -233,7 +233,7 @@ public class EconomicEffectsManager : CampaignBehaviorBase
 			IncomeMultiplier = effect.IncomeMultiplier
 		};
 		CampaignTime now = CampaignTime.Now;
-		obj.StartDay = (float)((CampaignTime)(ref now)).ToDays;
+		obj.StartDay = (float)(now).ToDays;
 		obj.DurationDays = effect.DurationDays;
 		obj.Reason = effect.Reason;
 		ActiveEconomicEffect item = obj;
@@ -514,7 +514,7 @@ public class EconomicEffectsManager : CampaignBehaviorBase
 				return;
 			}
 			CampaignTime now = CampaignTime.Now;
-			float num = (float)((CampaignTime)(ref now)).ToDays;
+			float num = (float)(now).ToDays;
 			List<ActiveEconomicEffect> list = new List<ActiveEconomicEffect>();
 			foreach (ActiveEconomicEffect activeEffect in _activeEffects)
 			{

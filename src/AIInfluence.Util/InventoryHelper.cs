@@ -116,12 +116,12 @@ public static class InventoryHelper
 		foreach (ItemRosterElement item3 in heroItemRoster)
 		{
 			ItemRosterElement current = item3;
-			if (((ItemRosterElement)(ref current)).Amount <= 0)
+			if ((current).Amount <= 0)
 			{
 				continue;
 			}
-			EquipmentElement equipmentElement = ((ItemRosterElement)(ref current)).EquipmentElement;
-			ItemObject item = ((EquipmentElement)(ref equipmentElement)).Item;
+			EquipmentElement equipmentElement = (current).EquipmentElement;
+			ItemObject item = (equipmentElement).Item;
 			if (item == null)
 			{
 				continue;
@@ -130,7 +130,7 @@ public static class InventoryHelper
 			if (item.ItemComponent is RPItemComponent)
 			{
 				string text3 = ((!(item.ItemComponent is RPItemComponent rPItemComponent)) ? null : ((object)rPItemComponent.Description)?.ToString()) ?? "";
-				item2 = (string.IsNullOrEmpty(text3) ? $"{item.Name} (id:{((MBObjectBase)item).StringId}): {((ItemRosterElement)(ref current)).Amount}" : $"{item.Name} (id:{((MBObjectBase)item).StringId}): {((ItemRosterElement)(ref current)).Amount} - Description: {text3}");
+				item2 = (string.IsNullOrEmpty(text3) ? $"{item.Name} (id:{((MBObjectBase)item).StringId}): {(current).Amount}" : $"{item.Name} (id:{((MBObjectBase)item).StringId}): {(current).Amount} - Description: {text3}");
 			}
 			else
 			{
@@ -157,7 +157,7 @@ public static class InventoryHelper
 					}
 				}
 				string text4 = (flag2 ? "avg market price" : "base value");
-				item2 = $"{item.Name} (id:{((MBObjectBase)item).StringId}): {((ItemRosterElement)(ref current)).Amount} (approx. {num} gold each, {text4})";
+				item2 = $"{item.Name} (id:{((MBObjectBase)item).StringId}): {(current).Amount} (approx. {num} gold each, {text4})";
 			}
 			if (item.IsFood)
 			{
@@ -178,7 +178,7 @@ public static class InventoryHelper
 			{
 				list3.Add(item2);
 			}
-			else if ((int)item.Tier >= 3 || ((ItemRosterElement)(ref current)).Amount >= 5)
+			else if ((int)item.Tier >= 3 || (current).Amount >= 5)
 			{
 				list4.Add(item2);
 			}
@@ -240,7 +240,7 @@ public static class InventoryHelper
 			{
 				EquipmentIndex val2 = (EquipmentIndex)j;
 				val3 = val[val2];
-				ItemObject item = ((EquipmentElement)(ref val3)).Item;
+				ItemObject item = (val3).Item;
 				if (item != null && ((MBObjectBase)item).StringId == itemId)
 				{
 					if (itemObject == null)
@@ -300,13 +300,13 @@ public static class InventoryHelper
 			foreach (ItemRosterElement item2 in heroItemRoster)
 			{
 				ItemRosterElement current = item2;
-				EquipmentElement equipmentElement = ((ItemRosterElement)(ref current)).EquipmentElement;
-				ItemObject item = ((EquipmentElement)(ref equipmentElement)).Item;
+				EquipmentElement equipmentElement = (current).EquipmentElement;
+				ItemObject item = (equipmentElement).Item;
 				if (((item != null) ? ((MBObjectBase)item).StringId : null) == itemId)
 				{
 					val = current;
-					equipmentElement = ((ItemRosterElement)(ref current)).EquipmentElement;
-					itemObject = ((EquipmentElement)(ref equipmentElement)).Item;
+					equipmentElement = (current).EquipmentElement;
+					itemObject = (equipmentElement).Item;
 					break;
 				}
 			}
@@ -354,15 +354,15 @@ public static class InventoryHelper
 		else
 		{
 			ItemRosterElement value = val.Value;
-			if (((ItemRosterElement)(ref value)).Amount < amount)
+			if ((value).Amount < amount)
 			{
 				value = val.Value;
-				int num = amount - ((ItemRosterElement)(ref value)).Amount;
+				int num = amount - (value).Amount;
 				if (!FindAndUnequipItem(fromHero, itemId, num, out var itemObject2, out var _))
 				{
 					TextObject name = itemObject.Name;
 					value = val.Value;
-					errorReason = $"Not enough '{name}' (Has: {((ItemRosterElement)(ref value)).Amount} in inventory, Needed: {amount}).";
+					errorReason = $"Not enough '{name}' (Has: {(value).Amount} in inventory, Needed: {amount}).";
 					return false;
 				}
 				if (((MBObjectBase)itemObject2).StringId != itemId)

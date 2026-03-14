@@ -30,10 +30,10 @@ public class SimpleCampaignTime
 		{
 			if (campaignTime != CampaignTime.Never)
 			{
-				Year = ((CampaignTime)(ref campaignTime)).GetYear;
-				DayOfYear = ((CampaignTime)(ref campaignTime)).GetDayOfYear;
-				Hour = ((CampaignTime)(ref campaignTime)).GetHourOfDay;
-				TotalDays = ((CampaignTime)(ref campaignTime)).ToDays;
+				Year = (campaignTime).GetYear;
+				DayOfYear = (campaignTime).GetDayOfYear;
+				Hour = (campaignTime).GetHourOfDay;
+				TotalDays = (campaignTime).ToDays;
 			}
 		}
 		catch
@@ -46,6 +46,6 @@ public class SimpleCampaignTime
 		//IL_0001: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 		CampaignTime now = CampaignTime.Now;
-		return ((CampaignTime)(ref now)).ToDays - TotalDays;
+		return (now).ToDays - TotalDays;
 	}
 }

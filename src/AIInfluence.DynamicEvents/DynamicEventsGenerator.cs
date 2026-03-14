@@ -427,9 +427,9 @@ public class DynamicEventsGenerator
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.AppendLine("=== CURRENT WORLD STATE ===");
 		CampaignTime now = CampaignTime.Now;
-		Seasons getSeasonOfYear = ((CampaignTime)(ref now)).GetSeasonOfYear;
+		Seasons getSeasonOfYear = (now).GetSeasonOfYear;
 		Seasons val = getSeasonOfYear;
-		stringBuilder.AppendLine(string.Format("CURRENT TIME: Year {0}, {1}", ((CampaignTime)(ref now)).GetYear, (int)val switch
+		stringBuilder.AppendLine(string.Format("CURRENT TIME: Year {0}, {1}", (now).GetYear, (int)val switch
 		{
 			0 => "spring", 
 			1 => "summer", 
@@ -478,9 +478,9 @@ public class DynamicEventsGenerator
 		stringBuilder.AppendLine("=== MILITARY SITUATION ===");
 		stringBuilder.AppendLine();
 		CampaignTime val = CampaignTime.Now;
-		object arg = ((CampaignTime)(ref val)).GetYear;
+		object arg = (val).GetYear;
 		val = CampaignTime.Now;
-		stringBuilder.AppendLine($"Time: Year {arg}, {((CampaignTime)(ref val)).GetSeasonOfYear}");
+		stringBuilder.AppendLine($"Time: Year {arg}, {(val).GetSeasonOfYear}");
 		stringBuilder.AppendLine();
 		stringBuilder.AppendLine("Wars:");
 		HashSet<string> hashSet = new HashSet<string>();
@@ -565,7 +565,7 @@ public class DynamicEventsGenerator
 				//IL_0001: Unknown result type (might be due to invalid IL or missing references)
 				//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 				CampaignTime endTime = t.EndTime;
-				return ((CampaignTime)(ref endTime)).IsFuture;
+				return (endTime).IsFuture;
 			}).ToList();
 			stringBuilder.AppendLine("Trade Agreements:");
 			if (list3.Any())
@@ -577,7 +577,7 @@ public class DynamicEventsGenerator
 					if (val2 != null && val3 != null)
 					{
 						val = agreement.EndTime;
-						float num = ((CampaignTime)(ref val)).RemainingDaysFromNow / (float)CampaignTime.DaysInYear;
+						float num = (val).RemainingDaysFromNow / (float)CampaignTime.DaysInYear;
 						stringBuilder.AppendLine($"- {val2.Name} (\"{((MBObjectBase)val2).StringId}\") ↔ {val3.Name} (\"{((MBObjectBase)val3).StringId}\") (expires in {num:F1} years)");
 					}
 				}
@@ -592,7 +592,7 @@ public class DynamicEventsGenerator
 				//IL_0001: Unknown result type (might be due to invalid IL or missing references)
 				//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 				CampaignTime endTime = t.EndTime;
-				return ((CampaignTime)(ref endTime)).IsFuture;
+				return (endTime).IsFuture;
 			}).ToList();
 			stringBuilder.AppendLine("Active Tributes:");
 			if (list4.Any())
@@ -604,7 +604,7 @@ public class DynamicEventsGenerator
 					if (val4 != null && val5 != null)
 					{
 						val = tribute.EndTime;
-						float remainingDaysFromNow = ((CampaignTime)(ref val)).RemainingDaysFromNow;
+						float remainingDaysFromNow = (val).RemainingDaysFromNow;
 						stringBuilder.AppendLine($"- {val4.Name} (\"{((MBObjectBase)val4).StringId}\") → {val5.Name} (\"{((MBObjectBase)val5).StringId}\"): {tribute.DailyAmount} gold/day for {remainingDaysFromNow:F0} more days");
 					}
 				}
@@ -619,7 +619,7 @@ public class DynamicEventsGenerator
 				//IL_0001: Unknown result type (might be due to invalid IL or missing references)
 				//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 				CampaignTime expirationTime = d.ExpirationTime;
-				return ((CampaignTime)(ref expirationTime)).IsFuture;
+				return (expirationTime).IsFuture;
 			}).ToList();
 			stringBuilder.AppendLine("Pending Reparation Demands:");
 			if (list5.Any())
@@ -631,7 +631,7 @@ public class DynamicEventsGenerator
 					if (val6 != null && val7 != null)
 					{
 						val = demand.ExpirationTime;
-						float remainingDaysFromNow2 = ((CampaignTime)(ref val)).RemainingDaysFromNow;
+						float remainingDaysFromNow2 = (val).RemainingDaysFromNow;
 						stringBuilder.AppendLine($"- {val6.Name} (\"{((MBObjectBase)val6).StringId}\") demands {demand.Amount} gold from {val7.Name} (\"{((MBObjectBase)val7).StringId}\") (expires in {remainingDaysFromNow2:F0} days)");
 					}
 				}
@@ -810,7 +810,7 @@ public class DynamicEventsGenerator
 		stringBuilder.AppendLine("=== POLITICAL SITUATION ===");
 		stringBuilder.AppendLine();
 		CampaignTime now = CampaignTime.Now;
-		stringBuilder.AppendLine($"Time: Year {((CampaignTime)(ref now)).GetYear}, {GetSeasonName(((CampaignTime)(ref now)).GetSeasonOfYear)}");
+		stringBuilder.AppendLine($"Time: Year {(now).GetYear}, {GetSeasonName((now).GetSeasonOfYear)}");
 		stringBuilder.AppendLine();
 		stringBuilder.AppendLine("KINGDOMS AND LEADERS:");
 		foreach (Kingdom kingdom in ((IEnumerable<Kingdom>)Kingdom.All).Where((Kingdom k) => !k.IsEliminated))
@@ -894,7 +894,7 @@ public class DynamicEventsGenerator
 				//IL_0001: Unknown result type (might be due to invalid IL or missing references)
 				//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 				CampaignTime endTime = t.EndTime;
-				return ((CampaignTime)(ref endTime)).IsFuture;
+				return (endTime).IsFuture;
 			}).ToList();
 			stringBuilder.AppendLine("TRADE AGREEMENTS:");
 			CampaignTime val3;
@@ -907,7 +907,7 @@ public class DynamicEventsGenerator
 					if (val != null && val2 != null)
 					{
 						val3 = agreement.EndTime;
-						float num = ((CampaignTime)(ref val3)).RemainingDaysFromNow / (float)CampaignTime.DaysInYear;
+						float num = (val3).RemainingDaysFromNow / (float)CampaignTime.DaysInYear;
 						stringBuilder.AppendLine($"- {val.Name} (\"{((MBObjectBase)val).StringId}\") ↔ {val2.Name} (\"{((MBObjectBase)val2).StringId}\") (expires in {num:F1} years)");
 					}
 				}
@@ -922,7 +922,7 @@ public class DynamicEventsGenerator
 				//IL_0001: Unknown result type (might be due to invalid IL or missing references)
 				//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 				CampaignTime endTime = t.EndTime;
-				return ((CampaignTime)(ref endTime)).IsFuture;
+				return (endTime).IsFuture;
 			}).ToList();
 			stringBuilder.AppendLine("ACTIVE TRIBUTES:");
 			if (list3.Any())
@@ -934,7 +934,7 @@ public class DynamicEventsGenerator
 					if (val4 != null && val5 != null)
 					{
 						val3 = tribute.EndTime;
-						float remainingDaysFromNow = ((CampaignTime)(ref val3)).RemainingDaysFromNow;
+						float remainingDaysFromNow = (val3).RemainingDaysFromNow;
 						stringBuilder.AppendLine($"- {val4.Name} (\"{((MBObjectBase)val4).StringId}\") → {val5.Name} (\"{((MBObjectBase)val5).StringId}\"): {tribute.DailyAmount} gold/day for {remainingDaysFromNow:F0} more days");
 					}
 				}
@@ -949,7 +949,7 @@ public class DynamicEventsGenerator
 				//IL_0001: Unknown result type (might be due to invalid IL or missing references)
 				//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 				CampaignTime expirationTime = d.ExpirationTime;
-				return ((CampaignTime)(ref expirationTime)).IsFuture;
+				return (expirationTime).IsFuture;
 			}).ToList();
 			stringBuilder.AppendLine("PENDING REPARATION DEMANDS:");
 			if (list4.Any())
@@ -961,7 +961,7 @@ public class DynamicEventsGenerator
 					if (val6 != null && val7 != null)
 					{
 						val3 = demand.ExpirationTime;
-						float remainingDaysFromNow2 = ((CampaignTime)(ref val3)).RemainingDaysFromNow;
+						float remainingDaysFromNow2 = (val3).RemainingDaysFromNow;
 						stringBuilder.AppendLine($"- {val6.Name} (\"{((MBObjectBase)val6).StringId}\") demands {demand.Amount} gold from {val7.Name} (\"{((MBObjectBase)val7).StringId}\") (expires in {remainingDaysFromNow2:F0} days)");
 					}
 				}
@@ -1019,7 +1019,7 @@ public class DynamicEventsGenerator
 		stringBuilder.AppendLine("=== ECONOMIC SITUATION ===");
 		stringBuilder.AppendLine();
 		CampaignTime now = CampaignTime.Now;
-		stringBuilder.AppendLine($"Time: Year {((CampaignTime)(ref now)).GetYear}, {GetSeasonName(((CampaignTime)(ref now)).GetSeasonOfYear)}");
+		stringBuilder.AppendLine($"Time: Year {(now).GetYear}, {GetSeasonName((now).GetSeasonOfYear)}");
 		stringBuilder.AppendLine();
 		stringBuilder.AppendLine("TRADING CENTERS BY KINGDOM:");
 		List<Kingdom> list = (from k in (IEnumerable<Kingdom>)Kingdom.All
@@ -1194,7 +1194,7 @@ public class DynamicEventsGenerator
 			}
 		}
 		stringBuilder.AppendLine("SEASONAL ECONOMIC FACTORS:");
-		Seasons getSeasonOfYear = ((CampaignTime)(ref now)).GetSeasonOfYear;
+		Seasons getSeasonOfYear = (now).GetSeasonOfYear;
 		Seasons val5 = getSeasonOfYear;
 		Seasons val6 = val5;
 		switch ((int)val6)
@@ -1247,7 +1247,7 @@ public class DynamicEventsGenerator
 		stringBuilder.AppendLine("=== SOCIAL SITUATION ===");
 		stringBuilder.AppendLine();
 		CampaignTime now = CampaignTime.Now;
-		stringBuilder.AppendLine($"Time: Year {((CampaignTime)(ref now)).GetYear}, {GetSeasonName(((CampaignTime)(ref now)).GetSeasonOfYear)}");
+		stringBuilder.AppendLine($"Time: Year {(now).GetYear}, {GetSeasonName((now).GetSeasonOfYear)}");
 		stringBuilder.AppendLine();
 		stringBuilder.AppendLine("RECENT NOBLE MARRIAGES:");
 		List<MarriageInfo> recentMarriages = GetRecentMarriages();
@@ -1343,7 +1343,7 @@ public class DynamicEventsGenerator
 		stringBuilder.AppendLine("=== MYSTERIOUS SITUATION ===");
 		stringBuilder.AppendLine();
 		CampaignTime now = CampaignTime.Now;
-		stringBuilder.AppendLine($"Time: Year {((CampaignTime)(ref now)).GetYear}, {GetSeasonName(((CampaignTime)(ref now)).GetSeasonOfYear)}");
+		stringBuilder.AppendLine($"Time: Year {(now).GetYear}, {GetSeasonName((now).GetSeasonOfYear)}");
 		stringBuilder.AppendLine();
 		stringBuilder.AppendLine("POTENTIAL DISCOVERY LOCATIONS:");
 		List<DiscoveryLocation> potentialDiscoveryLocations = GetPotentialDiscoveryLocations();
@@ -1410,8 +1410,8 @@ public class DynamicEventsGenerator
 		stringBuilder.AppendLine("=== DISEASE OUTBREAK SITUATION ===");
 		stringBuilder.AppendLine();
 		CampaignTime now = CampaignTime.Now;
-		stringBuilder.AppendLine($"Time: Year {((CampaignTime)(ref now)).GetYear}, {GetSeasonName(((CampaignTime)(ref now)).GetSeasonOfYear)}");
-		Seasons getSeasonOfYear = ((CampaignTime)(ref now)).GetSeasonOfYear;
+		stringBuilder.AppendLine($"Time: Year {(now).GetYear}, {GetSeasonName((now).GetSeasonOfYear)}");
+		Seasons getSeasonOfYear = (now).GetSeasonOfYear;
 		stringBuilder.AppendLine("Season disease risk: " + (int)getSeasonOfYear switch
 		{
 			3 => "High risk - cold weather increases respiratory illness spread", 
@@ -1620,7 +1620,7 @@ public class DynamicEventsGenerator
 				return "=== ACTIVE ECONOMIC EFFECTS ===\nNo active economic effects.\n";
 			}
 			CampaignTime now = CampaignTime.Now;
-			float currentDay = (float)((CampaignTime)(ref now)).ToDays;
+			float currentDay = (float)(now).ToDays;
 			List<ActiveEconomicEffect> list = activeEffects.Where((ActiveEconomicEffect e) => currentDay < e.StartDay + (float)e.DurationDays).ToList();
 			if (!list.Any())
 			{
@@ -1851,7 +1851,7 @@ public class DynamicEventsGenerator
 				{
 					dynamicEvent.CreationTime = DateTime.Now;
 					CampaignTime now = CampaignTime.Now;
-					dynamicEvent.CreationCampaignDays = (float)((CampaignTime)(ref now)).ToDays;
+					dynamicEvent.CreationCampaignDays = (float)(now).ToDays;
 					dynamicEvent.ExpirationCampaignDays = dynamicEvent.CreationCampaignDays + (float)GlobalSettings<ModSettings>.Instance.DynamicEventsLifespan;
 					dynamicEvent.ExpirationTime = DateTime.Now.AddDays(GlobalSettings<ModSettings>.Instance.DynamicEventsLifespan);
 					AddEventToNPCContexts(dynamicEvent);
@@ -2496,7 +2496,7 @@ public class DynamicEventsGenerator
 		}
 		dynamicEvent.CreationTime = DateTime.Now;
 		CampaignTime now = CampaignTime.Now;
-		dynamicEvent.CreationCampaignDays = (float)((CampaignTime)(ref now)).ToDays;
+		dynamicEvent.CreationCampaignDays = (float)(now).ToDays;
 		dynamicEvent.ExpirationCampaignDays = dynamicEvent.CreationCampaignDays + (float)GlobalSettings<ModSettings>.Instance.DynamicEventsLifespan;
 		dynamicEvent.ExpirationTime = DateTime.Now.AddDays(GlobalSettings<ModSettings>.Instance.DynamicEventsLifespan);
 		dynamicEvent.Title = GetEventTitleOrFallback(dynamicEvent);
@@ -2687,7 +2687,7 @@ public class DynamicEventsGenerator
 			}
 			WarStatsAgainstKingdom warStatsAgainstKingdom = kingdomStats.WarsAgainstKingdoms[((MBObjectBase)kingdom2).StringId];
 			CampaignTime val = CampaignTime.Now - warStatsAgainstKingdom.WarStartTime;
-			int val2 = (int)((CampaignTime)(ref val)).ToDays;
+			int val2 = (int)(val).ToDays;
 			return Math.Max(0, val2);
 		}
 		catch
@@ -3058,7 +3058,7 @@ public class DynamicEventsGenerator
 		foreach (WorldInfoManager.MarriageRecord item2 in recentMarriages)
 		{
 			CampaignTime val = CampaignTime.Now - item2.MarriageTime;
-			int daysAgo = (int)((CampaignTime)(ref val)).ToDays;
+			int daysAgo = (int)(val).ToDays;
 			MarriageInfo marriageInfo = new MarriageInfo();
 			Hero husband = item2.Husband;
 			marriageInfo.HusbandName = ((husband == null) ? null : ((object)husband.Name)?.ToString()) ?? "Unknown";
@@ -3219,7 +3219,7 @@ public class DynamicEventsGenerator
 		foreach (WorldInfoManager.DeathRecord item2 in recentDeaths)
 		{
 			CampaignTime val = CampaignTime.Now - item2.DeathTime;
-			if (!(((CampaignTime)(ref val)).ToDays > (double)daysThreshold))
+			if (!((val).ToDays > (double)daysThreshold))
 			{
 				DeathInfo obj = new DeathInfo
 				{
@@ -3273,7 +3273,7 @@ public class DynamicEventsGenerator
 				}
 				obj.KingdomStringId = (string)obj3;
 				val = CampaignTime.Now - item2.DeathTime;
-				obj.DaysAgo = (int)((CampaignTime)(ref val)).ToDays;
+				obj.DaysAgo = (int)(val).ToDays;
 				DeathInfo item = obj;
 				list.Add(item);
 			}
@@ -3690,7 +3690,7 @@ public class DynamicEventsGenerator
 				return stringBuilder.ToString();
 			}
 			CampaignTime now = CampaignTime.Now;
-			float num = (float)((CampaignTime)(ref now)).ToDays;
+			float num = (float)(now).ToDays;
 			List<IGrouping<string, KingdomStatement>> list = (from s in recentStatements
 				group s by s.EventId into g
 				orderby g.Max((KingdomStatement s) => s.Timestamp) descending
@@ -3834,7 +3834,7 @@ public class DynamicEventsGenerator
 		WarStatisticsTracker instance2 = WarStatisticsTracker.Instance;
 		List<SettlementCaptureInfo> list = new List<SettlementCaptureInfo>();
 		CampaignTime now = CampaignTime.Now;
-		float num = (float)((CampaignTime)(ref now)).ToDays;
+		float num = (float)(now).ToDays;
 		float cutoffDays = num - 30f;
 		foreach (Settlement item in ((IEnumerable<Settlement>)Settlement.All).Where((Settlement s) => s.IsTown || s.IsCastle))
 		{
@@ -3851,7 +3851,7 @@ public class DynamicEventsGenerator
 					if (c.FromKingdomId == ((MBObjectBase)destroyedKingdom).StringId)
 					{
 						CampaignTime changeDate = c.ChangeDate;
-						result = (((float)((CampaignTime)(ref changeDate)).ToDays >= cutoffDays) ? 1 : 0);
+						result = (((float)(changeDate).ToDays >= cutoffDays) ? 1 : 0);
 					}
 					else
 					{
@@ -3988,7 +3988,7 @@ public class DynamicEventsGenerator
 				Kingdom val = ((IEnumerable<Kingdom>)Kingdom.All).FirstOrDefault((Func<Kingdom, bool>)((Kingdom k) => ((MBObjectBase)k).StringId == enemyKingdomId && !k.IsEliminated));
 				string enemyKingdomName = ((val != null && !val.IsEliminated) ? (((object)val.Name)?.ToString() ?? "Unknown") : enemyKingdomId);
 				CampaignTime val2 = CampaignTime.Now - value.WarStartTime;
-				int durationDays = (int)((CampaignTime)(ref val2)).ToDays;
+				int durationDays = (int)(val2).ToDays;
 				list.Add(new WarInfo
 				{
 					EnemyKingdomId = enemyKingdomId,
@@ -4024,7 +4024,7 @@ public class DynamicEventsGenerator
 			{
 				WarStatsAgainstKingdom warStatsAgainstKingdom = kingdomStats.WarsAgainstKingdoms[((MBObjectBase)destroyerKingdom).StringId];
 				CampaignTime val = CampaignTime.Now - warStatsAgainstKingdom.WarStartTime;
-				currentWarInfo.DurationDays = (int)((CampaignTime)(ref val)).ToDays;
+				currentWarInfo.DurationDays = (int)(val).ToDays;
 				currentWarInfo.DestroyedKingdomCasualties = warStatsAgainstKingdom.CasualtiesAgainstThisKingdom;
 			}
 			if (kingdomStats2 != null && kingdomStats2.WarsAgainstKingdoms.ContainsKey(((MBObjectBase)destroyedKingdom).StringId))
@@ -4172,9 +4172,9 @@ public class DynamicEventsGenerator
 		stringBuilder.AppendLine("=== CURRENT WORLD STATE (EXCLUDING DESTROYED KINGDOM) ===");
 		stringBuilder.AppendLine();
 		CampaignTime now = CampaignTime.Now;
-		Seasons getSeasonOfYear = ((CampaignTime)(ref now)).GetSeasonOfYear;
+		Seasons getSeasonOfYear = (now).GetSeasonOfYear;
 		Seasons val = getSeasonOfYear;
-		stringBuilder.AppendLine(string.Format("CURRENT TIME: Year {0}, {1}", ((CampaignTime)(ref now)).GetYear, (int)val switch
+		stringBuilder.AppendLine(string.Format("CURRENT TIME: Year {0}, {1}", (now).GetYear, (int)val switch
 		{
 			0 => "spring", 
 			1 => "summer", 

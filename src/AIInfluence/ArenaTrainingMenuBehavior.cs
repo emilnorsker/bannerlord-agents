@@ -201,7 +201,7 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 			return false;
 		}
 		CampaignTime now = CampaignTime.Now;
-		if (((CampaignTime)(ref now)).ToHours >= value)
+		if ((now).ToHours >= value)
 		{
 			_partyCooldownEndHours.Remove(partyId);
 			return false;
@@ -219,7 +219,7 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 		}
 		double num = value;
 		CampaignTime now = CampaignTime.Now;
-		double num2 = num - ((CampaignTime)(ref now)).ToHours;
+		double num2 = num - (now).ToHours;
 		if (num2 <= 0.0)
 		{
 			_partyCooldownEndHours.Remove(partyId);
@@ -236,7 +236,7 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 		{
 			Dictionary<string, double> partyCooldownEndHours = _partyCooldownEndHours;
 			CampaignTime now = CampaignTime.Now;
-			partyCooldownEndHours[partyId] = ((CampaignTime)(ref now)).ToHours + 72.0;
+			partyCooldownEndHours[partyId] = (now).ToHours + 72.0;
 		}
 	}
 
@@ -305,17 +305,17 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 			foreach (FlattenedTroopRosterElement item2 in item.ToFlattenedRoster())
 			{
 				FlattenedTroopRosterElement current2 = item2;
-				if (!((BasicCharacterObject)((FlattenedTroopRosterElement)(ref current2)).Troop).IsHero && !((FlattenedTroopRosterElement)(ref current2)).IsWounded && !((FlattenedTroopRosterElement)(ref current2)).IsKilled && CanTroopBeTrained(((FlattenedTroopRosterElement)(ref current2)).Troop))
+				if (!((BasicCharacterObject)(current2).Troop).IsHero && !(current2).IsWounded && !(current2).IsKilled && CanTroopBeTrained((current2).Troop))
 				{
 					num3++;
-					float num4 = 1f + (float)((FlattenedTroopRosterElement)(ref current2)).Troop.Tier * 0.35f;
+					float num4 = 1f + (float)(current2).Troop.Tier * 0.35f;
 					int num5 = (int)(20f * num4);
-					item.AddXpToTroop(((FlattenedTroopRosterElement)(ref current2)).Troop, num5);
+					item.AddXpToTroop((current2).Troop, num5);
 					num2 += num5;
-					float val = 0.07f - (float)((FlattenedTroopRosterElement)(ref current2)).Troop.Tier * 0.002f;
+					float val = 0.07f - (float)(current2).Troop.Tier * 0.002f;
 					if (MBRandom.RandomFloat <= Math.Max(val, 0.005f))
 					{
-						item.WoundTroop(((FlattenedTroopRosterElement)(ref current2)).Troop, 1, default(UniqueTroopDescriptor));
+						item.WoundTroop((current2).Troop, 1, default(UniqueTroopDescriptor));
 						num++;
 					}
 				}
@@ -1040,7 +1040,7 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 
 	private static void OnTrainingWaitTick(MenuCallbackArgs args, CampaignTime dt)
 	{
-		_trainingElapsedHours += (float)((CampaignTime)(ref dt)).ToHours;
+		_trainingElapsedHours += (float)(dt).ToHours;
 		while (_hoursDistributed < (int)_trainingElapsedHours)
 		{
 			DistributeHourlyTrainingXp();
@@ -1068,9 +1068,9 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 		foreach (TroopRosterElement item in (List<TroopRosterElement>)(object)roster.GetTroopRoster())
 		{
 			TroopRosterElement current = item;
-			if (!((BasicCharacterObject)current.Character).IsHero && ((TroopRosterElement)(ref current)).Number > 0 && CanTroopBeTrained(current.Character))
+			if (!((BasicCharacterObject)current.Character).IsHero && (current).Number > 0 && CanTroopBeTrained(current.Character))
 			{
-				int num2 = ((TroopRosterElement)(ref current)).Number - ((TroopRosterElement)(ref current)).WoundedNumber;
+				int num2 = (current).Number - (current).WoundedNumber;
 				if (num2 > 0)
 				{
 					num += num2;
@@ -1131,9 +1131,9 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 			foreach (TroopRosterElement item in (List<TroopRosterElement>)(object)roster.GetTroopRoster())
 			{
 				TroopRosterElement current2 = item;
-				if (!((BasicCharacterObject)current2.Character).IsHero && ((TroopRosterElement)(ref current2)).Number > 0 && CanTroopBeTrained(current2.Character))
+				if (!((BasicCharacterObject)current2.Character).IsHero && (current2).Number > 0 && CanTroopBeTrained(current2.Character))
 				{
-					int num4 = ((TroopRosterElement)(ref current2)).Number - ((TroopRosterElement)(ref current2)).WoundedNumber;
+					int num4 = (current2).Number - (current2).WoundedNumber;
 					if (num4 > 0)
 					{
 						float num5 = 1f + (float)current2.Character.Tier * num2;

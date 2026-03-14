@@ -1951,10 +1951,10 @@ public class DialogManager
 			for (EquipmentIndex val2 = (EquipmentIndex)0; (int)val2 < 5; val2 = (EquipmentIndex)(val2 + 1))
 			{
 				MissionWeapon val3 = agent.Equipment[val2];
-				if (!((MissionWeapon)(ref val3)).IsEmpty)
+				if (!(val3).IsEmpty)
 				{
 					val3 = agent.Equipment[val2];
-					WeaponClass weaponClass = ((MissionWeapon)(ref val3)).CurrentUsageItem.WeaponClass;
+					WeaponClass weaponClass = (val3).CurrentUsageItem.WeaponClass;
 					if ((int)weaponClass == 2 || (int)weaponClass == 3 || (int)weaponClass == 4 || (int)weaponClass == 5 || (int)weaponClass == 6 || (int)weaponClass == 8 || (int)weaponClass == 7 || (int)weaponClass == 1 || (int)weaponClass == 9 || (int)weaponClass == 10 || (int)weaponClass == 11)
 					{
 						val = val2;

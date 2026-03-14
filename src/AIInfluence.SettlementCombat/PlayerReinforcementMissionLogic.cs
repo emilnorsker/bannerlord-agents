@@ -747,7 +747,7 @@ public class PlayerReinforcementMissionLogic : MissionLogic
 				foreach (TroopRosterElement item2 in (List<TroopRosterElement>)(object)memberRoster.GetTroopRoster())
 				{
 					TroopRosterElement current2 = item2;
-					if (current2.Character != null && ((TroopRosterElement)(ref current2)).Number > 0)
+					if (current2.Character != null && (current2).Number > 0)
 					{
 						list.Add(current2);
 					}
@@ -783,7 +783,7 @@ public class PlayerReinforcementMissionLogic : MissionLogic
 				foreach (TroopRosterElement item2 in (List<TroopRosterElement>)(object)memberRoster.GetTroopRoster())
 				{
 					TroopRosterElement current2 = item2;
-					if (current2.Character != null && ((TroopRosterElement)(ref current2)).Number > 0)
+					if (current2.Character != null && (current2).Number > 0)
 					{
 						list.Add((current2, item));
 					}
@@ -815,7 +815,7 @@ public class PlayerReinforcementMissionLogic : MissionLogic
 				_summonedAgents.Remove(item);
 				_agentToPartyMap.Remove(item);
 			}
-			List<TroopRosterElement> list3 = rosterElements?.Where((TroopRosterElement element) => element.Character != null && ((TroopRosterElement)(ref element)).Number > 0).ToList() ?? new List<TroopRosterElement>();
+			List<TroopRosterElement> list3 = rosterElements?.Where((TroopRosterElement element) => element.Character != null && (element).Number > 0).ToList() ?? new List<TroopRosterElement>();
 			if (list3.Count == 0)
 			{
 				return list;
@@ -826,11 +826,11 @@ public class PlayerReinforcementMissionLogic : MissionLogic
 				TroopRosterElement current2 = item2;
 				if (!dictionary.TryGetValue(current2.Character, out var value))
 				{
-					dictionary[current2.Character] = ((TroopRosterElement)(ref current2)).Number;
+					dictionary[current2.Character] = (current2).Number;
 				}
 				else
 				{
-					dictionary[current2.Character] = value + ((TroopRosterElement)(ref current2)).Number;
+					dictionary[current2.Character] = value + (current2).Number;
 				}
 			}
 			bool flag = maxCount == int.MaxValue;
@@ -1343,8 +1343,8 @@ public class PlayerReinforcementMissionLogic : MissionLogic
 				{
 					try
 					{
-						((WorldPosition)(ref val9))._002Ector(scene, UIntPtr.Zero, Agent.Main.Position, false);
-						((WorldPosition)(ref val10))._002Ector(scene, UIntPtr.Zero, val8, false);
+						(val9)._002Ector(scene, UIntPtr.Zero, Agent.Main.Position, false);
+						(val10)._002Ector(scene, UIntPtr.Zero, val8, false);
 						flag2 = scene.GetPathDistanceBetweenPositions(ref val9, ref val10, 0f, ref num3) && num3 >= 0f && num3 < 100f;
 					}
 					catch
@@ -1513,8 +1513,8 @@ public class PlayerReinforcementMissionLogic : MissionLogic
 						bool flag2 = true;
 						try
 						{
-							((WorldPosition)(ref val7))._002Ector(mission.Scene, UIntPtr.Zero, Agent.Main.Position, false);
-							((WorldPosition)(ref val8))._002Ector(mission.Scene, UIntPtr.Zero, val6, false);
+							(val7)._002Ector(mission.Scene, UIntPtr.Zero, Agent.Main.Position, false);
+							(val8)._002Ector(mission.Scene, UIntPtr.Zero, val6, false);
 							flag2 = mission.Scene.GetPathDistanceBetweenPositions(ref val7, ref val8, 0f, ref num7) && num7 >= 0f && num7 < 300f;
 						}
 						catch
@@ -1876,10 +1876,10 @@ public class PlayerReinforcementMissionLogic : MissionLogic
 			for (EquipmentIndex val2 = (EquipmentIndex)0; (int)val2 < 5; val2 = (EquipmentIndex)(val2 + 1))
 			{
 				MissionWeapon val3 = agent.Equipment[val2];
-				if (!((MissionWeapon)(ref val3)).IsEmpty)
+				if (!(val3).IsEmpty)
 				{
 					val3 = agent.Equipment[val2];
-					WeaponClass weaponClass = ((MissionWeapon)(ref val3)).CurrentUsageItem.WeaponClass;
+					WeaponClass weaponClass = (val3).CurrentUsageItem.WeaponClass;
 					if ((int)weaponClass == 2 || (int)weaponClass == 3 || (int)weaponClass == 4 || (int)weaponClass == 5 || (int)weaponClass == 6 || (int)weaponClass == 8 || (int)weaponClass == 7 || (int)weaponClass == 1 || (int)weaponClass == 9 || (int)weaponClass == 10 || (int)weaponClass == 11)
 					{
 						val = val2;

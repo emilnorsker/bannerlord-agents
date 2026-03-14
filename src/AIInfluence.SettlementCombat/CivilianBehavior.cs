@@ -675,7 +675,7 @@ public class CivilianBehavior
 			for (EquipmentIndex val2 = (EquipmentIndex)0; (int)val2 < 5; val2 = (EquipmentIndex)(val2 + 1))
 			{
 				MissionWeapon val3 = civilian.Equipment[val2];
-				if (((MissionWeapon)(ref val3)).IsEmpty)
+				if ((val3).IsEmpty)
 				{
 					val = val2;
 					break;
@@ -713,7 +713,7 @@ public class CivilianBehavior
 			{
 				ItemObject val4 = list[_random.Next(list.Count)];
 				MissionWeapon val5 = default(MissionWeapon);
-				((MissionWeapon)(ref val5))._002Ector(val4, (ItemModifier)null, (Banner)null);
+				(val5)._002Ector(val4, (ItemModifier)null, (Banner)null);
 				civilian.Equipment[val.Value] = val5;
 				_logger.Log($"Gave tier 1 weapon '{((MBObjectBase)val4).StringId}' to civilian {civilian.Name} in slot {val.Value}");
 			}
@@ -787,10 +787,10 @@ public class CivilianBehavior
 			for (EquipmentIndex val2 = (EquipmentIndex)0; (int)val2 < 5; val2 = (EquipmentIndex)(val2 + 1))
 			{
 				MissionWeapon val3 = agent.Equipment[val2];
-				if (!((MissionWeapon)(ref val3)).IsEmpty)
+				if (!(val3).IsEmpty)
 				{
 					val3 = agent.Equipment[val2];
-					WeaponClass weaponClass = ((MissionWeapon)(ref val3)).CurrentUsageItem.WeaponClass;
+					WeaponClass weaponClass = (val3).CurrentUsageItem.WeaponClass;
 					if ((int)weaponClass == 2 || (int)weaponClass == 3 || (int)weaponClass == 4 || (int)weaponClass == 5 || (int)weaponClass == 6 || (int)weaponClass == 8 || (int)weaponClass == 7 || (int)weaponClass == 1 || (int)weaponClass == 9 || (int)weaponClass == 10 || (int)weaponClass == 11)
 					{
 						val = val2;
@@ -1129,14 +1129,14 @@ public class CivilianBehavior
 						((Vec2)(ref val2))._002Ector(MathF.Cos(num5), MathF.Sin(num5));
 					}
 					WorldPosition value2 = FindSafeFleePosition(item, val2, val, 35f);
-					if (!((WorldPosition)(ref value2)).IsValid)
+					if (!(value2).IsValid)
 					{
 						position = item.Position;
 						Vec2 val3 = ((Vec3)(ref position)).AsVec2 + val2 * 35f;
 						((Vec3)(ref val4))._002Ector(val3.x, val3.y, item.Position.z, -1f);
-						((WorldPosition)(ref val5))._002Ector(Mission.Current.Scene, UIntPtr.Zero, val4, false);
-						Vec3 groundVec = ((WorldPosition)(ref val5)).GetGroundVec3();
-						((WorldPosition)(ref value2))._002Ector(Mission.Current.Scene, UIntPtr.Zero, groundVec, false);
+						(val5)._002Ector(Mission.Current.Scene, UIntPtr.Zero, val4, false);
+						Vec3 groundVec = (val5).GetGroundVec3();
+						(value2)._002Ector(Mission.Current.Scene, UIntPtr.Zero, groundVec, false);
 					}
 					item.SetScriptedPosition(ref value2, false, (AIScriptedFrameFlags)0);
 					_lastFleePositions[item] = value2;
@@ -1322,7 +1322,7 @@ public class CivilianBehavior
 					}
 				}
 				((Vec3)(ref val4))._002Ector(val.x, val.y, num7, -1f);
-				((WorldPosition)(ref result))._002Ector(Mission.Current.Scene, UIntPtr.Zero, val4, false);
+				(result)._002Ector(Mission.Current.Scene, UIntPtr.Zero, val4, false);
 				return result;
 			}
 			return WorldPosition.Invalid;
@@ -1485,7 +1485,7 @@ public class CivilianBehavior
 			for (EquipmentIndex val = (EquipmentIndex)0; (int)val < 5; val = (EquipmentIndex)(val + 1))
 			{
 				MissionWeapon val2 = agent.Equipment[val];
-				if (!((MissionWeapon)(ref val2)).IsEmpty)
+				if (!(val2).IsEmpty)
 				{
 					agent.DropItem(val, (WeaponClass)0);
 				}
@@ -1812,10 +1812,10 @@ public class CivilianBehavior
 			for (EquipmentIndex val = (EquipmentIndex)0; (int)val < 5; val = (EquipmentIndex)(val + 1))
 			{
 				MissionWeapon val2 = agent.Equipment[val];
-				if (!((MissionWeapon)(ref val2)).IsEmpty)
+				if (!(val2).IsEmpty)
 				{
 					val2 = agent.Equipment[val];
-					if (((MissionWeapon)(ref val2)).Item != null)
+					if ((val2).Item != null)
 					{
 						return true;
 					}

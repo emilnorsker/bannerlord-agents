@@ -57,7 +57,7 @@ public class PostCombatEventCreator
 			}
 			dynamicEvent.CreationTime = DateTime.Now;
 			CampaignTime now = CampaignTime.Now;
-			dynamicEvent.CreationCampaignDays = (float)((CampaignTime)(ref now)).ToDays;
+			dynamicEvent.CreationCampaignDays = (float)(now).ToDays;
 			dynamicEvent.ExpirationCampaignDays = dynamicEvent.CreationCampaignDays + (float)GlobalSettings<ModSettings>.Instance.DynamicEventsLifespan;
 			dynamicEvent.ExpirationTime = DateTime.Now.AddDays(GlobalSettings<ModSettings>.Instance.DynamicEventsLifespan);
 			if (dynamicEvent.EventHistory == null)

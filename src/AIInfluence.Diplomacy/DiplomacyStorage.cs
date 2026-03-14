@@ -94,9 +94,9 @@ public class DiplomacyStorage
 				SaveTime = DateTime.Now
 			};
 			CampaignTime now = CampaignTime.Now;
-			double num = ((CampaignTime)(ref now)).ToYears * 336.0;
+			double num = (now).ToYears * 336.0;
 			now = CampaignTime.Now;
-			obj.CampaignDays = (float)(num + (double)((CampaignTime)(ref now)).GetDayOfYear);
+			obj.CampaignDays = (float)(num + (double)(now).GetDayOfYear);
 			AllianceData allianceData = obj;
 			JsonSerializerSettings val = new JsonSerializerSettings
 			{
@@ -174,9 +174,9 @@ public class DiplomacyStorage
 				SaveTime = DateTime.Now
 			};
 			CampaignTime now = CampaignTime.Now;
-			double num = ((CampaignTime)(ref now)).ToYears * 336.0;
+			double num = (now).ToYears * 336.0;
 			now = CampaignTime.Now;
-			obj.CampaignDays = (float)(num + (double)((CampaignTime)(ref now)).GetDayOfYear);
+			obj.CampaignDays = (float)(num + (double)(now).GetDayOfYear);
 			WarStatisticsData warStatisticsData = obj;
 			JsonSerializerSettings val = new JsonSerializerSettings
 			{
@@ -255,7 +255,7 @@ public class DiplomacyStorage
 		{
 			string text = Path.Combine(GetCurrentSaveFolder(), _diplomaticEventsFileName);
 			CampaignTime val = CampaignTime.Now;
-			float currentCampaignDays = (float)((CampaignTime)(ref val)).ToDays;
+			float currentCampaignDays = (float)(val).ToDays;
 			Dictionary<string, float> statementSchedules2 = null;
 			if (statementSchedules != null)
 			{
@@ -264,7 +264,7 @@ public class DiplomacyStorage
 					//IL_0002: Unknown result type (might be due to invalid IL or missing references)
 					//IL_0007: Unknown result type (might be due to invalid IL or missing references)
 					CampaignTime value = kvp.Value;
-					return (float)((CampaignTime)(ref value)).ToDays - currentCampaignDays;
+					return (float)(value).ToDays - currentCampaignDays;
 				});
 			}
 			Dictionary<string, float> analysisSchedules2 = null;
@@ -275,7 +275,7 @@ public class DiplomacyStorage
 					//IL_0002: Unknown result type (might be due to invalid IL or missing references)
 					//IL_0007: Unknown result type (might be due to invalid IL or missing references)
 					CampaignTime value = kvp.Value;
-					return (float)((CampaignTime)(ref value)).ToDays - currentCampaignDays;
+					return (float)(value).ToDays - currentCampaignDays;
 				});
 			}
 			Dictionary<string, List<QueuedStatementData>> dictionary = null;
@@ -292,7 +292,7 @@ public class DiplomacyStorage
 							KingdomId = ((MBObjectBase)item.Item1).StringId
 						};
 						val = item.Item2;
-						obj.ScheduledTimeDays = (float)((CampaignTime)(ref val)).ToDays - currentCampaignDays;
+						obj.ScheduledTimeDays = (float)(val).ToDays - currentCampaignDays;
 						list.Add(obj);
 					}
 					dictionary[statementQueue.Key] = list;
@@ -309,7 +309,7 @@ public class DiplomacyStorage
 				SaveTime = DateTime.Now
 			};
 			val = CampaignTime.Now;
-			obj2.CampaignDays = (float)((CampaignTime)(ref val)).ToDays;
+			obj2.CampaignDays = (float)(val).ToDays;
 			obj2.StatementSchedules = statementSchedules2;
 			obj2.AnalysisSchedules = analysisSchedules2;
 			obj2.StatementQueues = dictionary;
@@ -387,7 +387,7 @@ public class DiplomacyStorage
 				};
 			}
 			CampaignTime now = CampaignTime.Now;
-			float num = (float)((CampaignTime)(ref now)).ToDays;
+			float num = (float)(now).ToDays;
 			float campaignDays = diplomaticEventsData.CampaignDays;
 			float num2 = num - campaignDays;
 			Dictionary<string, CampaignTime> dictionary = new Dictionary<string, CampaignTime>();

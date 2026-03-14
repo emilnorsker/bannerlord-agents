@@ -41,10 +41,10 @@ public static class ItemMentionParser
 				//IL_000c: Unknown result type (might be due to invalid IL or missing references)
 				//IL_0011: Unknown result type (might be due to invalid IL or missing references)
 				int result;
-				if (((ItemRosterElement)(ref e)).Amount > 0)
+				if ((e).Amount > 0)
 				{
-					EquipmentElement equipmentElement2 = ((ItemRosterElement)(ref e)).EquipmentElement;
-					ItemObject item3 = ((EquipmentElement)(ref equipmentElement2)).Item;
+					EquipmentElement equipmentElement2 = (e).EquipmentElement;
+					ItemObject item3 = (equipmentElement2).Item;
 					result = ((((item3 != null) ? item3.ItemComponent : null) is RPItemComponent) ? 1 : 0);
 				}
 				else
@@ -99,12 +99,12 @@ public static class ItemMentionParser
 		foreach (ItemRosterElement item4 in roster)
 		{
 			ItemRosterElement current = item4;
-			if (((ItemRosterElement)(ref current)).Amount <= 0)
+			if ((current).Amount <= 0)
 			{
 				continue;
 			}
-			EquipmentElement equipmentElement = ((ItemRosterElement)(ref current)).EquipmentElement;
-			ItemObject item = ((EquipmentElement)(ref equipmentElement)).Item;
+			EquipmentElement equipmentElement = (current).EquipmentElement;
+			ItemObject item = (equipmentElement).Item;
 			if (item == null)
 			{
 				continue;
@@ -118,7 +118,7 @@ public static class ItemMentionParser
 			if (flag3)
 			{
 				string text = ((!(item.ItemComponent is RPItemComponent rPItemComponent)) ? null : ((object)rPItemComponent.Description)?.ToString()) ?? "";
-				item2 = (string.IsNullOrEmpty(text) ? $"{item.Name} (id:{((MBObjectBase)item).StringId}): {((ItemRosterElement)(ref current)).Amount}" : $"{item.Name} (id:{((MBObjectBase)item).StringId}): {((ItemRosterElement)(ref current)).Amount} - Description: {text}");
+				item2 = (string.IsNullOrEmpty(text) ? $"{item.Name} (id:{((MBObjectBase)item).StringId}): {(current).Amount}" : $"{item.Name} (id:{((MBObjectBase)item).StringId}): {(current).Amount} - Description: {text}");
 			}
 			else
 			{
@@ -145,7 +145,7 @@ public static class ItemMentionParser
 					}
 				}
 				string text2 = (flag4 ? "avg market price" : "base value");
-				item2 = $"{item.Name} (id:{((MBObjectBase)item).StringId}): {((ItemRosterElement)(ref current)).Amount} (approx. {num} gold each)";
+				item2 = $"{item.Name} (id:{((MBObjectBase)item).StringId}): {(current).Amount} (approx. {num} gold each)";
 			}
 			if (item.IsFood)
 			{

@@ -61,7 +61,7 @@ public class Disease
 				return 0;
 			}
 			CampaignTime now = CampaignTime.Now;
-			float num = (float)((CampaignTime)(ref now)).ToDays;
+			float num = (float)(now).ToDays;
 			return Math.Max(0, (int)(num - CreatedAt));
 		}
 	}
@@ -80,7 +80,7 @@ public class Disease
 			}
 			float value = QuarantineEndDays.Value;
 			CampaignTime now = CampaignTime.Now;
-			float num = value - (float)((CampaignTime)(ref now)).ToDays;
+			float num = value - (float)(now).ToDays;
 			return CampaignTime.DaysFromNow(num);
 		}
 		set
@@ -95,7 +95,7 @@ public class Disease
 			else
 			{
 				CampaignTime value2 = value.Value;
-				quarantineEndDays = (float)((CampaignTime)(ref value2)).ToDays;
+				quarantineEndDays = (float)(value2).ToDays;
 			}
 			QuarantineEndDays = quarantineEndDays;
 		}
@@ -110,7 +110,7 @@ public class Disease
 		Effects = new DiseaseEffects();
 		_ = CampaignTime.Now;
 		CampaignTime now = CampaignTime.Now;
-		CreatedAt = (float)((CampaignTime)(ref now)).ToDays;
+		CreatedAt = (float)(now).ToDays;
 	}
 
 	public bool IsExpired()
@@ -124,7 +124,7 @@ public class Disease
 			return false;
 		}
 		CampaignTime now = CampaignTime.Now;
-		float num = (float)((CampaignTime)(ref now)).ToDays;
+		float num = (float)(now).ToDays;
 		return num > CreatedAt + (float)DurationDays;
 	}
 
@@ -143,7 +143,7 @@ public class Disease
 			return false;
 		}
 		CampaignTime now = CampaignTime.Now;
-		float num = (float)((CampaignTime)(ref now)).ToDays;
+		float num = (float)(now).ToDays;
 		return num >= QuarantineEndDays.Value;
 	}
 
@@ -159,7 +159,7 @@ public class Disease
 			if (true)
 			{
 				CampaignTime now = CampaignTime.Now;
-				float num = (float)((CampaignTime)(ref now)).ToDays;
+				float num = (float)(now).ToDays;
 				float num2 = ((QuarantineEndDays.HasValue && QuarantineEndDays.Value > num) ? QuarantineEndDays.Value : num);
 				QuarantineEndDays = num2 + (float)durationDays;
 				return;

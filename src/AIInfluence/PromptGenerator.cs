@@ -343,13 +343,13 @@ public static class PromptGenerator
 		if (flag6 && context.LastInteractionTime != CampaignTime.Never)
 		{
 			val = CampaignTime.Now;
-			double toHours = ((CampaignTime)(ref val)).ToHours;
+			double toHours = (val).ToHours;
 			val = context.LastInteractionTime;
-			double num5 = toHours - ((CampaignTime)(ref val)).ToHours;
+			double num5 = toHours - (val).ToHours;
 			val = CampaignTime.Now;
-			double toDays = ((CampaignTime)(ref val)).ToDays;
+			double toDays = (val).ToDays;
 			val = context.LastInteractionTime;
-			double num6 = toDays - ((CampaignTime)(ref val)).ToDays;
+			double num6 = toDays - (val).ToDays;
 			if (num5 < 1.0 / 60.0)
 			{
 				text18 = "now (currently in conversation)";
@@ -426,7 +426,7 @@ public static class PromptGenerator
 				{
 					_ = e.Timestamp;
 					CampaignTime val3 = CampaignTime.Now - e.Timestamp;
-					result = ((((CampaignTime)(ref val3)).ToDays <= maxEventAgeDays) ? 1 : 0);
+					result = (((val3).ToDays <= maxEventAgeDays) ? 1 : 0);
 				}
 				else
 				{
@@ -445,7 +445,7 @@ public static class PromptGenerator
 				foreach (CampaignEvent item in list4)
 				{
 					val = CampaignTime.Now - item.Timestamp;
-					double toDays2 = ((CampaignTime)(ref val)).ToDays;
+					double toDays2 = (val).ToDays;
 					bool flag7 = toDays2 <= maxEventAgeDays;
 					bool flag8 = item.Type == "Battle" || (item.Type == "HeroKilled" && !item.Description.Contains("by unknown")) || (item.Type != "Battle" && item.Type != "HeroKilled");
 					AIInfluenceBehavior.Instance?.LogMessage($"[DEBUG] Event: Type='{item.Type}', Age={toDays2:F1} days (OK: {flag7}), TypeFilter OK: {flag8}, Description='{item.Description}'");
@@ -453,10 +453,10 @@ public static class PromptGenerator
 					if (instance7 != null)
 					{
 						val = CampaignTime.Now;
-						object arg = ((CampaignTime)(ref val)).ToDays;
+						object arg = (val).ToDays;
 						_ = item.Timestamp;
 						val = item.Timestamp;
-						instance7.LogMessage($"[DEBUG] Event Time: Now={arg:F1}, Event={((CampaignTime)(ref val)).ToDays:F1}, Diff={toDays2:F1}");
+						instance7.LogMessage($"[DEBUG] Event Time: Now={arg:F1}, Event={(val).ToDays:F1}, Diff={toDays2:F1}");
 					}
 				}
 			}
@@ -473,7 +473,7 @@ public static class PromptGenerator
 				string type = e.Type;
 				string description = e.Description;
 				CampaignTime val3 = CampaignTime.Now - e.Timestamp;
-				return $"{type}: {description} ({Math.Max(0.0, ((CampaignTime)(ref val3)).ToDays):F1} days ago)";
+				return $"{type}: {description} ({Math.Max(0.0, (val3).ToDays):F1} days ago)";
 			}).ToList();
 			ModSettings instance8 = GlobalSettings<ModSettings>.Instance;
 			if (instance8 != null && instance8.EnableDebugLogging)
@@ -501,7 +501,7 @@ public static class PromptGenerator
 					//IL_000b: Unknown result type (might be due to invalid IL or missing references)
 					//IL_0010: Unknown result type (might be due to invalid IL or missing references)
 					CampaignTime val3 = CampaignTime.Now - e.Timestamp;
-					return ((CampaignTime)(ref val3)).ToDays <= maxDialogueEventAgeDays;
+					return (val3).ToDays <= maxDialogueEventAgeDays;
 				})
 				orderby e.Timestamp descending
 				select e).Take(5).Select(delegate(CampaignEvent e)
@@ -513,7 +513,7 @@ public static class PromptGenerator
 				string type = e.Type;
 				string description = e.Description;
 				CampaignTime val3 = CampaignTime.Now - e.Timestamp;
-				return $"{type}: {description} ({Math.Max(0.0, ((CampaignTime)(ref val3)).ToDays):F1} days ago)";
+				return $"{type}: {description} ({Math.Max(0.0, (val3).ToDays):F1} days ago)";
 			}).ToList();
 			text23 = (list6.Any() ? string.Join("; ", list6) : "none");
 		}
@@ -536,12 +536,12 @@ public static class PromptGenerator
 			{
 				int lastRomanceInteractionDays = context.LastRomanceInteractionDays;
 				val = CampaignTime.Now;
-				if (lastRomanceInteractionDays != (int)((CampaignTime)(ref val)).ToDays)
+				if (lastRomanceInteractionDays != (int)(val).ToDays)
 				{
 					val = CampaignTime.Now;
-					object arg3 = (int)((CampaignTime)(ref val)).ToDays - context.LastRomanceInteractionDays;
+					object arg3 = (int)(val).ToDays - context.LastRomanceInteractionDays;
 					val = CampaignTime.Now;
-					obj3 = string.Format("{0} day{1} ago", arg3, ((int)((CampaignTime)(ref val)).ToDays - context.LastRomanceInteractionDays == 1) ? "" : "s");
+					obj3 = string.Format("{0} day{1} ago", arg3, ((int)(val).ToDays - context.LastRomanceInteractionDays == 1) ? "" : "s");
 				}
 				else
 				{
@@ -558,12 +558,12 @@ public static class PromptGenerator
 				int lastIntimateInteractionDays = context.LastIntimateInteractionDays;
 				val = CampaignTime.Now;
 				object obj4;
-				if (lastIntimateInteractionDays != (int)((CampaignTime)(ref val)).ToDays)
+				if (lastIntimateInteractionDays != (int)(val).ToDays)
 				{
 					val = CampaignTime.Now;
-					object arg4 = (int)((CampaignTime)(ref val)).ToDays - context.LastIntimateInteractionDays;
+					object arg4 = (int)(val).ToDays - context.LastIntimateInteractionDays;
 					val = CampaignTime.Now;
-					obj4 = string.Format("{0} day{1} ago", arg4, ((int)((CampaignTime)(ref val)).ToDays - context.LastIntimateInteractionDays == 1) ? "" : "s");
+					obj4 = string.Format("{0} day{1} ago", arg4, ((int)(val).ToDays - context.LastIntimateInteractionDays == 1) ? "" : "s");
 				}
 				else
 				{
@@ -739,7 +739,7 @@ public static class PromptGenerator
 		if (context.ConversationHistory != null && context.ConversationHistory.Any())
 		{
 			val = CampaignTime.Now;
-			double nowDays = ((CampaignTime)(ref val)).ToDays;
+			double nowDays = (val).ToDays;
 			IEnumerable<string> source = context.ConversationHistory.Skip(Math.Max(0, context.ConversationHistory.Count - GlobalSettings<ModSettings>.Instance.PromptMaxHistory)).Take(GlobalSettings<ModSettings>.Instance.PromptMaxHistory);
 			arg5 = string.Join("\n", source.Select(delegate(string msg)
 			{
@@ -782,7 +782,7 @@ public static class PromptGenerator
 		if (list10.Any())
 		{
 			val = CampaignTime.Now;
-			double nowDays2 = ((CampaignTime)(ref val)).ToDays;
+			double nowDays2 = (val).ToDays;
 			text46 = string.Join("\n", list10.Skip(Math.Max(0, list10.Count - 5)).Select(delegate(string msg)
 			{
 				double? num12 = null;
@@ -1608,7 +1608,7 @@ public static class PromptGenerator
 			return null;
 		}
 		CampaignTime now = CampaignTime.Now;
-		float num = (float)((CampaignTime)(ref now)).ToDays;
+		float num = (float)(now).ToDays;
 		float num2 = float.MaxValue;
 		if (context?.LastSeenFriends != null && context.LastSeenFriends.ContainsKey(((MBObjectBase)relative).StringId))
 		{
@@ -2708,7 +2708,7 @@ public static class PromptGenerator
 		for (int i = 0; i < 12; i++)
 		{
 			EquipmentElement val = battleEquipment[i];
-			ItemObject item = ((EquipmentElement)(ref val)).Item;
+			ItemObject item = (val).Item;
 			if (item != null && item.Value > 5000)
 			{
 				flag = true;
@@ -2887,7 +2887,7 @@ public static class PromptGenerator
 			}
 			List<string> list = new List<string>();
 			CampaignTime now = CampaignTime.Now;
-			float num = (float)((CampaignTime)(ref now)).ToDays;
+			float num = (float)(now).ToDays;
 			foreach (DynamicEvent item2 in activeDiplomaticEvents)
 			{
 				bool flag = false;
@@ -2962,7 +2962,7 @@ public static class PromptGenerator
 			}
 			List<string> list = new List<string>();
 			CampaignTime val = CampaignTime.Now;
-			float num = (float)((CampaignTime)(ref val)).ToDays;
+			float num = (float)(val).ToDays;
 			foreach (KingdomStatement stmt in statementsForNPC)
 			{
 				int num2 = 0;
@@ -2970,7 +2970,7 @@ public static class PromptGenerator
 				if (true)
 				{
 					val = stmt.Timestamp;
-					float num3 = (float)((CampaignTime)(ref val)).ToDays;
+					float num3 = (float)(val).ToDays;
 					num2 = Math.Max(0, (int)(num - num3));
 				}
 				Kingdom val2 = ((IEnumerable<Kingdom>)Kingdom.All).FirstOrDefault((Func<Kingdom, bool>)((Kingdom k) => ((MBObjectBase)k).StringId == stmt.KingdomId));
@@ -3528,7 +3528,7 @@ public static class PromptGenerator
 					if (val2 != null)
 					{
 						endTime = tribute.EndTime;
-						float remainingDaysFromNow = ((CampaignTime)(ref endTime)).RemainingDaysFromNow;
+						float remainingDaysFromNow = (endTime).RemainingDaysFromNow;
 						stringBuilder.AppendLine($"  - Paying {tribute.DailyAmount} gold/day to {val2.Name} ({remainingDaysFromNow:F0} days left, total paid: {tribute.TotalPaid})");
 					}
 				}
@@ -3542,7 +3542,7 @@ public static class PromptGenerator
 					if (val3 != null)
 					{
 						endTime = tribute2.EndTime;
-						float remainingDaysFromNow2 = ((CampaignTime)(ref endTime)).RemainingDaysFromNow;
+						float remainingDaysFromNow2 = (endTime).RemainingDaysFromNow;
 						stringBuilder.AppendLine($"  - Receiving {tribute2.DailyAmount} gold/day from {val3.Name} ({remainingDaysFromNow2:F0} days left, total received: {tribute2.TotalPaid})");
 					}
 				}
@@ -3597,7 +3597,7 @@ public static class PromptGenerator
 					if (val2 != null)
 					{
 						expirationTime = demand.ExpirationTime;
-						float remainingDaysFromNow = ((CampaignTime)(ref expirationTime)).RemainingDaysFromNow;
+						float remainingDaysFromNow = (expirationTime).RemainingDaysFromNow;
 						stringBuilder.AppendLine($"  - {val2.Name} demands {demand.Amount} gold (expires in {remainingDaysFromNow:F0} days)");
 					}
 				}
@@ -3611,7 +3611,7 @@ public static class PromptGenerator
 					if (val3 != null)
 					{
 						expirationTime = demand2.ExpirationTime;
-						float remainingDaysFromNow2 = ((CampaignTime)(ref expirationTime)).RemainingDaysFromNow;
+						float remainingDaysFromNow2 = (expirationTime).RemainingDaysFromNow;
 						stringBuilder.AppendLine($"  - Demanding {demand2.Amount} gold from {val3.Name} (expires in {remainingDaysFromNow2:F0} days)");
 					}
 				}
@@ -4207,7 +4207,7 @@ public static class PromptGenerator
 				if (step.Status == TaskStepStatus.InProgress && step.WaitUntilTime.HasValue)
 				{
 					CampaignTime value = step.WaitUntilTime.Value;
-					float remainingDaysFromNow = ((CampaignTime)(ref value)).RemainingDaysFromNow;
+					float remainingDaysFromNow = (value).RemainingDaysFromNow;
 					text2 = ((!(remainingDaysFromNow > 0f)) ? " (wait completed)" : $" (waiting, {remainingDaysFromNow:F1} days remaining)");
 				}
 				else if (step.Status == TaskStepStatus.Completed)
@@ -4630,7 +4630,7 @@ public static class PromptGenerator
 			foreach (AIQuestInfo item in activeAIQuests)
 			{
 				CampaignTime now = CampaignTime.Now;
-				double num = ((CampaignTime)(ref now)).ToDays - item.CreatedDays;
+				double num = (now).ToDays - item.CreatedDays;
 				int num2 = item.DurationDays - (int)num;
 				List<string> effectiveTargetNpcIds = item.GetEffectiveTargetNpcIds();
 				string text = ((effectiveTargetNpcIds.Count > 0) ? (" | Target NPCs: [" + string.Join(", ", effectiveTargetNpcIds) + "]") : "");

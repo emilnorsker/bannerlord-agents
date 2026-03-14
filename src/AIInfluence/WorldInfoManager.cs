@@ -911,7 +911,7 @@ public class WorldInfoManager
 		if (_cachedWarStatus != null && !(_lastWarStatusUpdate == CampaignTime.Never))
 		{
 			CampaignTime val = CampaignTime.Now - _lastWarStatusUpdate;
-			if (!(((CampaignTime)(ref val)).ToDays >= 1.0))
+			if (!((val).ToDays >= 1.0))
 			{
 				goto IL_0061;
 			}
@@ -1335,7 +1335,7 @@ public class WorldInfoManager
 			if (e.Type == "Battle")
 			{
 				CampaignTime val = CampaignTime.Now - e.Timestamp;
-				if (((CampaignTime)(ref val)).ToDays <= 4.0)
+				if ((val).ToDays <= 4.0)
 				{
 					result = ((e.Description.Contains("I lost a battle") || e.Description.Contains("We were defeated in a battle")) ? 1 : 0);
 					goto IL_005d;
@@ -1356,7 +1356,7 @@ public class WorldInfoManager
 			if (e.Type == "Battle")
 			{
 				CampaignTime val = CampaignTime.Now - e.Timestamp;
-				if (((CampaignTime)(ref val)).ToDays <= 4.0)
+				if ((val).ToDays <= 4.0)
 				{
 					result = ((e.Description.Contains("I won a battle") || e.Description.Contains("We won a battle")) ? 1 : 0);
 					goto IL_005d;
@@ -1383,7 +1383,7 @@ public class WorldInfoManager
 					if (e.Type == "WarDeclared")
 					{
 						CampaignTime val = CampaignTime.Now - e.Timestamp;
-						if (((CampaignTime)(ref val)).ToDays <= 10.0)
+						if ((val).ToDays <= 10.0)
 						{
 							result = ((e.Description.Contains("declared war on " + npcFactionName) || e.Description.Contains(npcFactionName + " declared war on")) ? 1 : 0);
 							goto IL_0073;
@@ -1408,7 +1408,7 @@ public class WorldInfoManager
 					if (e.Type == "WarDeclared")
 					{
 						CampaignTime val = CampaignTime.Now - e.Timestamp;
-						if (((CampaignTime)(ref val)).ToDays <= 10.0)
+						if ((val).ToDays <= 10.0)
 						{
 							result = ((e.Description.Contains("declared war on " + npcClanName) || e.Description.Contains(npcClanName + " declared war on")) ? 1 : 0);
 							goto IL_0073;
@@ -1431,7 +1431,7 @@ public class WorldInfoManager
 			if (e.Type == "HeroKilled")
 			{
 				CampaignTime val = CampaignTime.Now - e.Timestamp;
-				if (((CampaignTime)(ref val)).ToDays <= 12.0)
+				if ((val).ToDays <= 12.0)
 				{
 					result = ((!e.Description.Contains("you did not know them")) ? 1 : 0);
 					goto IL_004b;
@@ -1497,7 +1497,7 @@ public class WorldInfoManager
 		//IL_002b: Expected I4, but got Unknown
 		//IL_0120: Unknown result type (might be due to invalid IL or missing references)
 		CampaignTime now = CampaignTime.Now;
-		Seasons getSeasonOfYear = ((CampaignTime)(ref now)).GetSeasonOfYear;
+		Seasons getSeasonOfYear = (now).GetSeasonOfYear;
 		Seasons val = getSeasonOfYear;
 		string season = (int)val switch
 		{
@@ -1507,11 +1507,11 @@ public class WorldInfoManager
 			3 => "winter", 
 			_ => "unknown", 
 		};
-		float num = ((CampaignTime)(ref now)).GetHourOfDay;
+		float num = (now).GetHourOfDay;
 		int num2 = (int)num;
 		string timeOfDay = ((num2 >= 6 && num2 < 12) ? "morning" : ((num2 >= 12 && num2 < 18) ? "day" : ((num2 < 18 || num2 >= 22) ? "night" : "evening")));
-		int getYear = ((CampaignTime)(ref now)).GetYear;
-		int num3 = ((CampaignTime)(ref now)).GetDayOfYear / 30;
+		int getYear = (now).GetYear;
+		int num3 = (now).GetDayOfYear / 30;
 		if (num3 < 1)
 		{
 			num3 = 1;
@@ -1597,8 +1597,8 @@ public class WorldInfoManager
 						if (current3.Character != null && !((BasicCharacterObject)current3.Character).IsHero)
 						{
 							string stringId = ((MBObjectBase)current3.Character).StringId;
-							int number = ((TroopRosterElement)(ref current3)).Number;
-							int woundedNumber = ((TroopRosterElement)(ref current3)).WoundedNumber;
+							int number = (current3).Number;
+							int woundedNumber = (current3).WoundedNumber;
 							if (dictionary.ContainsKey(stringId))
 							{
 								(int, int) tuple = dictionary[stringId];
@@ -1637,8 +1637,8 @@ public class WorldInfoManager
 						{
 							Name = ((object)((BasicCharacterObject)current4.Character).Name).ToString(),
 							StringId = ((MBObjectBase)current4.Character).StringId,
-							Count = ((TroopRosterElement)(ref current4)).Number,
-							WoundedCount = ((TroopRosterElement)(ref current4)).WoundedNumber
+							Count = (current4).Number,
+							WoundedCount = (current4).WoundedNumber
 						});
 					}
 				}
@@ -1794,8 +1794,8 @@ public class WorldInfoManager
 					if (current4.Character != null && !((BasicCharacterObject)current4.Character).IsHero)
 					{
 						string stringId3 = ((MBObjectBase)current4.Character).StringId;
-						int number = ((TroopRosterElement)(ref current4)).Number;
-						int woundedNumber = ((TroopRosterElement)(ref current4)).WoundedNumber;
+						int number = (current4).Number;
+						int woundedNumber = (current4).WoundedNumber;
 						if (dictionary.ContainsKey(stringId3))
 						{
 							(int, int) tuple = dictionary[stringId3];
@@ -1834,8 +1834,8 @@ public class WorldInfoManager
 					{
 						Name = ((object)((BasicCharacterObject)current5.Character).Name).ToString(),
 						StringId = ((MBObjectBase)current5.Character).StringId,
-						Count = ((TroopRosterElement)(ref current5)).Number,
-						WoundedCount = ((TroopRosterElement)(ref current5)).WoundedNumber
+						Count = (current5).Number,
+						WoundedCount = (current5).WoundedNumber
 					});
 				}
 			}
@@ -1903,12 +1903,12 @@ public class WorldInfoManager
 		if (campaignEvent.Timestamp != CampaignTime.Never)
 		{
 			val = CampaignTime.Now - campaignEvent.Timestamp;
-			return ((CampaignTime)(ref val)).ToDays;
+			return (val).ToDays;
 		}
 		if (campaignEvent.EventTimeDays > 0.0)
 		{
 			val = CampaignTime.Now;
-			return ((CampaignTime)(ref val)).ToDays - campaignEvent.EventTimeDays;
+			return (val).ToDays - campaignEvent.EventTimeDays;
 		}
 		return 999.0;
 	}
@@ -1950,7 +1950,7 @@ public class WorldInfoManager
 			return;
 		}
 		CampaignTime now = CampaignTime.Now;
-		int num = (int)((CampaignTime)(ref now)).ToDays;
+		int num = (int)(now).ToDays;
 		int num2 = num - context.LastRomanceInteractionDays;
 		if (num2 <= GlobalSettings<ModSettings>.Instance.RomanceDecayDays)
 		{
@@ -2050,7 +2050,7 @@ public class WorldInfoManager
 		foreach (KeyValuePair<string, (HashSet<string>, CampaignTime)> item2 in _recentBattleParticipantsByCapturer)
 		{
 			CampaignTime val = now - item2.Value.Item2;
-			float num = (float)((CampaignTime)(ref val)).ToHours;
+			float num = (float)(val).ToHours;
 			if (num > 24f)
 			{
 				list2.Add(item2.Key);
@@ -2073,7 +2073,7 @@ public class WorldInfoManager
 		}
 		int i = 0;
 		CampaignTime now = CampaignTime.Now;
-		float currentDays = (float)((CampaignTime)(ref now)).ToDays;
+		float currentDays = (float)(now).ToDays;
 		for (; i < 5; i++)
 		{
 			if (_dailyTickQueue.Count <= 0)
@@ -2965,7 +2965,7 @@ public class WorldInfoManager
 			if (item.TimeContext != null)
 			{
 				CampaignTime val = CampaignTime.Now - item.TimeContext.LastUpdated;
-				if (!(((CampaignTime)(ref val)).ToHours >= 2.0))
+				if (!((val).ToHours >= 2.0))
 				{
 					continue;
 				}
@@ -4923,8 +4923,8 @@ public class WorldInfoManager
 			else
 			{
 				ItemRosterElement val = v.TradeBound.ItemRoster[0];
-				EquipmentElement equipmentElement = ((ItemRosterElement)(ref val)).EquipmentElement;
-				obj = "produces " + ((object)((EquipmentElement)(ref equipmentElement)).Item.Name).ToString();
+				EquipmentElement equipmentElement = (val).EquipmentElement;
+				obj = "produces " + ((object)(equipmentElement).Item.Name).ToString();
 			}
 			string text2 = (string)obj;
 			string text3 = (((IEnumerable<Hero>)((SettlementComponent)v).Settlement.Notables).Any() ? ("notables: " + string.Join(", ", ((IEnumerable<Hero>)((SettlementComponent)v).Settlement.Notables).Select((Hero n) => ((object)n.Name).ToString()))) : "no notables");
@@ -5679,7 +5679,7 @@ public class WorldInfoManager
 			if (e.Type == campaignEvent.Type && e.Description == campaignEvent.Description)
 			{
 				CampaignTime val = e.Timestamp - campaignEvent.Timestamp;
-				result = ((Math.Abs(((CampaignTime)(ref val)).ToHours) < 1.0) ? 1 : 0);
+				result = ((Math.Abs((val).ToHours) < 1.0) ? 1 : 0);
 			}
 			else
 			{
@@ -5809,7 +5809,7 @@ public class WorldInfoManager
 			else
 			{
 				CampaignTime timestamp = e.Timestamp;
-				result = ((CampaignTime)(ref timestamp)).ToHours;
+				result = (timestamp).ToHours;
 			}
 			return result;
 		}).Take(count).ToList();
@@ -5944,7 +5944,7 @@ public class WorldInfoManager
 			HashSet<string> item = tuple.Item1;
 			CampaignTime item2 = tuple.Item2;
 			CampaignTime val = CampaignTime.Now - item2;
-			float num = (float)((CampaignTime)(ref val)).ToHours;
+			float num = (float)(val).ToHours;
 			if (num <= maxTimeHours && item != null && item.Count > 0)
 			{
 				return new HashSet<string>(item);
@@ -6226,7 +6226,7 @@ public class WorldInfoManager
 			{
 				StringId = g.Key,
 				Name = ((object)((BasicCharacterObject)g.First().Character).Name).ToString(),
-				Count = g.Sum((TroopRosterElement t) => ((TroopRosterElement)(ref t)).Number)
+				Count = g.Sum((TroopRosterElement t) => (t).Number)
 			}).ToList();
 		if (source2.Any())
 		{
@@ -6355,7 +6355,7 @@ public class WorldInfoManager
 			//IL_000b: Unknown result type (might be due to invalid IL or missing references)
 			//IL_0010: Unknown result type (might be due to invalid IL or missing references)
 			CampaignTime val = CampaignTime.Now - d.DeathTime;
-			return ((CampaignTime)(ref val)).ToDays > 7.0;
+			return (val).ToDays > 7.0;
 		});
 		if (_recentDeaths.Count > 10)
 		{
@@ -6373,7 +6373,7 @@ public class WorldInfoManager
 				//IL_000b: Unknown result type (might be due to invalid IL or missing references)
 				//IL_0010: Unknown result type (might be due to invalid IL or missing references)
 				CampaignTime val = CampaignTime.Now - d.DeathTime;
-				return ((CampaignTime)(ref val)).ToDays <= 20.0;
+				return (val).ToDays <= 20.0;
 			})
 			orderby d.DeathTime descending
 			select d).Take(5).ToList();
@@ -6414,7 +6414,7 @@ public class WorldInfoManager
 				//IL_000b: Unknown result type (might be due to invalid IL or missing references)
 				//IL_0010: Unknown result type (might be due to invalid IL or missing references)
 				CampaignTime val = CampaignTime.Now - m.MarriageTime;
-				return ((CampaignTime)(ref val)).ToDays <= (double)daysThreshold;
+				return (val).ToDays <= (double)daysThreshold;
 			})
 			orderby m.MarriageTime descending
 			select m).Take(maxCount).ToList();
