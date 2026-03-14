@@ -1090,6 +1090,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				party.MemberRoster.AddToCounts(basicTroop, troopCount, false, 0, 0, true, -1);
 				party.Party.SetCustomName(new TextObject(partyLabel, (Dictionary<string, object>)null));
 				party.SetMovePatrolAroundPoint(campaignSpawnPos, (NavigationType)3);
+				party.SetPartyUsedByQuest(true);
 				partySetupOk = true;
 			}
 			catch (Exception setupEx)
@@ -1209,6 +1210,9 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			MobileParty party = MobileParty.All?.FirstOrDefault((MobileParty p) => ((MBObjectBase)p).StringId == questInfo.SpawnedPartyId);
 			if (party != null)
 			{
+				QuestBase questBase = Campaign.Current?.QuestManager?.Quests?.FirstOrDefault((Func<QuestBase, bool>)((QuestBase q) => ((MBObjectBase)q).StringId == questInfo.QuestId && q.IsOngoing));
+				questBase?.RemoveTrackedObject((ITrackableCampaignObject)(object)party);
+				party.SetPartyUsedByQuest(false);
 				DestroyPartyAction.Apply((PartyBase)null, party);
 				LogMessage($"[QUEST] Destroyed spawned party '{questInfo.SpawnedPartyId}' on quest end");
 				questInfo.SpawnedPartyId = null;
@@ -4487,7 +4491,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		Hero questGiver = Hero.FindAll((Hero h) => h != Hero.MainHero && h.IsAlive && h.IsActive && !h.IsWanderer)
 			?.OrderBy((Hero h) =>
 			{
-				Vec2 pos = h.PartyBelongedTo != null ? h.PartyBelongedTo.GetPosition2D() : (h.CurrentSettlement?.GetPosition2D ?? default);
+				Vec2 pos = h.PartyBelongedTo != null ? h.PartyBelongedTo.GetPosition2D() : (h.CurrentSettlement?.GetPosition2D() ?? default);
 				return pos.Distance(mainPos);
 			})
 			?.FirstOrDefault();
@@ -4532,10 +4536,10 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		try
 		{
 			int total = 0;
-			foreach (KeyValuePair<string, NPCContext> kv in _npcContexts)
-			{
-				List<AIQuestInfo> quests = kv.Value?.ActiveAIQuests;
-				if (quests == null || quests.Count == 0)
+		foreach (KeyValuePair<string, NPCContext> kv in _npcContexts.ToList())
+		{
+			List<AIQuestInfo> quests = kv.Value?.ActiveAIQuests;
+			if (quests == null || quests.Count == 0)
 				{
 					continue;
 				}
