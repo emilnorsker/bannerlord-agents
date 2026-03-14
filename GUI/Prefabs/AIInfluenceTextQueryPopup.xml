@@ -87,8 +87,8 @@
 									</Children>
 								</DimensionSyncWidget>
 
-								<!--Text Input Area-->
-								<Widget Id="TextInputArea" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="70" MarginLeft="25" MarginRight="25" MarginBottom="15" Sprite="BlankWhite" Color="#000000FF" AlphaFactor="0.2">
+							<!--Text Input Area-->
+							<Widget Id="TextInputArea" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="70" MarginLeft="25" MarginRight="25" MarginBottom="15" Sprite="BlankWhite" Color="#000000FF" AlphaFactor="0.2" IsVisible="@IsButtonOkShown">
 									<Children>
 										<!-- Inner Frame -->
 										<Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="frame_9" ExtendLeft="5" ExtendTop="5" ExtendRight="5" ExtendBottom="5" AlphaFactor="0.25" />

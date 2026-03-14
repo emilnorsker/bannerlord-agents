@@ -4092,6 +4092,31 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		return await tcs.Task;
 	}
 
+	private async Task ShowNPCResponsePopup(string npcName, string response, Hero npcHero = null)
+	{
+		if (((npcHero != null) ? npcHero.CharacterObject : null) != null)
+		{
+			try
+			{
+				CharacterCode charCode = CampaignUIHelper.GetCharacterCode(npcHero.CharacterObject, false);
+				AIInfluencePortraitWidget.PendingCharacterCode = ((charCode != null) ? charCode.Code : null);
+			}
+			catch { AIInfluencePortraitWidget.PendingCharacterCode = null; }
+		}
+		else
+		{
+			AIInfluencePortraitWidget.PendingCharacterCode = null;
+		}
+		TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
+		TextObject closeText = new TextObject("{=AIInfluence_Close}Close", (Dictionary<string, object>)null);
+		AIInfluenceTextQueryPopupManager.Show(new TextInquiryData(npcName, response, false, true, null, ((object)closeText).ToString(), null, (Action)delegate
+		{
+			AIInfluencePortraitWidget.PendingCharacterCode = null;
+			tcs.TrySetResult(true);
+		}, false, (Func<string, Tuple<bool, string>>)null, "", ""));
+		await tcs.Task;
+	}
+
 	private void OnSessionLaunched(CampaignGameStarter campaignGameStarter)
 	{
 		//IL_0112: Unknown result type (might be due to invalid IL or missing references)
