@@ -1,6 +1,8 @@
 name: Build and Publish Mod
 
 on:
+  pull_request:
+    branches: [main]
   push:
     branches: [main]
 
@@ -13,9 +15,9 @@ jobs:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '8.0.x'
 
@@ -59,7 +61,15 @@ jobs:
       - name: Create 7zip archive
         run: cd staging && 7z a ../AIInfluence-${{ steps.version.outputs.build_tag }}.7z AIInfluence/
 
+      - name: Upload development artifact
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: AIInfluence-${{ steps.version.outputs.build_tag }}
+          path: AIInfluence-${{ steps.version.outputs.build_tag }}.7z
+
       - name: Publish release
+        if: github.event_name == 'push'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.build_tag }}
