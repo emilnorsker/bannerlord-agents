@@ -4,7 +4,6 @@ using System.Linq;
 using MCM.Abstractions.Base.Global;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.GameMenus;
-using static TaleWorlds.CampaignSystem.GameMenus.GameMenuOption;
 using TaleWorlds.CampaignSystem.ViewModelCollection;
 using TaleWorlds.Core;
 using TaleWorlds.Core.ImageIdentifiers;

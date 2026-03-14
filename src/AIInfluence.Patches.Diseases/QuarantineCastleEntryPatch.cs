@@ -11,7 +11,6 @@ using TaleWorlds.CampaignSystem.CampaignBehaviors;
 using TaleWorlds.CampaignSystem.ComponentInterfaces;
 using TaleWorlds.CampaignSystem.GameComponents;
 using TaleWorlds.CampaignSystem.GameMenus;
-using static TaleWorlds.CampaignSystem.GameMenus.GameMenuOption;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Localization;
 
