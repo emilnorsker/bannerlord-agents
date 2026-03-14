@@ -1043,7 +1043,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			if (currentSettlement != null)
 			{
 				CampaignVec2 gate = currentSettlement.GatePosition;
-				spawnPos = ((CampaignVec2)(ref gate)).ToVec2();
+				spawnPos = gate.ToVec2();
 			}
 		else if (questGiver?.PartyBelongedTo != null)
 		{
@@ -1077,8 +1077,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage("[QUEST] No hideout found on map — cannot spawn hostile party");
 				return;
 			}
-			CampaignVec2 campaignSpawnPos = default(CampaignVec2);
-			((CampaignVec2)(ref campaignSpawnPos))._002Ector(spawnPos, true);
+			CampaignVec2 campaignSpawnPos = new CampaignVec2(spawnPos, true);
 			MobileParty party = BanditPartyComponent.CreateBanditParty("quest_party_" + questInfo.QuestId, banditClan, anyHideout, false, (PartyTemplateObject)null, campaignSpawnPos);
 			if (party == null)
 			{
