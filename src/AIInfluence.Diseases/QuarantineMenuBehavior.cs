@@ -5,6 +5,7 @@ using System.Text;
 using MCM.Abstractions.Base.Global;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.GameMenus;
+using static TaleWorlds.CampaignSystem.GameMenus.GameMenuOption;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Core;
 using TaleWorlds.Core.ImageIdentifiers;
