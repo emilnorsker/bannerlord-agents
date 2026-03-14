@@ -1045,7 +1045,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			}
 			else
 			{
-				spawnPos = questGiver?.GetPosition2D ?? MobileParty.MainParty.Position2D;
+				spawnPos = questGiver?.GetPosition2D ?? MobileParty.MainParty?.Position2D ?? default;
 			}
 			CharacterObject basicTroop = null;
 			if (!string.IsNullOrEmpty(questAction.HostileTroopName))
@@ -1080,18 +1080,23 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				return;
 			}
 			questInfo.SpawnedPartyId = ((MBObjectBase)party).StringId;
+			bool partySetupOk = false;
 			try
 			{
 				party.MemberRoster.AddToCounts(basicTroop, troopCount, false, 0, 0, true, -1);
 				party.Party.SetCustomName(new TextObject(partyLabel, (Dictionary<string, object>)null));
 				party.SetMovePatrolAroundPoint(campaignSpawnPos, (NavigationType)3);
+				partySetupOk = true;
 			}
 			catch (Exception setupEx)
 			{
-				LogMessage("[QUEST] Error initializing hostile party, destroying it: " + setupEx.Message);
+				LogMessage("[QUEST] Error setting up hostile party, destroying it: " + setupEx.Message);
 				DestroyPartyAction.Apply((PartyBase)null, party);
 				questInfo.SpawnedPartyId = null;
-				throw;
+			}
+			if (!partySetupOk)
+			{
+				return;
 			}
 			QuestBase questBase = Campaign.Current?.QuestManager?.Quests?.FirstOrDefault((Func<QuestBase, bool>)((QuestBase q) => ((MBObjectBase)q).StringId == questInfo.QuestId && q.IsOngoing));
 			if (questBase != null)
@@ -1139,7 +1144,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			return;
 		}
-		SkillObject skill = Skills.All?.FirstOrDefault((SkillObject s) => ((MBObjectBase)s).StringId == questInfo.RewardSkill);
+		SkillObject skill = Skills.All?.FirstOrDefault((SkillObject s) => string.Equals(((MBObjectBase)s).StringId, questInfo.RewardSkill, StringComparison.OrdinalIgnoreCase));
 		if (skill != null)
 		{
 			Hero mainHero = Hero.MainHero;
@@ -4474,9 +4479,10 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	{
 		try
 		{
-			Hero questGiver = Hero.FindAll((Hero h) => !h.IsMainHero && h.IsAlive && h.IsActive && !h.IsWanderer)
-				?.OrderBy((Hero h) => h.GetPosition2D.Distance(Hero.MainHero.GetPosition2D))
-				?.FirstOrDefault();
+		Vec2 mainPos = Hero.MainHero?.GetPosition2D ?? MobileParty.MainParty?.Position2D ?? default;
+		Hero questGiver = Hero.FindAll((Hero h) => !h.IsMainHero && h.IsAlive && h.IsActive && !h.IsWanderer)
+			?.OrderBy((Hero h) => h.GetPosition2D.Distance(mainPos))
+			?.FirstOrDefault();
 			if (questGiver == null)
 			{
 				InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] No suitable NPC found for test quest.", ExtraColors.RedAIInfluence));
@@ -4551,30 +4557,30 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		try
 		{
 			int count = 0;
-			foreach (KeyValuePair<string, NPCContext> kv in _npcContexts)
+		foreach (KeyValuePair<string, NPCContext> kv in _npcContexts.ToList())
+		{
+			List<AIQuestInfo> quests = kv.Value?.ActiveAIQuests?.ToList();
+			if (quests == null)
 			{
-				List<AIQuestInfo> quests = kv.Value?.ActiveAIQuests?.ToList();
-				if (quests == null)
+				continue;
+			}
+			foreach (AIQuestInfo q in quests)
+			{
+				Hero giver = Hero.FindFirst((Hero h) => ((MBObjectBase)h).StringId == q.QuestGiverNpcId);
+				if (giver == null)
 				{
 					continue;
 				}
-				foreach (AIQuestInfo q in quests)
+				QuestActionData failAction = new QuestActionData
 				{
-					Hero giver = Hero.FindFirst((Hero h) => ((MBObjectBase)h).StringId == q.QuestGiverNpcId);
-					if (giver == null)
-					{
-						continue;
-					}
-					QuestActionData failAction = new QuestActionData
-					{
-						Action = "fail_quest",
-						QuestId = q.QuestId,
-						CompletionReason = "Debug: force-failed via MCM"
-					};
-					ProcessFailQuest(giver, kv.Value, failAction);
-					count++;
-				}
+					Action = "fail_quest",
+					QuestId = q.QuestId,
+					CompletionReason = "Debug: force-failed via MCM"
+				};
+				ProcessFailQuest(giver, kv.Value, failAction);
+				count++;
 			}
+		}
 			InformationManager.DisplayMessage(new InformationMessage($"[QuestDebug] Failed {count} active quest(s).", ExtraColors.GreenAIInfluence));
 			LogMessage($"[QuestDebug] DebugFailAllQuests: failed {count} quest(s)");
 		}
