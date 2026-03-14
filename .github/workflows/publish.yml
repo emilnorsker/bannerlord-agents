@@ -1,0 +1,62 @@
+name: Build and Publish Mod
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore packages
+        run: dotnet restore src/AIInfluence.csproj
+
+      - name: Build
+        run: dotnet build src/AIInfluence.csproj -c Release --no-restore
+
+      - name: Install 7zip
+        run: sudo apt-get install -y p7zip-full
+
+      - name: Get mod version
+        id: version
+        run: |
+          VERSION=$(xmllint --xpath 'string(//Version/@value)' SubModule.xml)
+          echo "value=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Stage mod files
+        run: |
+          mkdir -p staging/AIInfluence/bin/Win64_Shipping_Client
+          cp SubModule.xml staging/AIInfluence/
+          cp -r GUI staging/AIInfluence/
+          find src/bin -name "AIInfluence.dll" | head -1 | xargs -I{} cp {} staging/AIInfluence/bin/Win64_Shipping_Client/
+          cp bin/Win64_Shipping_Client/OggVorbisEncoder.dll staging/AIInfluence/bin/Win64_Shipping_Client/
+          cp bin/Win64_Shipping_Client/System.Buffers.dll staging/AIInfluence/bin/Win64_Shipping_Client/
+          cp bin/Win64_Shipping_Client/System.Memory.dll staging/AIInfluence/bin/Win64_Shipping_Client/
+          [ -f bin/Win64_Shipping_Client/rhubarb.exe ] && cp bin/Win64_Shipping_Client/rhubarb.exe staging/AIInfluence/bin/Win64_Shipping_Client/
+          cp -r bin/Win64_Shipping_Client/res staging/AIInfluence/bin/Win64_Shipping_Client/
+          for f in world.txt world_info.json world_secrets.json cultural_traditions.json \
+                   actionrules_description_EN.txt actionrules.txt eventsanalyzerrules.txt \
+                   eventsgeneratorrules.txt kingdomstatementrules.txt playerdescription.txt \
+                   TECHNICAL_GUIDE.en.md TECHNICAL_GUIDE.zh.md; do
+            [ -f "$f" ] && cp "$f" staging/AIInfluence/
+          done
+
+      - name: Create 7zip archive
+        run: cd staging && 7z a ../AIInfluence-${{ steps.version.outputs.value }}.7z AIInfluence/
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.value }}
+          name: AIInfluence ${{ steps.version.outputs.value }}
+          files: AIInfluence-${{ steps.version.outputs.value }}.7z
+          generate_release_notes: true
