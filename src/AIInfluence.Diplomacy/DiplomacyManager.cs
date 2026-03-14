@@ -2993,17 +2993,19 @@ public class DiplomacyManager
 				if (!targetKingdomIds.Any() && isNoTargetAction)
 				{
 					DiplomacyLogger.Instance.Log($"[PLAYER_DIPLO] Executing no-target action: {action}");
-					DiplomaticActionInfo actionInfo = new DiplomaticActionInfo
-					{
-						Action = action,
-						SourceKingdomId = ((MBObjectBase)statement.PlayerKingdom).StringId,
-						TargetClanId = statement.TargetClanId,
-						Reason = statement.Reason,
-						SettlementId = settlementIdForAction,
-						QuarantineDurationDays = statement.QuarantineDurationDays
-					};
-					ExecuteDiplomaticAction(actionInfo);
-					continue;
+				DiplomaticActionInfo actionInfo = new DiplomaticActionInfo
+				{
+					Action = action,
+					SourceKingdomId = ((MBObjectBase)statement.PlayerKingdom).StringId,
+					TargetClanId = statement.TargetClanId,
+					Reason = statement.Reason,
+					SettlementId = settlementIdForAction,
+					QuarantineDurationDays = statement.QuarantineDurationDays,
+					NewKingdomName = statement.NewKingdomName,
+					NewKingdomInformalName = statement.NewKingdomInformalName
+				};
+				ExecuteDiplomaticAction(actionInfo);
+				continue;
 				}
 				if (actionsToExecute.Count == targetKingdomIds.Count)
 				{
