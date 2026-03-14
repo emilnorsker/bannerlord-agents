@@ -4765,11 +4765,17 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					LogMessage($"[SAVE] Saving {_followingHeroIds.Count} following hero IDs to game save");
 					LogMessage($"[SAVE] Serialized AI actions length: {_serializedActionState?.Length ?? 0}");
 				}
+				int maxHistory = GlobalSettings<ModSettings>.Instance?.PromptMaxHistory ?? 100;
 				Dictionary<string, NPCContext> contextsToSave = _npcContexts
 					.Where(kvp => kvp.Value.InteractionCount > 0 || kvp.Value.LastInteractionTimeDays >= 0.0)
 					.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+				foreach (NPCContext ctx in contextsToSave.Values)
+				{
+					if (ctx.ConversationHistory?.Count > maxHistory)
+						ctx.ConversationHistory = ctx.ConversationHistory.Skip(ctx.ConversationHistory.Count - maxHistory).ToList();
+				}
 				_npcContextsJson = JsonConvert.SerializeObject(contextsToSave);
-				LogMessage($"[SAVE] Serialized {contextsToSave.Count}/{_npcContexts.Count} NPC contexts into game save");
+				LogMessage($"[SAVE] Serialized {contextsToSave.Count}/{_npcContexts.Count} NPC contexts into game save (history capped at {maxHistory})");
 			}
 			dataStore.SyncData<List<string>>("followingHeroIds", ref _followingHeroIds);
 			dataStore.SyncData<string>("aiActionState", ref _serializedActionState);
