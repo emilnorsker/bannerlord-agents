@@ -314,6 +314,23 @@ public static class GameVersionCompatibility
 		}
 	}
 
+	public static Kingdom CreateKingdom(TextObject name, TextObject informalName, CultureObject culture, Banner banner)
+	{
+		if (name == null || culture == null || banner == null)
+		{
+			return null;
+		}
+		try
+		{
+			return Kingdom.CreateKingdom(name, informalName ?? name, culture, banner);
+		}
+		catch (Exception ex)
+		{
+			Debug.Print("[AIInfluence] Failed to create kingdom: " + ex.Message, 0, (DebugColor)12, 17592186044416uL);
+			return null;
+		}
+	}
+
 	public static IEnumerable<Hero> GetLords(this Clan clan)
 	{
 		if (clan == null)
