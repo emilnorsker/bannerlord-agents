@@ -1039,21 +1039,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage("[QUEST] No bandit clan found for hostile party spawn");
 				return;
 			}
-			Settlement currentSettlement = questGiver?.CurrentSettlement;
-			Vec2 spawnPos;
-			if (currentSettlement != null)
-			{
-				CampaignVec2 gate = currentSettlement.GatePosition;
-				spawnPos = gate.ToVec2();
-			}
-		else if (questGiver?.PartyBelongedTo != null)
-		{
-			spawnPos = questGiver.PartyBelongedTo.GetPosition2D();
-		}
-		else
-		{
-			spawnPos = MobileParty.MainParty?.GetPosition2D() ?? default;
-		}
+			string spawnAnchorUsed;
+			Vec2 spawnPos = ResolveHostileQuestSpawnPosition(questGiver, questAction, out spawnAnchorUsed);
 			CharacterObject basicTroop = null;
 			if (!string.IsNullOrEmpty(questAction.HostileTroopName))
 			{
@@ -1110,13 +1097,124 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			{
 				questBase.AddTrackedObject((ITrackableCampaignObject)(object)party);
 			}
-			LogMessage($"[QUEST] Spawned hostile party '{partyLabel}' ({troopCount} troops) near player for quest '{questInfo.Title}'");
+			LogMessage($"[QUEST] Spawned hostile party '{partyLabel}' ({troopCount} troops) using anchor '{spawnAnchorUsed}' for quest '{questInfo.Title}'");
 			InformationManager.DisplayMessage(new InformationMessage($"A hostile party '{partyLabel}' has appeared on the map!", ExtraColors.RedAIInfluence));
 		}
 		catch (Exception ex)
 		{
 			LogMessage("[QUEST] Error spawning hostile party: " + ex.Message + "\n" + ex.StackTrace);
 		}
+	}
+
+	private Vec2 ResolveHostileQuestSpawnPosition(Hero questGiver, QuestActionData questAction, out string spawnAnchorUsed)
+	{
+		spawnAnchorUsed = "quest_giver_default";
+		string spawnAnchor = questAction?.SpawnAnchor;
+		if (string.IsNullOrWhiteSpace(spawnAnchor))
+		{
+			return GetDefaultHostileQuestSpawnPosition(questGiver);
+		}
+		if (spawnAnchor.Equals("player", StringComparison.OrdinalIgnoreCase))
+		{
+			spawnAnchorUsed = "player";
+			return MobileParty.MainParty?.GetPosition2D() ?? GetDefaultHostileQuestSpawnPosition(questGiver);
+		}
+		if (spawnAnchor.Equals("target_npc", StringComparison.OrdinalIgnoreCase))
+		{
+			string targetNpcId = questAction.GetEffectiveTargetNpcIds().FirstOrDefault();
+			if (TryResolveHeroSpawnPosition(targetNpcId, out var targetNpcPos))
+			{
+				spawnAnchorUsed = "target_npc:" + targetNpcId;
+				return targetNpcPos;
+			}
+			LogMessage("[QUEST] spawn_anchor=target_npc failed to resolve target NPC position, falling back to default");
+			return GetDefaultHostileQuestSpawnPosition(questGiver);
+		}
+		if (spawnAnchor.Equals("npc_id", StringComparison.OrdinalIgnoreCase))
+		{
+			if (TryResolveHeroSpawnPosition(questAction.SpawnNearNpcId, out var npcPos))
+			{
+				spawnAnchorUsed = "npc_id:" + questAction.SpawnNearNpcId;
+				return npcPos;
+			}
+			LogMessage("[QUEST] spawn_anchor=npc_id failed to resolve SpawnNearNpcId position, falling back to default");
+			return GetDefaultHostileQuestSpawnPosition(questGiver);
+		}
+		if (spawnAnchor.Equals("settlement_id", StringComparison.OrdinalIgnoreCase))
+		{
+			if (TryResolveSettlementSpawnPosition(questAction.SpawnNearSettlementId, out var settlementPos))
+			{
+				spawnAnchorUsed = "settlement_id:" + questAction.SpawnNearSettlementId;
+				return settlementPos;
+			}
+			LogMessage("[QUEST] spawn_anchor=settlement_id failed to resolve SpawnNearSettlementId position, falling back to default");
+			return GetDefaultHostileQuestSpawnPosition(questGiver);
+		}
+		if (spawnAnchor.Equals("quest_giver", StringComparison.OrdinalIgnoreCase))
+		{
+			spawnAnchorUsed = "quest_giver";
+			return GetDefaultHostileQuestSpawnPosition(questGiver);
+		}
+		LogMessage("[QUEST] Unknown spawn_anchor '" + spawnAnchor + "', falling back to default");
+		return GetDefaultHostileQuestSpawnPosition(questGiver);
+	}
+
+	private Vec2 GetDefaultHostileQuestSpawnPosition(Hero questGiver)
+	{
+		Settlement currentSettlement = questGiver?.CurrentSettlement;
+		if (currentSettlement != null)
+		{
+			return currentSettlement.GetPosition2D();
+		}
+		if (questGiver?.PartyBelongedTo != null)
+		{
+			return questGiver.PartyBelongedTo.GetPosition2D();
+		}
+		return MobileParty.MainParty?.GetPosition2D() ?? default;
+	}
+
+	private bool TryResolveHeroSpawnPosition(string heroStringId, out Vec2 spawnPos)
+	{
+		spawnPos = default;
+		if (string.IsNullOrEmpty(heroStringId))
+		{
+			return false;
+		}
+		Hero hero = Hero.FindFirst((Hero h) => ((MBObjectBase)h).StringId == heroStringId);
+		if (hero == null)
+		{
+			LogMessage("[QUEST] No hero found for spawn_near_npc_id '" + heroStringId + "'");
+			return false;
+		}
+		if (hero.CurrentSettlement != null)
+		{
+			spawnPos = hero.CurrentSettlement.GetPosition2D();
+			return true;
+		}
+		if (hero.PartyBelongedTo != null)
+		{
+			spawnPos = hero.PartyBelongedTo.GetPosition2D();
+			return true;
+		}
+		LogMessage("[QUEST] Hero '" + heroStringId + "' has no settlement or party position for hostile spawn");
+		return false;
+	}
+
+	private bool TryResolveSettlementSpawnPosition(string settlementStringId, out Vec2 spawnPos)
+	{
+		spawnPos = default;
+		if (string.IsNullOrEmpty(settlementStringId))
+		{
+			return false;
+		}
+		Settlement settlement = Settlement.All?.FirstOrDefault((Settlement s) => ((MBObjectBase)s).StringId == settlementStringId);
+		if (settlement == null)
+		{
+			LogMessage("[QUEST] No settlement found for spawn_near_settlement_id '" + settlementStringId + "'");
+			return false;
+		}
+		spawnPos = settlement.GetPosition2D();
+		return true;
 	}
 
 	private void ApplyQuestItemRewards(AIQuestInfo questInfo)
@@ -4610,7 +4708,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				return;
 			}
 			NPCContext context = GetOrCreateNPCContext(questGiver);
-			string requestPrompt = "You are generating a Bannerlord quest action for debugging.\nReturn ONLY valid JSON in this exact wrapper:\n{\"quest_action\":{...}}\nInside quest_action provide action=create_quest with fields title, description, duration_days (7-60), reward_gold (0-5000), optional target_npc_ids, completer_npc_id, ai_verification_notes, progress_target, progress_label, reward_items, reward_skill, reward_skill_xp, crime_rating_change, influence_change, spawn_hostile_party, hostile_party_size, hostile_party_label, hostile_troop_name.\nDo not add explanations.\nPlayer quest request: " + prompt;
+			string requestPrompt = "You are generating a Bannerlord quest action for debugging.\nReturn ONLY valid JSON in this exact wrapper:\n{\"quest_action\":{...}}\nInside quest_action provide action=create_quest with fields title, description, duration_days (7-60), reward_gold (0-5000), optional target_npc_ids, completer_npc_id, ai_verification_notes, progress_target, progress_label, reward_items, reward_skill, reward_skill_xp, crime_rating_change, influence_change, spawn_hostile_party, hostile_party_size, hostile_party_label, hostile_troop_name, spawn_anchor, spawn_near_npc_id, spawn_near_settlement_id.\nspawn_anchor allowed values: quest_giver, player, target_npc, npc_id, settlement_id.\nDo not add explanations.\nPlayer quest request: " + prompt;
 			string rawResponse = SendAIRequestRaw(requestPrompt).GetAwaiter().GetResult();
 			if (string.IsNullOrEmpty(rawResponse) || rawResponse.StartsWith("Error:"))
 			{

@@ -78,6 +78,15 @@ public class QuestActionData
 	[JsonProperty("hostile_troop_name")]
 	public string HostileTroopName { get; set; }
 
+	[JsonProperty("spawn_anchor")]
+	public string SpawnAnchor { get; set; }
+
+	[JsonProperty("spawn_near_npc_id")]
+	public string SpawnNearNpcId { get; set; }
+
+	[JsonProperty("spawn_near_settlement_id")]
+	public string SpawnNearSettlementId { get; set; }
+
 	public List<string> GetEffectiveTargetNpcIds()
 	{
 		if (TargetNpcIds != null && TargetNpcIds.Count > 0)
