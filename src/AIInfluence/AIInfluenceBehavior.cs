@@ -1019,7 +1019,12 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	{
 		try
 		{
-			int troopCount = Math.Max(5, Math.Min(questAction.HostilePartySize, 50));
+			int rawSize = questAction.HostilePartySize;
+			int troopCount = Math.Max(5, Math.Min(rawSize, 50));
+			if (rawSize != troopCount)
+			{
+				LogMessage($"[QUEST] HostilePartySize {rawSize} clamped to {troopCount}");
+			}
 			string partyLabel = string.IsNullOrEmpty(questAction.HostilePartyLabel) ? "Quest Enemies" : questAction.HostilePartyLabel;
 			Clan banditClan = Clan.BanditFactions?.FirstOrDefault();
 			if (banditClan == null)
