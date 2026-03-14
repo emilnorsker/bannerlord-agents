@@ -2833,15 +2833,18 @@ public class DiplomacyManager
 						Tone = analysis.Tone,
 						PlayerKingdom = playerKingdom,
 						PublicationTime = publicationTime,
-						SettlementId = analysis.SettlementId,
-						DailyTributeAmount = analysis.DailyTributeAmount,
-						TributeDurationDays = analysis.TributeDurationDays,
-						ReparationsAmount = analysis.ReparationsAmount,
-						TradeAgreementDurationYears = analysis.TradeAgreementDurationYears,
-						QuarantineDurationDays = analysis.QuarantineDurationDays
-					};
-					_pendingPlayerStatements.Add(delayedStatement);
-					DiplomacyLogger.Instance.Log($"[PLAYER_DIPLO] Added statement with {validTargetIds.Count} targets, delay: {hoursDelay} hours");
+				SettlementId = analysis.SettlementId,
+					DailyTributeAmount = analysis.DailyTributeAmount,
+					TributeDurationDays = analysis.TributeDurationDays,
+					ReparationsAmount = analysis.ReparationsAmount,
+					TradeAgreementDurationYears = analysis.TradeAgreementDurationYears,
+					QuarantineDurationDays = analysis.QuarantineDurationDays,
+					TargetClanId = analysis.TargetClanId,
+					NewKingdomName = analysis.NewKingdomName,
+					NewKingdomInformalName = analysis.NewKingdomInformalName
+				};
+				_pendingPlayerStatements.Add(delayedStatement);
+				DiplomacyLogger.Instance.Log($"[PLAYER_DIPLO] Added statement with {validTargetIds.Count} targets, delay: {hoursDelay} hours");
 					foreach (string targetId in validTargetIds)
 					{
 						Kingdom targetKingdom2 = ((IEnumerable<Kingdom>)analysis.TargetKingdoms).FirstOrDefault((Func<Kingdom, bool>)((Kingdom k) => ((MBObjectBase)k).StringId == targetId));
@@ -2874,7 +2877,10 @@ public class DiplomacyManager
 					TributeDurationDays = analysis.TributeDurationDays,
 					ReparationsAmount = analysis.ReparationsAmount,
 					TradeAgreementDurationYears = analysis.TradeAgreementDurationYears,
-					QuarantineDurationDays = analysis.QuarantineDurationDays
+					QuarantineDurationDays = analysis.QuarantineDurationDays,
+					TargetClanId = analysis.TargetClanId,
+					NewKingdomName = analysis.NewKingdomName,
+					NewKingdomInformalName = analysis.NewKingdomInformalName
 				};
 				_pendingPlayerStatements.Add(delayedStatement2);
 				_storage.SavePendingPlayerStatements(_pendingPlayerStatements);
