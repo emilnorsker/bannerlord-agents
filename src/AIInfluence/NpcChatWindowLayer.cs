@@ -45,9 +45,15 @@ public class NpcChatWindowLayer : GauntletLayer
             {
                 MethodInfo method = base.GetType().BaseType?.GetMethod(
                     "ReleaseMovie", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                method?.Invoke(this, new object[] { _movie });
+                if (method == null)
+                    InformationManager.DisplayMessage(new InformationMessage("[NpcChatWindow] ReleaseMovie not found – possible resource leak"));
+                else
+                    method.Invoke(this, new object[] { _movie });
             }
-            catch (Exception) { }
+            catch (Exception ex)
+            {
+                InformationManager.DisplayMessage(new InformationMessage("[NpcChatWindow] ReleaseMovie failed: " + ex.Message));
+            }
             _movie = null;
         }
         _viewModel = null;

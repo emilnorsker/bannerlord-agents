@@ -183,17 +183,26 @@ public class NpcChatWindowVM : ViewModel
         InputText = "";
 
         string playerName = ((object)Hero.MainHero?.Name)?.ToString() ?? "You";
-        foreach (var seg in ParseLine($"{playerName}: {message}"))
-            MessageList.Add(seg);
 
         try
         {
+            foreach (var seg in ParseLine($"{playerName}: {message}"))
+                MessageList.Add(seg);
+
+            if (AIInfluenceBehavior.Instance == null) return;
             string reply = await AIInfluenceBehavior.Instance.ProcessChatInput(_npc, message);
             if (!string.IsNullOrEmpty(reply))
             {
                 string npcName = ((object)_npc?.Name)?.ToString() ?? "NPC";
-                foreach (var seg in ParseLine($"{npcName}: {reply}"))
-                    MessageList.Add(seg);
+                // UI list mutations after await may run on a thread-pool thread.
+                // This mirrors the existing async pattern in this codebase; wrap to
+                // prevent a threading exception from leaking past the finally block.
+                try
+                {
+                    foreach (var seg in ParseLine($"{npcName}: {reply}"))
+                        MessageList.Add(seg);
+                }
+                catch (Exception) { }
             }
         }
         finally
