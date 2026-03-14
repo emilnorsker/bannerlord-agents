@@ -38,4 +38,8 @@ public class DelayedPlayerStatement
 	public float TradeAgreementDurationYears { get; set; } = 1f;
 
 	public int QuarantineDurationDays { get; set; }
+
+	public string NewKingdomName { get; set; }
+
+	public string NewKingdomInformalName { get; set; }
 }
