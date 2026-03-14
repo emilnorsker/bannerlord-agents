@@ -957,8 +957,12 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		obj.RewardItems = questAction.RewardItems ?? new List<QuestItemReward>();
 		obj.RewardSkill = questAction.RewardSkill ?? "";
 		obj.RewardSkillXp = Math.Max(0, Math.Min(questAction.RewardSkillXp, 10000));
-		obj.CrimeRatingChange = questAction.CrimeRatingChange;
-		obj.InfluenceChange = questAction.InfluenceChange;
+		obj.CrimeRatingChange = questAction.CrimeRatingChange.HasValue
+			? (int?)Math.Max(-100, Math.Min(questAction.CrimeRatingChange.Value, 100))
+			: null;
+		obj.InfluenceChange = questAction.InfluenceChange.HasValue
+			? (int?)Math.Max(-200, Math.Min(questAction.InfluenceChange.Value, 200))
+			: null;
 		AIQuestInfo item = obj;
 		context.ActiveAIQuests.Add(item);
 		SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
@@ -1080,6 +1084,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				throw;
 			}
 			LogMessage($"[QUEST] Spawned hostile party '{partyLabel}' ({troopCount} troops) near player for quest '{questInfo.Title}'");
+			InformationManager.DisplayMessage(new InformationMessage($"A hostile party '{partyLabel}' has appeared on the map!", ExtraColors.RedAIInfluence));
 		}
 		catch (Exception ex)
 		{
