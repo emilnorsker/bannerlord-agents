@@ -1071,9 +1071,9 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage("[QUEST] No hideout found on map — cannot spawn hostile party");
 				return;
 			}
-			TroopRoster memberRoster = new TroopRoster((PartyBase)null);
-			memberRoster.AddToCounts(basicTroop, troopCount, false, 0, 0, true, -1);
-			MobileParty party = BanditPartyComponent.CreateBanditParty("quest_party_" + questInfo.QuestId, banditClan, anyHideout, false);
+			CampaignVec2 campaignSpawnPos = default(CampaignVec2);
+			((CampaignVec2)(ref campaignSpawnPos))._002Ector(spawnPos, true);
+			MobileParty party = BanditPartyComponent.CreateBanditParty("quest_party_" + questInfo.QuestId, banditClan, anyHideout, false, (PartyTemplateObject)null, campaignSpawnPos);
 			if (party == null)
 			{
 				LogMessage("[QUEST] BanditPartyComponent.CreateBanditParty returned null");
@@ -1082,9 +1082,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			questInfo.SpawnedPartyId = ((MBObjectBase)party).StringId;
 			try
 			{
-				CampaignVec2 campaignSpawnPos = default(CampaignVec2);
-				((CampaignVec2)(ref campaignSpawnPos))._002Ector(spawnPos, true);
-				party.InitializeMobilePartyAroundPosition(memberRoster, new TroopRoster(party.Party), campaignSpawnPos, 5f, 0f);
+				party.MemberRoster.AddToCounts(basicTroop, troopCount, false, 0, 0, true, -1);
 				party.Party.SetCustomName(new TextObject(partyLabel, (Dictionary<string, object>)null));
 				party.SetMovePatrolAroundPoint(campaignSpawnPos, (NavigationType)3);
 			}
@@ -1141,7 +1139,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			return;
 		}
-		SkillObject skill = DefaultSkills.GetAllSkills()?.FirstOrDefault((SkillObject s) => ((MBObjectBase)s).StringId == questInfo.RewardSkill);
+		SkillObject skill = Skills.All?.FirstOrDefault((SkillObject s) => ((MBObjectBase)s).StringId == questInfo.RewardSkill);
 		if (skill != null)
 		{
 			Hero mainHero = Hero.MainHero;
