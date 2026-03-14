@@ -1128,7 +1128,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			if (item != null)
 			{
 				int clampedCount = Math.Max(1, Math.Min(reward.Count, 100));
-				MobileParty.MainParty.ItemRoster.Add(new ItemRosterElement(item, clampedCount, (ItemModifier)null));
+				MobileParty.MainParty.ItemRoster.AddToCounts(item, clampedCount);
 				LogMessage($"[QUEST] Gave {clampedCount}x '{item.Name}' (resolved from '{reward.ItemName}') as quest item reward");
 			}
 			else
@@ -4480,7 +4480,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		try
 		{
 		Vec2 mainPos = Hero.MainHero?.GetPosition2D ?? MobileParty.MainParty?.Position2D ?? default;
-		Hero questGiver = Hero.FindAll((Hero h) => !h.IsMainHero && h.IsAlive && h.IsActive && !h.IsWanderer)
+		Hero questGiver = Hero.FindAll((Hero h) => h != Hero.MainHero && h.IsAlive && h.IsActive && !h.IsWanderer)
 			?.OrderBy((Hero h) => h.GetPosition2D.Distance(mainPos))
 			?.FirstOrDefault();
 			if (questGiver == null)
