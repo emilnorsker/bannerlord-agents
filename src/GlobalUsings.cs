@@ -13,7 +13,6 @@ global using static TaleWorlds.CampaignSystem.Actions.TeleportHeroAction;
 global using static TaleWorlds.CampaignSystem.CampaignTime;
 global using static TaleWorlds.CampaignSystem.ComponentInterfaces.MapWeatherModel;
 global using static TaleWorlds.CampaignSystem.ComponentInterfaces.SettlementAccessModel;
-global using static TaleWorlds.CampaignSystem.Conversation.ConversationSentence;
 global using static TaleWorlds.CampaignSystem.GameMenus.GameMenuOption;
 global using static TaleWorlds.CampaignSystem.MapEvents.MapEvent;
 global using static TaleWorlds.CampaignSystem.Party.MobileParty;
