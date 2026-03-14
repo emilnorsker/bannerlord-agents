@@ -10,44 +10,100 @@
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
 
-  <!-- In CI, the workflow copies ref DLLs to .bl-refs/ before building.
-       Extend AssemblySearchPaths inside a target so it runs after the SDK
-       has already set the default value (PropertyGroup is too early). -->
-  <Target Name="AddBLRefsSearchPath" BeforeTargets="ResolveAssemblyReferences"
-          Condition="Exists('$(MSBuildProjectDirectory)/.bl-refs/')">
-    <PropertyGroup>
-      <AssemblySearchPaths>$(AssemblySearchPaths);$(MSBuildProjectDirectory)/.bl-refs/</AssemblySearchPaths>
-    </PropertyGroup>
-  </Target>
-
   <ItemGroup>
-    <PackageDownload Include="Bannerlord.ReferenceAssemblies.Core" Version="[1.3.15.110062]" />
+    <PackageDownload Include="Bannerlord.ReferenceAssemblies.Core"   Version="[1.3.15.110062]" />
     <PackageDownload Include="Bannerlord.ReferenceAssemblies.Native" Version="[1.3.15.110062]" />
     <PackageDownload Include="Bannerlord.ReferenceAssemblies.SandBox" Version="[1.3.15.110062]" />
   </ItemGroup>
 
+  <!-- HintPaths point to the .bl-refs/ folder populated by CI.
+       When that file is absent (local dev with game installed) MSBuild
+       falls back to its normal assembly search paths. -->
   <ItemGroup>
-    <Reference Include="TaleWorlds.CampaignSystem" />
-    <Reference Include="TaleWorlds.SaveSystem" />
-    <Reference Include="TaleWorlds.Localization" />
-    <Reference Include="TaleWorlds.Core" />
-    <Reference Include="TaleWorlds.Library" />
-    <Reference Include="TaleWorlds.ObjectSystem" />
-    <Reference Include="TaleWorlds.MountAndBlade" />
-    <Reference Include="TaleWorlds.Engine.GauntletUI" />
-    <Reference Include="TaleWorlds.GauntletUI" />
-    <Reference Include="TaleWorlds.ScreenSystem" />
-    <Reference Include="TaleWorlds.Engine" />
-    <Reference Include="TaleWorlds.MountAndBlade.ViewModelCollection" />
-    <Reference Include="TaleWorlds.MountAndBlade.View" />
-    <Reference Include="TaleWorlds.MountAndBlade.GauntletUI.Widgets" />
-    <Reference Include="TaleWorlds.CampaignSystem.ViewModelCollection" />
-    <Reference Include="TaleWorlds.Core.ViewModelCollection" />
-    <Reference Include="TaleWorlds.InputSystem" />
-    <Reference Include="TaleWorlds.DotNet" />
-    <Reference Include="SandBox" />
-    <Reference Include="SandBox.View" />
-    <Reference Include="SandBox.ViewModelCollection" />
+    <Reference Include="TaleWorlds.CampaignSystem">
+      <HintPath>.bl-refs/TaleWorlds.CampaignSystem.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.SaveSystem">
+      <HintPath>.bl-refs/TaleWorlds.SaveSystem.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.Localization">
+      <HintPath>.bl-refs/TaleWorlds.Localization.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.Core">
+      <HintPath>.bl-refs/TaleWorlds.Core.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.Library">
+      <HintPath>.bl-refs/TaleWorlds.Library.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.ObjectSystem">
+      <HintPath>.bl-refs/TaleWorlds.ObjectSystem.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.MountAndBlade">
+      <HintPath>.bl-refs/TaleWorlds.MountAndBlade.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.Engine.GauntletUI">
+      <HintPath>.bl-refs/TaleWorlds.Engine.GauntletUI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.GauntletUI">
+      <HintPath>.bl-refs/TaleWorlds.GauntletUI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.ScreenSystem">
+      <HintPath>.bl-refs/TaleWorlds.ScreenSystem.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.Engine">
+      <HintPath>.bl-refs/TaleWorlds.Engine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.MountAndBlade.ViewModelCollection">
+      <HintPath>.bl-refs/TaleWorlds.MountAndBlade.ViewModelCollection.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.MountAndBlade.View">
+      <HintPath>.bl-refs/TaleWorlds.MountAndBlade.View.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.MountAndBlade.GauntletUI.Widgets">
+      <HintPath>.bl-refs/TaleWorlds.MountAndBlade.GauntletUI.Widgets.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.CampaignSystem.ViewModelCollection">
+      <HintPath>.bl-refs/TaleWorlds.CampaignSystem.ViewModelCollection.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.Core.ViewModelCollection">
+      <HintPath>.bl-refs/TaleWorlds.Core.ViewModelCollection.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.InputSystem">
+      <HintPath>.bl-refs/TaleWorlds.InputSystem.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="TaleWorlds.DotNet">
+      <HintPath>.bl-refs/TaleWorlds.DotNet.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="SandBox">
+      <HintPath>.bl-refs/SandBox.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="SandBox.View">
+      <HintPath>.bl-refs/SandBox.View.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="SandBox.ViewModelCollection">
+      <HintPath>.bl-refs/SandBox.ViewModelCollection.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
     <Reference Include="OggVorbisEncoder">
       <HintPath>../bin/Win64_Shipping_Client/OggVorbisEncoder.dll</HintPath>
     </Reference>
