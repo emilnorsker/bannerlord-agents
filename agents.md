@@ -47,7 +47,8 @@ A page returning **321 bytes** means the class was not found at that URL — try
 | `QuestBase.RemoveTrackedObject` | `(ITrackableCampaignObject trackedObject)` | |
 | `TroopRoster` constructor | `(PartyBase partyBase)` | `new TroopRoster(party.Party)` is valid. |
 | `TroopRoster.AddToCounts` | `(CharacterObject character, int count, bool insertAtFront=false, int woundedCount=0, int xpChange=0, bool removeDepleted=true, int index=-1)` | |
-| `ItemRoster.Add` | `(ItemRosterElement itemRosterElement)` | |
+| `ItemRoster.Add` | `(ItemRosterElement itemRosterElement)` | Exists in docs but `ItemRosterElement` struct constructor is unverified. **Prefer `ItemRoster.AddToCounts(ItemObject, int)` — confirmed in docs and used throughout codebase.** |
+| `ItemRoster.AddToCounts` | `(ItemObject item, int number)` | Preferred way to add items. |
 | `DestroyPartyAction.Apply` | `(PartyBase destroyerParty, MobileParty destroyedParty)` | Pass `(PartyBase)null` for destroyerParty when no attacker. |
 | `ChangeCrimeRatingAction.Apply` | `(IFaction faction, float deltaCrimeRating, bool showNotification=true)` | |
 | `ChangeClanInfluenceAction.Apply` | `(Clan clan, float amount)` | |
@@ -126,6 +127,9 @@ Bannerlord skill `StringId` values are **lowercase** (e.g., `"charm"`, `"leaders
 - `party.SetCustomName(...)` in v1.3.4 — wrong. Use `party.Party.SetCustomName(...)`.
 - `BanditPartyComponent.CreateBanditParty(stringId, clan, hideout, isBossParty)` — wrong in v1.3.4, needs 6 args including `PartyTemplateObject` and `CampaignVec2`.
 - `HeroDeveloper.AddSkillXp(skill, xp, bool, bool)` — wrong call path. Use `hero.AddSkillXp(skill, xp)` directly.
+- `Hero.IsMainHero` — does NOT exist in v1.3.4. Use `h == Hero.MainHero` (reference comparison) or `h.IsHumanPlayerCharacter`.
+- `new ItemRosterElement(item, count, null)` — constructor unverified. Use `ItemRoster.AddToCounts(ItemObject, int)` instead.
+- `ItemObject.Name` / `BasicCharacterObject.Name` — these ARE valid `.Name` properties returning `TextObject`. `GetName()` is a separate override method, not the same thing.
 - `InitializeMobilePartyAroundPosition(..., Vec2, ...)` — wrong in v1.3.4. Position arg is `CampaignVec2`.
 
 ---
