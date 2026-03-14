@@ -302,6 +302,50 @@ public static class ItemMentionParser
 		return stringBuilder.ToString().Trim();
 	}
 
+	public static ItemObject FindBestItemMatch(string itemName)
+	{
+		if (string.IsNullOrWhiteSpace(itemName))
+		{
+			return null;
+		}
+		EnsureLookup();
+		string normalized = NormalizeText(itemName);
+		if (string.IsNullOrEmpty(normalized))
+		{
+			return null;
+		}
+		string[] tokens = normalized.Split(new char[1] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+		ItemObject best = null;
+		int bestScore = 0;
+		foreach (var (candidateName, item) in _normalizedItems)
+		{
+			int score = ScoreItemMatch(tokens, normalized, candidateName);
+			if (score > bestScore)
+			{
+				bestScore = score;
+				best = item;
+			}
+		}
+		return bestScore > 0 ? best : null;
+	}
+
+	private static int ScoreItemMatch(string[] queryTokens, string queryNormalized, string candidateNormalized)
+	{
+		if (candidateNormalized == queryNormalized)
+		{
+			return 100;
+		}
+		if (candidateNormalized.StartsWith(queryNormalized, StringComparison.Ordinal) || queryNormalized.StartsWith(candidateNormalized, StringComparison.Ordinal))
+		{
+			return 80;
+		}
+		if (IsApproximateMatch(queryTokens, candidateNormalized))
+		{
+			return 50;
+		}
+		return 0;
+	}
+
 	private static bool IsApproximateMatch(string[] messageTokens, string normalizedTerm)
 	{
 		if (messageTokens == null || messageTokens.Length == 0 || string.IsNullOrEmpty(normalizedTerm))

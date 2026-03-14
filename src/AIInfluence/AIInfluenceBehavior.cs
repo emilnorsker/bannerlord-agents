@@ -1066,19 +1066,19 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 		foreach (QuestItemReward reward in questInfo.RewardItems)
 		{
-			if (string.IsNullOrEmpty(reward.ItemId) || reward.Count <= 0)
+			if (string.IsNullOrEmpty(reward.ItemName) || reward.Count <= 0)
 			{
 				continue;
 			}
-			ItemObject item = MBObjectManager.Instance.GetObject<ItemObject>(reward.ItemId);
+			ItemObject item = ItemMentionParser.FindBestItemMatch(reward.ItemName);
 			if (item != null)
 			{
 				MobileParty.MainParty.ItemRoster.Add(new ItemRosterElement(item, reward.Count, (ItemModifier)null));
-				LogMessage($"[QUEST] Gave {reward.Count}x {reward.ItemId} as quest item reward");
+				LogMessage($"[QUEST] Gave {reward.Count}x '{item.Name}' (resolved from '{reward.ItemName}') as quest item reward");
 			}
 			else
 			{
-				LogMessage($"[QUEST] Item reward '{reward.ItemId}' not found in item database");
+				LogMessage($"[QUEST] Item reward '{reward.ItemName}' could not be resolved to any game item");
 			}
 		}
 	}
