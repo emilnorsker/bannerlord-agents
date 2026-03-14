@@ -21,8 +21,9 @@ public static class ItemMentionParser
 	private static readonly object CacheLock = new object();
 
 	private static List<(string NormalizedName, ItemObject Item)> _normalizedItems;
+	private static List<(string NormalizedName, ItemObject Item)> _normalizedItems;
 
-	private static List<(string NormalizedName, CharacterObject Troop)> _normalizedTroops;
+	private static volatile List<(string NormalizedName, CharacterObject Troop)> _normalizedTroops;
 
 	public static string GetMentionedItemsSummary(ItemRoster roster, IEnumerable<string> conversationHistory, int lastMessageCount = 6, bool isPlayerInventory = false, Hero contextHero = null)
 	{
