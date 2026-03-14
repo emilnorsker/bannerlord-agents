@@ -842,47 +842,44 @@ public class SettlementCombatManager
 			}
 			if (_activeCombat.TriggerType == CombatTriggerType.RoleplayDeath)
 			{
-				_logger.Log("Roleplay death detected - scheduling character death");
-				_behavior.GetDelayedTaskManager().AddTask(0.3, delegate
+			_logger.Log("Roleplay death detected - killing character before mode switch");
+			try
+			{
+				Hero triggerNPC = _activeCombat.TriggerNPC;
+				NPCContext context = _activeCombat.TriggerContext;
+				if (triggerNPC != null && !triggerNPC.IsDead)
 				{
-					try
+					Hero val2 = null;
+					if (!string.IsNullOrEmpty(context?.KillerStringId))
 					{
-						Hero triggerNPC = _activeCombat.TriggerNPC;
-						NPCContext context = _activeCombat.TriggerContext;
-						if (triggerNPC != null && !triggerNPC.IsDead)
+						val2 = Hero.FindFirst((Func<Hero, bool>)((Hero h) => h != null && ((MBObjectBase)h).StringId == context.KillerStringId));
+						if (val2 != null)
 						{
-							Hero val2 = null;
-							if (!string.IsNullOrEmpty(context?.KillerStringId))
-							{
-								val2 = Hero.FindFirst((Func<Hero, bool>)((Hero h) => h != null && ((MBObjectBase)h).StringId == context.KillerStringId));
-								if (val2 != null)
-								{
-									_logger.Log($"Killer identified: {val2.Name} ({context.KillerStringId})");
-								}
-								else
-								{
-									_logger.Log("Killer with ID " + context.KillerStringId + " not found");
-								}
-							}
-							else
-							{
-								_logger.Log("Natural death (no killer)");
-							}
-							_behavior.KillCharacterHeroPublic(triggerNPC, val2, killedInAction: false);
-							_logger.Log($"Character {triggerNPC.Name} killed");
-							if (context != null)
-							{
-								context.PendingDeath = null;
-								context.KillerStringId = null;
-								_behavior.SaveNPCContext(((MBObjectBase)triggerNPC).StringId, triggerNPC, context);
-							}
+							_logger.Log($"Killer identified: {val2.Name} ({context.KillerStringId})");
+						}
+						else
+						{
+							_logger.Log("Killer with ID " + context.KillerStringId + " not found");
 						}
 					}
-					catch (Exception ex2)
+					else
 					{
-						_logger.LogError("KillCharacterAfterRoleplayDeath", ex2.Message, ex2);
+						_logger.Log("Natural death (no killer)");
 					}
-				});
+					_behavior.KillCharacterHeroPublic(triggerNPC, val2, killedInAction: false);
+					_logger.Log($"Character {triggerNPC.Name} killed");
+					if (context != null)
+					{
+						context.PendingDeath = null;
+						context.KillerStringId = null;
+						_behavior.SaveNPCContext(((MBObjectBase)triggerNPC).StringId, triggerNPC, context);
+					}
+				}
+			}
+			catch (Exception ex2)
+			{
+				_logger.LogError("KillCharacterAfterRoleplayDeath", ex2.Message, ex2);
+			}
 			}
 			if (Mission.Current != null && (int)Mission.Current.Mode != 2)
 			{
