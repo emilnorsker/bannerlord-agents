@@ -1102,7 +1102,7 @@ public class CivilianBehavior
 					if (item2 != null && item2.IsActive())
 					{
 						position = item.Position;
-						float num2 = ((Vec3)(ref position)).DistanceSquared(item2.Position);
+						float num2 = (position).DistanceSquared(item2.Position);
 						if (num2 < num)
 						{
 							num = num2;
@@ -1119,21 +1119,21 @@ public class CivilianBehavior
 				{
 					item.SetLookAgent((Agent)null);
 					position = item.Position;
-					Vec2 asVec = ((Vec3)(ref position)).AsVec2;
+					Vec2 asVec = (position).AsVec2;
 					position = val.Position;
-					Vec2 val2 = asVec - ((Vec3)(ref position)).AsVec2;
-					float num4 = ((Vec2)(ref val2)).Normalize();
+					Vec2 val2 = asVec - (position).AsVec2;
+					float num4 = (val2).Normalize();
 					if (num4 < 0.1f)
 					{
 						float num5 = (float)(_random.NextDouble() * Math.PI * 2.0);
-						((Vec2)(ref val2))._002Ector(MathF.Cos(num5), MathF.Sin(num5));
+						(val2)._002Ector(MathF.Cos(num5), MathF.Sin(num5));
 					}
 					WorldPosition value2 = FindSafeFleePosition(item, val2, val, 35f);
 					if (!(value2).IsValid)
 					{
 						position = item.Position;
-						Vec2 val3 = ((Vec3)(ref position)).AsVec2 + val2 * 35f;
-						((Vec3)(ref val4))._002Ector(val3.x, val3.y, item.Position.z, -1f);
+						Vec2 val3 = (position).AsVec2 + val2 * 35f;
+						(val4)._002Ector(val3.x, val3.y, item.Position.z, -1f);
 						(val5)._002Ector(Mission.Current.Scene, UIntPtr.Zero, val4, false);
 						Vec3 groundVec = (val5).GetGroundVec3();
 						(value2)._002Ector(Mission.Current.Scene, UIntPtr.Zero, groundVec, false);
@@ -1242,7 +1242,7 @@ public class CivilianBehavior
 				return WorldPosition.Invalid;
 			}
 			Vec3 position = civilian.Position;
-			Vec2 asVec = ((Vec3)(ref position)).AsVec2;
+			Vec2 asVec = (position).AsVec2;
 			Vec3 position2 = civilian.Position;
 			List<Vec2> list = new List<Vec2>();
 			list.Add(preferredDirection);
@@ -1314,14 +1314,14 @@ public class CivilianBehavior
 				if (aggressor != null && aggressor.IsActive())
 				{
 					position = aggressor.Position;
-					Vec2 asVec2 = ((Vec3)(ref position)).AsVec2;
-					float num12 = ((Vec2)(ref val)).DistanceSquared(asVec2);
+					Vec2 asVec2 = (position).AsVec2;
+					float num12 = (val).DistanceSquared(asVec2);
 					if (num12 < 4f)
 					{
 						continue;
 					}
 				}
-				((Vec3)(ref val4))._002Ector(val.x, val.y, num7, -1f);
+				(val4)._002Ector(val.x, val.y, num7, -1f);
 				(result)._002Ector(Mission.Current.Scene, UIntPtr.Zero, val4, false);
 				return result;
 			}

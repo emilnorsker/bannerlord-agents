@@ -267,7 +267,7 @@ public class NPCInitiativeSystem
 			else if (!value.IsHostile && !value.DialogShown)
 			{
 				Vec2 position2D = val3.GetPosition2D();
-				float num3 = ((Vec2)(ref position2D)).Distance(MobileParty.MainParty.GetPosition2D());
+				float num3 = (position2D).Distance(MobileParty.MainParty.GetPosition2D());
 				if (num3 <= 2f)
 				{
 					ShowMapInitiativeInquiry(val3.LeaderHero, value);
@@ -1246,7 +1246,7 @@ public class NPCInitiativeSystem
 			}
 			val = npc.HomeSettlement.GetPosition2D;
 		}
-		return ((Vec2)(ref position2D)).Distance(val);
+		return (position2D).Distance(val);
 	}
 
 	private int CalculateMessengerCost(float distance)
@@ -1875,7 +1875,7 @@ public class NPCInitiativeSystem
 				continue;
 			}
 			Vec2 position2D = item.GetPosition2D();
-			if (!(((Vec2)(ref position2D)).DistanceSquared(MobileParty.MainParty.GetPosition2D()) <= resultNumber * resultNumber) || _approachingParties.ContainsKey(((MBObjectBase)item).StringId) || item.MapEvent != null || item.SiegeEvent != null)
+			if (!((position2D).DistanceSquared(MobileParty.MainParty.GetPosition2D()) <= resultNumber * resultNumber) || _approachingParties.ContainsKey(((MBObjectBase)item).StringId) || item.MapEvent != null || item.SiegeEvent != null)
 			{
 				continue;
 			}

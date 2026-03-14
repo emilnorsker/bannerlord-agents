@@ -1820,7 +1820,7 @@ public class DynamicEventsAnalyzer
 						//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 						//IL_000f: Unknown result type (might be due to invalid IL or missing references)
 						Vec2 position2D = s.GetPosition2D();
-						return ((Vec2)(ref position2D)).DistanceSquared(party.GetPosition2D());
+						return (position2D).DistanceSquared(party.GetPosition2D());
 					}).FirstOrDefault();
 					string text10 = ((val7 == null) ? null : ((object)val7.Name)?.ToString()) ?? "Unknown location";
 					sb.AppendLine($"    - {text7} ({item4.TotalTroops} troops) - Leader: {text5} (string_id:{text6})");

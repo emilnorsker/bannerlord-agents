@@ -3996,7 +3996,7 @@ public static class PromptGenerator
 				return new
 				{
 					Settlement = s,
-					Distance = ((Vec2)(ref position2D)).Distance(position)
+					Distance = (position2D).Distance(position)
 				};
 			})
 			where x.Distance < 30f && x.Distance > 0.1f
@@ -4379,12 +4379,12 @@ public static class PromptGenerator
 					if (npc.PartyBelongedTo != null)
 					{
 						position = npc.PartyBelongedTo.Position;
-						val = ((CampaignVec2)(ref position)).ToVec2();
+						val = (position).ToVec2();
 					}
 					else if (npc.CurrentSettlement != null)
 					{
 						position = npc.CurrentSettlement.Position;
-						val = ((CampaignVec2)(ref position)).ToVec2();
+						val = (position).ToVec2();
 					}
 					else
 					{
@@ -4393,7 +4393,7 @@ public static class PromptGenerator
 							return null;
 						}
 						position = npc.StayingInSettlement.Position;
-						val = ((CampaignVec2)(ref position)).ToVec2();
+						val = (position).ToVec2();
 					}
 					MapWeatherModel mapWeatherModel = Campaign.Current.Models.MapWeatherModel;
 					WeatherEvent weatherEventInPosition = mapWeatherModel.GetWeatherEventInPosition(val);

@@ -339,7 +339,7 @@ public class TerritoryTransferSystem
 			if (((ownerClan != null) ? ownerClan.Kingdom : null) == kingdom)
 			{
 				CampaignVec2 gatePosition = settlement.GatePosition;
-				float num2 = ((CampaignVec2)(ref gatePosition)).DistanceSquared(item.GatePosition);
+				float num2 = (gatePosition).DistanceSquared(item.GatePosition);
 				if (num2 < num)
 				{
 					num = num2;
@@ -375,7 +375,7 @@ public class TerritoryTransferSystem
 				if (((ownerClan2 != null) ? ownerClan2.Kingdom : null) == ownerKingdom)
 				{
 					CampaignVec2 gatePosition = settlement.GatePosition;
-					float num2 = ((CampaignVec2)(ref gatePosition)).DistanceSquared(item.GatePosition);
+					float num2 = (gatePosition).DistanceSquared(item.GatePosition);
 					if (num2 < num)
 					{
 						num = num2;
@@ -463,7 +463,7 @@ public class TerritoryTransferSystem
 				foreach (Settlement item8 in list2)
 				{
 					CampaignVec2 gatePosition = item7.GatePosition;
-					float num3 = ((CampaignVec2)(ref gatePosition)).Distance(item8.GatePosition);
+					float num3 = (gatePosition).Distance(item8.GatePosition);
 					if (num3 < num)
 					{
 						num = num3;

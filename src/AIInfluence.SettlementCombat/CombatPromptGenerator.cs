@@ -305,7 +305,7 @@ public class CombatPromptGenerator
 			if (s != null && s != settlement)
 			{
 				CampaignVec2 position = s.Position;
-				result = ((((CampaignVec2)(ref position)).Distance(settlement.Position) <= 15f) ? 1 : 0);
+				result = (((position).Distance(settlement.Position) <= 15f) ? 1 : 0);
 			}
 			else
 			{
@@ -318,7 +318,7 @@ public class CombatPromptGenerator
 			//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 			//IL_000f: Unknown result type (might be due to invalid IL or missing references)
 			CampaignVec2 position = s.Position;
-			return ((CampaignVec2)(ref position)).Distance(settlement.Position);
+			return (position).Distance(settlement.Position);
 		}).Take(5)
 			.ToList();
 		if (source.Any())
@@ -330,7 +330,7 @@ public class CombatPromptGenerator
 				//IL_001a: Unknown result type (might be due to invalid IL or missing references)
 				TextObject name = s.Name;
 				CampaignVec2 position = s.Position;
-				return $"{name} ({((CampaignVec2)(ref position)).Distance(settlement.Position):F1}f)";
+				return $"{name} ({(position).Distance(settlement.Position):F1}f)";
 			})));
 		}
 		else
@@ -649,7 +649,7 @@ public class CombatPromptGenerator
 				if (a != null && a.IsHuman && a.IsActive() && a != Agent.Main)
 				{
 					Vec3 position2 = a.Position;
-					result = ((((Vec3)(ref position2)).Distance(playerPosition) <= witnessDistance) ? 1 : 0);
+					result = (((position2).Distance(playerPosition) <= witnessDistance) ? 1 : 0);
 				}
 				else
 				{
@@ -695,7 +695,7 @@ public class CombatPromptGenerator
 						BasicCharacterObject character2 = item2.Character;
 						string arg2 = ((character2 != null) ? ((MBObjectBase)character2).StringId : null) ?? "unknown";
 						Vec3 position = item2.Position;
-						float num3 = ((Vec3)(ref position)).Distance(playerPosition);
+						float num3 = (position).Distance(playerPosition);
 						sb.AppendLine($"- {arg} (id:{arg2}) - {num3:F1}m away");
 					}
 				}
@@ -958,7 +958,7 @@ public class CombatPromptGenerator
 					if (mp != null && mp.IsLordParty && mp.LeaderHero != null && !mp.LeaderHero.IsDead && mp.CurrentSettlement == null)
 					{
 						CampaignVec2 position = mp.Position;
-						result = ((((CampaignVec2)(ref position)).Distance(settlement.Position) <= 12f) ? 1 : 0);
+						result = (((position).Distance(settlement.Position) <= 12f) ? 1 : 0);
 					}
 					else
 					{
@@ -975,7 +975,7 @@ public class CombatPromptGenerator
 					return new
 					{
 						Lord = leaderHero,
-						Distance = ((CampaignVec2)(ref position)).Distance(settlement.Position),
+						Distance = (position).Distance(settlement.Position),
 						TroopCount = mp.MemberRoster.TotalManCount
 					};
 				})

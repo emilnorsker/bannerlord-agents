@@ -191,7 +191,7 @@ public sealed class RaidVillageAction : AIActionBase
 			if (!_warDeclared)
 			{
 				Vec2 position2D = _heroParty.GetPosition2D();
-				float num = ((Vec2)(ref position2D)).DistanceSquared(_targetVillage.GetPosition2D());
+				float num = (position2D).DistanceSquared(_targetVillage.GetPosition2D());
 				if (num <= 4f)
 				{
 					if (!EnsureWarState())

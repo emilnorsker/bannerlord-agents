@@ -165,7 +165,7 @@ public class PlayerReinforcementMissionLogic : MissionLogic
 				{
 					_playerInitialSpawnPosition = Agent.Main.Position;
 					Vec3 lookDirection = Agent.Main.LookDirection;
-					_playerInitialForward2D = ((Vec3)(ref lookDirection)).AsVec2;
+					_playerInitialForward2D = (lookDirection).AsVec2;
 					_logger.Log($"Player initial spawn position saved in OnBehaviorInitialize: {_playerInitialSpawnPosition}");
 					_behavior.LogMessage($"[PLAYER_REINFORCEMENT] Position saved: {_playerInitialSpawnPosition}");
 				}
@@ -230,7 +230,7 @@ public class PlayerReinforcementMissionLogic : MissionLogic
 			{
 				_playerInitialSpawnPosition = Agent.Main.Position;
 				Vec3 lookDirection = Agent.Main.LookDirection;
-				_playerInitialForward2D = ((Vec3)(ref lookDirection)).AsVec2;
+				_playerInitialForward2D = (lookDirection).AsVec2;
 				_logger.Log($"Player initial spawn position saved in OnMissionTick: {_playerInitialSpawnPosition}");
 				_behavior.LogMessage($"[PLAYER_REINFORCEMENT] Initial position saved: {_playerInitialSpawnPosition}");
 			}
@@ -1305,7 +1305,7 @@ public class PlayerReinforcementMissionLogic : MissionLogic
 				return spawnPosition;
 			}
 			Vec2 val4 = _playerInitialForward2D;
-			if (((Vec2)(ref val4)).LengthSquared < 0.001f)
+			if ((val4).LengthSquared < 0.001f)
 			{
 				_003F val5;
 				if (Agent.Main == null)
@@ -1315,16 +1315,16 @@ public class PlayerReinforcementMissionLogic : MissionLogic
 				else
 				{
 					Vec3 lookDirection = Agent.Main.LookDirection;
-					val5 = ((Vec3)(ref lookDirection)).AsVec2;
+					val5 = (lookDirection).AsVec2;
 				}
 				val4 = (Vec2)val5;
 			}
-			if (((Vec2)(ref val4)).LengthSquared > 0.001f)
+			if ((val4).LengthSquared > 0.001f)
 			{
-				((Vec2)(ref val4)).Normalize();
+				(val4).Normalize();
 			}
 			Vec2 val6 = default(Vec2);
-			((Vec2)(ref val6))._002Ector(val4.y, 0f - val4.x);
+			(val6)._002Ector(val4.y, 0f - val4.x);
 			Scene scene = Mission.Current.Scene;
 			Vec3 val8 = default(Vec3);
 			WorldPosition val9 = default(WorldPosition);
@@ -1334,10 +1334,10 @@ public class PlayerReinforcementMissionLogic : MissionLogic
 			{
 				float num = 8f + (float)(random.NextDouble() * 12.0);
 				float num2 = (float)(random.NextDouble() * 10.0) - 5f;
-				Vec2 val7 = ((Vec3)(ref val)).AsVec2 - val4 * num + val6 * num2;
+				Vec2 val7 = (val).AsVec2 - val4 * num + val6 * num2;
 				float z = val.z;
 				scene.GetHeightAtPoint(val7, (BodyFlags)544321929, ref z);
-				((Vec3)(ref val8))._002Ector(val7.x, val7.y, z, -1f);
+				(val8)._002Ector(val7.x, val7.y, z, -1f);
 				bool flag2 = true;
 				if (Agent.Main != null && Agent.Main.IsActive())
 				{
@@ -1415,12 +1415,12 @@ public class PlayerReinforcementMissionLogic : MissionLogic
 			float num = (float)(random.NextDouble() * Math.PI * 2.0);
 			float num2 = (float)(random.NextDouble() * 5.0);
 			Vec2 val2 = default(Vec2);
-			((Vec2)(ref val2))._002Ector((float)Math.Cos(num) * num2, (float)Math.Sin(num) * num2);
-			Vec2 val3 = ((Vec3)(ref val)).AsVec2 + val2;
+			(val2)._002Ector((float)Math.Cos(num) * num2, (float)Math.Sin(num) * num2);
+			Vec2 val3 = (val).AsVec2 + val2;
 			float num3 = 0f;
 			current.Scene.GetHeightAtPoint(val3, (BodyFlags)544321929, ref num3);
 			Vec3 val4 = default(Vec3);
-			((Vec3)(ref val4))._002Ector(val3.x, val3.y, num3, -1f);
+			(val4)._002Ector(val3.x, val3.y, num3, -1f);
 			_logger.Log($"[AMBUSH] Spawning at point #{(_ambushSpawnIndex - 1) % _ambushSpawnPoints.Count} with scatter: {val4}");
 			return val4;
 		}
@@ -1474,7 +1474,7 @@ public class PlayerReinforcementMissionLogic : MissionLogic
 		try
 		{
 			Vec3 position = Agent.Main.Position;
-			Vec2 asVec = ((Vec3)(ref position)).AsVec2;
+			Vec2 asVec = (position).AsVec2;
 			Random random = new Random(Guid.NewGuid().GetHashCode());
 			float num = (float)(random.NextDouble() * Math.PI * 2.0);
 			float num2 = (float)Math.PI / 2f;
@@ -1491,23 +1491,23 @@ public class PlayerReinforcementMissionLogic : MissionLogic
 				for (int j = 0; j < 5; j++)
 				{
 					float num4 = num3 + (float)((random.NextDouble() - 0.5) * (double)num2 * 0.4);
-					((Vec2)(ref val2))._002Ector((float)Math.Cos(num4), (float)Math.Sin(num4));
+					(val2)._002Ector((float)Math.Cos(num4), (float)Math.Sin(num4));
 					Vec2 val3 = asVec + val2 * 50f;
 					Vec2 closestBoundaryPosition = mission.GetClosestBoundaryPosition(val3);
 					float num5 = 6f + (float)(random.NextDouble() * 6.0);
 					Vec2 val4 = asVec - closestBoundaryPosition;
-					if (((Vec2)(ref val4)).LengthSquared > 0.001f)
+					if ((val4).LengthSquared > 0.001f)
 					{
-						val4 = ((Vec2)(ref val4)).Normalized();
+						val4 = (val4).Normalized();
 					}
 					else
 					{
-						((Vec2)(ref val4))._002Ector(0f - (float)Math.Cos(num4), 0f - (float)Math.Sin(num4));
+						(val4)._002Ector(0f - (float)Math.Cos(num4), 0f - (float)Math.Sin(num4));
 					}
 					Vec2 val5 = closestBoundaryPosition + val4 * num5;
 					float num6 = 0f;
 					mission.Scene.GetHeightAtPoint(val5, (BodyFlags)544321929, ref num6);
-					((Vec3)(ref val6))._002Ector(val5.x, val5.y, num6, -1f);
+					(val6)._002Ector(val5.x, val5.y, num6, -1f);
 					if (IsPositionFlat(mission, val6))
 					{
 						bool flag2 = true;
@@ -1617,27 +1617,27 @@ public class PlayerReinforcementMissionLogic : MissionLogic
 			}
 			MatrixFrame globalFrame = val.GetGlobalFrame();
 			Vec3 val2 = globalFrame.rotation.f;
-			if (((Vec3)(ref val2)).LengthSquared < 0.001f)
+			if ((val2).LengthSquared < 0.001f)
 			{
 				val2 = globalFrame.rotation.s;
 			}
-			if (((Vec3)(ref val2)).LengthSquared < 0.001f)
+			if ((val2).LengthSquared < 0.001f)
 			{
 				val2 = Vec3.Forward;
 			}
-			((Vec3)(ref val2)).Normalize();
+			(val2).Normalize();
 			Vec3 s = globalFrame.rotation.s;
-			if (((Vec3)(ref s)).LengthSquared < 0.001f)
+			if ((s).LengthSquared < 0.001f)
 			{
-				((Vec3)(ref s))._002Ector(val2.y, 0f - val2.x, 0f, -1f);
+				(s)._002Ector(val2.y, 0f - val2.x, 0f, -1f);
 			}
-			((Vec3)(ref s)).Normalize();
+			(s).Normalize();
 			Random random = new Random(Guid.NewGuid().GetHashCode());
 			float num = 25f;
 			float num2 = (float)(random.NextDouble() * 8.0) - 4f;
 			Vec3 val3 = globalFrame.origin - val2 * num + s * num2;
 			float z = val3.z;
-			current.Scene.GetHeightAtPoint(((Vec3)(ref val3)).AsVec2, (BodyFlags)544321929, ref z);
+			current.Scene.GetHeightAtPoint((val3).AsVec2, (BodyFlags)544321929, ref z);
 			val3.z = z;
 			spawnPosition = val3;
 			_playerInitialForward2D = new Vec2(val2.x, val2.y);

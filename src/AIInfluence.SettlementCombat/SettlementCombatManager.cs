@@ -2035,17 +2035,17 @@ public class SettlementCombatManager
 					if (settlement != null && MobileParty.MainParty != null)
 					{
 						CampaignVec2 val = settlement.GatePosition;
-						Vec2 val2 = ((CampaignVec2)(ref val)).ToVec2();
+						Vec2 val2 = (val).ToVec2();
 						val = settlement.Position;
-						Vec2 val3 = ((CampaignVec2)(ref val)).ToVec2();
+						Vec2 val3 = (val).ToVec2();
 						Vec2 val4 = val2 - val3;
-						if (((Vec2)(ref val4)).LengthSquared <= 0.0001f)
+						if ((val4).LengthSquared <= 0.0001f)
 						{
-							((Vec2)(ref val4))._002Ector(1f, 0f);
+							(val4)._002Ector(1f, 0f);
 						}
 						else
 						{
-							val4 = ((Vec2)(ref val4)).Normalized();
+							val4 = (val4).Normalized();
 						}
 						Vec2 val5 = val2 + val4 * 3f;
 						MobileParty.MainParty.Position = new CampaignVec2(val5, true);
@@ -2767,7 +2767,7 @@ public class SettlementCombatManager
 					if ((item.IsTown || item.IsCastle) && item.MapFaction == mapFaction)
 					{
 						CampaignVec2 gatePosition = item.GatePosition;
-						float num5 = ((CampaignVec2)(ref gatePosition)).DistanceSquared(settlement.GatePosition);
+						float num5 = (gatePosition).DistanceSquared(settlement.GatePosition);
 						if (num5 < num4)
 						{
 							num4 = num5;

@@ -156,7 +156,7 @@ public class CombatPhrasePopupItemVM : ViewModel
 		{
 			ScreenPosition = new Vec2(num, num2);
 			Vec3 val2 = val - camera.Position;
-			Distance = (int)((Vec3)(ref val2)).Length;
+			Distance = (int)(val2).Length;
 		}
 		else
 		{

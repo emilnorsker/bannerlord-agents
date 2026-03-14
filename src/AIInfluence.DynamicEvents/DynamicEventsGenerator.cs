@@ -2728,7 +2728,7 @@ public class DynamicEventsGenerator
 			//IL_000b: Unknown result type (might be due to invalid IL or missing references)
 			//IL_000f: Unknown result type (might be due to invalid IL or missing references)
 			Vec2 position2D = settlement.GetPosition2D();
-			return ((Vec2)(ref position2D)).Distance(s.GetPosition2D()) <= SETTLEMENT_DISTANCE_NEAR_THRESHOLD;
+			return (position2D).Distance(s.GetPosition2D()) <= SETTLEMENT_DISTANCE_NEAR_THRESHOLD;
 		}).ToList();
 		if (source.Any())
 		{
@@ -2749,7 +2749,7 @@ public class DynamicEventsGenerator
 			if (s != settlement)
 			{
 				Vec2 position2D = settlement.GetPosition2D();
-				result = ((((Vec2)(ref position2D)).Distance(s.GetPosition2D()) <= SETTLEMENT_DISTANCE_MEDIUM_THRESHOLD) ? 1 : 0);
+				result = (((position2D).Distance(s.GetPosition2D()) <= SETTLEMENT_DISTANCE_MEDIUM_THRESHOLD) ? 1 : 0);
 			}
 			else
 			{
@@ -2762,7 +2762,7 @@ public class DynamicEventsGenerator
 			//IL_000b: Unknown result type (might be due to invalid IL or missing references)
 			//IL_000f: Unknown result type (might be due to invalid IL or missing references)
 			Vec2 position2D = settlement.GetPosition2D();
-			return ((Vec2)(ref position2D)).Distance(s.GetPosition2D());
+			return (position2D).Distance(s.GetPosition2D());
 		}).Take(5)
 			.ToList();
 		foreach (Settlement item in list2)

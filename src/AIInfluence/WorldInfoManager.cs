@@ -4001,14 +4001,14 @@ public class WorldInfoManager
 		else if ((int)mapEvent.EventType == 1)
 		{
 			position = mapEvent.Position;
-			val8 = GetNearestSettlementInfo(((CampaignVec2)(ref position)).ToVec2()).Settlement;
+			val8 = GetNearestSettlementInfo((position).ToVec2()).Settlement;
 		}
 		BattleData obj5 = new BattleData
 		{
 			BattleType = mapEvent.EventType
 		};
 		position = mapEvent.Position;
-		obj5.Position = ((CampaignVec2)(ref position)).ToVec2();
+		obj5.Position = (position).ToVec2();
 		obj5.BattleSettlement = val8;
 		obj5.WinningSide = winningSide;
 		obj5.WinnerHero = val2;
@@ -4642,7 +4642,7 @@ public class WorldInfoManager
 					//IL_000c: Unknown result type (might be due to invalid IL or missing references)
 					//IL_0010: Unknown result type (might be due to invalid IL or missing references)
 					Vec2 position2D = settlement.GetPosition2D();
-					return (Settlement: s, Distance: ((Vec2)(ref position2D)).Distance(s.GetPosition2D()));
+					return (Settlement: s, Distance: (position2D).Distance(s.GetPosition2D()));
 				})
 				where s.Distance <= 50f
 				orderby s.Distance
@@ -4770,8 +4770,8 @@ public class WorldInfoManager
 			foreach (Settlement item3 in (List<Settlement>)(object)Campaign.Current.Settlements)
 			{
 				CampaignVec2 position = npcParty.Position;
-				Vec2 val2 = ((CampaignVec2)(ref position)).ToVec2();
-				float num = ((Vec2)(ref val2)).Distance(item3.GetGatePosition());
+				Vec2 val2 = (position).ToVec2();
+				float num = (val2).Distance(item3.GetGatePosition());
 				if (num <= 20f)
 				{
 					list5.Add((item3, num));
@@ -4956,7 +4956,7 @@ public class WorldInfoManager
 		float num = float.MaxValue;
 		foreach (Settlement item2 in (List<Settlement>)(object)Settlement.All)
 		{
-			float num2 = ((Vec2)(ref position)).Distance(item2.GetPosition2D());
+			float num2 = (position).Distance(item2.GetPosition2D());
 			if (num2 < num)
 			{
 				num = num2;
@@ -5102,13 +5102,13 @@ public class WorldInfoManager
 			Vec2 position = battleData.Position;
 			if (flag2)
 			{
-				AIInfluenceBehavior.Instance?.LogMessage($"[BATTLE-DISTANCE-DEBUG] {npc.Name}: battlePosition=({((Vec2)(ref position)).X:F1}, {((Vec2)(ref position)).Y:F1})");
+				AIInfluenceBehavior.Instance?.LogMessage($"[BATTLE-DISTANCE-DEBUG] {npc.Name}: battlePosition=({(position).X:F1}, {(position).Y:F1})");
 			}
 			if (partyBelongedTo3 != null)
 			{
 				CampaignVec2 position2 = partyBelongedTo3.Position;
-				Vec2 val2 = ((CampaignVec2)(ref position2)).ToVec2();
-				num = ((Vec2)(ref val2)).Distance(position);
+				Vec2 val2 = (position2).ToVec2();
+				num = (val2).Distance(position);
 				if (flag2)
 				{
 					TextObject name = partyBelongedTo3.Name;
@@ -5116,16 +5116,16 @@ public class WorldInfoManager
 					Hero leaderHero = partyBelongedTo3.LeaderHero;
 					string text2 = string.Format("{0} (size: {1}, leader: {2})", name, arg, ((leaderHero == null) ? null : ((object)leaderHero.Name)?.ToString()) ?? "none");
 					string text3 = ((partyBelongedTo3.CurrentSettlement != null) ? ("in " + ((object)partyBelongedTo3.CurrentSettlement.Name).ToString()) : ((partyBelongedTo3.TargetSettlement != null) ? ("heading to " + ((object)partyBelongedTo3.TargetSettlement.Name).ToString()) : "in field"));
-					AIInfluenceBehavior.Instance?.LogMessage($"[BATTLE-DISTANCE-DEBUG] {npc.Name}: party='{text2}', location='{text3}', npcPosition=({((Vec2)(ref val2)).X:F1}, {((Vec2)(ref val2)).Y:F1}), battlePosition=({((Vec2)(ref position)).X:F1}, {((Vec2)(ref position)).Y:F1}), distance={num:F1}");
+					AIInfluenceBehavior.Instance?.LogMessage($"[BATTLE-DISTANCE-DEBUG] {npc.Name}: party='{text2}', location='{text3}', npcPosition=({(val2).X:F1}, {(val2).Y:F1}), battlePosition=({(position).X:F1}, {(position).Y:F1}), distance={num:F1}");
 				}
 			}
 			else if (val != null)
 			{
 				Vec2 position2D = val.GetPosition2D();
-				num = ((Vec2)(ref position2D)).Distance(position);
+				num = (position2D).Distance(position);
 				if (flag2)
 				{
-					AIInfluenceBehavior.Instance?.LogMessage($"[BATTLE-DISTANCE-DEBUG] {npc.Name}: settlementPosition=({((Vec2)(ref position2D)).X:F1}, {((Vec2)(ref position2D)).Y:F1}), distance={num:F1}");
+					AIInfluenceBehavior.Instance?.LogMessage($"[BATTLE-DISTANCE-DEBUG] {npc.Name}: settlementPosition=({(position2D).X:F1}, {(position2D).Y:F1}), distance={num:F1}");
 				}
 			}
 			else
@@ -5519,13 +5519,13 @@ public class WorldInfoManager
 				if (partyBelongedTo != null)
 				{
 					CampaignVec2 position2 = partyBelongedTo.Position;
-					Vec2 val = ((CampaignVec2)(ref position2)).ToVec2();
-					num = ((Vec2)(ref val)).Distance(position);
+					Vec2 val = (position2).ToVec2();
+					num = (val).Distance(position);
 				}
 				else if (currentSettlement != null)
 				{
 					Vec2 position2D = currentSettlement.GetPosition2D();
-					num = ((Vec2)(ref position2D)).Distance(position);
+					num = (position2D).Distance(position);
 				}
 			}
 			else if (eventLocation != null)
@@ -5616,13 +5616,13 @@ public class WorldInfoManager
 				if (partyBelongedTo != null)
 				{
 					CampaignVec2 position2 = partyBelongedTo.Position;
-					Vec2 val = ((CampaignVec2)(ref position2)).ToVec2();
-					num = ((Vec2)(ref val)).Distance(position);
+					Vec2 val = (position2).ToVec2();
+					num = (val).Distance(position);
 				}
 				else if (currentSettlement != null)
 				{
 					Vec2 position2D = currentSettlement.GetPosition2D();
-					num = ((Vec2)(ref position2D)).Distance(position);
+					num = (position2D).Distance(position);
 				}
 			}
 			else if (eventLocation != null)

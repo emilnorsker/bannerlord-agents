@@ -55,7 +55,7 @@ public static class NearbyPartyInfoProvider
 					if (party != null && !excludedParties.Contains(party) && !party.IsDisbanding && !party.IsGarrison && !party.IsMilitia)
 					{
 						Vec2 position2D = party.GetPosition2D();
-						result = ((((Vec2)(ref position2D)).Distance(position.Value) <= radius) ? 1 : 0);
+						result = (((position2D).Distance(position.Value) <= radius) ? 1 : 0);
 					}
 					else
 					{
@@ -71,7 +71,7 @@ public static class NearbyPartyInfoProvider
 					return new
 					{
 						Party = party,
-						Distance = ((Vec2)(ref position2D)).Distance(position.Value)
+						Distance = (position2D).Distance(position.Value)
 					};
 				})
 				orderby entry.Distance

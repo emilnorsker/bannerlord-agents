@@ -473,7 +473,7 @@ public class GoToSettlementAction : AIActionBase
 			Vec2 position2D = _trackedParty.GetPosition2D();
 			Settlement partyTargetSettlement2 = GameVersionCompatibility.GetPartyTargetSettlement(_trackedParty);
 			bool flag = false;
-			if (((Vec2)(ref position2D)).DistanceSquared(_lastPartyPosition.Value) > 0.01f)
+			if ((position2D).DistanceSquared(_lastPartyPosition.Value) > 0.01f)
 			{
 				flag = true;
 				LogAction($"Newly created party started moving (position changed from {_lastPartyPosition.Value} to {position2D})");
@@ -1439,7 +1439,7 @@ public class GoToSettlementAction : AIActionBase
 					//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 					//IL_000f: Unknown result type (might be due to invalid IL or missing references)
 					Vec2 position2D = s.GetPosition2D();
-					return ((Vec2)(ref position2D)).DistanceSquared(party.GetPosition2D());
+					return (position2D).DistanceSquared(party.GetPosition2D());
 				}).FirstOrDefault();
 				if (val != null)
 				{
@@ -1465,7 +1465,7 @@ public class GoToSettlementAction : AIActionBase
 				//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 				//IL_000f: Unknown result type (might be due to invalid IL or missing references)
 				Vec2 position2D = s.GetPosition2D();
-				return ((Vec2)(ref position2D)).DistanceSquared(party.GetPosition2D());
+				return (position2D).DistanceSquared(party.GetPosition2D());
 			}).FirstOrDefault();
 		}
 		if (val == null && party != null)
@@ -1476,7 +1476,7 @@ public class GoToSettlementAction : AIActionBase
 				//IL_0006: Unknown result type (might be due to invalid IL or missing references)
 				//IL_000f: Unknown result type (might be due to invalid IL or missing references)
 				Vec2 position2D = s.GetPosition2D();
-				return ((Vec2)(ref position2D)).DistanceSquared(party.GetPosition2D());
+				return (position2D).DistanceSquared(party.GetPosition2D());
 			}).FirstOrDefault();
 		}
 		return val;

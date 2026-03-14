@@ -106,7 +106,7 @@ public class CombatPhrasesDisplay : MissionLogic
 				continue;
 			}
 			Vec3 position2 = item.Position;
-			float num = ((Vec3)(ref position2)).Distance(position);
+			float num = (position2).Distance(position);
 			if (num <= 15f)
 			{
 				string phraseForAgent = GetPhraseForAgent(item);

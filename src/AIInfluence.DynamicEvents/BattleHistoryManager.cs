@@ -412,7 +412,7 @@ public class BattleHistoryManager
 		foreach (Settlement item2 in (List<Settlement>)(object)Settlement.All)
 		{
 			Vec2 position2D = party.GetPosition2D();
-			float num2 = ((Vec2)(ref position2D)).Distance(item2.GetPosition2D());
+			float num2 = (position2D).Distance(item2.GetPosition2D());
 			if (num2 < num)
 			{
 				num = num2;

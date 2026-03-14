@@ -759,7 +759,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					continue;
 				}
 				Vec2 position2D = partyBelongedTo.GetPosition2D();
-				float num3 = ((Vec2)(ref position2D)).Distance(partyBelongedTo2.GetPosition2D());
+				float num3 = (position2D).Distance(partyBelongedTo2.GetPosition2D());
 				if (!flag && num3 > 30f)
 				{
 					continue;
@@ -2110,7 +2110,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				if (item != null && item != mainParty && item.CurrentSettlement == null)
 				{
 					Vec2 position2D = item.GetPosition2D();
-					float num2 = ((Vec2)(ref position2D)).Distance(mainParty.GetPosition2D());
+					float num2 = (position2D).Distance(mainParty.GetPosition2D());
 					if (num2 <= num)
 					{
 						bool flag = item.MapFaction != null && mainParty.MapFaction != null && item.MapFaction.IsAtWarWith(mainParty.MapFaction);

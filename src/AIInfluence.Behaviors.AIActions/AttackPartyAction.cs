@@ -194,7 +194,7 @@ public sealed class AttackPartyAction : AIActionBase
 		if (!_warDeclared && _heroParty != null && _targetParty != null)
 		{
 			Vec2 position2D = _heroParty.GetPosition2D();
-			float num = ((Vec2)(ref position2D)).DistanceSquared(_targetParty.GetPosition2D());
+			float num = (position2D).DistanceSquared(_targetParty.GetPosition2D());
 			if (num <= 1f)
 			{
 				if (EnsureWarState())

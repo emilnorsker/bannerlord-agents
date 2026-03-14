@@ -201,7 +201,7 @@ public static class GameVersionCompatibility
 		try
 		{
 			CampaignVec2 gatePosition = settlement.GatePosition;
-			return ((CampaignVec2)(ref gatePosition)).ToVec2();
+			return (gatePosition).ToVec2();
 		}
 		catch
 		{
@@ -227,7 +227,7 @@ public static class GameVersionCompatibility
 		try
 		{
 			CampaignVec2 portPosition = settlement.PortPosition;
-			return ((CampaignVec2)(ref portPosition)).ToVec2();
+			return (portPosition).ToVec2();
 		}
 		catch
 		{
@@ -379,8 +379,8 @@ public static class GameVersionCompatibility
 		try
 		{
 			CampaignVec2 position = fromParty.Position;
-			Vec2 val = ((CampaignVec2)(ref position)).ToVec2();
-			return ((Vec2)(ref val)).Distance(toSettlement.GetPosition2D);
+			Vec2 val = (position).ToVec2();
+			return (val).Distance(toSettlement.GetPosition2D);
 		}
 		catch
 		{
@@ -404,9 +404,9 @@ public static class GameVersionCompatibility
 		try
 		{
 			CampaignVec2 position = fromParty.Position;
-			Vec2 val = ((CampaignVec2)(ref position)).ToVec2();
+			Vec2 val = (position).ToVec2();
 			position = toParty.Position;
-			return ((Vec2)(ref val)).Distance(((CampaignVec2)(ref position)).ToVec2());
+			return (val).Distance((position).ToVec2());
 		}
 		catch
 		{
@@ -426,7 +426,7 @@ public static class GameVersionCompatibility
 		try
 		{
 			Vec2 getPosition2D = fromSettlement.GetPosition2D;
-			return ((Vec2)(ref getPosition2D)).Distance(toSettlement.GetPosition2D);
+			return (getPosition2D).Distance(toSettlement.GetPosition2D);
 		}
 		catch
 		{
@@ -1185,14 +1185,14 @@ public static class GameVersionCompatibility
 			if (mainParty != null)
 			{
 				CampaignVec2 position = mainParty.Position;
-				Vec2 playerVec2 = ((CampaignVec2)(ref position)).ToVec2();
+				Vec2 playerVec2 = (position).ToVec2();
 				Settlement val3 = ((IEnumerable<Settlement>)Settlement.All).Where((Settlement s) => s.IsTown || s.IsCastle).OrderBy(delegate(Settlement s)
 				{
 					//IL_0002: Unknown result type (might be due to invalid IL or missing references)
 					//IL_0007: Unknown result type (might be due to invalid IL or missing references)
 					//IL_000b: Unknown result type (might be due to invalid IL or missing references)
 					Vec2 position2D = s.GetPosition2D();
-					return ((Vec2)(ref position2D)).DistanceSquared(playerVec2);
+					return (position2D).DistanceSquared(playerVec2);
 				}).FirstOrDefault();
 				if (val3 != null)
 				{

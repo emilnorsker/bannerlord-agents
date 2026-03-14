@@ -389,18 +389,18 @@ public sealed class WaitNearSettlementAction : AIActionBase
 		try
 		{
 			CampaignVec2 val = _targetSettlement.Position;
-			Vec2 val2 = ((CampaignVec2)(ref val)).ToVec2();
+			Vec2 val2 = (val).ToVec2();
 			val = _targetSettlement.GatePosition;
-			Vec2 val3 = ((CampaignVec2)(ref val)).ToVec2();
+			Vec2 val3 = (val).ToVec2();
 			Vec2 val4 = val3 - val2;
-			if (((Vec2)(ref val4)).LengthSquared < 0.25f)
+			if ((val4).LengthSquared < 0.25f)
 			{
-				((Vec2)(ref val4))._002Ector(1f, 0f);
+				(val4)._002Ector(1f, 0f);
 			}
-			((Vec2)(ref val4)).Normalize();
+			(val4).Normalize();
 			Vec2 val5 = val2 + val4 * MathF.Clamp(_desiredRadius, 7f, 18f);
 			CampaignVec2 val6 = default(CampaignVec2);
-			((CampaignVec2)(ref val6))._002Ector(val5, true);
+			(val6)._002Ector(val5, true);
 			_heroParty.SetMovePatrolAroundPoint(val6, (NavigationType)3);
 			GameVersionCompatibility.ConditionalEnableAi(_heroParty);
 			_lastOrderTime = CampaignTime.Now;
@@ -449,7 +449,7 @@ public sealed class WaitNearSettlementAction : AIActionBase
 		}
 		Vec2 position2D = _heroParty.GetPosition2D();
 		CampaignVec2 position = _targetSettlement.Position;
-		return ((Vec2)(ref position2D)).Distance(((CampaignVec2)(ref position)).ToVec2());
+		return (position2D).Distance((position).ToVec2());
 	}
 
 	private MobileParty EnsurePartyForWaiting(out bool createdNew)
