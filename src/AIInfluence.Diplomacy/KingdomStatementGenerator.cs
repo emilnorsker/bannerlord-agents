@@ -1947,19 +1947,24 @@ public class KingdomStatementGenerator
 			}
 			DiplomaticAction action = actions.FirstOrDefault();
 			DiplomacyLogger.Instance.Log(string.Format("[STATEMENT_GEN] Actions after validation for {0}: {1}", kingdom.Name, string.Join(", ", actions)));
-			if (actions.Contains(DiplomaticAction.ExpelClan) && list.Any())
+		if (actions.Contains(DiplomaticAction.ExpelClan) && list.Any())
+		{
+			if (list.Contains(((MBObjectBase)kingdom).StringId))
 			{
-				if (list.Contains(((MBObjectBase)kingdom).StringId))
-				{
-					DiplomacyLogger.Instance.Log("[STATEMENT_GEN] WARNING: expel_clan action incorrectly has target_kingdom_id set to own kingdom (" + ((MBObjectBase)kingdom).StringId + "). Clearing target_kingdom_id.");
-					list.Clear();
-				}
-				else
-				{
-					DiplomacyLogger.Instance.Log("[STATEMENT_GEN] WARNING: expel_clan action should not have target_kingdom_id. Clearing target_kingdom_id.");
-					list.Clear();
-				}
+				DiplomacyLogger.Instance.Log("[STATEMENT_GEN] WARNING: expel_clan action incorrectly has target_kingdom_id set to own kingdom (" + ((MBObjectBase)kingdom).StringId + "). Clearing target_kingdom_id.");
+				list.Clear();
 			}
+			else
+			{
+				DiplomacyLogger.Instance.Log("[STATEMENT_GEN] WARNING: expel_clan action should not have target_kingdom_id. Clearing target_kingdom_id.");
+				list.Clear();
+			}
+		}
+		if (actions.Contains(DiplomaticAction.FoundKingdom) && list.Any())
+		{
+			DiplomacyLogger.Instance.Log("[STATEMENT_GEN] WARNING: found_kingdom action should not have target_kingdom_id. Clearing target_kingdom_id.");
+			list.Clear();
+		}
 			KingdomStatement kingdomStatement = new KingdomStatement
 			{
 				KingdomId = ((MBObjectBase)kingdom).StringId,
@@ -1977,7 +1982,9 @@ public class KingdomStatementGenerator
 				TributeDurationDays = diplomaticStatementResponse.TributeDurationDays,
 				ReparationsAmount = diplomaticStatementResponse.ReparationsAmount,
 				TradeAgreementDurationYears = ((diplomaticStatementResponse.TradeAgreementDurationYears > 0f) ? diplomaticStatementResponse.TradeAgreementDurationYears : 1f),
-				QuarantineDurationDays = diplomaticStatementResponse.QuarantineDurationDays
+				QuarantineDurationDays = diplomaticStatementResponse.QuarantineDurationDays,
+				NewKingdomName = diplomaticStatementResponse.NewKingdomName,
+				NewKingdomInformalName = diplomaticStatementResponse.NewKingdomInformalName
 			};
 			DiplomacyLogger.Instance.Log(string.Format("[STATEMENT_GEN] Statement created: Actions={0}, Settlement={1}, Tribute={2}/{3}, Reparations={4}, Quarantine={5}", string.Join(",", kingdomStatement.Actions), kingdomStatement.SettlementId, kingdomStatement.DailyTributeAmount, kingdomStatement.TributeDurationDays, kingdomStatement.ReparationsAmount, kingdomStatement.QuarantineDurationDays));
 			DiplomaticStatementsStorage.Instance.AddStatement(kingdomStatement);
@@ -2028,10 +2035,11 @@ public class KingdomStatementGenerator
 			"accept_reparations" => DiplomaticAction.AcceptReparations, 
 			"reject_reparations" => DiplomaticAction.RejectReparations, 
 			"expel_clan" => DiplomaticAction.ExpelClan, 
-			"quarantine_settlement" => DiplomaticAction.QuarantineSettlement, 
-			_ => DiplomaticAction.None, 
-		};
-	}
+		"quarantine_settlement" => DiplomaticAction.QuarantineSettlement, 
+		"found_kingdom" => DiplomaticAction.FoundKingdom, 
+		_ => DiplomaticAction.None, 
+	};
+}
 
 	private List<DiplomaticAction> ParseMultipleActions(string actionString)
 	{
