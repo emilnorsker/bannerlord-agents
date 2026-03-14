@@ -175,7 +175,7 @@ public class BattleHistoryManager
 				}
 			}
 		}
-		BattleSideEnum val5 = (BattleSideEnum)((int)winningSide != 1);
+		BattleSideEnum val5 = (BattleSideEnum)(1 - (int)winningSide);
 		MapEventParty val6 = ((IEnumerable<MapEventParty>)mapEvent.PartiesOnSide(winningSide)).FirstOrDefault();
 		PartyBase val7 = ((val6 != null) ? val6.Party : null);
 		Hero val8 = ((val7 != null) ? val7.LeaderHero : null);

@@ -71,7 +71,7 @@ public class PopUpConversationScreenWidget : Widget
 
 	protected override void OnLateUpdate(float dt)
 	{
-		((Widget)this).OnLateUpdate(dt);
+		base.OnLateUpdate(dt);
 		RefreshRegisteredMarkers();
 		bool flag = _registeredMarkers.Count > 0;
 		float num = ((_isMarkersEnabled && flag) ? _targetAlphaValue : 0f);

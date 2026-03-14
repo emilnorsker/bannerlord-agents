@@ -224,31 +224,31 @@ public static class JsonCleaner
 		JObject val = new JObject
 		{
 			["internal_thoughts"] = (JToken)(object)JValue.CreateNull(),
-			["response"] = JToken.op_Implicit(responseText.Replace("\"", "\\\"")),
-			["romance_intent"] = JToken.op_Implicit("none"),
-			["decision"] = JToken.op_Implicit("none"),
-			["tone"] = JToken.op_Implicit("neutral"),
-			["threat_level"] = JToken.op_Implicit("none"),
-			["escalation_state"] = JToken.op_Implicit("neutral"),
-			["suspected_lie"] = JToken.op_Implicit(false),
-			["deescalation_attempt"] = JToken.op_Implicit(false),
+			["response"] = (JToken)(responseText.Replace("\"", "\\\"")),
+			["romance_intent"] = (JToken)("none"),
+			["decision"] = (JToken)("none"),
+			["tone"] = (JToken)("neutral"),
+			["threat_level"] = (JToken)("none"),
+			["escalation_state"] = (JToken)("neutral"),
+			["suspected_lie"] = (JToken)(false),
+			["deescalation_attempt"] = (JToken)(false),
 			["claimed_name"] = (JToken)(object)JValue.CreateNull(),
 			["claimed_clan"] = (JToken)(object)JValue.CreateNull(),
 			["claimed_age"] = (JToken)(object)JValue.CreateNull(),
-			["claimed_gold"] = JToken.op_Implicit(0),
+			["claimed_gold"] = (JToken)(0),
 			["money_transfer"] = (JToken)(object)JValue.CreateNull(),
 			["item_transfers"] = (JToken)(object)JValue.CreateNull(),
 			["character_personality"] = (JToken)(object)JValue.CreateNull(),
 			["character_backstory"] = (JToken)(object)JValue.CreateNull(),
-			["kingdom_action"] = JToken.op_Implicit("none"),
+			["kingdom_action"] = (JToken)("none"),
 			["kingdom_action_reason"] = (JToken)(object)JValue.CreateNull(),
 			["settlement_id"] = (JToken)(object)JValue.CreateNull(),
 			["target_clan_id"] = (JToken)(object)JValue.CreateNull(),
-			["daily_tribute_amount"] = JToken.op_Implicit(0),
-			["tribute_duration_days"] = JToken.op_Implicit(0),
-			["reparations_amount"] = JToken.op_Implicit(0),
-			["allows_letters"] = JToken.op_Implicit(false),
-			["trade_agreement_duration_years"] = JToken.op_Implicit(1f),
+			["daily_tribute_amount"] = (JToken)(0),
+			["tribute_duration_days"] = (JToken)(0),
+			["reparations_amount"] = (JToken)(0),
+			["allows_letters"] = (JToken)(false),
+			["trade_agreement_duration_years"] = (JToken)(1f),
 			["technical_action"] = (JToken)(object)JValue.CreateNull(),
 			["character_death"] = (JToken)(object)JValue.CreateNull(),
 			["tts_instructions"] = (JToken)(object)JValue.CreateNull()
@@ -308,26 +308,26 @@ public static class JsonCleaner
 			{
 				if (val[item2.Key] == null || (int)val[item2.Key].Type == 10)
 				{
-					val[item2.Key] = JToken.op_Implicit(item2.Value);
+					val[item2.Key] = (JToken)(item2.Value);
 				}
 			}
 			foreach (KeyValuePair<string, int> item3 in dictionary2)
 			{
 				if (val[item3.Key] == null || (int)val[item3.Key].Type == 10)
 				{
-					val[item3.Key] = JToken.op_Implicit(item3.Value);
+					val[item3.Key] = (JToken)(item3.Value);
 				}
 			}
 			foreach (KeyValuePair<string, bool> item4 in dictionary3)
 			{
 				if (val[item4.Key] == null || (int)val[item4.Key].Type == 10)
 				{
-					val[item4.Key] = JToken.op_Implicit(item4.Value);
+					val[item4.Key] = (JToken)(item4.Value);
 				}
 			}
 			if (val["trade_agreement_duration_years"] == null || (int)val["trade_agreement_duration_years"].Type == 10)
 			{
-				val["trade_agreement_duration_years"] = JToken.op_Implicit(1f);
+				val["trade_agreement_duration_years"] = (JToken)(1f);
 			}
 			string[] array2 = array;
 			foreach (string text2 in array2)
@@ -396,7 +396,7 @@ public static class JsonCleaner
 			string value = ((object)jsonObject["romance_intent"]).ToString();
 			if (!new string[4] { "none", "flirt", "romance", "proposal" }.Contains(value))
 			{
-				jsonObject["romance_intent"] = JToken.op_Implicit("none");
+				jsonObject["romance_intent"] = (JToken)("none");
 			}
 		}
 		if (jsonObject["decision"] != null)
@@ -404,7 +404,7 @@ public static class JsonCleaner
 			string value2 = ((object)jsonObject["decision"]).ToString();
 			if (!new string[9] { "none", "attack", "surrender", "accept_surrender", "release", "propose_marriage", "accept_marriage", "reject_marriage", "intimate" }.Contains(value2))
 			{
-				jsonObject["decision"] = JToken.op_Implicit("none");
+				jsonObject["decision"] = (JToken)("none");
 			}
 		}
 		if (jsonObject["tone"] != null)
@@ -412,7 +412,7 @@ public static class JsonCleaner
 			string value3 = ((object)jsonObject["tone"]).ToString();
 			if (!new string[3] { "positive", "negative", "neutral" }.Contains(value3))
 			{
-				jsonObject["tone"] = JToken.op_Implicit("neutral");
+				jsonObject["tone"] = (JToken)("neutral");
 			}
 		}
 		if (jsonObject["threat_level"] != null)
@@ -420,7 +420,7 @@ public static class JsonCleaner
 			string value4 = ((object)jsonObject["threat_level"]).ToString();
 			if (!new string[3] { "high", "low", "none" }.Contains(value4))
 			{
-				jsonObject["threat_level"] = JToken.op_Implicit("none");
+				jsonObject["threat_level"] = (JToken)("none");
 			}
 		}
 		if (jsonObject["escalation_state"] != null)
@@ -428,24 +428,24 @@ public static class JsonCleaner
 			string value5 = ((object)jsonObject["escalation_state"]).ToString();
 			if (!new string[3] { "neutral", "tense", "critical" }.Contains(value5))
 			{
-				jsonObject["escalation_state"] = JToken.op_Implicit("neutral");
+				jsonObject["escalation_state"] = (JToken)("neutral");
 			}
 		}
 		if (jsonObject["suspected_lie"] != null && (int)jsonObject["suspected_lie"].Type != 9)
 		{
-			jsonObject["suspected_lie"] = JToken.op_Implicit(false);
+			jsonObject["suspected_lie"] = (JToken)(false);
 		}
 		if (jsonObject["deescalation_attempt"] != null && (int)jsonObject["deescalation_attempt"].Type != 9)
 		{
-			jsonObject["deescalation_attempt"] = JToken.op_Implicit(false);
+			jsonObject["deescalation_attempt"] = (JToken)(false);
 		}
 		if (jsonObject["allows_letters"] != null && (int)jsonObject["allows_letters"].Type != 9)
 		{
-			jsonObject["allows_letters"] = JToken.op_Implicit(false);
+			jsonObject["allows_letters"] = (JToken)(false);
 		}
 		if (jsonObject["claimed_gold"] != null && (!int.TryParse(((object)jsonObject["claimed_gold"]).ToString(), out var result) || result < 0))
 		{
-			jsonObject["claimed_gold"] = JToken.op_Implicit(0);
+			jsonObject["claimed_gold"] = (JToken)(0);
 		}
 		if (jsonObject["claimed_age"] != null && (int)jsonObject["claimed_age"].Type != 10 && (!int.TryParse(((object)jsonObject["claimed_age"]).ToString(), out var result2) || result2 < 0 || result2 > 100))
 		{

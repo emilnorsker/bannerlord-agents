@@ -122,20 +122,20 @@ public static class AIClient
 		(string, string, bool) tuple = ExtractLastPlayerMessage(prompt);
 		var (systemPrompt, userMessage, _) = tuple;
 		_ = tuple.Item3;
-		JObject val = new JObject { ["model"] = JToken.op_Implicit(GlobalSettings<ModSettings>.Instance.AIModel) };
+		JObject val = new JObject { ["model"] = (JToken)(GlobalSettings<ModSettings>.Instance.AIModel) };
 		JArray val2 = new JArray();
 		val2.Add((JToken)new JObject
 		{
-			["role"] = JToken.op_Implicit("system"),
-			["content"] = JToken.op_Implicit(systemPrompt)
+			["role"] = (JToken)("system"),
+			["content"] = (JToken)(systemPrompt)
 		});
 		val2.Add((JToken)new JObject
 		{
-			["role"] = JToken.op_Implicit("user"),
-			["content"] = JToken.op_Implicit(userMessage)
+			["role"] = (JToken)("user"),
+			["content"] = (JToken)(userMessage)
 		});
 		val["messages"] = (JToken)val2;
-		val["response_format"] = (JToken)new JObject { ["type"] = JToken.op_Implicit("json_object") };
+		val["response_format"] = (JToken)new JObject { ["type"] = (JToken)("json_object") };
 		JObject requestBody = val;
 		string json = ((JToken)requestBody).ToString((Formatting)0, Array.Empty<JsonConverter>());
 		StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -224,13 +224,13 @@ public static class AIClient
 		JArray val2 = new JArray();
 		val2.Add((JToken)new JObject
 		{
-			["role"] = JToken.op_Implicit("system"),
-			["content"] = JToken.op_Implicit(systemPrompt)
+			["role"] = (JToken)("system"),
+			["content"] = (JToken)(systemPrompt)
 		});
 		val2.Add((JToken)new JObject
 		{
-			["role"] = JToken.op_Implicit("user"),
-			["content"] = JToken.op_Implicit(userMessage)
+			["role"] = (JToken)("user"),
+			["content"] = (JToken)(userMessage)
 		});
 		val["messages"] = (JToken)val2;
 		JObject requestBody = val;
@@ -277,13 +277,13 @@ public static class AIClient
 			JArray val = new JArray();
 			val.Add((JToken)new JObject
 			{
-				["role"] = JToken.op_Implicit("system"),
-				["content"] = JToken.op_Implicit(systemPrompt)
+				["role"] = (JToken)("system"),
+				["content"] = (JToken)(systemPrompt)
 			});
 			val.Add((JToken)new JObject
 			{
-				["role"] = JToken.op_Implicit("user"),
-				["content"] = JToken.op_Implicit(userMessage)
+				["role"] = (JToken)("user"),
+				["content"] = (JToken)(userMessage)
 			});
 			messages = val;
 		}
@@ -292,14 +292,14 @@ public static class AIClient
 			JArray val2 = new JArray();
 			val2.Add((JToken)new JObject
 			{
-				["role"] = JToken.op_Implicit("user"),
-				["content"] = JToken.op_Implicit(prompt)
+				["role"] = (JToken)("user"),
+				["content"] = (JToken)(prompt)
 			});
 			messages = val2;
 		}
 		JObject requestBody = new JObject
 		{
-			["model"] = JToken.op_Implicit(GlobalSettings<ModSettings>.Instance.AIModel),
+			["model"] = (JToken)(GlobalSettings<ModSettings>.Instance.AIModel),
 			["messages"] = (JToken)(object)messages
 		};
 		string json = ((JToken)requestBody).ToString((Formatting)0, Array.Empty<JsonConverter>());
@@ -395,13 +395,13 @@ public static class AIClient
 			JArray val = new JArray();
 			val.Add((JToken)new JObject
 			{
-				["role"] = JToken.op_Implicit("system"),
-				["content"] = JToken.op_Implicit(systemPrompt)
+				["role"] = (JToken)("system"),
+				["content"] = (JToken)(systemPrompt)
 			});
 			val.Add((JToken)new JObject
 			{
-				["role"] = JToken.op_Implicit("user"),
-				["content"] = JToken.op_Implicit(userMessage)
+				["role"] = (JToken)("user"),
+				["content"] = (JToken)(userMessage)
 			});
 			messages = val;
 		}
@@ -410,8 +410,8 @@ public static class AIClient
 			JArray val2 = new JArray();
 			val2.Add((JToken)new JObject
 			{
-				["role"] = JToken.op_Implicit("user"),
-				["content"] = JToken.op_Implicit(prompt)
+				["role"] = (JToken)("user"),
+				["content"] = (JToken)(prompt)
 			});
 			messages = val2;
 		}
@@ -454,24 +454,24 @@ public static class AIClient
 		string userMessage = tuple.Item2;
 		bool extracted = tuple.Item3;
 		string chatUrl = baseUrl + "/api/chat";
-		JObject val = new JObject { ["model"] = JToken.op_Implicit(model) };
+		JObject val = new JObject { ["model"] = (JToken)(model) };
 		JArray val2 = new JArray();
 		val2.Add((JToken)new JObject
 		{
-			["role"] = JToken.op_Implicit("system"),
-			["content"] = JToken.op_Implicit(systemPrompt)
+			["role"] = (JToken)("system"),
+			["content"] = (JToken)(systemPrompt)
 		});
 		val2.Add((JToken)new JObject
 		{
-			["role"] = JToken.op_Implicit("user"),
-			["content"] = JToken.op_Implicit(userMessage)
+			["role"] = (JToken)("user"),
+			["content"] = (JToken)(userMessage)
 		});
 		val["messages"] = (JToken)val2;
-		val["stream"] = JToken.op_Implicit(false);
+		val["stream"] = (JToken)(false);
 		val["options"] = (JToken)new JObject
 		{
-			["temperature"] = JToken.op_Implicit(0.7),
-			["top_p"] = JToken.op_Implicit(0.9)
+			["temperature"] = (JToken)(0.7),
+			["top_p"] = (JToken)(0.9)
 		};
 		JObject chatRequestBody = val;
 		try
@@ -500,13 +500,13 @@ public static class AIClient
 		string generateUrl = baseUrl + "/api/generate";
 		JObject generateRequestBody = new JObject
 		{
-			["model"] = JToken.op_Implicit(model),
-			["prompt"] = JToken.op_Implicit(generatePrompt),
-			["stream"] = JToken.op_Implicit(false),
+			["model"] = (JToken)(model),
+			["prompt"] = (JToken)(generatePrompt),
+			["stream"] = (JToken)(false),
 			["options"] = (JToken)new JObject
 			{
-				["temperature"] = JToken.op_Implicit(0.7),
-				["top_p"] = JToken.op_Implicit(0.9)
+				["temperature"] = (JToken)(0.7),
+				["top_p"] = (JToken)(0.9)
 			}
 		};
 		try
@@ -545,13 +545,13 @@ public static class AIClient
 			JArray val = new JArray();
 			val.Add((JToken)new JObject
 			{
-				["role"] = JToken.op_Implicit("system"),
-				["content"] = JToken.op_Implicit(systemPrompt)
+				["role"] = (JToken)("system"),
+				["content"] = (JToken)(systemPrompt)
 			});
 			val.Add((JToken)new JObject
 			{
-				["role"] = JToken.op_Implicit("user"),
-				["content"] = JToken.op_Implicit(userMessage)
+				["role"] = (JToken)("user"),
+				["content"] = (JToken)(userMessage)
 			});
 			chatMessages = val;
 		}
@@ -560,21 +560,21 @@ public static class AIClient
 			JArray val2 = new JArray();
 			val2.Add((JToken)new JObject
 			{
-				["role"] = JToken.op_Implicit("user"),
-				["content"] = JToken.op_Implicit(prompt)
+				["role"] = (JToken)("user"),
+				["content"] = (JToken)(prompt)
 			});
 			chatMessages = val2;
 		}
 		string chatUrl = baseUrl + "/api/chat";
 		JObject chatRequestBody = new JObject
 		{
-			["model"] = JToken.op_Implicit(model),
+			["model"] = (JToken)(model),
 			["messages"] = (JToken)(object)chatMessages,
-			["stream"] = JToken.op_Implicit(false),
+			["stream"] = (JToken)(false),
 			["options"] = (JToken)new JObject
 			{
-				["temperature"] = JToken.op_Implicit(0.7),
-				["top_p"] = JToken.op_Implicit(0.9)
+				["temperature"] = (JToken)(0.7),
+				["top_p"] = (JToken)(0.9)
 			}
 		};
 		try
@@ -601,13 +601,13 @@ public static class AIClient
 		string generateUrl = baseUrl + "/api/generate";
 		JObject generateRequestBody = new JObject
 		{
-			["model"] = JToken.op_Implicit(model),
-			["prompt"] = JToken.op_Implicit(prompt),
-			["stream"] = JToken.op_Implicit(false),
+			["model"] = (JToken)(model),
+			["prompt"] = (JToken)(prompt),
+			["stream"] = (JToken)(false),
 			["options"] = (JToken)new JObject
 			{
-				["temperature"] = JToken.op_Implicit(0.7),
-				["top_p"] = JToken.op_Implicit(0.9)
+				["temperature"] = (JToken)(0.7),
+				["top_p"] = (JToken)(0.9)
 			}
 		};
 		try
@@ -637,16 +637,16 @@ public static class AIClient
 		string koboldPrompt = (tuple.Item3 ? (systemPrompt + "\n\n### Player's Latest Message ###\n" + userMessage + "\n\n### Your Response ###\nRespond as the character in JSON format:") : (prompt + "\n\nRespond to the player's latest message in character, following the instructions provided. Format your response as JSON with all required fields."));
 		JObject val = new JObject
 		{
-			["prompt"] = JToken.op_Implicit(koboldPrompt),
-			["temperature"] = JToken.op_Implicit(0.7),
-			["top_p"] = JToken.op_Implicit(0.9),
-			["stream"] = JToken.op_Implicit(false)
+			["prompt"] = (JToken)(koboldPrompt),
+			["temperature"] = (JToken)(0.7),
+			["top_p"] = (JToken)(0.9),
+			["stream"] = (JToken)(false)
 		};
 		JArray val2 = new JArray();
-		val2.Add(JToken.op_Implicit("Human:"));
-		val2.Add(JToken.op_Implicit("Assistant:"));
-		val2.Add(JToken.op_Implicit("\n\nPlayer:"));
-		val2.Add(JToken.op_Implicit("### Player's Latest Message ###"));
+		val2.Add((JToken)("Human:"));
+		val2.Add((JToken)("Assistant:"));
+		val2.Add((JToken)("\n\nPlayer:"));
+		val2.Add((JToken)("### Player's Latest Message ###"));
 		val["stop_sequence"] = (JToken)val2;
 		JObject requestBody = val;
 		try
@@ -680,15 +680,15 @@ public static class AIClient
 		string url = baseUrl + "/api/v1/generate";
 		JObject val = new JObject
 		{
-			["prompt"] = JToken.op_Implicit(prompt),
-			["temperature"] = JToken.op_Implicit(0.7),
-			["top_p"] = JToken.op_Implicit(0.9),
-			["stream"] = JToken.op_Implicit(false)
+			["prompt"] = (JToken)(prompt),
+			["temperature"] = (JToken)(0.7),
+			["top_p"] = (JToken)(0.9),
+			["stream"] = (JToken)(false)
 		};
 		JArray val2 = new JArray();
-		val2.Add(JToken.op_Implicit("Human:"));
-		val2.Add(JToken.op_Implicit("Assistant:"));
-		val2.Add(JToken.op_Implicit("\n\n"));
+		val2.Add((JToken)("Human:"));
+		val2.Add((JToken)("Assistant:"));
+		val2.Add((JToken)("\n\n"));
 		val["stop_sequence"] = (JToken)val2;
 		JObject requestBody = val;
 		try
@@ -785,12 +785,12 @@ public static class AIClient
 				InformationManager.DisplayMessage(new InformationMessage("OpenRouter: API Key is not set", ExtraColors.RedAIInfluence));
 				return false;
 			}
-			JObject val = new JObject { ["model"] = JToken.op_Implicit(GlobalSettings<ModSettings>.Instance.AIModel) };
+			JObject val = new JObject { ["model"] = (JToken)(GlobalSettings<ModSettings>.Instance.AIModel) };
 			JArray val2 = new JArray();
 			val2.Add((JToken)new JObject
 			{
-				["role"] = JToken.op_Implicit("user"),
-				["content"] = JToken.op_Implicit("Hello")
+				["role"] = (JToken)("user"),
+				["content"] = (JToken)("Hello")
 			});
 			val["messages"] = (JToken)val2;
 			JObject requestBody = val;

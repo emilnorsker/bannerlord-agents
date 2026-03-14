@@ -18,6 +18,7 @@ using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Core;
 using TaleWorlds.Library;
 using TaleWorlds.ObjectSystem;
+using KillCharacterAction = TaleWorlds.CampaignSystem.Actions.KillCharacterAction;
 
 namespace AIInfluence.Diplomacy;
 
@@ -2569,7 +2570,7 @@ public class DiplomacyManager
 		try
 		{
 			Color val = default(Color);
-			(val)._002Ector(1f, 0.55f, 0f, 1f);
+			val = new Color(1f, 0.55f, 0f, 1f);
 			InformationManager.DisplayMessage(new InformationMessage(eventUpdate, val));
 		}
 		catch (Exception ex)

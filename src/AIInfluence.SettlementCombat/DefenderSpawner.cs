@@ -870,7 +870,7 @@ public class DefenderSpawner
 				if (val != null && val8.IsAIControlled)
 				{
 					val8.SetLookAgent(val);
-					val8.SetAgentFlags((AgentFlag)(val8.GetAgentFlags() | 8 | 0x10));
+					val8.SetAgentFlags((AgentFlag)((int)val8.GetAgentFlags() | 8 | 0x10));
 				}
 				RegisterSpawnedAgent(val8, onPlayerSide);
 				if (sourceParty != null && _partyToLordId.TryGetValue(sourceParty, out var value) && _statistics != null)
@@ -921,7 +921,7 @@ public class DefenderSpawner
 					}
 					float num3 = (float)(_random.NextDouble() * Math.PI * 2.0);
 					float num4 = (float)(_random.NextDouble() * 2.0);
-					(val2)._002Ector((float)Math.Cos(num3) * num4, (float)Math.Sin(num3) * num4, 0f, -1f);
+					val2 = new Vec3((float)Math.Cos(num3) * num4, (float)Math.Sin(num3) * num4, 0f, -1f);
 					Vec3 position2 = position + val2;
 					SpawnDefenderAgentAtPosition(val, combat, position2, rolePrefix ?? "", onPlayerSide: false, sourceParty);
 					num++;
@@ -998,7 +998,7 @@ public class DefenderSpawner
 			float z = position.z;
 			current.Scene.GetHeightAtPoint((position).AsVec2, (BodyFlags)544321929, ref z);
 			Vec3 val = default(Vec3);
-			(val)._002Ector(position.x, position.y, z, -1f);
+			val = new Vec3(position.x, position.y, z, -1f);
 			Vec3 position2;
 			if (!IsSpawnPositionValid(current, val))
 			{
@@ -1019,7 +1019,7 @@ public class DefenderSpawner
 					Vec2 val2 = asVec + new Vec2((float)Math.Cos(num) * num2, (float)Math.Sin(num) * num2);
 					float num3 = 0f;
 					current.Scene.GetHeightAtPoint(val2, (BodyFlags)544321929, ref num3);
-					(val3)._002Ector(val2.x, val2.y, num3, -1f);
+					val3 = new Vec3(val2.x, val2.y, num3, -1f);
 					if (IsSpawnPositionValid(current, val3))
 					{
 						val = val3;
@@ -1093,7 +1093,7 @@ public class DefenderSpawner
 				if (val4 != null && val11.IsAIControlled)
 				{
 					val11.SetLookAgent(val4);
-					val11.SetAgentFlags((AgentFlag)(val11.GetAgentFlags() | 8 | 0x10));
+					val11.SetAgentFlags((AgentFlag)((int)val11.GetAgentFlags() | 8 | 0x10));
 				}
 				RegisterSpawnedAgent(val11, onPlayerSide);
 				if (sourceParty != null && _partyToLordId.TryGetValue(sourceParty, out var value) && _statistics != null)
@@ -1336,7 +1336,7 @@ public class DefenderSpawner
 				if (val != null && val10.IsAIControlled)
 				{
 					val10.SetLookAgent(val);
-					val10.SetAgentFlags((AgentFlag)(val10.GetAgentFlags() | 8 | 0x10));
+					val10.SetAgentFlags((AgentFlag)((int)val10.GetAgentFlags() | 8 | 0x10));
 				}
 				RegisterSpawnedAgent(val10, onPlayerSide);
 				if (sourceParty != null && _partyToLordId.TryGetValue(sourceParty, out var value) && _statistics != null)
@@ -1457,7 +1457,7 @@ public class DefenderSpawner
 			Vec3 s = globalFrame.rotation.s;
 			if ((s).LengthSquared < 0.001f)
 			{
-				(s)._002Ector(val2.y, 0f - val2.x, 0f, -1f);
+				s = new Vec3(val2.y, 0f - val2.x, 0f, -1f);
 			}
 			(s).Normalize();
 			float num = 25f;
@@ -2079,7 +2079,7 @@ public class DefenderSpawner
 			}
 			else
 			{
-				(asVec)._002Ector(0f, 0f);
+				asVec = new Vec2(0f, 0f);
 			}
 			Vec2 val = default(Vec2);
 			Vec3 val3 = default(Vec3);
@@ -2089,11 +2089,11 @@ public class DefenderSpawner
 				float num2 = Math.Max(10f, 40f - (float)i * 3f);
 				float num3 = Math.Max(30f, 80f - (float)i * 5f);
 				float num4 = num2 + (float)(_random.NextDouble() * (double)(num3 - num2));
-				(val)._002Ector((float)Math.Cos(num) * num4, (float)Math.Sin(num) * num4);
+				val = new Vec2((float)Math.Cos(num) * num4, (float)Math.Sin(num) * num4);
 				Vec2 val2 = asVec + val;
 				float num5 = 0f;
 				mission.Scene.GetHeightAtPoint(val2, (BodyFlags)544321929, ref num5);
-				(val3)._002Ector(val2.x, val2.y, num5, -1f);
+				val3 = new Vec3(val2.x, val2.y, num5, -1f);
 				if (IsSpawnPositionValid(mission, val3))
 				{
 					return val3;
@@ -2110,7 +2110,7 @@ public class DefenderSpawner
 					Vec2 val4 = asVec + new Vec2((float)Math.Cos(num6) * num7, (float)Math.Sin(num6) * num7);
 					float num8 = 0f;
 					mission.Scene.GetHeightAtPoint(val4, (BodyFlags)544321929, ref num8);
-					(val5)._002Ector(val4.x, val4.y, num8, -1f);
+					val5 = new Vec3(val4.x, val4.y, num8, -1f);
 					if (IsSpawnPositionValid(mission, val5))
 					{
 						_logger.Log($"Using near-player fallback spawn at {val5}");
@@ -2464,11 +2464,11 @@ public class DefenderSpawner
 				Vec3 globalPosition2 = val4.GlobalPosition;
 				float num2 = (float)(_random.NextDouble() * Math.PI * 2.0);
 				float num3 = (float)(_random.NextDouble() * 2.0);
-				(val5)._002Ector((float)Math.Cos(num2) * num3, (float)Math.Sin(num2) * num3);
+				val5 = new Vec2((float)Math.Cos(num2) * num3, (float)Math.Sin(num2) * num3);
 				Vec2 val6 = (globalPosition2).AsVec2 + val5;
 				float z = globalPosition2.z;
 				mission.Scene.GetHeightAtPoint(val6, (BodyFlags)544321929, ref z);
-				(val7)._002Ector(val6.x, val6.y, z, -1f);
+				val7 = new Vec3(val6.x, val6.y, z, -1f);
 				if (IsSpawnPositionValid(mission, val7, checkPathAccessibility: false))
 				{
 					string arg = "N/A";
@@ -2562,7 +2562,7 @@ public class DefenderSpawner
 			}
 			else
 			{
-				(asVec)._002Ector(0f, 0f);
+				asVec = new Vec2(0f, 0f);
 			}
 			Vec2 val = default(Vec2);
 			Vec3 val6 = default(Vec3);
@@ -2570,7 +2570,7 @@ public class DefenderSpawner
 			{
 				float num = (float)(_random.NextDouble() * Math.PI * 2.0);
 				float num2 = 30f;
-				(val)._002Ector((float)Math.Cos(num) * num2, (float)Math.Sin(num) * num2);
+				val = new Vec2((float)Math.Cos(num) * num2, (float)Math.Sin(num) * num2);
 				Vec2 val2 = asVec + val;
 				Vec2 closestBoundaryPosition = mission.GetClosestBoundaryPosition(val2);
 				Vec2 val3 = asVec - closestBoundaryPosition;
@@ -2579,7 +2579,7 @@ public class DefenderSpawner
 				Vec2 val5 = closestBoundaryPosition + val4 * num3;
 				float num4 = 0f;
 				mission.Scene.GetHeightAtPoint(val5, (BodyFlags)544321929, ref num4);
-				(val6)._002Ector(val5.x, val5.y, num4, -1f);
+				val6 = new Vec3(val5.x, val5.y, num4, -1f);
 				if (IsSpawnPositionValid(mission, val6))
 				{
 					return val6;
@@ -2587,7 +2587,7 @@ public class DefenderSpawner
 			}
 			_logger.Log("Warning: Could not find flat spawn position after 10 attempts");
 			Vec2 val7 = default(Vec2);
-			(val7)._002Ector(1f, 0f);
+			val7 = new Vec2(1f, 0f);
 			Vec2 val8 = asVec + val7 * 20f;
 			float num5 = 0f;
 			mission.Scene.GetHeightAtPoint(val8, (BodyFlags)544321929, ref num5);
@@ -2709,15 +2709,15 @@ public class DefenderSpawner
 				return false;
 			}
 			Vec3 val = default(Vec3);
-			(val)._002Ector(position.x, position.y, z, -1f);
+			val = new Vec3(position.x, position.y, z, -1f);
 			if (checkPathAccessibility && Agent.Main != null && Agent.Main.IsActive())
 			{
 				try
 				{
 					WorldPosition val2 = default(WorldPosition);
-					(val2)._002Ector(mission.Scene, UIntPtr.Zero, val, false);
+					val2 = new WorldPosition(mission.Scene, UIntPtr.Zero, val, false);
 					WorldPosition val3 = default(WorldPosition);
-					(val3)._002Ector(mission.Scene, UIntPtr.Zero, Agent.Main.Position, false);
+					val3 = new WorldPosition(mission.Scene, UIntPtr.Zero, Agent.Main.Position, false);
 					float num = default(float);
 					if (!mission.Scene.GetPathDistanceBetweenPositions(ref val3, ref val2, 0f, ref num))
 					{

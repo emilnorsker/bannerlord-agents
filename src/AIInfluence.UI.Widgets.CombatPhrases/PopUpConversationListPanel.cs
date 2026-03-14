@@ -94,7 +94,7 @@ public class PopUpConversationListPanel : ListPanel
 
 	protected override void OnLateUpdate(float dt)
 	{
-		((Widget)this).OnLateUpdate(dt);
+		base.OnLateUpdate(dt);
 		UpdateFontSize();
 		UpdatePosition();
 	}

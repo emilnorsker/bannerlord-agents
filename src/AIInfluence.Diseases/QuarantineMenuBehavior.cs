@@ -10,6 +10,8 @@ using TaleWorlds.Core;
 using TaleWorlds.Core.ImageIdentifiers;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
+using OnConditionDelegate = TaleWorlds.CampaignSystem.GameMenus.GameMenuOption.OnConditionDelegate;
+using OnConsequenceDelegate = TaleWorlds.CampaignSystem.GameMenus.GameMenuOption.OnConsequenceDelegate;
 
 namespace AIInfluence.Diseases;
 

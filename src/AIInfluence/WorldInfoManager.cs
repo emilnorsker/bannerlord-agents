@@ -3840,7 +3840,7 @@ public class WorldInfoManager
 		{
 			return;
 		}
-		BattleSideEnum val = (BattleSideEnum)((int)winningSide != 1);
+		BattleSideEnum val = (BattleSideEnum)(1 - (int)winningSide);
 		BattleInitialData battleInitialData = null;
 		if (_battleInitialData.TryGetValue(mapEvent, out var value))
 		{

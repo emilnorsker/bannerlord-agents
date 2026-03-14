@@ -53,13 +53,13 @@ public class CombatPhrasesDisplay : MissionLogic
 
 	public override void AfterStart()
 	{
-		((MissionBehavior)this).AfterStart();
+		base.AfterStart();
 		CombatPhrasePopupView.EnsureCreated();
 	}
 
 	public override void OnMissionTick(float dt)
 	{
-		((MissionBehavior)this).OnMissionTick(dt);
+		base.OnMissionTick(dt);
 		if (!_initialized || _analysis == null || Agent.Main == null)
 		{
 			return;
@@ -157,7 +157,7 @@ public class CombatPhrasesDisplay : MissionLogic
 
 	public override void OnRemoveBehavior()
 	{
-		((MissionBehavior)this).OnRemoveBehavior();
+		base.OnRemoveBehavior();
 		try
 		{
 			_agentsWhoSpoke.Clear();

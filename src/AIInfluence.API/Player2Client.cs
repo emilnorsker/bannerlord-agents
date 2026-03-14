@@ -264,13 +264,13 @@ public static class Player2Client
 			JArray val2 = new JArray();
 			val2.Add((JToken)new JObject
 			{
-				["role"] = JToken.op_Implicit("system"),
-				["content"] = JToken.op_Implicit(systemPrompt)
+				["role"] = (JToken)("system"),
+				["content"] = (JToken)(systemPrompt)
 			});
 			val2.Add((JToken)new JObject
 			{
-				["role"] = JToken.op_Implicit("user"),
-				["content"] = JToken.op_Implicit(prompt)
+				["role"] = (JToken)("user"),
+				["content"] = (JToken)(prompt)
 			});
 			val["messages"] = (JToken)val2;
 			JObject requestBody = val;
@@ -345,8 +345,8 @@ public static class Player2Client
 			JArray val2 = new JArray();
 			val2.Add((JToken)new JObject
 			{
-				["role"] = JToken.op_Implicit("user"),
-				["content"] = JToken.op_Implicit("Hello")
+				["role"] = (JToken)("user"),
+				["content"] = (JToken)("Hello")
 			});
 			val["messages"] = (JToken)val2;
 			JObject requestBody = val;
@@ -533,19 +533,19 @@ public static class Player2Client
 			VoiceInfo voiceInfo = await GetVoiceInfoAsync(assignedVoice);
 			string voiceGender = voiceInfo?.Gender ?? "male";
 			string voiceLanguage = ConvertLanguageToISO(voiceInfo?.Language ?? "en_US");
-			JObject val = new JObject { ["text"] = JToken.op_Implicit(filteredText) };
+			JObject val = new JObject { ["text"] = (JToken)(filteredText) };
 			JArray val2 = new JArray();
-			val2.Add(JToken.op_Implicit(assignedVoice));
+			val2.Add((JToken)(assignedVoice));
 			val["voice_ids"] = (JToken)val2;
-			val["speed"] = JToken.op_Implicit(speed);
-			val["play_in_app"] = JToken.op_Implicit(false);
-			val["audio_format"] = JToken.op_Implicit("pcm");
-			val["voice_gender"] = JToken.op_Implicit(voiceGender);
-			val["voice_language"] = JToken.op_Implicit(voiceLanguage);
+			val["speed"] = (JToken)(speed);
+			val["play_in_app"] = (JToken)(false);
+			val["audio_format"] = (JToken)("pcm");
+			val["voice_gender"] = (JToken)(voiceGender);
+			val["voice_language"] = (JToken)(voiceLanguage);
 			JObject requestBody = val;
 			if (!string.IsNullOrWhiteSpace(ttsInstructions))
 			{
-				requestBody["advanced_voice"] = (JToken)new JObject { ["instructions"] = JToken.op_Implicit(ttsInstructions) };
+				requestBody["advanced_voice"] = (JToken)new JObject { ["instructions"] = (JToken)(ttsInstructions) };
 			}
 			HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url);
 			request.Content = (HttpContent)new StringContent(((JToken)requestBody).ToString((Formatting)0, Array.Empty<JsonConverter>()), Encoding.UTF8, "application/json");
@@ -623,19 +623,19 @@ public static class Player2Client
 			string voiceGender = voiceInfo?.Gender ?? "male";
 			string voiceLanguageRaw = voiceInfo?.Language ?? "en_US";
 			string voiceLanguage = ConvertLanguageToISO(voiceLanguageRaw);
-			JObject val = new JObject { ["text"] = JToken.op_Implicit(filteredText) };
+			JObject val = new JObject { ["text"] = (JToken)(filteredText) };
 			JArray val2 = new JArray();
-			val2.Add(JToken.op_Implicit(assignedVoice));
+			val2.Add((JToken)(assignedVoice));
 			val["voice_ids"] = (JToken)val2;
-			val["speed"] = JToken.op_Implicit(speed);
-			val["play_in_app"] = JToken.op_Implicit(true);
-			val["audio_format"] = JToken.op_Implicit("mp3");
-			val["voice_gender"] = JToken.op_Implicit(voiceGender);
-			val["voice_language"] = JToken.op_Implicit(voiceLanguage);
+			val["speed"] = (JToken)(speed);
+			val["play_in_app"] = (JToken)(true);
+			val["audio_format"] = (JToken)("mp3");
+			val["voice_gender"] = (JToken)(voiceGender);
+			val["voice_language"] = (JToken)(voiceLanguage);
 			JObject requestBody = val;
 			if (!string.IsNullOrWhiteSpace(ttsInstructions))
 			{
-				requestBody["advanced_voice"] = (JToken)new JObject { ["instructions"] = JToken.op_Implicit(ttsInstructions) };
+				requestBody["advanced_voice"] = (JToken)new JObject { ["instructions"] = (JToken)(ttsInstructions) };
 			}
 			string json = ((JToken)requestBody).ToString((Formatting)0, Array.Empty<JsonConverter>());
 			StringContent content = new StringContent(json, Encoding.UTF8, "application/json");

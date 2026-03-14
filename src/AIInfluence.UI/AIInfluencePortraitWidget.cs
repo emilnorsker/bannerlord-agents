@@ -19,7 +19,7 @@ public class AIInfluencePortraitWidget : ImageIdentifierWidget
 	{
 		try
 		{
-			((ImageIdentifierWidget)this).OnContextActivated();
+			base.OnContextActivated();
 		}
 		catch (Exception)
 		{

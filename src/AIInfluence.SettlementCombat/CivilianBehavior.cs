@@ -713,7 +713,7 @@ public class CivilianBehavior
 			{
 				ItemObject val4 = list[_random.Next(list.Count)];
 				MissionWeapon val5 = default(MissionWeapon);
-				(val5)._002Ector(val4, (ItemModifier)null, (Banner)null);
+				val5 = new MissionWeapon(val4, (ItemModifier)null, (Banner)null);
 				civilian.Equipment[val.Value] = val5;
 				_logger.Log($"Gave tier 1 weapon '{((MBObjectBase)val4).StringId}' to civilian {civilian.Name} in slot {val.Value}");
 			}
@@ -903,9 +903,9 @@ public class CivilianBehavior
 					_logger.Log("WARNING: Fighting civilian " + item.Name + " has no weapon, converting to panic!");
 					_fightingCivilians.Remove(item);
 					AgentFlag agentFlags = item.GetAgentFlags();
-					agentFlags = (AgentFlag)(agentFlags & -9);
-					agentFlags = (AgentFlag)(agentFlags & -17);
-					agentFlags = (AgentFlag)(agentFlags | 0x20);
+					agentFlags = (AgentFlag)((int)agentFlags & -9);
+					agentFlags = (AgentFlag)((int)agentFlags & -17);
+					agentFlags = (AgentFlag)((int)agentFlags | 0x20);
 					item.SetAgentFlags(agentFlags);
 					item.SetAlarmState((AIStateFlag)0);
 					item.SetLookAgent((Agent)null);
@@ -926,10 +926,10 @@ public class CivilianBehavior
 				AgentFlag agentFlags2 = item.GetAgentFlags();
 				if (!Extensions.HasAnyFlag<AgentFlag>(agentFlags2, (AgentFlag)24))
 				{
-					agentFlags2 = (AgentFlag)(agentFlags2 | 8);
-					agentFlags2 = (AgentFlag)(agentFlags2 | 0x10);
-					agentFlags2 = (AgentFlag)(agentFlags2 & -33);
-					agentFlags2 = (AgentFlag)(agentFlags2 & -4097);
+					agentFlags2 = (AgentFlag)((int)agentFlags2 | 8);
+					agentFlags2 = (AgentFlag)((int)agentFlags2 | 0x10);
+					agentFlags2 = (AgentFlag)((int)agentFlags2 & -33);
+					agentFlags2 = (AgentFlag)((int)agentFlags2 & -4097);
 					item.SetAgentFlags(agentFlags2);
 				}
 			}
@@ -997,15 +997,15 @@ public class CivilianBehavior
 				bool flag = false;
 				if (Extensions.HasAnyFlag<AgentFlag>(val, (AgentFlag)24))
 				{
-					val = (AgentFlag)(val & -9);
-					val = (AgentFlag)(val & -17);
-					val = (AgentFlag)(val | 0x20);
-					val = (AgentFlag)(val & -4097);
+					val = (AgentFlag)((int)val & -9);
+					val = (AgentFlag)((int)val & -17);
+					val = (AgentFlag)((int)val | 0x20);
+					val = (AgentFlag)((int)val & -4097);
 					flag = true;
 				}
 				if (!Extensions.HasAnyFlag<AgentFlag>(val, (AgentFlag)32))
 				{
-					val = (AgentFlag)(val | 0x20);
+					val = (AgentFlag)((int)val | 0x20);
 					flag = true;
 				}
 				if (HasUsableWeapon(item))
@@ -1126,7 +1126,7 @@ public class CivilianBehavior
 					if (num4 < 0.1f)
 					{
 						float num5 = (float)(_random.NextDouble() * Math.PI * 2.0);
-						(val2)._002Ector(MathF.Cos(num5), MathF.Sin(num5));
+						val2 = new Vec2(MathF.Cos(num5), MathF.Sin(num5));
 					}
 					WorldPosition value2 = FindSafeFleePosition(item, val2, val, 35f);
 					if (!(value2).IsValid)
@@ -1136,7 +1136,7 @@ public class CivilianBehavior
 						(val4)._002Ector(val3.x, val3.y, item.Position.z, -1f);
 						(val5)._002Ector(Mission.Current.Scene, UIntPtr.Zero, val4, false);
 						Vec3 groundVec = (val5).GetGroundVec3();
-						(value2)._002Ector(Mission.Current.Scene, UIntPtr.Zero, groundVec, false);
+						value2 = new WorldPosition(Mission.Current.Scene, UIntPtr.Zero, groundVec, false);
 					}
 					item.SetScriptedPosition(ref value2, false, (AIScriptedFrameFlags)0);
 					_lastFleePositions[item] = value2;
@@ -1652,10 +1652,10 @@ public class CivilianBehavior
 			EnsureAgentTeam(civilian);
 			civilian.SetIsAIPaused(false);
 			AgentFlag agentFlags = civilian.GetAgentFlags();
-			agentFlags = (AgentFlag)(agentFlags & -9);
-			agentFlags = (AgentFlag)(agentFlags & -17);
-			agentFlags = (AgentFlag)(agentFlags | 0x20);
-			agentFlags = (AgentFlag)(agentFlags & -4097);
+			agentFlags = (AgentFlag)((int)agentFlags & -9);
+			agentFlags = (AgentFlag)((int)agentFlags & -17);
+			agentFlags = (AgentFlag)((int)agentFlags | 0x20);
+			agentFlags = (AgentFlag)((int)agentFlags & -4097);
 			civilian.SetAgentFlags(agentFlags);
 			AgentFlag agentFlags2 = civilian.GetAgentFlags();
 			if (Extensions.HasAnyFlag<AgentFlag>(agentFlags2, (AgentFlag)24))
@@ -1702,9 +1702,9 @@ public class CivilianBehavior
 				EnsureAgentTeam(civilian);
 				civilian.SetIsAIPaused(false);
 				AgentFlag agentFlags = civilian.GetAgentFlags();
-				agentFlags = (AgentFlag)(agentFlags & -9);
-				agentFlags = (AgentFlag)(agentFlags & -17);
-				agentFlags = (AgentFlag)(agentFlags | 0x20);
+				agentFlags = (AgentFlag)((int)agentFlags & -9);
+				agentFlags = (AgentFlag)((int)agentFlags & -17);
+				agentFlags = (AgentFlag)((int)agentFlags | 0x20);
 				civilian.SetAgentFlags(agentFlags);
 				civilian.SetLookAgent((Agent)null);
 				DropAllWeapons(civilian);
@@ -1768,9 +1768,9 @@ public class CivilianBehavior
 					_logger.Log("WARNING: Civilian " + civilian.Name + " cannot fight without weapon, converting to panic!");
 					_fightingCivilians.Remove(civilian);
 					AgentFlag agentFlags = civilian.GetAgentFlags();
-					agentFlags = (AgentFlag)(agentFlags & -9);
-					agentFlags = (AgentFlag)(agentFlags & -17);
-					agentFlags = (AgentFlag)(agentFlags | 0x20);
+					agentFlags = (AgentFlag)((int)agentFlags & -9);
+					agentFlags = (AgentFlag)((int)agentFlags & -17);
+					agentFlags = (AgentFlag)((int)agentFlags | 0x20);
 					civilian.SetAgentFlags(agentFlags);
 					civilian.SetAlarmState((AIStateFlag)0);
 					civilian.SetLookAgent((Agent)null);

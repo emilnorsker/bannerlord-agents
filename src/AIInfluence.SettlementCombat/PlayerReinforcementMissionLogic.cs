@@ -118,7 +118,7 @@ public class PlayerReinforcementMissionLogic : MissionLogic
 
 	public override void OnRemoveBehavior()
 	{
-		((MissionBehavior)this).OnRemoveBehavior();
+		base.OnRemoveBehavior();
 		try
 		{
 			if (_orderProvider != null)
@@ -147,7 +147,7 @@ public class PlayerReinforcementMissionLogic : MissionLogic
 		//IL_00f6: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0107: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0128: Unknown result type (might be due to invalid IL or missing references)
-		((MissionBehavior)this).OnBehaviorInitialize();
+		base.OnBehaviorInitialize();
 		try
 		{
 			_logger.Log("=== PlayerReinforcementMissionLogic.OnBehaviorInitialize ===");
@@ -200,7 +200,7 @@ public class PlayerReinforcementMissionLogic : MissionLogic
 		//IL_015d: Unknown result type (might be due to invalid IL or missing references)
 		//IL_016e: Unknown result type (might be due to invalid IL or missing references)
 		//IL_018f: Unknown result type (might be due to invalid IL or missing references)
-		((MissionBehavior)this).OnMissionTick(dt);
+		base.OnMissionTick(dt);
 		try
 		{
 			if (Settlement.CurrentSettlement == null || PlayerEncounter.EncounteredBattle != null)
@@ -1285,7 +1285,7 @@ public class PlayerReinforcementMissionLogic : MissionLogic
 			}
 			if (!flag)
 			{
-				_003F val3;
+				Vec2 val3;
 				if (!(_playerInitialSpawnPosition != Vec3.Zero))
 				{
 					Agent main = Agent.Main;
@@ -1307,7 +1307,7 @@ public class PlayerReinforcementMissionLogic : MissionLogic
 			Vec2 val4 = _playerInitialForward2D;
 			if ((val4).LengthSquared < 0.001f)
 			{
-				_003F val5;
+				Vec2 val5;
 				if (Agent.Main == null)
 				{
 					val5 = new Vec2(0f, 1f);
@@ -1324,7 +1324,7 @@ public class PlayerReinforcementMissionLogic : MissionLogic
 				(val4).Normalize();
 			}
 			Vec2 val6 = default(Vec2);
-			(val6)._002Ector(val4.y, 0f - val4.x);
+			val6 = new Vec2(val4.y, 0f - val4.x);
 			Scene scene = Mission.Current.Scene;
 			Vec3 val8 = default(Vec3);
 			WorldPosition val9 = default(WorldPosition);
@@ -1337,14 +1337,14 @@ public class PlayerReinforcementMissionLogic : MissionLogic
 				Vec2 val7 = (val).AsVec2 - val4 * num + val6 * num2;
 				float z = val.z;
 				scene.GetHeightAtPoint(val7, (BodyFlags)544321929, ref z);
-				(val8)._002Ector(val7.x, val7.y, z, -1f);
+				val8 = new Vec3(val7.x, val7.y, z, -1f);
 				bool flag2 = true;
 				if (Agent.Main != null && Agent.Main.IsActive())
 				{
 					try
 					{
-						(val9)._002Ector(scene, UIntPtr.Zero, Agent.Main.Position, false);
-						(val10)._002Ector(scene, UIntPtr.Zero, val8, false);
+						val9 = new WorldPosition(scene, UIntPtr.Zero, Agent.Main.Position, false);
+						val10 = new WorldPosition(scene, UIntPtr.Zero, val8, false);
 						flag2 = scene.GetPathDistanceBetweenPositions(ref val9, ref val10, 0f, ref num3) && num3 >= 0f && num3 < 100f;
 					}
 					catch
@@ -1415,12 +1415,12 @@ public class PlayerReinforcementMissionLogic : MissionLogic
 			float num = (float)(random.NextDouble() * Math.PI * 2.0);
 			float num2 = (float)(random.NextDouble() * 5.0);
 			Vec2 val2 = default(Vec2);
-			(val2)._002Ector((float)Math.Cos(num) * num2, (float)Math.Sin(num) * num2);
+			val2 = new Vec2((float)Math.Cos(num) * num2, (float)Math.Sin(num) * num2);
 			Vec2 val3 = (val).AsVec2 + val2;
 			float num3 = 0f;
 			current.Scene.GetHeightAtPoint(val3, (BodyFlags)544321929, ref num3);
 			Vec3 val4 = default(Vec3);
-			(val4)._002Ector(val3.x, val3.y, num3, -1f);
+			val4 = new Vec3(val3.x, val3.y, num3, -1f);
 			_logger.Log($"[AMBUSH] Spawning at point #{(_ambushSpawnIndex - 1) % _ambushSpawnPoints.Count} with scatter: {val4}");
 			return val4;
 		}
@@ -1491,7 +1491,7 @@ public class PlayerReinforcementMissionLogic : MissionLogic
 				for (int j = 0; j < 5; j++)
 				{
 					float num4 = num3 + (float)((random.NextDouble() - 0.5) * (double)num2 * 0.4);
-					(val2)._002Ector((float)Math.Cos(num4), (float)Math.Sin(num4));
+					val2 = new Vec2((float)Math.Cos(num4), (float)Math.Sin(num4));
 					Vec2 val3 = asVec + val2 * 50f;
 					Vec2 closestBoundaryPosition = mission.GetClosestBoundaryPosition(val3);
 					float num5 = 6f + (float)(random.NextDouble() * 6.0);
@@ -1502,19 +1502,19 @@ public class PlayerReinforcementMissionLogic : MissionLogic
 					}
 					else
 					{
-						(val4)._002Ector(0f - (float)Math.Cos(num4), 0f - (float)Math.Sin(num4));
+						val4 = new Vec2(0f - (float)Math.Cos(num4), 0f - (float)Math.Sin(num4));
 					}
 					Vec2 val5 = closestBoundaryPosition + val4 * num5;
 					float num6 = 0f;
 					mission.Scene.GetHeightAtPoint(val5, (BodyFlags)544321929, ref num6);
-					(val6)._002Ector(val5.x, val5.y, num6, -1f);
+					val6 = new Vec3(val5.x, val5.y, num6, -1f);
 					if (IsPositionFlat(mission, val6))
 					{
 						bool flag2 = true;
 						try
 						{
-							(val7)._002Ector(mission.Scene, UIntPtr.Zero, Agent.Main.Position, false);
-							(val8)._002Ector(mission.Scene, UIntPtr.Zero, val6, false);
+							val7 = new WorldPosition(mission.Scene, UIntPtr.Zero, Agent.Main.Position, false);
+							val8 = new WorldPosition(mission.Scene, UIntPtr.Zero, val6, false);
 							flag2 = mission.Scene.GetPathDistanceBetweenPositions(ref val7, ref val8, 0f, ref num7) && num7 >= 0f && num7 < 300f;
 						}
 						catch
@@ -1629,7 +1629,7 @@ public class PlayerReinforcementMissionLogic : MissionLogic
 			Vec3 s = globalFrame.rotation.s;
 			if ((s).LengthSquared < 0.001f)
 			{
-				(s)._002Ector(val2.y, 0f - val2.x, 0f, -1f);
+				s = new Vec3(val2.y, 0f - val2.x, 0f, -1f);
 			}
 			(s).Normalize();
 			Random random = new Random(Guid.NewGuid().GetHashCode());
@@ -1950,7 +1950,7 @@ public class PlayerReinforcementMissionLogic : MissionLogic
 						if (Agent.Main != null)
 						{
 							item2.SetLookAgent(Agent.Main);
-							item2.SetAgentFlags((AgentFlag)(item2.GetAgentFlags() | 8 | 0x10));
+							item2.SetAgentFlags((AgentFlag)((int)item2.GetAgentFlags() | 8 | 0x10));
 						}
 						num++;
 						_logger.Log("[TRANSFER] Agent " + item2.Name + " transferred to DefenderTeam");

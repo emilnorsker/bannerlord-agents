@@ -44,7 +44,7 @@ public class CombatPhrasePopupView : MissionView
 	{
 		//IL_0022: Unknown result type (might be due to invalid IL or missing references)
 		//IL_002c: Expected O, but got Unknown
-		((MissionView)this).OnMissionScreenInitialize();
+		base.OnMissionScreenInitialize();
 		Instance = this;
 		_viewModel = new CombatPhrasePopupVM();
 		_layer = new GauntletLayer("GauntletLayer", 1, false);
@@ -56,7 +56,7 @@ public class CombatPhrasePopupView : MissionView
 
 	public override void OnMissionScreenFinalize()
 	{
-		((MissionView)this).OnMissionScreenFinalize();
+		base.OnMissionScreenFinalize();
 		if (_layer != null)
 		{
 			((ScreenBase)((MissionView)this).MissionScreen).RemoveLayer((ScreenLayer)(object)_layer);
@@ -70,7 +70,7 @@ public class CombatPhrasePopupView : MissionView
 
 	public override void OnMissionScreenTick(float dt)
 	{
-		((MissionView)this).OnMissionScreenTick(dt);
+		base.OnMissionScreenTick(dt);
 		if (_viewModel != null && ((MissionBehavior)this).Mission != null)
 		{
 			MissionScreen missionScreen = ((MissionView)this).MissionScreen;

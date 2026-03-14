@@ -1013,7 +1013,7 @@ public class SettlementCombatManager
 				}
 				WieldBestMeleeWeapon(agent);
 				agent.SetWatchState((WatchState)2);
-				agent.SetAgentFlags((AgentFlag)(agent.GetAgentFlags() | 8 | 0x10));
+				agent.SetAgentFlags((AgentFlag)((int)agent.GetAgentFlags() | 8 | 0x10));
 				if (!playerIsAggressor && aggressorAgent != null && aggressorAgent != Agent.Main)
 				{
 					agent.SetLookAgent(aggressorAgent);
@@ -1027,7 +1027,7 @@ public class SettlementCombatManager
 				}
 				WieldBestMeleeWeapon(agent);
 				agent.SetWatchState((WatchState)2);
-				agent.SetAgentFlags((AgentFlag)(agent.GetAgentFlags() | 8 | 0x10));
+				agent.SetAgentFlags((AgentFlag)((int)agent.GetAgentFlags() | 8 | 0x10));
 				if (Agent.Main != null)
 				{
 					agent.SetLookAgent(Agent.Main);
@@ -1398,10 +1398,10 @@ public class SettlementCombatManager
 						WieldBestMeleeWeapon(item);
 						item.SetWatchState((WatchState)2);
 						AgentFlag agentFlags = item.GetAgentFlags();
-						agentFlags = (AgentFlag)(agentFlags | 8);
-						agentFlags = (AgentFlag)(agentFlags | 0x10);
-						agentFlags = (AgentFlag)(agentFlags & -33);
-						agentFlags = (AgentFlag)(agentFlags & -4097);
+						agentFlags = (AgentFlag)((int)agentFlags | 8);
+						agentFlags = (AgentFlag)((int)agentFlags | 0x10);
+						agentFlags = (AgentFlag)((int)agentFlags & -33);
+						agentFlags = (AgentFlag)((int)agentFlags & -4097);
 						item.SetAgentFlags(agentFlags);
 						if (!flag && val != null)
 						{
@@ -1428,7 +1428,7 @@ public class SettlementCombatManager
 					{
 						item.SetLookAgent(val);
 					}
-					item.SetAgentFlags((AgentFlag)(item.GetAgentFlags() | 8 | 0x10));
+					item.SetAgentFlags((AgentFlag)((int)item.GetAgentFlags() | 8 | 0x10));
 					defendersFound++;
 				}
 			}
@@ -1642,7 +1642,7 @@ public class SettlementCombatManager
 					{
 						val.SetLookAgent(Agent.Main);
 					}
-					val.SetAgentFlags((AgentFlag)(val.GetAgentFlags() | 8 | 0x10));
+					val.SetAgentFlags((AgentFlag)((int)val.GetAgentFlags() | 8 | 0x10));
 					_logger.Log("NPC attacker prepared for combat");
 				}
 			}
@@ -2041,7 +2041,7 @@ public class SettlementCombatManager
 						Vec2 val4 = val2 - val3;
 						if ((val4).LengthSquared <= 0.0001f)
 						{
-							(val4)._002Ector(1f, 0f);
+							val4 = new Vec2(1f, 0f);
 						}
 						else
 						{

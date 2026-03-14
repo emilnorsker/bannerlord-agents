@@ -39,6 +39,7 @@ using TaleWorlds.Library;
 using TaleWorlds.Localization;
 using TaleWorlds.MountAndBlade;
 using TaleWorlds.ObjectSystem;
+using KillCharacterAction = TaleWorlds.CampaignSystem.Actions.KillCharacterAction;
 
 namespace AIInfluence;
 
@@ -131,7 +132,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 		finally
 		{
-			((object)this).Finalize();
+			base.Finalize();
 		}
 	}
 
@@ -161,7 +162,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			GlobalSettings<ModSettings>.Instance.OnSettingChanged += OnSettingChanged;
 			_settingsSubscribed = true;
 			_settingsOwner = this;
-			LogMessage($"[SYSTEM] Subscribed to settings events for instance {((object)this).GetHashCode()}");
+			LogMessage($"[SYSTEM] Subscribed to settings events for instance {base.GetHashCode()}");
 		}
 		else
 		{
@@ -4152,7 +4153,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			LogMessage("[SETTINGS] Ignoring setting change '" + settingName + "' - behavior not initialized yet");
 			return;
 		}
-		LogMessage($"[SETTINGS] Setting '{settingName}' changed to '{value}' for instance {((object)this).GetHashCode()}.");
+		LogMessage($"[SETTINGS] Setting '{settingName}' changed to '{value}' for instance {base.GetHashCode()}.");
 		if (settingName == "ClearAllNPCs" && (bool)value)
 		{
 			GlobalSettings<ModSettings>.Instance.ClearAllNPCs = false;
@@ -7386,7 +7387,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 							}
 						}
 						Blow val3 = default(Blow);
-						(val3)._002Ector(val.Index);
+						val3 = new Blow(val.Index);
 						val3.DamageType = (DamageTypes)0;
 						val3.BoneIndex = val.Monster.HeadLookDirectionBoneIndex;
 						val3.GlobalPosition = val.Position;

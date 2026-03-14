@@ -39,7 +39,7 @@ public class CombatPhrasePopupItemVM : ViewModel
 			if (_screenPosition != value)
 			{
 				_screenPosition = value;
-				((ViewModel)this).OnPropertyChangedWithValue(value, "ScreenPosition");
+				base.OnPropertyChangedWithValue(value, "ScreenPosition");
 			}
 		}
 	}
@@ -73,7 +73,7 @@ public class CombatPhrasePopupItemVM : ViewModel
 			if (_isEnemy != value)
 			{
 				_isEnemy = value;
-				((ViewModel)this).OnPropertyChangedWithValue(value, "IsEnemy");
+				base.OnPropertyChangedWithValue(value, "IsEnemy");
 			}
 		}
 	}
@@ -90,7 +90,7 @@ public class CombatPhrasePopupItemVM : ViewModel
 			if (_distance != value)
 			{
 				_distance = value;
-				((ViewModel)this).OnPropertyChangedWithValue(value, "Distance");
+				base.OnPropertyChangedWithValue(value, "Distance");
 			}
 		}
 	}
@@ -107,8 +107,8 @@ public class CombatPhrasePopupItemVM : ViewModel
 			if (Math.Abs(_fontSize - value) > 0.001f)
 			{
 				_fontSize = value;
-				((ViewModel)this).OnPropertyChangedWithValue(value, "FontSize");
-				((ViewModel)this).OnPropertyChanged("FontSizeInt");
+				base.OnPropertyChangedWithValue(value, "FontSize");
+				base.OnPropertyChanged("FontSizeInt");
 			}
 		}
 	}

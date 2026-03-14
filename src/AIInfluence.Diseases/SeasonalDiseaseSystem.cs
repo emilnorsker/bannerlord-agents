@@ -167,7 +167,7 @@ public static class SeasonalDiseaseSystem
 			WeatherEvent weatherEventInPosition = val2.GetWeatherEventInPosition(position2D);
 			WeatherEvent val3 = weatherEventInPosition;
 			WeatherEvent val4 = val3;
-			switch (val4 - 1)
+			switch ((int)val4 - 1)
 			{
 			case 0:
 				num += WeatherLightRainAdd;

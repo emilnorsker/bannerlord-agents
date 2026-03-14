@@ -135,27 +135,27 @@ public class AIGeneratedQuest : QuestBase
 			_targetNpcIdsCsv = "";
 			_targetNpcId = "";
 		}
-		((QuestBase)this).AddLog(new TextObject(description, (Dictionary<string, object>)null), false);
+		base.AddLog(new TextObject(description, (Dictionary<string, object>)null), false);
 		if (progressTarget > 0 && !string.IsNullOrEmpty(progressLabel))
 		{
-			_discreteLog = ((QuestBase)this).AddDiscreteLog(new TextObject(progressLabel, (Dictionary<string, object>)null), new TextObject(progressLabel, (Dictionary<string, object>)null), 0, progressTarget, (TextObject)null, false);
+			_discreteLog = base.AddDiscreteLog(new TextObject(progressLabel, (Dictionary<string, object>)null), new TextObject(progressLabel, (Dictionary<string, object>)null), 0, progressTarget, (TextObject)null, false);
 		}
-		((QuestBase)this).InitializeQuestOnCreation();
-		((QuestBase)this).StartQuest();
+		base.InitializeQuestOnCreation();
+		base.StartQuest();
 	}
 
 	public void AddUpdateLog(string message)
 	{
 		//IL_0004: Unknown result type (might be due to invalid IL or missing references)
 		//IL_000f: Expected O, but got Unknown
-		((QuestBase)this).AddLog(new TextObject(message, (Dictionary<string, object>)null), false);
+		base.AddLog(new TextObject(message, (Dictionary<string, object>)null), false);
 	}
 
 	public void SetDiscreteProgress(int currentProgress)
 	{
 		if (_discreteLog != null && _progressTarget > 0)
 		{
-			((QuestBase)this).UpdateQuestTaskStage(_discreteLog, Math.Min(currentProgress, _progressTarget));
+			base.UpdateQuestTaskStage(_discreteLog, Math.Min(currentProgress, _progressTarget));
 		}
 	}
 
@@ -247,7 +247,7 @@ public class AIGeneratedQuest : QuestBase
 				string message3 = "[QUEST_LOAD] WARNING: Quest '" + ((MBObjectBase)this).StringId + "' DueTime already passed! Extending by 7 days to prevent false fail.";
 				EarlyLog(message3);
 				AIInfluenceBehavior.Instance?.LogMessage(message3);
-				((QuestBase)this).ChangeQuestDueTime(CampaignTime.DaysFromNow(7f));
+				base.ChangeQuestDueTime(CampaignTime.DaysFromNow(7f));
 				CampaignTime questDueTime2 = ((QuestBase)this).QuestDueTime;
 				EarlyLog($"[QUEST_LOAD] ChangeQuestDueTime called. New due time: {(questDueTime2).ToDays:F0}");
 			}
@@ -302,6 +302,6 @@ public class AIGeneratedQuest : QuestBase
 		EarlyLog(message);
 		AIInfluenceBehavior.Instance?.LogMessage(message);
 		AIInfluenceBehavior.Instance?.HandleQuestTimedOut(((MBObjectBase)this).StringId, _title ?? "Unknown Quest", _npcStringId);
-		((QuestBase)this).OnFailed();
+		base.OnFailed();
 	}
 }
