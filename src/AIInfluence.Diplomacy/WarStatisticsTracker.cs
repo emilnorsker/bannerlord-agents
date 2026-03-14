@@ -1139,7 +1139,7 @@ public class WarStatisticsTracker
 				}
 			}
 			foreach (var item9 in from l in hashSet
-				orderby l.Item1, l.Name
+				orderby l.Item1, l.Item2
 				select l)
 			{
 				if (item9.Item2 != "Unknown" && !string.IsNullOrEmpty(item9.Item3))

@@ -2182,7 +2182,7 @@ public class WorldInfoManager
 		case "SettlementCapture":
 			if (task.ExtraData is SettlementCaptureData settlementCaptureData)
 			{
-				string personalizedSettlementEvent = GetPersonalizedSettlementEvent(npc, settlementCaptureData.Item1, settlementCaptureData.NewOwner, settlementCaptureData.PreviousOwner, null, "", settlementCaptureData.PlayerInvolved, settlementCaptureData.PlayerRoleTag);
+				string personalizedSettlementEvent = GetPersonalizedSettlementEvent(npc, settlementCaptureData.Settlement, settlementCaptureData.NewOwner, settlementCaptureData.PreviousOwner, null, "", settlementCaptureData.PlayerInvolved, settlementCaptureData.PlayerRoleTag);
 				CampaignEvent campaignEvent2 = new CampaignEvent
 				{
 					Type = "SettlementCapture",
@@ -2557,7 +2557,7 @@ public class WorldInfoManager
 			Description = description,
 			Timestamp = timestamp
 		};
-		if (AddEventToNPCWithLogic(context, npc, campaignEvent, tData.Item1, tData.Winner, deferSave, tData) && (flag2 || flag))
+		if (AddEventToNPCWithLogic(context, npc, campaignEvent, tData.Settlement, tData.Winner, deferSave, tData) && (flag2 || flag))
 		{
 			if (flag2)
 			{
@@ -3054,7 +3054,7 @@ public class WorldInfoManager
 		bool flag5 = flag || flag2 || flag3 || flag4;
 		TournamentData tournamentData = new TournamentData
 		{
-			Settlement = ((SettlementComponent)town).Item1,
+			Settlement = ((SettlementComponent)town).Settlement,
 			Winner = winner.HeroObject,
 			IsPlayerInvolved = flag5,
 			PlayerWon = flag,
@@ -3128,7 +3128,7 @@ public class WorldInfoManager
 			}
 		}
 		Hero heroObject2 = winner.HeroObject;
-		HashSet<string> collection = AddEventToDirectParticipantsImmediately("Tournament", ev, ((SettlementComponent)town).Item1, heroObject2, hashSet, tournamentData);
+		HashSet<string> collection = AddEventToDirectParticipantsImmediately("Tournament", ev, ((SettlementComponent)town).Settlement, heroObject2, hashSet, tournamentData);
 		HashSet<string> hashSet2 = new HashSet<string>(collection);
 		AIInfluenceBehavior instance = AIInfluenceBehavior.Instance;
 		if (instance != null && ((SettlementComponent)town).Settlement != null)
@@ -3166,7 +3166,7 @@ public class WorldInfoManager
 						}
 						if (flag6)
 						{
-							EventProcessingTask task = new EventProcessingTask("Tournament", ev, ((SettlementComponent)town).Item1, heroObject2, new List<string> { item3 }, defer: false, tournamentData);
+							EventProcessingTask task = new EventProcessingTask("Tournament", ev, ((SettlementComponent)town).Settlement, heroObject2, new List<string> { item3 }, defer: false, tournamentData);
 							ProcessSingleNpcForEvent(val3, value, task);
 							instance.SaveNPCContextImmediate(item3, val3, value);
 							hashSet2.Add(item3);
@@ -3175,7 +3175,7 @@ public class WorldInfoManager
 				}
 			}
 		}
-		QueueEventForInformedNPCs(ev, ((SettlementComponent)town).Item1, heroObject2, null, defer: false, tournamentData, hashSet2);
+		QueueEventForInformedNPCs(ev, ((SettlementComponent)town).Settlement, heroObject2, null, defer: false, tournamentData, hashSet2);
 	}
 
 	private void OnSettlementOwnerChanged(Settlement settlement, bool openToClaim, Hero newOwner, Hero oldOwner, Hero capturer, ChangeOwnerOfSettlementDetail detail)

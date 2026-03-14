@@ -495,7 +495,7 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 			_003C_003EO._003C1_003E__TrainTroopsConsequence = val2;
 			obj2 = (object)val2;
 		}
-		starter.AddGameMenuOption("town_arena", "arena_train_troops", "{=AIInfluence_ArenaTrainTroops}Train troops in the arena", (OnConditionDelegate)obj, (OnConsequenceDelegate)obj2, false, 2, false, (object)null);
+		starter.AddGameMenuOption("town_arena", "arena_train_troops", "{=AIInfluence_ArenaTrainTroops}Train troops in the arena", (GameMenuOption.OnConditionDelegate)obj, (GameMenuOption.OnConsequenceDelegate)obj2, false, 2, false, (object)null);
 		starter.AddGameMenu("arena_training_menu", "{ARENA_TRAINING_MENU_TEXT}", new OnInitDelegate(OnTrainingMenuInit), (MenuOverlayType)3, (MenuFlags)0, (object)null);
 		object obj3 = _003C_003EO._003C2_003E__TrainPlayerCondition;
 		if (obj3 == null)
@@ -511,7 +511,7 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 			_003C_003EO._003C3_003E__TrainPlayerConsequence = val4;
 			obj4 = (object)val4;
 		}
-		starter.AddGameMenuOption("arena_training_menu", "arena_train_player", "{=AIInfluence_ArenaTrainMyTroops}Train my troops", (OnConditionDelegate)obj3, (OnConsequenceDelegate)obj4, false, -1, false, (object)null);
+		starter.AddGameMenuOption("arena_training_menu", "arena_train_player", "{=AIInfluence_ArenaTrainMyTroops}Train my troops", (GameMenuOption.OnConditionDelegate)obj3, (GameMenuOption.OnConsequenceDelegate)obj4, false, -1, false, (object)null);
 		object obj5 = _003C_003EO._003C4_003E__TrainCompanionCondition;
 		if (obj5 == null)
 		{
@@ -526,7 +526,7 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 			_003C_003EO._003C5_003E__TrainCompanionSelectConsequence = val6;
 			obj6 = (object)val6;
 		}
-		starter.AddGameMenuOption("arena_training_menu", "arena_train_companion", "{=AIInfluence_ArenaTrainCompanion}Train companion's troops", (OnConditionDelegate)obj5, (OnConsequenceDelegate)obj6, false, -1, false, (object)null);
+		starter.AddGameMenuOption("arena_training_menu", "arena_train_companion", "{=AIInfluence_ArenaTrainCompanion}Train companion's troops", (GameMenuOption.OnConditionDelegate)obj5, (GameMenuOption.OnConsequenceDelegate)obj6, false, -1, false, (object)null);
 		object obj7 = _003C_003EO._003C6_003E__TrainAllCondition;
 		if (obj7 == null)
 		{
@@ -541,7 +541,7 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 			_003C_003EO._003C7_003E__TrainAllConsequence = val8;
 			obj8 = (object)val8;
 		}
-		starter.AddGameMenuOption("arena_training_menu", "arena_train_all", "{=AIInfluence_ArenaTrainAll}Train all troops together", (OnConditionDelegate)obj7, (OnConsequenceDelegate)obj8, false, -1, false, (object)null);
+		starter.AddGameMenuOption("arena_training_menu", "arena_train_all", "{=AIInfluence_ArenaTrainAll}Train all troops together", (GameMenuOption.OnConditionDelegate)obj7, (GameMenuOption.OnConsequenceDelegate)obj8, false, -1, false, (object)null);
 		object obj9 = _003C_003Ec._003C_003E9__39_0;
 		if (obj9 == null)
 		{
@@ -564,7 +564,7 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 			_003C_003Ec._003C_003E9__39_1 = val10;
 			obj10 = (object)val10;
 		}
-		starter.AddGameMenuOption("arena_training_menu", "arena_training_back", "{=AIInfluence_ArenaTrainBack}Back to arena", (OnConditionDelegate)obj9, (OnConsequenceDelegate)obj10, true, -1, false, (object)null);
+		starter.AddGameMenuOption("arena_training_menu", "arena_training_back", "{=AIInfluence_ArenaTrainBack}Back to arena", (GameMenuOption.OnConditionDelegate)obj9, (GameMenuOption.OnConsequenceDelegate)obj10, true, -1, false, (object)null);
 		object obj11 = _003C_003EO._003C8_003E__OnTrainingWaitInit;
 		if (obj11 == null)
 		{
@@ -609,7 +609,7 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 			_003C_003Ec._003C_003E9__39_3 = val15;
 			obj15 = (object)val15;
 		}
-		starter.AddGameMenuOption("arena_training_wait", "arena_training_leave", "{=AIInfluence_ArenaTrainLeave}Stop training and leave", (OnConditionDelegate)obj14, (OnConsequenceDelegate)obj15, false, -1, false, (object)null);
+		starter.AddGameMenuOption("arena_training_wait", "arena_training_leave", "{=AIInfluence_ArenaTrainLeave}Stop training and leave", (GameMenuOption.OnConditionDelegate)obj14, (GameMenuOption.OnConsequenceDelegate)obj15, false, -1, false, (object)null);
 	}
 
 	private static bool TrainTroopsCondition(MenuCallbackArgs args)
