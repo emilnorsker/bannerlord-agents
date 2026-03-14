@@ -96,7 +96,7 @@ public class DiseaseTreatmentAiBehavior : CampaignBehaviorBase
 		AIBehaviorData item = default(AIBehaviorData);
 		item = new AIBehaviorData((IMapPoint)(object)settlement, (AiBehavior)2, val2, false, flag3, flag4);
 		float num5 = default(float);
-		if (p.TryGetBehaviorScore(ref item, ref num5))
+		if (p.TryGetBehaviorScore(ref item, out num5))
 		{
 			p.SetBehaviorScore(ref item, num5 + val4);
 		}

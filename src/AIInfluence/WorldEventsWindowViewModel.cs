@@ -120,7 +120,7 @@ public class WorldEventsWindowViewModel : ViewModel
 					}
 				}
 				List<WorldEventEntry> list7 = (from e in list5
-					orderby e.sortTime descending, e.sequenceOrder descending
+					orderby e.Item3 descending, e.sequenceOrder descending
 					select e.entry).ToList();
 				foreach (WorldEventEntry item5 in list7)
 				{

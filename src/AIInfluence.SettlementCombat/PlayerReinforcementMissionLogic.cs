@@ -1285,7 +1285,7 @@ public class PlayerReinforcementMissionLogic : MissionLogic
 			}
 			if (!flag)
 			{
-				Vec2 val3;
+				Vec3 val3;
 				if (!(_playerInitialSpawnPosition != Vec3.Zero))
 				{
 					Agent main = Agent.Main;
@@ -1295,7 +1295,7 @@ public class PlayerReinforcementMissionLogic : MissionLogic
 				{
 					val3 = _playerInitialSpawnPosition;
 				}
-				val = (Vec3)val3;
+				val = val3;
 				_logger.Log($"No spawn point tag found, using saved/current position: {val}");
 			}
 			if (TryGetMainGateSpawnPosition(out var spawnPosition))
@@ -1345,7 +1345,7 @@ public class PlayerReinforcementMissionLogic : MissionLogic
 					{
 						val9 = new WorldPosition(scene, UIntPtr.Zero, Agent.Main.Position, false);
 						val10 = new WorldPosition(scene, UIntPtr.Zero, val8, false);
-						flag2 = scene.GetPathDistanceBetweenPositions(ref val9, ref val10, 0f, ref num3) && num3 >= 0f && num3 < 100f;
+						flag2 = scene.GetPathDistanceBetweenPositions(ref val9, ref val10, 0f, out num3) && num3 >= 0f && num3 < 100f;
 					}
 					catch
 					{
@@ -1515,7 +1515,7 @@ public class PlayerReinforcementMissionLogic : MissionLogic
 						{
 							val7 = new WorldPosition(mission.Scene, UIntPtr.Zero, Agent.Main.Position, false);
 							val8 = new WorldPosition(mission.Scene, UIntPtr.Zero, val6, false);
-							flag2 = mission.Scene.GetPathDistanceBetweenPositions(ref val7, ref val8, 0f, ref num7) && num7 >= 0f && num7 < 300f;
+							flag2 = mission.Scene.GetPathDistanceBetweenPositions(ref val7, ref val8, 0f, out num7) && num7 >= 0f && num7 < 300f;
 						}
 						catch
 						{

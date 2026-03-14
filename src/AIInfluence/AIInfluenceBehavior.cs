@@ -132,7 +132,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 		finally
 		{
-			base.Finalize();
 		}
 	}
 
@@ -2232,7 +2231,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				{
 					bool flag = default(bool);
 					bool flag2 = default(bool);
-					string encounterMenu = Campaign.Current.Models.EncounterGameMenuModel.GetEncounterMenu(PlayerEncounter.EncounteredParty, PartyBase.MainParty, ref flag, ref flag2);
+					string encounterMenu = Campaign.Current.Models.EncounterGameMenuModel.GetEncounterMenu(PlayerEncounter.EncounteredParty, PartyBase.MainParty, out flag, out flag2);
 					if (!string.IsNullOrEmpty(encounterMenu))
 					{
 						GameMenu.ActivateGameMenu(encounterMenu);
@@ -7203,6 +7202,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					return;
 				}
 			}
+			npcKingdom = null;
 			ref Kingdom reference = ref npcKingdom;
 			IFaction mapFaction7 = npc.MapFaction;
 			reference = (Kingdom)(object)((mapFaction7 is Kingdom) ? mapFaction7 : null);

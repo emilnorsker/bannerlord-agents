@@ -506,7 +506,7 @@ public class CivilianBehavior
 		}
 		else if ((int)val != 15)
 		{
-			switch (val - 21)
+			switch ((int)val - 21)
 			{
 			case 0:
 			case 2:
@@ -1133,8 +1133,8 @@ public class CivilianBehavior
 					{
 						position = item.Position;
 						Vec2 val3 = (position).AsVec2 + val2 * 35f;
-						(val4)._002Ector(val3.x, val3.y, item.Position.z, -1f);
-						(val5)._002Ector(Mission.Current.Scene, UIntPtr.Zero, val4, false);
+						val4 = new Vec3(val3.x, val3.y, item.Position.z, -1f);
+						val5 = new WorldPosition(Mission.Current.Scene, UIntPtr.Zero, val4, false);
 						Vec3 groundVec = (val5).GetGroundVec3();
 						value2 = new WorldPosition(Mission.Current.Scene, UIntPtr.Zero, groundVec, false);
 					}
@@ -1321,8 +1321,8 @@ public class CivilianBehavior
 						continue;
 					}
 				}
-				(val4)._002Ector(val.x, val.y, num7, -1f);
-				(result)._002Ector(Mission.Current.Scene, UIntPtr.Zero, val4, false);
+				val4 = new Vec3(val.x, val.y, num7, -1f);
+				result = new WorldPosition(Mission.Current.Scene, UIntPtr.Zero, val4, false);
 				return result;
 			}
 			return WorldPosition.Invalid;

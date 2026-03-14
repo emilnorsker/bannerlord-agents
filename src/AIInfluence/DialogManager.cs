@@ -14,6 +14,8 @@ using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.Conversation;
 using OnConditionDelegate = TaleWorlds.CampaignSystem.Conversation.ConversationSentence.OnConditionDelegate;
 using OnConsequenceDelegate = TaleWorlds.CampaignSystem.Conversation.ConversationSentence.OnConsequenceDelegate;
+using OnClickableConditionDelegate = TaleWorlds.CampaignSystem.Conversation.ConversationSentence.OnClickableConditionDelegate;
+using OnPersuasionOptionDelegate = TaleWorlds.CampaignSystem.Conversation.ConversationSentence.OnPersuasionOptionDelegate;
 using TaleWorlds.CampaignSystem.Encounters;
 using TaleWorlds.CampaignSystem.GameState;
 using TaleWorlds.CampaignSystem.Party;

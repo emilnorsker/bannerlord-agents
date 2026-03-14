@@ -2182,7 +2182,7 @@ public class WorldInfoManager
 		case "SettlementCapture":
 			if (task.ExtraData is SettlementCaptureData settlementCaptureData)
 			{
-				string personalizedSettlementEvent = GetPersonalizedSettlementEvent(npc, settlementCaptureData.Settlement, settlementCaptureData.NewOwner, settlementCaptureData.PreviousOwner, null, "", settlementCaptureData.PlayerInvolved, settlementCaptureData.PlayerRoleTag);
+				string personalizedSettlementEvent = GetPersonalizedSettlementEvent(npc, settlementCaptureData.Item1, settlementCaptureData.NewOwner, settlementCaptureData.PreviousOwner, null, "", settlementCaptureData.PlayerInvolved, settlementCaptureData.PlayerRoleTag);
 				CampaignEvent campaignEvent2 = new CampaignEvent
 				{
 					Type = "SettlementCapture",
@@ -2557,7 +2557,7 @@ public class WorldInfoManager
 			Description = description,
 			Timestamp = timestamp
 		};
-		if (AddEventToNPCWithLogic(context, npc, campaignEvent, tData.Settlement, tData.Winner, deferSave, tData) && (flag2 || flag))
+		if (AddEventToNPCWithLogic(context, npc, campaignEvent, tData.Item1, tData.Winner, deferSave, tData) && (flag2 || flag))
 		{
 			if (flag2)
 			{
@@ -3054,7 +3054,7 @@ public class WorldInfoManager
 		bool flag5 = flag || flag2 || flag3 || flag4;
 		TournamentData tournamentData = new TournamentData
 		{
-			Settlement = ((SettlementComponent)town).Settlement,
+			Settlement = ((SettlementComponent)town).Item1,
 			Winner = winner.HeroObject,
 			IsPlayerInvolved = flag5,
 			PlayerWon = flag,
@@ -3128,7 +3128,7 @@ public class WorldInfoManager
 			}
 		}
 		Hero heroObject2 = winner.HeroObject;
-		HashSet<string> collection = AddEventToDirectParticipantsImmediately("Tournament", ev, ((SettlementComponent)town).Settlement, heroObject2, hashSet, tournamentData);
+		HashSet<string> collection = AddEventToDirectParticipantsImmediately("Tournament", ev, ((SettlementComponent)town).Item1, heroObject2, hashSet, tournamentData);
 		HashSet<string> hashSet2 = new HashSet<string>(collection);
 		AIInfluenceBehavior instance = AIInfluenceBehavior.Instance;
 		if (instance != null && ((SettlementComponent)town).Settlement != null)
@@ -3166,7 +3166,7 @@ public class WorldInfoManager
 						}
 						if (flag6)
 						{
-							EventProcessingTask task = new EventProcessingTask("Tournament", ev, ((SettlementComponent)town).Settlement, heroObject2, new List<string> { item3 }, defer: false, tournamentData);
+							EventProcessingTask task = new EventProcessingTask("Tournament", ev, ((SettlementComponent)town).Item1, heroObject2, new List<string> { item3 }, defer: false, tournamentData);
 							ProcessSingleNpcForEvent(val3, value, task);
 							instance.SaveNPCContextImmediate(item3, val3, value);
 							hashSet2.Add(item3);
@@ -3175,7 +3175,7 @@ public class WorldInfoManager
 				}
 			}
 		}
-		QueueEventForInformedNPCs(ev, ((SettlementComponent)town).Settlement, heroObject2, null, defer: false, tournamentData, hashSet2);
+		QueueEventForInformedNPCs(ev, ((SettlementComponent)town).Item1, heroObject2, null, defer: false, tournamentData, hashSet2);
 	}
 
 	private void OnSettlementOwnerChanged(Settlement settlement, bool openToClaim, Hero newOwner, Hero oldOwner, Hero capturer, ChangeOwnerOfSettlementDetail detail)
@@ -3360,7 +3360,7 @@ public class WorldInfoManager
 		//IL_0005: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
 		//IL_002d: Expected I4, but got Unknown
-		return (detail - 1) switch
+		return ((int)detail - 1) switch
 		{
 			0 => (killer != null) ? $"was murdered by {killer.Name} (id:{((MBObjectBase)killer).StringId})" : "was assassinated", 
 			1 => "died during childbirth", 
@@ -3382,7 +3382,7 @@ public class WorldInfoManager
 		//IL_0005: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0007: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0025: Expected I4, but got Unknown
-		return (detail - 1) switch
+		return ((int)detail - 1) switch
 		{
 			0 => $"murdered {victim.Name} (id:{((MBObjectBase)victim).StringId})", 
 			3 => $"slayed {victim.Name} (id:{((MBObjectBase)victim).StringId}) in battle", 
@@ -4785,7 +4785,7 @@ public class WorldInfoManager
 				list5.Sort(((Settlement Settlement, float Distance) a, (Settlement Settlement, float Distance) b) => a.Distance.CompareTo(b.Distance));
 				List<string> values = list5.Select<(Settlement, float), string>(delegate((Settlement Settlement, float Distance) x)
 				{
-					string text60 = (x.Settlement.IsTown ? "city" : (x.Settlement.IsCastle ? "castle" : "village"));
+					string text60 = (x.Item1.IsTown ? "city" : (x.Settlement.IsCastle ? "castle" : "village"));
 					CultureObject culture6 = x.Settlement.Culture;
 					string text61 = ((culture6 == null) ? null : ((object)((BasicCultureObject)culture6).Name)?.ToString()) ?? "unknown culture";
 					IFaction mapFaction7 = x.Settlement.MapFaction;
@@ -6473,7 +6473,7 @@ public class WorldInfoManager
 		//IL_0027: Expected I4, but got Unknown
 		if ((int)detail != 1)
 		{
-			return (detail - 4) switch
+			return ((int)detail - 4) switch
 			{
 				0 => "Enemy forces", 
 				2 => "Executioner", 

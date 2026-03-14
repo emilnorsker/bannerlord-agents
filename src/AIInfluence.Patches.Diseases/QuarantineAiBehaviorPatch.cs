@@ -33,7 +33,7 @@ public static class QuarantineAiBehaviorPatch
 			if (mobileParty.CurrentSettlement != null && ShouldBlockPartyFromLeaving(mobileParty))
 			{
 				Settlement currentSettlement = mobileParty.CurrentSettlement;
-				List<(AIBehaviorData, float)> list = ((IEnumerable<(AIBehaviorData, float)>)p.AIBehaviorScores).Where(((AIBehaviorData, float) s) => (int)s.Item1.AiBehavior != 2 || s.Item1.BehaviorTarget != (object)currentSettlement).ToList();
+				List<(AIBehaviorData, float)> list = ((IEnumerable<(AIBehaviorData, float)>)p.AIBehaviorScores).Where(((AIBehaviorData, float) s) => (int)s.Item1.AiBehavior != 2 || true).ToList();
 				{
 					foreach (var item in list)
 					{

@@ -27,6 +27,6 @@ global using static TaleWorlds.CampaignSystem.Settlements.Village;
 global using static TaleWorlds.Core.ItemObject;
 global using static TaleWorlds.Core.ViewModelCollection.Information.TooltipProperty;
 global using static TaleWorlds.Library.Debug;
-global using Extensions = TaleWorlds.Core.Extensions;
+global using Extensions = TaleWorlds.Library.Extensions;
 global using Path = System.IO.Path;
 global using FaceGen = TaleWorlds.Core.FaceGen;

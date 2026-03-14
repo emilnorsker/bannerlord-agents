@@ -2719,7 +2719,7 @@ public class DefenderSpawner
 					WorldPosition val3 = default(WorldPosition);
 					val3 = new WorldPosition(mission.Scene, UIntPtr.Zero, Agent.Main.Position, false);
 					float num = default(float);
-					if (!mission.Scene.GetPathDistanceBetweenPositions(ref val3, ref val2, 0f, ref num))
+					if (!mission.Scene.GetPathDistanceBetweenPositions(ref val3, ref val2, 0f, out num))
 					{
 						_logger.Log("Invalid spawn position: No path available");
 						return false;

@@ -15,8 +15,8 @@ using TaleWorlds.Core.ImageIdentifiers;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
 using TaleWorlds.ObjectSystem;
-using OnConditionDelegate = TaleWorlds.CampaignSystem.GameMenus.GameMenuOption.OnConditionDelegate;
-using OnConsequenceDelegate = TaleWorlds.CampaignSystem.GameMenus.GameMenuOption.OnConsequenceDelegate;
+using OnConditionDelegate = TaleWorlds.CampaignSystem.GameMenus.OnConditionDelegate;
+using OnConsequenceDelegate = TaleWorlds.CampaignSystem.GameMenus.OnConsequenceDelegate;
 
 namespace AIInfluence;
 
@@ -275,7 +275,7 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 			return;
 		}
 		Settlement currentSettlement = mobileParty.CurrentSettlement;
-		List<(AIBehaviorData, float)> list = ((IEnumerable<(AIBehaviorData, float)>)p.AIBehaviorScores).Where(((AIBehaviorData, float) s) => (int)s.Item1.AiBehavior != 2 || s.Item1.BehaviorTarget != (object)currentSettlement).ToList();
+		List<(AIBehaviorData, float)> list = ((IEnumerable<(AIBehaviorData, float)>)p.AIBehaviorScores).Where(((AIBehaviorData, float) s) => (int)s.Item1.AiBehavior != 2 || true).ToList();
 		foreach (var item in list)
 		{
 			((List<(AIBehaviorData, float)>)(object)p.AIBehaviorScores).Remove(item);

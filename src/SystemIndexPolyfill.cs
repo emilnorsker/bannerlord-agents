@@ -12,6 +12,7 @@ namespace System
         public static Index FromEnd(int value) => new Index(value, true);
         public int Value => _value < 0 ? ~_value : _value;
         public bool IsFromEnd => _value < 0;
+        public int GetOffset(int length) => IsFromEnd ? length - Value : Value;
         public static implicit operator Index(int value) => new Index(value);
     }
 
