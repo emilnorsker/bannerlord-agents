@@ -955,6 +955,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		obj.RewardItems = questAction.RewardItems ?? new List<QuestItemReward>();
 		obj.RewardSkill = questAction.RewardSkill ?? "";
 		obj.RewardSkillXp = Math.Max(0, Math.Min(questAction.RewardSkillXp, 10000));
+		obj.CrimeRatingChange = questAction.CrimeRatingChange;
+		obj.InfluenceChange = questAction.InfluenceChange;
 		AIQuestInfo item = obj;
 		context.ActiveAIQuests.Add(item);
 		SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
@@ -1027,6 +1029,28 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			else
 			{
 				LogMessage($"[QUEST] Item reward '{reward.ItemId}' not found in item database");
+			}
+		}
+	}
+
+	private void ApplyQuestPoliticalEffects(AIQuestInfo questInfo)
+	{
+		if (questInfo.CrimeRatingChange.HasValue && questInfo.CrimeRatingChange.Value != 0)
+		{
+			Kingdom kingdom = Hero.MainHero?.Clan?.Kingdom ?? Hero.MainHero?.MapFaction as Kingdom;
+			if (kingdom != null)
+			{
+				ChangeCrimeRatingAction.Apply(kingdom, (float)questInfo.CrimeRatingChange.Value, true);
+				LogMessage($"[QUEST] Crime rating changed by {questInfo.CrimeRatingChange.Value} in {kingdom.Name}");
+			}
+		}
+		if (questInfo.InfluenceChange.HasValue && questInfo.InfluenceChange.Value != 0)
+		{
+			Clan playerClan = Clan.PlayerClan;
+			if (playerClan != null)
+			{
+				ChangeClanInfluenceAction.Apply(playerClan, (float)questInfo.InfluenceChange.Value);
+				LogMessage($"[QUEST] Clan influence changed by {questInfo.InfluenceChange.Value}");
 			}
 		}
 	}
@@ -1177,6 +1201,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			val.CompleteQuestWithSuccess();
 			ApplyQuestItemRewards(questInfo);
 			ApplyQuestSkillReward(questInfo);
+			ApplyQuestPoliticalEffects(questInfo);
 			LogMessage("[QUEST] Completed quest '" + questInfo.Title + "' (game object found)");
 		}
 		else
@@ -1187,6 +1212,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			}
 			ApplyQuestItemRewards(questInfo);
 			ApplyQuestSkillReward(questInfo);
+			ApplyQuestPoliticalEffects(questInfo);
 			Hero val3 = ((!string.IsNullOrEmpty(questInfo.QuestGiverNpcId)) ? Hero.FindFirst((Func<Hero, bool>)((Hero h) => ((MBObjectBase)h).StringId == questInfo.QuestGiverNpcId)) : npc);
 			if (val3 != null)
 			{

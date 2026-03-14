@@ -60,6 +60,12 @@ public class AIQuestInfo
 	[JsonProperty("reward_skill_xp")]
 	public int RewardSkillXp { get; set; }
 
+	[JsonProperty("crime_rating_change")]
+	public int? CrimeRatingChange { get; set; }
+
+	[JsonProperty("influence_change")]
+	public int? InfluenceChange { get; set; }
+
 	public List<string> GetEffectiveTargetNpcIds()
 	{
 		if (TargetNpcIds != null && TargetNpcIds.Count > 0)
