@@ -68,6 +68,8 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 
 	private string _debugQuestGenerationPrompt = "";
 
+	private bool _debugQuestScenarioVerboseLogging = false;
+
 	private float _promptQuirksFrequency = 0.5f;
 
 	private bool _promptUseAsterisks = true;
@@ -4603,7 +4605,15 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 	}
 
 	[SettingPropertyGroup("Quest Debug", GroupOrder = 20)]
-	[SettingPropertyBool("Generate Quest From Prompt", Order = 2, RequireRestart = false, HintText = "Uses the Quest Generation Prompt text to ask the AI for a create_quest action, then immediately creates that quest on the nearest NPC.")]
+	[SettingPropertyBool("Verbose Prompt Quest Debug Logs", Order = 2, RequireRestart = false, HintText = "Logs detailed step-by-step debug output for prompt quest generation and hostile party spawning.")]
+	public bool DebugQuestScenarioVerboseLogging
+	{
+		get => _debugQuestScenarioVerboseLogging;
+		set => _debugQuestScenarioVerboseLogging = value;
+	}
+
+	[SettingPropertyGroup("Quest Debug", GroupOrder = 20)]
+	[SettingPropertyBool("Generate Quest From Prompt", Order = 3, RequireRestart = false, HintText = "Uses the Quest Generation Prompt text to ask the AI for a create_quest action, then immediately creates that quest on the nearest NPC.")]
 	public bool DebugGenerateQuestFromPrompt
 	{
 		get => false;
@@ -4617,7 +4627,7 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 	}
 
 	[SettingPropertyGroup("Quest Debug", GroupOrder = 20)]
-	[SettingPropertyBool("View Active AI Quests", Order = 3, RequireRestart = false, HintText = "Prints all active AI quests (ID, title, giver, rewards, progress) to the game log and HUD.")]
+	[SettingPropertyBool("View Active AI Quests", Order = 4, RequireRestart = false, HintText = "Prints all active AI quests (ID, title, giver, rewards, progress) to the game log and HUD.")]
 	public bool DebugViewActiveQuests
 	{
 		get => false;
@@ -4631,7 +4641,7 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 	}
 
 	[SettingPropertyGroup("Quest Debug", GroupOrder = 20)]
-	[SettingPropertyBool("Fail All Active AI Quests", Order = 4, RequireRestart = false, HintText = "Immediately fails every active AI quest. Useful for clearing stuck quests during testing.")]
+	[SettingPropertyBool("Fail All Active AI Quests", Order = 5, RequireRestart = false, HintText = "Immediately fails every active AI quest. Useful for clearing stuck quests during testing.")]
 	public bool DebugFailAllQuests
 	{
 		get => false;

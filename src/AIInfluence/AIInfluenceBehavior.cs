@@ -197,6 +197,19 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 	}
 
+	private bool IsQuestScenarioVerboseLoggingEnabled()
+	{
+		return GlobalSettings<ModSettings>.Instance?.DebugQuestScenarioVerboseLogging ?? false;
+	}
+
+	private void LogQuestScenarioVerbose(string message)
+	{
+		if (IsQuestScenarioVerboseLoggingEnabled())
+		{
+			LogMessage("[QuestDebugVerbose] " + message);
+		}
+	}
+
 	public Dictionary<string, NPCContext> GetNPCContexts()
 	{
 		return _npcContexts;
@@ -921,6 +934,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		//IL_0189: Unknown result type (might be due to invalid IL or missing references)
 		//IL_018e: Unknown result type (might be due to invalid IL or missing references)
 		string text = ((npc == null) ? null : ((object)npc.Name)?.ToString()) ?? "Unknown";
+		LogQuestScenarioVerbose($"ProcessCreateQuest start | npc='{text}' title='{questAction?.Title ?? ""}' spawn_hostile={questAction?.SpawnHostileParty ?? false}");
 		if (string.IsNullOrEmpty(questAction.Title) || string.IsNullOrEmpty(questAction.Description))
 		{
 			LogMessage("[QUEST] Quest from " + text + " has no title or description, ignoring");
@@ -1018,6 +1032,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 		if (questAction.SpawnHostileParty)
 		{
+			LogQuestScenarioVerbose($"ProcessCreateQuest hostile spawn requested | quest_id={text5}");
 			SpawnQuestHostileParty(npc, item, questAction);
 			SyncQuestInfoAcrossNpcs(item);
 			SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
@@ -1029,6 +1044,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	{
 		try
 		{
+			LogQuestScenarioVerbose($"SpawnQuestHostileParty start | quest_id={questInfo?.QuestId ?? "null"} anchor={questAction?.SpawnAnchor ?? "default"} near_npc={questAction?.SpawnNearNpcId ?? ""} near_settlement={questAction?.SpawnNearSettlementId ?? ""}");
 			int rawSize = questAction.HostilePartySize;
 			int troopCount = Math.Max(5, Math.Min(rawSize, 1500));
 			if (rawSize != troopCount)
@@ -1038,7 +1054,9 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			string partyLabel = string.IsNullOrEmpty(questAction.HostilePartyLabel) ? "Quest Enemies" : questAction.HostilePartyLabel;
 			string spawnAnchorUsed;
 			Vec2 spawnPos = ResolveHostileQuestSpawnPosition(questGiver, questAction, out spawnAnchorUsed);
+			LogQuestScenarioVerbose($"SpawnQuestHostileParty resolved spawn anchor '{spawnAnchorUsed}' -> ({spawnPos.X:F2}, {spawnPos.Y:F2})");
 			List<Clan> availableBanditClans = Clan.BanditFactions?.Where((Clan c) => c != null).ToList() ?? new List<Clan>();
+			LogQuestScenarioVerbose($"SpawnQuestHostileParty found {availableBanditClans.Count} candidate bandit clans");
 			if (availableBanditClans.Count == 0)
 			{
 				LogMessage("[QUEST] No bandit clans found for hostile party spawn");
@@ -1066,6 +1084,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage("[QUEST] Failed to resolve bandit clan for hostile party spawn");
 				return;
 			}
+			LogQuestScenarioVerbose($"SpawnQuestHostileParty selected clan id={((MBObjectBase)banditClan).StringId}");
 			if (compositionTroops.Count == 0 && !string.IsNullOrEmpty(questAction.HostileTroopName))
 			{
 				CharacterObject val2 = ItemMentionParser.FindBestTroopMatch(questAction.HostileTroopName);
@@ -1084,6 +1103,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage("[QUEST] No troop type found for hostile party spawn");
 				return;
 			}
+			LogQuestScenarioVerbose("SpawnQuestHostileParty composition resolved: " + string.Join(", ", compositionTroops.Select((CharacterObject t) => ((BasicCharacterObject)t).Name.ToString())));
 			Hero notableHero = CreateQuestPartyNotable(questGiver, spawnPos);
 			if (notableHero == null || !notableHero.IsNotable)
 			{
@@ -1114,6 +1134,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				CleanupSpawnedQuestNotable(questInfo, "party creation failed");
 				return;
 			}
+			LogQuestScenarioVerbose($"SpawnQuestHostileParty created party id={((MBObjectBase)party).StringId}");
 			questInfo.SpawnedPartyId = ((MBObjectBase)party).StringId;
 			bool partySetupOk = false;
 			try
@@ -1149,11 +1170,13 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		catch (Exception ex)
 		{
 			LogMessage("[QUEST] Error spawning hostile party: " + ex.Message + "\n" + ex.StackTrace);
+			LogQuestScenarioVerbose("SpawnQuestHostileParty exception captured");
 		}
 	}
 
 	private bool TryAddNotableCharacterToParty(MobileParty party, Hero hero)
 	{
+		LogQuestScenarioVerbose($"TryAddNotableCharacterToParty start | party={((MBObjectBase)party)?.StringId ?? "null"} hero={((MBObjectBase)hero)?.StringId ?? "null"}");
 		if (hero == null || !hero.IsNotable)
 		{
 			LogMessage("[QUEST] Could not create notable hero for hostile party");
@@ -1170,6 +1193,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	private Hero CreateQuestPartyNotable(Hero questGiver, Vec2 spawnPos)
 	{
+		LogQuestScenarioVerbose($"CreateQuestPartyNotable start | quest_giver={((MBObjectBase)questGiver)?.StringId ?? "null"} pos=({spawnPos.X:F2}, {spawnPos.Y:F2})");
 		Hero seedNotable = null;
 		Settlement seedSettlement = null;
 		List<Settlement> orderedSettlements = Settlement.All?.OrderBy((Settlement s) => s.GetPosition2D().Distance(spawnPos)).ToList();
@@ -1191,6 +1215,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			LogMessage("[QUEST] No seed notable found near hostile spawn position");
 			return null;
 		}
+		LogQuestScenarioVerbose($"CreateQuestPartyNotable seed notable={((MBObjectBase)seedNotable).StringId} settlement={((MBObjectBase)seedSettlement)?.StringId ?? "null"}");
 		Hero hero2 = null;
 		try
 		{
@@ -1216,6 +1241,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			LogMessage("[QUEST] Created hero is not notable: " + hero2.Name);
 			return null;
 		}
+		LogQuestScenarioVerbose($"CreateQuestPartyNotable result={((MBObjectBase)hero2)?.StringId ?? "null"}");
 		return hero2;
 	}
 
@@ -1223,6 +1249,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	{
 		bool strictFactionResolution = questAction?.HostileFactionStrict ?? false;
 		string exactFactionId = questAction?.HostileFactionId;
+		LogQuestScenarioVerbose($"ResolveHostileBanditClan start | strict={strictFactionResolution} id='{exactFactionId ?? ""}' name='{questAction?.HostileFactionName ?? ""}' candidates={banditClans?.Count ?? 0}");
 		if (!string.IsNullOrWhiteSpace(exactFactionId))
 		{
 			Clan clan = banditClans.FirstOrDefault((Clan c) => string.Equals(((MBObjectBase)c).StringId, exactFactionId, StringComparison.OrdinalIgnoreCase));
@@ -1276,6 +1303,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				bestScore = score;
 				bestClan = banditClan;
 			}
+			LogQuestScenarioVerbose($"ResolveHostileBanditClan candidate id={clanId} score={score} faction_score={factionNameScore}");
 		}
 		if (bestClan != null && bestScore > 0)
 		{
@@ -1292,6 +1320,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			LogMessage($"[QUEST] No strict faction match found; using deterministic fallback clan '{clan2.Name}' (id:{((MBObjectBase)clan2).StringId})");
 		}
+		LogQuestScenarioVerbose($"ResolveHostileBanditClan fallback result={((MBObjectBase)clan2)?.StringId ?? "null"}");
 		return clan2;
 	}
 
@@ -1349,6 +1378,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	{
 		spawnAnchorUsed = "quest_giver_default";
 		string spawnAnchor = questAction?.SpawnAnchor;
+		LogQuestScenarioVerbose($"ResolveHostileQuestSpawnPosition start | anchor='{spawnAnchor ?? ""}'");
 		if (string.IsNullOrWhiteSpace(spawnAnchor))
 		{
 			return GetDefaultHostileQuestSpawnPosition(questGiver);
@@ -1415,6 +1445,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	private bool TryResolveHeroSpawnPosition(string heroStringId, out Vec2 spawnPos)
 	{
 		spawnPos = default;
+		LogQuestScenarioVerbose("TryResolveHeroSpawnPosition for '" + (heroStringId ?? "") + "'");
 		if (string.IsNullOrEmpty(heroStringId))
 		{
 			return false;
@@ -1442,6 +1473,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	private bool TryResolveSettlementSpawnPosition(string settlementStringId, out Vec2 spawnPos)
 	{
 		spawnPos = default;
+		LogQuestScenarioVerbose("TryResolveSettlementSpawnPosition for '" + (settlementStringId ?? "") + "'");
 		if (string.IsNullOrEmpty(settlementStringId))
 		{
 			return false;
@@ -5009,15 +5041,18 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	private void DebugGenerateQuestFromPrompt()
 	{
 		string prompt = GlobalSettings<ModSettings>.Instance?.DebugQuestGenerationPrompt?.Trim();
+		LogQuestScenarioVerbose("DebugGenerateQuestFromPrompt invoked");
 		if (string.IsNullOrEmpty(prompt))
 		{
 			InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Quest Generation Prompt is empty.", ExtraColors.RedAIInfluence));
 			return;
 		}
+		LogQuestScenarioVerbose($"DebugGenerateQuestFromPrompt prompt length={prompt.Length}");
 		try
 		{
 			if (_debugPromptQuestGenerationInProgress)
 			{
+				LogQuestScenarioVerbose("DebugGenerateQuestFromPrompt skipped because a request is already running");
 				InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Prompt quest generation is already running.", ExtraColors.RedAIInfluence));
 				return;
 			}
@@ -5034,6 +5069,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] No suitable NPC found for prompt quest.", ExtraColors.RedAIInfluence));
 				return;
 			}
+			LogQuestScenarioVerbose($"DebugGenerateQuestFromPrompt selected quest giver id={((MBObjectBase)questGiver).StringId} name={questGiver.Name}");
 			_debugPromptQuestGenerationInProgress = true;
 			InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Generating quest from prompt...", ExtraColors.GreenAIInfluence));
 			string requestPrompt = "You are generating a Bannerlord quest action for debugging.\nReturn ONLY valid JSON in this exact wrapper:\n{\"quest_action\":{...}}\nInside quest_action provide action=create_quest with fields title, description, duration_days (7-60), reward_gold (0-5000), optional target_npc_ids, completer_npc_id, ai_verification_notes, progress_target, progress_label, reward_items, reward_skill, reward_skill_xp, crime_rating_change, influence_change, spawn_hostile_party, hostile_party_size, hostile_party_label, hostile_faction_id, hostile_faction_name, hostile_faction_strict, hostile_troop_name, hostile_troop_names, spawn_anchor, spawn_near_npc_id, spawn_near_settlement_id.\nhostile_faction_id is exact and takes priority; if not found, hostile_faction_name is used as fuzzy fallback.\nIf hostile_faction_strict=true and id/name cannot be resolved, the spawn fails.\nspawn_anchor allowed values: quest_giver, player, target_npc, npc_id, settlement_id.\nDo not add explanations.\nPlayer quest request: " + prompt;
@@ -5043,6 +5079,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				string requestError = null;
 				try
 				{
+					LogQuestScenarioVerbose("DebugGenerateQuestFromPrompt background request started");
 					Task<string> requestTask = SendAIRequestRaw(requestPrompt);
 					Task timeoutTask = Task.Delay(45000);
 					Task completedTask = await Task.WhenAny(requestTask, timeoutTask);
@@ -5054,6 +5091,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					else
 					{
 						rawResponse = await requestTask;
+						LogQuestScenarioVerbose($"DebugGenerateQuestFromPrompt response length={rawResponse?.Length ?? 0}");
 					}
 				}
 				catch (Exception ex2)
@@ -5063,6 +5101,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				}
 				try
 				{
+					LogQuestScenarioVerbose("DebugGenerateQuestFromPrompt enqueueing main-thread response handling");
 					TtsLipSyncService.MainThreadQueue.Enqueue(delegate
 					{
 						try
@@ -5094,6 +5133,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				{
 					_debugPromptQuestGenerationInProgress = false;
 					LogMessage("[QuestDebug] Failed to enqueue main-thread quest generation action: " + ex4.Message + "\n" + ex4.StackTrace);
+					LogQuestScenarioVerbose("DebugGenerateQuestFromPrompt failed to enqueue main-thread action");
 				}
 			});
 		}
@@ -5107,6 +5147,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	private void HandleDebugGeneratedQuestResponse(Hero questGiver, NPCContext context, string rawResponse)
 	{
+		LogQuestScenarioVerbose($"HandleDebugGeneratedQuestResponse start | response_length={rawResponse?.Length ?? 0}");
 		if (string.IsNullOrEmpty(rawResponse) || rawResponse.StartsWith("Error:"))
 		{
 			LogMessage("[QuestDebug] Prompt quest AI request failed: " + (rawResponse ?? "empty response"));
@@ -5114,10 +5155,12 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			return;
 		}
 		string cleanedResponse = JsonCleaner.CleanJsonGeneric(rawResponse) ?? rawResponse;
+		LogQuestScenarioVerbose($"HandleDebugGeneratedQuestResponse cleaned_length={cleanedResponse?.Length ?? 0}");
 		AIResponse aiResponse = JsonConvert.DeserializeObject<AIResponse>(cleanedResponse);
 		QuestActionData questAction = aiResponse?.QuestAction;
 		if (questAction == null)
 		{
+			LogQuestScenarioVerbose("HandleDebugGeneratedQuestResponse falling back to direct QuestActionData parse");
 			questAction = JsonConvert.DeserializeObject<QuestActionData>(cleanedResponse);
 		}
 		if (questAction == null)
@@ -5132,6 +5175,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Prompt quest response action must be create_quest.", ExtraColors.RedAIInfluence));
 			return;
 		}
+		LogQuestScenarioVerbose($"HandleDebugGeneratedQuestResponse parsed action=create_quest title='{questAction.Title ?? ""}' spawn_hostile={questAction.SpawnHostileParty}");
 		ProcessCreateQuest(questGiver, context, questAction);
 		InformationManager.DisplayMessage(new InformationMessage($"[QuestDebug] Prompt quest created on {questGiver.Name}.", ExtraColors.GreenAIInfluence));
 	}
