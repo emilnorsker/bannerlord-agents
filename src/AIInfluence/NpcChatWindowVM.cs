@@ -155,7 +155,7 @@ public class NpcChatWindowVM : ViewModel
             {
                 string speech = content.Substring(pos, m.Index - pos).Trim();
                 if (!string.IsNullOrEmpty(speech))
-                    yield return new ChatMessageItemVM("", "#E8DCC8FF", speech, "#2A2218CC", "speech");
+                    yield return new ChatMessageItemVM("", "#E8DCC8FF", speech, "#14100AFF", "speech");
             }
             yield return new ChatMessageItemVM("", "#CF4444FF", m.Value, "#00000000", "emote");
             pos = m.Index + m.Length;
@@ -164,7 +164,7 @@ public class NpcChatWindowVM : ViewModel
         {
             string remainder = content.Substring(pos).Trim();
             if (!string.IsNullOrEmpty(remainder))
-                yield return new ChatMessageItemVM("", "#E8DCC8FF", remainder, "#2A2218CC", "speech");
+                yield return new ChatMessageItemVM("", "#E8DCC8FF", remainder, "#14100AFF", "speech");
         }
     }
 
