@@ -135,8 +135,12 @@ public class NpcChatWindowVM : ViewModel
     // ── Segment parser ────────────────────────────────────────────────────
 
     private static readonly Regex EmoteRegex = new Regex(@"\*([^*]+)\*", RegexOptions.Compiled);
-    private const string NpcNameColor    = "#C6AC8DFF";
-    private const string PlayerNameColor = "#C6AC8DFF";
+    private const string NameColor        = "#C6AC8DFF";
+    private const string SpeechTextColor  = "#E8DCC8FF";
+    private const string NpcBubbleColor   = "#0D1118D0"; // dark blue-grey for NPC speech
+    private const string PlayerBubbleColor = "#000000D0"; // darker for player speech
+    private const string EmoteColor       = "#CF4444FF";
+    private const string ActionColor      = "#9B59B6FF";
 
     private bool IsPlayerSender(string sender)
     {
@@ -149,7 +153,7 @@ public class NpcChatWindowVM : ViewModel
 
     /// <summary>
     /// Produces ONE ChatMessageItemVM per conversation turn.
-    /// Sender name, speech, and emote are separate properties — no ordering issue.
+    /// ContentSegments preserves the original speech/emote interleaving order.
     /// </summary>
     private ChatMessageItemVM ParseLine(string line, string typeTag = "")
     {
@@ -157,40 +161,53 @@ public class NpcChatWindowVM : ViewModel
         string sender  = colonIdx > 0 ? line.Substring(0, colonIdx) : "";
         string content = colonIdx > 0 ? line.Substring(colonIdx + 2) : line;
 
-        bool   isPlayer   = IsPlayerSender(sender);
-        string bubbleColor = isPlayer ? "#000000B0" : "#00000000";
+        bool   isPlayer    = IsPlayerSender(sender);
+        string bubbleColor = isPlayer ? PlayerBubbleColor : NpcBubbleColor;
 
-        // Separate emote spans from speech spans
-        var speechParts = new System.Collections.Generic.List<string>();
-        var emoteParts  = new System.Collections.Generic.List<string>();
+        var item = new ChatMessageItemVM
+        {
+            SenderName  = sender,
+            SenderColor = NameColor,
+            TypeTag     = isPlayer ? "" : typeTag,
+            IsPlayer    = isPlayer
+        };
 
+        // Walk content left to right, preserving speech/emote order
         int pos = 0;
         foreach (Match m in EmoteRegex.Matches(content))
         {
             if (m.Index > pos)
             {
-                string s = content.Substring(pos, m.Index - pos).Trim();
-                if (!string.IsNullOrEmpty(s)) speechParts.Add(s);
+                string speech = content.Substring(pos, m.Index - pos).Trim();
+                if (!string.IsNullOrEmpty(speech))
+                    item.ContentSegments.Add(new ContentSegmentVM(speech, SpeechTextColor, bubbleColor));
             }
-            emoteParts.Add(m.Value);
+            item.ContentSegments.Add(new ContentSegmentVM(m.Value, EmoteColor, "#00000000"));
             pos = m.Index + m.Length;
         }
         if (pos < content.Length)
         {
-            string s = content.Substring(pos).Trim();
-            if (!string.IsNullOrEmpty(s)) speechParts.Add(s);
+            string remainder = content.Substring(pos).Trim();
+            if (!string.IsNullOrEmpty(remainder))
+                item.ContentSegments.Add(new ContentSegmentVM(remainder, SpeechTextColor, bubbleColor));
         }
 
-        return new ChatMessageItemVM(
-            senderName:  sender,
-            senderColor: NpcNameColor,
-            typeTag:     isPlayer ? "" : typeTag,
-            speechText:  string.Join(" ", speechParts),
-            speechColor: "#E8DCC8FF",
-            bubbleColor: bubbleColor,
-            emoteText:   string.Join(" ", emoteParts),
-            actionText:  ""
-        ) { IsPlayer = isPlayer };
+        return item;
+    }
+
+    private static string BuildActionText(AIResponse r)
+    {
+        if (r == null) return "";
+        var parts = new List<string>();
+        if (r.MoneyTransfer != null && r.MoneyTransfer.Amount != 0)
+            parts.Add($"[Transferred {Math.Abs(r.MoneyTransfer.Amount)} gold]");
+        if (r.ItemTransfers?.Count > 0)
+            parts.Add($"[Transferred {r.ItemTransfers.Count} item(s)]");
+        if (!string.IsNullOrEmpty(r.QuestAction?.Action))
+            parts.Add($"[Quest: {r.QuestAction.Action}]");
+        if (!string.IsNullOrEmpty(r.Decision) && r.Decision != "none" && r.Decision != "none\n")
+            parts.Add($"[{r.Decision}]");
+        return string.Join(" ", parts);
     }
 
     // ── Commands ──────────────────────────────────────────────────────────
@@ -230,7 +247,12 @@ public class NpcChatWindowVM : ViewModel
                 // Wrap to prevent a threading exception from leaking past the finally block.
                 try
                 {
-                    MessageList.Add(ParseLine($"{npcName}: {reply}", tone));
+                    var npcItem = ParseLine($"{npcName}: {reply}", tone);
+                    string actionText = BuildActionText(
+                        AIInfluenceBehavior.Instance?.GetOrCreateNPCContext(_npc)?.PendingAIResponse);
+                    if (!string.IsNullOrEmpty(actionText))
+                        npcItem.ContentSegments.Add(new ContentSegmentVM(actionText, ActionColor, "#00000000"));
+                    MessageList.Add(npcItem);
                 }
                 catch (Exception) { }
             }
