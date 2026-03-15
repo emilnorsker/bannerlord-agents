@@ -196,7 +196,7 @@
                                           <ItemTemplate>
                                             <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                                     HorizontalAlignment="Left"
-                                                    Sprite="BlankWhite" Color="@BackColor">
+                                                    Sprite="name_shadow_9" Color="@BackColor">
                                               <Children>
                                                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                                         Sprite="General\CharacterCreation\character_creation_background_gradient"
@@ -241,7 +241,7 @@
                                           <ItemTemplate>
                                             <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                                     HorizontalAlignment="Right"
-                                                    Sprite="BlankWhite" Color="@BackColor">
+                                                    Sprite="name_shadow_9" Color="@BackColor">
                                               <Children>
                                                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                                         Sprite="General\CharacterCreation\character_creation_background_gradient"
