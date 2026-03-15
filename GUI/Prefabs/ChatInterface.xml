@@ -12,11 +12,9 @@
     or AIInfluenceTextQueryPopup.xml which are known to render correctly.
   -->
   <Constants>
-    <Constant Name="Win.W"        Value="1180" />
-    <Constant Name="Win.H"        Value="760" />
     <Constant Name="Header.H"     Value="80" />
-    <Constant Name="Left.W"       Value="280" />
-    <Constant Name="Right.W"      Value="280" />
+    <Constant Name="Left.W"       Value="380" />
+    <Constant Name="Right.W"      Value="300" />
     <Constant Name="Sep.W"        Value="2" />
     <Constant Name="Input.H"      Value="52" />
     <Constant Name="Gold"         Value="#FFE6B685" />
@@ -32,10 +30,8 @@
             Sprite="BlankWhiteSquare_9" Color="#0A0A0ACC">
       <Children>
 
-        <!-- Fixed-size frame — confirmed WorldEventsWindow pattern -->
-        <BrushWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed"
-                     SuggestedWidth="!Win.W" SuggestedHeight="!Win.H"
-                     HorizontalAlignment="Center" VerticalAlignment="Center"
+        <!-- Full-width frame — left-aligned so left column sits at x=0 over the conversation character -->
+        <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                      DoNotAcceptEvents="false"
                      Brush="Encyclopedia.Frame">
           <Children>
@@ -68,26 +64,11 @@
                     MarginTop="!Header.H">
               <Children>
 
-                <!-- Very dark stone base — character creation feel -->
-                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                        Sprite="BlankWhiteSquare_9" Color="#030201FF" />
-
-                <!-- Character creation gradient darkening the edges -->
-                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                        Sprite="General\CharacterCreation\character_creation_background_gradient"
-                        AlphaFactor="0.8" Color="#000000FF" />
-
-                <!-- Portrait: centred, fills available height -->
-                <AIInfluencePortraitWidget
-                    WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                    HorizontalAlignment="Center" VerticalAlignment="Center" />
-
-                <!-- Bottom vignette — dark fade at the feet like character creation -->
-                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
-                        SuggestedHeight="120"
-                        VerticalAlignment="Bottom"
-                        Sprite="General\CharacterCreation\character_creation_background_gradient"
-                        AlphaFactor="1.0" Color="#000000FF" />
+                <!--
+                  Left panel is fully transparent so the conversation screen's
+                  3D character scene shows through from underneath.
+                  Only the stat overlay strip is rendered here.
+                -->
 
                 <!-- Stat overlay at top -->
                 <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
@@ -134,7 +115,7 @@
               WidthSizePolicy="StretchToParent" with MarginLeft/MarginRight.
             -->
             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                    MarginLeft="282" MarginRight="282"
+                    MarginLeft="382" MarginRight="302"
                     MarginTop="!Header.H">
               <Children>
 

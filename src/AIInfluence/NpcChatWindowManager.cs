@@ -1,5 +1,6 @@
 using System;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.Conversation;
 using TaleWorlds.ScreenSystem;
 
 namespace AIInfluence;
@@ -42,5 +43,12 @@ public static class NpcChatWindowManager
         catch (Exception) { }
         _layer = null;
         _ownerScreen = null;
+
+        // End the underlying conversation so the game returns to the map/mission screen
+        try
+        {
+            Campaign.Current?.ConversationManager?.EndConversation();
+        }
+        catch (Exception) { }
     }
 }
