@@ -3738,6 +3738,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	{
 		try
 		{
+			if (string.IsNullOrEmpty(npcId))
+			{
+				LogMessage("[ERROR] LoadNPCContext called with empty npcId. Returning empty context.");
+				return new NPCContext();
+			}
 			if (npcId == "diseases" || npcId == "disease_instances" || npcId == "settlement_disease_instances")
 			{
 				return new NPCContext();
@@ -3760,7 +3765,10 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		catch (Exception ex)
 		{
 			LogMessage("[ERROR] Failed to load NPC context for " + npcId + ": " + ex);
-			throw;
+			return new NPCContext
+			{
+				StringId = npcId ?? string.Empty
+			};
 		}
 	}
 
