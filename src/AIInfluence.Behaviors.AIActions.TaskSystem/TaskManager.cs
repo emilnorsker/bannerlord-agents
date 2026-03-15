@@ -105,19 +105,18 @@ public class TaskManager : CampaignBehaviorBase
 		bool binarySyncCompatibilityMode = true;
 		_activeTasks ??= new Dictionary<string, HeroTask>();
 		_completedTasks ??= new Dictionary<string, List<HeroTask>>();
-		if (binarySyncCompatibilityMode)
+		if (!binarySyncCompatibilityMode)
 		{
-			return;
-		}
-		string serializedTaskState = null;
-		if (dataStore.IsSaving)
-		{
-			serializedTaskState = SerializeTaskState();
-		}
-		dataStore.SyncData<string>("AIInfluence_taskManagerStateJson", ref serializedTaskState);
-		if (dataStore.IsLoading && !string.IsNullOrEmpty(serializedTaskState))
-		{
-			DeserializeTaskState(serializedTaskState);
+			string serializedTaskState = null;
+			if (dataStore.IsSaving)
+			{
+				serializedTaskState = SerializeTaskState();
+			}
+			dataStore.SyncData<string>("AIInfluence_taskManagerStateJson", ref serializedTaskState);
+			if (dataStore.IsLoading && !string.IsNullOrEmpty(serializedTaskState))
+			{
+				DeserializeTaskState(serializedTaskState);
+			}
 		}
 		if (dataStore.IsLoading)
 		{
