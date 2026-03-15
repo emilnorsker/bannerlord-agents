@@ -74,7 +74,7 @@
         <!-- MarginLeft=Frame.Start so the backdrop doesn't dim the character -->
         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                 MarginLeft="!Frame.Start"
-                Sprite="BlankWhiteSquare_9" Color="#0A0A0ACC">
+                Sprite="StdAssets\Popup\canvas_gradient" Color="#0A0A0AFF">
           <Children>
             <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                          DoNotAcceptEvents="false"
@@ -108,7 +108,7 @@
                     <!-- Middle panel layered background: dark base + soft texture + inner frame -->
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                             MarginLeft="4" MarginRight="4" MarginTop="4" MarginBottom="4"
-                            Sprite="BlankWhite" Color="#130D09FF" AlphaFactor="0.86"
+                            Sprite="StdAssets\Popup\canvas_gradient" Color="#130D09FF" AlphaFactor="0.86"
                             DoNotAcceptEvents="true" />
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                             MarginLeft="6" MarginRight="6" MarginTop="6" MarginBottom="6"
@@ -122,7 +122,7 @@
                     <!-- Scroll region frame -->
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                             MarginTop="4" MarginBottom="!Input.H" MarginRight="24" MarginLeft="2"
-                            Sprite="BlankWhite" Color="#120B08FF" AlphaFactor="0.66"
+                            Sprite="StdAssets\Popup\canvas_gradient" Color="#120B08FF" AlphaFactor="0.66"
                             DoNotAcceptEvents="true">
                       <Children>
                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
