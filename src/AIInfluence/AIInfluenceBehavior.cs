@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AIInfluence.API;
 using AIInfluence.Behaviors.AIActions;
@@ -98,6 +99,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	private bool _playerReinforcementAdded = false;
 
 	private const string WelcomeMarkerFileName = "welcome_popup_shown.txt";
+
+	private static readonly Regex StreamingResponseFieldRegex = new Regex("\"response\"\\s*:\\s*\"(?<text>(?:\\\\.|[^\"\\\\])*)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
 	private bool _welcomeCheckedThisSession = false;
 
@@ -3089,7 +3092,31 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 	}
 
-	public async Task<string> ProcessChatInput(Hero npc, string playerMessage)
+	private static string TryExtractStreamingResponseText(string partialJson)
+	{
+		if (string.IsNullOrEmpty(partialJson))
+		{
+			return "";
+		}
+		Match match = StreamingResponseFieldRegex.Match(partialJson);
+		if (!match.Success)
+		{
+			return "";
+		}
+		string value = match.Groups["text"].Value;
+		try
+		{
+			return Regex.Unescape(value).Replace("\\/", "/");
+		}
+		catch (Exception ex)
+		{
+			Instance?.LogMessage("[ChatWindow] Failed to unescape streaming text: " + ex.Message);
+			return value.Replace("\\n", "\n").Replace("\\r", "\r").Replace("\\t", "\t").Replace("\\\"", "\"").Replace("\\\\", "\\")
+				.Replace("\\/", "/");
+		}
+	}
+
+	public async Task<string> ProcessChatInput(Hero npc, string playerMessage, Action<string> onPartialResponse = null)
 	{
 		if (npc == null || string.IsNullOrEmpty(playerMessage))
 			return "";
@@ -3105,12 +3132,27 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		WorldInfoManager.Instance.UpdateTimeContext(context);
 		WorldInfoManager.Instance.UpdateWarStatus(context);
 		string prompt = PromptGenerator.GeneratePrompt(npc, context);
+		Action<string> streamCallback = (onPartialResponse == null) ? null : (Action<string>)delegate(string partialJson)
+		{
+			string text = TryExtractStreamingResponseText(partialJson);
+			if (!string.IsNullOrEmpty(text))
+			{
+				try
+				{
+					onPartialResponse(text);
+				}
+				catch (Exception ex2)
+				{
+					LogMessage("[ChatWindow] Stream update callback failed: " + ex2.Message);
+				}
+			}
+		};
 		string aiResponse = null;
 		for (int attempt = 1; attempt <= 3; attempt++)
 		{
 			try
 			{
-				aiResponse = await AIClient.GetAIResponse(npcName, faction, prompt + "\nPlayer: " + playerMessage);
+				aiResponse = await AIClient.GetAIResponse(npcName, faction, prompt + "\nPlayer: " + playerMessage, streamCallback);
 				if (!string.IsNullOrEmpty(aiResponse) && !aiResponse.StartsWith("Error:"))
 					break;
 				if (attempt < 3)
