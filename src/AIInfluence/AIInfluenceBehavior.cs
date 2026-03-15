@@ -1117,7 +1117,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				return;
 			}
 			LogQuestScenarioVerbose("SpawnQuestHostileParty composition resolved: " + string.Join(", ", compositionTroops.Select((CharacterObject t) => ((BasicCharacterObject)t).Name.ToString())));
-			Hero notableHero = CreateQuestPartyNotable(questGiver, spawnPos);
+			Hero notableHero = CreateQuestPartyNotable(questGiver, spawnPos, banditClan);
 			if (notableHero == null || !notableHero.IsNotable)
 			{
 				LogMessage("[QUEST] Could not create notable hero for hostile party");
@@ -1216,7 +1216,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		return true;
 	}
 
-	private Hero CreateQuestPartyNotable(Hero questGiver, Vec2 spawnPos)
+	private Hero CreateQuestPartyNotable(Hero questGiver, Vec2 spawnPos, Clan preferredClan)
 	{
 		LogQuestScenarioVerbose($"CreateQuestPartyNotable start | quest_giver={((MBObjectBase)questGiver)?.StringId ?? "null"} pos=({spawnPos.X:F2}, {spawnPos.Y:F2})");
 		Hero seedNotable = null;
@@ -1254,11 +1254,24 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			try
 			{
-				hero2 = HeroCreator.CreateSpecialHero(seedNotable.CharacterObject, seedSettlement ?? questGiver?.CurrentSettlement, seedNotable.Clan, seedNotable.Clan, -1);
+				Clan clan = preferredClan ?? seedNotable.Clan;
+				hero2 = HeroCreator.CreateSpecialHero(seedNotable.CharacterObject, seedSettlement ?? questGiver?.CurrentSettlement, clan, clan, -1);
 			}
 			catch (Exception ex2)
 			{
 				LogMessage("[QUEST] HeroCreator.CreateSpecialHero fallback failed: " + ex2.Message);
+			}
+		}
+		if (hero2 != null && preferredClan != null && hero2.Clan != preferredClan)
+		{
+			try
+			{
+				hero2.Clan = preferredClan;
+				LogQuestScenarioVerbose($"CreateQuestPartyNotable reassigned clan to '{preferredClan.Name}'");
+			}
+			catch (Exception ex4)
+			{
+				LogMessage("[QUEST] Failed to assign preferred clan to spawned notable: " + ex4.Message);
 			}
 		}
 		if (hero2 != null && !hero2.IsNotable)
