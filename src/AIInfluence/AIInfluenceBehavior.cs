@@ -1125,24 +1125,26 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				return;
 			}
 			questInfo.SpawnedNotableId = ((MBObjectBase)notableHero).StringId;
-			TroopRoster memberRoster = new TroopRoster((PartyBase)null);
-			TroopRoster prisonerRoster = new TroopRoster((PartyBase)null);
 			int compositionCount = Math.Min(compositionTroops.Count, troopCount);
 			int baseCount = troopCount / compositionCount;
 			int remainder = troopCount % compositionCount;
-			for (int i = 0; i < compositionCount; i++)
+			Hideout nearestHideout = Settlement.All?
+				.Where((Settlement s) => s.IsHideout && s.Hideout != null)
+				.OrderBy((Settlement s) => s.GetPosition2D().Distance(spawnPos))
+				.Select((Settlement s) => s.Hideout)
+				.FirstOrDefault();
+			if (nearestHideout == null)
 			{
-				int count = baseCount + ((i < remainder) ? 1 : 0);
-				if (count > 0)
-				{
-					memberRoster.AddToCounts(compositionTroops[i], count, false, 0, 0, true, -1);
-				}
+				LogMessage("[QUEST] No hideout found for bandit party creation");
+				CleanupSpawnedQuestNotable(questInfo, "party creation failed");
+				return;
 			}
 			Settlement homeSettlement = Settlement.All?.OrderBy((Settlement s) => s.GetPosition2D().Distance(spawnPos)).FirstOrDefault();
-			MobileParty party = GameVersionCompatibility.CreateQuestParty(spawnPos, 0.1f, homeSettlement, new TextObject(partyLabel, (Dictionary<string, object>)null), banditClan, memberRoster, prisonerRoster, notableHero);
+			CampaignVec2 campaignSpawnPos = new CampaignVec2(spawnPos, true);
+			MobileParty party = BanditPartyComponent.CreateBanditParty("quest_party_" + questInfo.QuestId, banditClan, nearestHideout, false, (PartyTemplateObject)null, campaignSpawnPos);
 			if (party == null)
 			{
-				LogMessage("[QUEST] GameVersionCompatibility.CreateQuestParty returned null");
+				LogMessage("[QUEST] BanditPartyComponent.CreateBanditParty returned null");
 				CleanupSpawnedQuestNotable(questInfo, "party creation failed");
 				return;
 			}
@@ -1155,6 +1157,14 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				if (!TryAddNotableCharacterToParty(party, notableHero))
 				{
 					throw new InvalidOperationException("Failed to add a notable character to spawned hostile party.");
+				}
+				for (int i = 0; i < compositionCount; i++)
+				{
+					int count = baseCount + ((i < remainder) ? 1 : 0);
+					if (count > 0)
+					{
+						party.MemberRoster.AddToCounts(compositionTroops[i], count, false, 0, 0, true, -1);
+					}
 				}
 				if (homeSettlement != null)
 				{
