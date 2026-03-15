@@ -165,27 +165,25 @@
                                    MarginTop="6" MarginBottom="6">
                           <ItemTemplate>
                             <!--
-                              Sender segments:   SenderName non-empty, MessageText empty.
-                              Content segments:  SenderName empty,     MessageText non-empty.
-                              Empty RichTextWidget → CoverChildren → zero height → invisible.
+                              One item per conversation TURN.
+                              Row order: sender name → speech bubble → emote → action.
+                              IsVisible collapses rows with no content
+                              (confirmed pattern: SPConversation.xml @IsPersuading).
 
-                              name_shadow_9 : native NPC name shadow (SPConversation.xml line 182).
-                              Conversation.HeaderText : native gold Galahad NPC name brush.
-                              Conversation.ConversedPartyLine.Text : native white dialogue text.
-                              @MessageColor #000000B0 for speech (ConversationItemBrush.Simple),
-                                            #00000000 transparent for emote/action/sender.
+                              name_shadow_9            – native NPC name shadow sprite.
+                              Conversation.HeaderText  – gold Galahad NPC name brush.
+                              Conversation.ConversedPartyLine.Text – white dialogue text.
+                              @BubbleColor #000000B0 for player (bubble), #00000000 for NPC (no bubble).
                             -->
                             <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                        StackLayout.LayoutMethod="VerticalTopToBottom"
-                                       MarginLeft="2" MarginRight="2" MarginTop="2">
+                                       MarginLeft="4" MarginRight="4" MarginTop="4" MarginBottom="2">
                               <Children>
 
-                                <!-- Sender name row: name_shadow_9 background, gold name + small grey type tag -->
-                                <!-- Height = 0 when SenderName is empty (non-sender segments) -->
+                                <!-- Row 1: Sender name + tone tag -->
                                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                         Sprite="name_shadow_9" AlphaFactor="0.7">
                                   <Children>
-                                    <!-- Horizontal: gold name then small grey type tag -->
                                     <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                                StackLayout.LayoutMethod="HorizontalLeftToRight"
                                                MarginLeft="12" MarginTop="4" MarginBottom="4">
@@ -193,9 +191,8 @@
                                         <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                                        Brush="Conversation.HeaderText" Color="@SenderColor"
                                                        Text="@SenderName" IsDisabled="true" />
-                                        <!-- TypeTag: "Rumor", "Cautious", etc. Empty = zero width, invisible -->
                                         <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                       VerticalAlignment="Bottom" MarginLeft="8" MarginBottom="4"
+                                                       VerticalAlignment="Bottom" MarginLeft="8" MarginBottom="3"
                                                        Brush="SPScoreboard.Subtitle.Text"
                                                        Brush.FontSize="13" Color="!SubText"
                                                        Text="@TypeTag" IsDisabled="true" />
@@ -204,17 +201,33 @@
                                   </Children>
                                 </Widget>
 
-                                <!-- Message row: dark bubble for speech, transparent for emote/action -->
-                                <!-- Height = 0 when MessageText is empty (sender segment) -->
+                                <!-- Row 2: Speech bubble (IsVisible=false collapses it when no speech) -->
                                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                        Sprite="BlankWhiteSquare_9" Color="@MessageColor">
+                                        Sprite="BlankWhiteSquare_9" Color="@BubbleColor"
+                                        IsVisible="@HasSpeech">
                                   <Children>
                                     <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                    Margin="10,5,10,5"
-                                                   Brush="Conversation.ConversedPartyLine.Text" Color="@SenderColor"
-                                                   Text="@MessageText" IsDisabled="true" />
+                                                   Brush="Conversation.ConversedPartyLine.Text" Color="@SpeechColor"
+                                                   Text="@SpeechText" IsDisabled="true" />
                                   </Children>
                                 </Widget>
+
+                                <!-- Row 3: Emote – red ambient text, no bubble -->
+                                <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                               Margin="10,3,10,3"
+                                               Brush="Conversation.ConversedPartyLine.Text" Color="#CF4444FF"
+                                               Text="@EmoteText"
+                                               IsVisible="@HasEmote"
+                                               IsDisabled="true" />
+
+                                <!-- Row 4: Action – purple inline -->
+                                <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                               Margin="10,3,10,3"
+                                               Brush="Conversation.ConversedPartyLine.Text" Color="#9B59B6FF"
+                                               Text="@ActionText"
+                                               IsVisible="@HasAction"
+                                               IsDisabled="true" />
 
                               </Children>
                             </ListPanel>

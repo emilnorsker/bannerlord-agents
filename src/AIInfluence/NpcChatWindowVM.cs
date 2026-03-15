@@ -89,8 +89,7 @@ public class NpcChatWindowVM : ViewModel
         var history = context.ConversationHistory;
         int skip = Math.Max(0, history.Count - 10);
         foreach (string line in history.Skip(skip))
-            foreach (var segment in ParseLine(line))
-                MessageList.Add(segment);
+            MessageList.Add(ParseLine(line));
     }
 
     private void PopulateRightPanel(Hero npc, NPCContext context)
@@ -136,7 +135,8 @@ public class NpcChatWindowVM : ViewModel
     // ── Segment parser ────────────────────────────────────────────────────
 
     private static readonly Regex EmoteRegex = new Regex(@"\*([^*]+)\*", RegexOptions.Compiled);
-    private const string SenderColor = "#C6AC8DFF";
+    private const string NpcNameColor    = "#C6AC8DFF";
+    private const string PlayerNameColor = "#C6AC8DFF";
 
     private bool IsPlayerSender(string sender)
     {
@@ -147,41 +147,50 @@ public class NpcChatWindowVM : ViewModel
             || sender.Equals("You", StringComparison.OrdinalIgnoreCase);
     }
 
-    private IEnumerable<ChatMessageItemVM> ParseLine(string line, string typeTag = "")
+    /// <summary>
+    /// Produces ONE ChatMessageItemVM per conversation turn.
+    /// Sender name, speech, and emote are separate properties — no ordering issue.
+    /// </summary>
+    private ChatMessageItemVM ParseLine(string line, string typeTag = "")
     {
         int colonIdx = line.IndexOf(": ", StringComparison.Ordinal);
-        string sender = colonIdx > 0 ? line.Substring(0, colonIdx) : "";
+        string sender  = colonIdx > 0 ? line.Substring(0, colonIdx) : "";
         string content = colonIdx > 0 ? line.Substring(colonIdx + 2) : line;
 
-        bool isPlayer = IsPlayerSender(sender);
-        // Player messages get a dark bubble; NPC messages sit on transparent background
-        string speechBubbleColor = isPlayer ? "#000000B0" : "#00000000";
+        bool   isPlayer   = IsPlayerSender(sender);
+        string bubbleColor = isPlayer ? "#000000B0" : "#00000000";
 
-        if (!string.IsNullOrEmpty(sender))
-        {
-            var seg = new ChatMessageItemVM(sender, SenderColor, "", "#00000000", "sender");
-            seg.TypeTag = isPlayer ? "" : typeTag;
-            yield return seg;
-        }
+        // Separate emote spans from speech spans
+        var speechParts = new System.Collections.Generic.List<string>();
+        var emoteParts  = new System.Collections.Generic.List<string>();
 
         int pos = 0;
         foreach (Match m in EmoteRegex.Matches(content))
         {
             if (m.Index > pos)
             {
-                string speech = content.Substring(pos, m.Index - pos).Trim();
-                if (!string.IsNullOrEmpty(speech))
-                    yield return new ChatMessageItemVM("", "#E8DCC8FF", speech, speechBubbleColor, "speech");
+                string s = content.Substring(pos, m.Index - pos).Trim();
+                if (!string.IsNullOrEmpty(s)) speechParts.Add(s);
             }
-            yield return new ChatMessageItemVM("", "#CF4444FF", m.Value, "#00000000", "emote");
+            emoteParts.Add(m.Value);
             pos = m.Index + m.Length;
         }
         if (pos < content.Length)
         {
-            string remainder = content.Substring(pos).Trim();
-            if (!string.IsNullOrEmpty(remainder))
-                yield return new ChatMessageItemVM("", "#E8DCC8FF", remainder, speechBubbleColor, "speech");
+            string s = content.Substring(pos).Trim();
+            if (!string.IsNullOrEmpty(s)) speechParts.Add(s);
         }
+
+        return new ChatMessageItemVM(
+            senderName:  sender,
+            senderColor: NpcNameColor,
+            typeTag:     isPlayer ? "" : typeTag,
+            speechText:  string.Join(" ", speechParts),
+            speechColor: "#E8DCC8FF",
+            bubbleColor: bubbleColor,
+            emoteText:   string.Join(" ", emoteParts),
+            actionText:  ""
+        );
     }
 
     // ── Commands ──────────────────────────────────────────────────────────
@@ -201,8 +210,7 @@ public class NpcChatWindowVM : ViewModel
 
         try
         {
-            foreach (var seg in ParseLine($"{playerName}: {message}"))
-                MessageList.Add(seg);
+            MessageList.Add(ParseLine($"{playerName}: {message}"));
 
             if (AIInfluenceBehavior.Instance == null) return;
             string reply = await AIInfluenceBehavior.Instance.ProcessChatInput(_npc, message);
@@ -222,8 +230,7 @@ public class NpcChatWindowVM : ViewModel
                 // Wrap to prevent a threading exception from leaking past the finally block.
                 try
                 {
-                    foreach (var seg in ParseLine($"{npcName}: {reply}", tone))
-                        MessageList.Add(seg);
+                    MessageList.Add(ParseLine($"{npcName}: {reply}", tone));
                 }
                 catch (Exception) { }
             }
