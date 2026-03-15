@@ -571,11 +571,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 		foreach (NPCContext value in _npcContexts.Values)
 		{
-			if (value?.ActiveQuests == null)
+			if (value?.ActiveAIQuests == null)
 			{
 				continue;
 			}
-			if (value.ActiveQuests.Any((AIQuestInfo q) => q != null && !string.IsNullOrEmpty(q.SpawnedPartyId) && string.Equals(q.SpawnedPartyId, partyId, StringComparison.OrdinalIgnoreCase)))
+			if (value.ActiveAIQuests.Any((AIQuestInfo q) => q != null && !string.IsNullOrEmpty(q.SpawnedPartyId) && string.Equals(q.SpawnedPartyId, partyId, StringComparison.OrdinalIgnoreCase)))
 			{
 				return true;
 			}
