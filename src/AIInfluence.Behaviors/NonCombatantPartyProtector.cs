@@ -74,11 +74,6 @@ public class NonCombatantPartyProtector : CampaignBehaviorBase
 
 	public override void SyncData(IDataStore dataStore)
 	{
-		bool binarySyncCompatibilityMode = true;
-		if (binarySyncCompatibilityMode)
-		{
-			return;
-		}
 		try
 		{
 			string serializedState = null;
@@ -91,7 +86,14 @@ public class NonCombatantPartyProtector : CampaignBehaviorBase
 			{
 				_protectedParties = new Dictionary<MobileParty, ProtectionInfo>();
 				_lastWarningTime = new Dictionary<Hero, CampaignTime>();
-				DeserializeState(serializedState);
+				if (!string.IsNullOrEmpty(serializedState))
+				{
+					DeserializeState(serializedState);
+				}
+				else
+				{
+					DeserializeLegacyState(dataStore);
+				}
 			}
 		}
 		catch (Exception ex)
@@ -173,6 +175,47 @@ public class NonCombatantPartyProtector : CampaignBehaviorBase
 					_lastWarningTime[val2] = CampaignTime.Days((float)item.Value);
 				}
 			}
+		}
+	}
+
+	private void DeserializeLegacyState(IDataStore dataStore)
+	{
+		List<MobileParty> protectedParties = new List<MobileParty>();
+		List<Hero> protectedLeaders = new List<Hero>();
+		List<CampaignTime> protectedStartTimes = new List<CampaignTime>();
+		List<string> protectedActions = new List<string>();
+		List<bool> protectedWarnings = new List<bool>();
+		dataStore.SyncData<List<MobileParty>>("ProtectedPartiesList", ref protectedParties);
+		dataStore.SyncData<List<Hero>>("ProtectedLeadersList", ref protectedLeaders);
+		dataStore.SyncData<List<CampaignTime>>("ProtectedStartTimesList", ref protectedStartTimes);
+		dataStore.SyncData<List<string>>("ProtectedActionsList", ref protectedActions);
+		dataStore.SyncData<List<bool>>("ProtectedWarningsList", ref protectedWarnings);
+		int count = Math.Min(protectedParties?.Count ?? 0, protectedLeaders?.Count ?? 0);
+		for (int i = 0; i < count; i++)
+		{
+			MobileParty party = protectedParties[i];
+			Hero leader = protectedLeaders[i];
+			if (party == null || leader == null)
+			{
+				continue;
+			}
+			_protectedParties[party] = new ProtectionInfo
+			{
+				OriginalLeader = leader,
+				ProtectionStartTime = (protectedStartTimes != null && i < protectedStartTimes.Count) ? protectedStartTimes[i] : CampaignTime.Now,
+				ActionName = (protectedActions != null && i < protectedActions.Count) ? protectedActions[i] : "Unknown",
+				WarningShown = protectedWarnings != null && i < protectedWarnings.Count && protectedWarnings[i]
+			};
+		}
+		Dictionary<Hero, CampaignTime> legacyLastWarningTime = null;
+		dataStore.SyncData<Dictionary<Hero, CampaignTime>>("_lastWarningTime", ref legacyLastWarningTime);
+		if (legacyLastWarningTime != null)
+		{
+			_lastWarningTime = legacyLastWarningTime;
+		}
+		if (_protectedParties.Count > 0 || _lastWarningTime.Count > 0)
+		{
+			LogDebug($"Migrated legacy state: protected={_protectedParties.Count}, warnings={_lastWarningTime.Count}");
 		}
 	}
 
