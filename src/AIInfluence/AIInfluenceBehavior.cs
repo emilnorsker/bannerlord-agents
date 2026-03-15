@@ -1254,27 +1254,25 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			int compositionCount = Math.Min(compositionTroops.Count, troopCount);
 			int baseCount = troopCount / compositionCount;
 			int remainder = troopCount % compositionCount;
-			Hideout nearestHideout = Settlement.All?
-				.Where((Settlement s) => s.IsHideout && s.Hideout != null)
-				.OrderBy((Settlement s) => s.GetPosition2D().Distance(spawnPos))
-				.Select((Settlement s) => s.Hideout)
-				.FirstOrDefault();
-			if (nearestHideout == null)
+			TroopRoster memberRoster = new TroopRoster((PartyBase)null);
+			for (int i = 0; i < compositionCount; i++)
 			{
-				LogMessage("[QUEST] No hideout found for bandit party creation");
-				CleanupSpawnedQuestNotable(questInfo, "party creation failed");
-				return;
+				int count = baseCount + ((i < remainder) ? 1 : 0);
+				if (count > 0)
+				{
+					memberRoster.AddToCounts(compositionTroops[i], count, false, 0, 0, true, -1);
+				}
 			}
-			Settlement homeSettlement = Settlement.All?.OrderBy((Settlement s) => s.GetPosition2D().Distance(spawnPos)).FirstOrDefault();
-			CampaignVec2 campaignSpawnPos = new CampaignVec2(spawnPos, true);
-			MobileParty party = BanditPartyComponent.CreateBanditParty("quest_party_" + questInfo.QuestId, banditClan, nearestHideout, false, (PartyTemplateObject)null, campaignSpawnPos);
+			Settlement homeSettlement = Settlement.All?.OrderBy((Settlement s) => s.GetPosition2D().Distance(spawnPos)).FirstOrDefault() ?? banditClan.FactionMidSettlement;
+			MobileParty party = GameVersionCompatibility.CreateQuestParty(spawnPos, 0.1f, homeSettlement, new TextObject(partyLabel, (Dictionary<string, object>)null), banditClan, memberRoster, new TroopRoster((PartyBase)null), notableHero, "quest_party_" + questInfo.QuestId);
 			if (party == null)
 			{
-				LogMessage("[QUEST] BanditPartyComponent.CreateBanditParty returned null");
+				LogMessage("[QUEST] GameVersionCompatibility.CreateQuestParty returned null");
 				CleanupSpawnedQuestNotable(questInfo, "party creation failed");
 				return;
 			}
 			LogQuestScenarioVerbose($"SpawnQuestHostileParty created party id={((MBObjectBase)party).StringId}");
+			LogQuestScenarioVerbose("SpawnQuestHostileParty creation_mode=custom_quest_party");
 			questInfo.SpawnedPartyId = ((MBObjectBase)party).StringId;
 			if (party.MapFaction == null)
 			{
@@ -1291,14 +1289,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				if (!TryAddNotableCharacterToParty(party, notableHero))
 				{
 					throw new InvalidOperationException("Failed to add a notable character to spawned hostile party.");
-				}
-				for (int i = 0; i < compositionCount; i++)
-				{
-					int count = baseCount + ((i < remainder) ? 1 : 0);
-					if (count > 0)
-					{
-						party.MemberRoster.AddToCounts(compositionTroops[i], count, false, 0, 0, true, -1);
-					}
 				}
 				if (homeSettlement != null)
 				{
@@ -1342,7 +1332,10 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			LogMessage("[QUEST] Could not create notable hero for hostile party");
 			return false;
 		}
-		AddHeroToPartyAction.Apply(hero, party, true);
+		if (hero.PartyBelongedTo != party)
+		{
+			AddHeroToPartyAction.Apply(hero, party, true);
+		}
 		if (party.MemberRoster.GetTroopCount(hero.CharacterObject) <= 0)
 		{
 			party.MemberRoster.AddToCounts(hero.CharacterObject, 1, false, 0, 0, true, -1);

@@ -874,7 +874,7 @@ public static class GameVersionCompatibility
 		}
 	}
 
-	public static MobileParty CreateQuestParty(Vec2 position, float spawnRadius, Settlement homeSettlement, TextObject name, Clan clan, TroopRoster memberRoster, TroopRoster prisonerRoster, Hero owner)
+	public static MobileParty CreateQuestParty(Vec2 position, float spawnRadius, Settlement homeSettlement, TextObject name, Clan clan, TroopRoster memberRoster, TroopRoster prisonerRoster, Hero owner, string partyStringId = "")
 	{
 		//IL_0087: Unknown result type (might be due to invalid IL or missing references)
 		//IL_01bb: Unknown result type (might be due to invalid IL or missing references)
@@ -922,7 +922,7 @@ public static class GameVersionCompatibility
 			{
 				return (MobileParty)method.Invoke(null, new object[12]
 				{
-					obj, spawnRadius, homeSettlement, name, clan, memberRoster, prisonerRoster, owner, "", "",
+					obj, spawnRadius, homeSettlement, name, clan, memberRoster, prisonerRoster, owner, partyStringId ?? "", "",
 					0f, false
 				});
 			}
@@ -945,7 +945,7 @@ public static class GameVersionCompatibility
 			{
 				return (MobileParty)method.Invoke(null, new object[12]
 				{
-					obj, spawnRadius, homeSettlement, name, clan, memberRoster, prisonerRoster, owner, "", "",
+					obj, spawnRadius, homeSettlement, name, clan, memberRoster, prisonerRoster, owner, partyStringId ?? "", "",
 					0f, false
 				});
 			}
