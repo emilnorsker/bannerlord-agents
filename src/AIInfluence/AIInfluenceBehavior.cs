@@ -3749,6 +3749,17 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				if (cached.ProcessedMessageHashes == null) cached.ProcessedMessageHashes = new HashSet<string>();
 				return cached;
 			}
+			bool useSidecarFallback = false;
+			if (!useSidecarFallback)
+			{
+				NPCContext newContext = new NPCContext
+				{
+					StringId = npcId
+				};
+				_npcContexts[npcId] = newContext;
+				UpdateStringIdIndex(npcId, npcId);
+				return newContext;
+			}
 			if (string.IsNullOrEmpty(_currentSaveFolder))
 			{
 				_currentSaveFolder = GetActiveSaveDirectory();
@@ -3915,7 +3926,14 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	public void SaveNPCContext(string npcId, Hero npc, NPCContext context)
 	{
-		_saveQueueManager.QueueSave(npcId, npc, context);
+		if (!string.IsNullOrEmpty(npcId) && context != null)
+		{
+			_npcContexts[npcId] = context;
+			if (!string.IsNullOrEmpty(context.StringId))
+			{
+				UpdateStringIdIndex(npcId, context.StringId);
+			}
+		}
 	}
 
 	public void SaveNPCContextImmediate(string npcId, Hero npc, NPCContext context)
@@ -5178,7 +5196,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	public override void SyncData(IDataStore dataStore)
 	{
-		bool binarySyncCompatibilityMode = true;
+		bool binarySyncCompatibilityMode = false;
 		if (binarySyncCompatibilityMode)
 		{
 			if (dataStore.IsSaving)
