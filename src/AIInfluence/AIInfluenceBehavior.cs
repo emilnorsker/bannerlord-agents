@@ -1097,6 +1097,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage("[QUEST] Failed to resolve bandit clan for hostile party spawn");
 				return;
 			}
+			if (banditClan.FactionMidSettlement == null)
+			{
+				LogMessage($"[QUEST] Resolved bandit clan '{banditClan.Name}' has null FactionMidSettlement; failing hostile party spawn");
+				return;
+			}
 			LogQuestScenarioVerbose($"SpawnQuestHostileParty selected clan id={((MBObjectBase)banditClan).StringId}");
 			if (compositionTroops.Count == 0 && !string.IsNullOrEmpty(questAction.HostileTroopName))
 			{
