@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using AIInfluence.Behaviors.AIActions;
 using Newtonsoft.Json;
 using TaleWorlds.CampaignSystem;
@@ -63,6 +66,34 @@ public class NonCombatantPartyProtector : CampaignBehaviorBase
 		_instance = this;
 	}
 
+	private static string CompressPayload(string payload)
+	{
+		if (string.IsNullOrEmpty(payload))
+		{
+			return payload;
+		}
+		byte[] bytes = Encoding.UTF8.GetBytes(payload);
+		using MemoryStream memoryStream = new MemoryStream();
+		using (GZipStream gZipStream = new GZipStream(memoryStream, CompressionLevel.Optimal, leaveOpen: true))
+		{
+			gZipStream.Write(bytes, 0, bytes.Length);
+		}
+		return "gz:" + Convert.ToBase64String(memoryStream.ToArray());
+	}
+
+	private static string DecompressPayload(string payload)
+	{
+		if (string.IsNullOrEmpty(payload) || !payload.StartsWith("gz:"))
+		{
+			return payload;
+		}
+		byte[] buffer = Convert.FromBase64String(payload.Substring(3));
+		using MemoryStream stream = new MemoryStream(buffer);
+		using GZipStream stream2 = new GZipStream(stream, CompressionMode.Decompress);
+		using StreamReader streamReader = new StreamReader(stream2, Encoding.UTF8);
+		return streamReader.ReadToEnd();
+	}
+
 	public override void RegisterEvents()
 	{
 		CampaignEvents.OnPartyDisbandStartedEvent.AddNonSerializedListener((object)this, (Action<MobileParty>)OnPartyDisbandStarted);
@@ -82,7 +113,7 @@ public class NonCombatantPartyProtector : CampaignBehaviorBase
 			if (dataStore.IsSaving)
 			{
 				syncStage = "save-serialize-state";
-				serializedState = SerializeState();
+				serializedState = CompressPayload(SerializeState());
 			}
 			syncStage = "sync-state-json";
 			dataStore.SyncData<string>("AIInfluence_nonCombatantPartyProtectorStateJson", ref serializedState);
@@ -94,7 +125,7 @@ public class NonCombatantPartyProtector : CampaignBehaviorBase
 				if (!string.IsNullOrEmpty(serializedState))
 				{
 					syncStage = "load-deserialize-state";
-					DeserializeState(serializedState);
+					DeserializeState(DecompressPayload(serializedState));
 				}
 			}
 			LogDebug("[SYNC-TRACE] NonCombatantPartyProtector.SyncData exit success.");

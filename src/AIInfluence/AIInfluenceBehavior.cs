@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
@@ -5088,6 +5089,34 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		return _saveQueueManager.GetStats();
 	}
 
+	private static string CompressPayload(string payload)
+	{
+		if (string.IsNullOrEmpty(payload))
+		{
+			return payload;
+		}
+		byte[] bytes = Encoding.UTF8.GetBytes(payload);
+		using MemoryStream memoryStream = new MemoryStream();
+		using (GZipStream gZipStream = new GZipStream(memoryStream, CompressionLevel.Optimal, leaveOpen: true))
+		{
+			gZipStream.Write(bytes, 0, bytes.Length);
+		}
+		return "gz:" + Convert.ToBase64String(memoryStream.ToArray());
+	}
+
+	private static string DecompressPayload(string payload)
+	{
+		if (string.IsNullOrEmpty(payload) || !payload.StartsWith("gz:"))
+		{
+			return payload;
+		}
+		byte[] buffer = Convert.FromBase64String(payload.Substring(3));
+		using MemoryStream stream = new MemoryStream(buffer);
+		using GZipStream stream2 = new GZipStream(stream, CompressionMode.Decompress);
+		using StreamReader streamReader = new StreamReader(stream2, Encoding.UTF8);
+		return streamReader.ReadToEnd();
+	}
+
 	public override void SyncData(IDataStore dataStore)
 	{
 		bool binarySyncCompatibilityMode = false;
@@ -5122,12 +5151,12 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				if (instance != null)
 				{
 					_followingHeroIds = instance.GetActiveFollowingHeroIds();
-					_serializedActionState = instance.SerializeActiveActions();
+					_serializedActionState = CompressPayload(instance.SerializeActiveActions());
 					LogMessage($"[SAVE] Saving {_followingHeroIds.Count} following hero IDs to game save");
 					LogMessage($"[SAVE] Serialized AI actions length: {_serializedActionState?.Length ?? 0}");
 				}
 				Dictionary<string, NPCContext> contextsToSave = new Dictionary<string, NPCContext>(_npcContexts);
-				_npcContextsJson = JsonConvert.SerializeObject(contextsToSave);
+				_npcContextsJson = CompressPayload(JsonConvert.SerializeObject(contextsToSave));
 				LogMessage($"[SAVE] Serialized {contextsToSave.Count} NPC contexts into game save");
 			}
 			syncStage = "sync-followingHeroIds";
@@ -5144,7 +5173,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					try
 					{
 						syncStage = "load-deserialize-npcContexts";
-						_npcContexts = JsonConvert.DeserializeObject<Dictionary<string, NPCContext>>(_npcContextsJson) ?? throw new InvalidOperationException("NPC context payload deserialized to null.");
+						string value = DecompressPayload(_npcContextsJson);
+						_npcContexts = JsonConvert.DeserializeObject<Dictionary<string, NPCContext>>(value) ?? throw new InvalidOperationException("NPC context payload deserialized to null.");
 						_npcContextsJson = null; // free the raw string now that objects are materialized
 						LogMessage($"[LOAD] Restored {_npcContexts.Count} NPC contexts from game save");
 					}
@@ -5166,7 +5196,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				{
 					syncStage = "load-schedule-action-state-restore";
 					flag = true;
-					string stateCopy = _serializedActionState;
+					string stateCopy = DecompressPayload(_serializedActionState);
 					_delayedTaskManager.AddTask(3.0, delegate
 					{
 						AIActionManager.Instance.RestoreActionsFromSerialized(stateCopy);

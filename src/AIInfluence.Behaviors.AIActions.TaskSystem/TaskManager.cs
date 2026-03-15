@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Text;
 using Newtonsoft.Json;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Party;
@@ -94,6 +97,34 @@ public class TaskManager : CampaignBehaviorBase
 		_completedTasks = new Dictionary<string, List<HeroTask>>();
 	}
 
+	private static string CompressPayload(string payload)
+	{
+		if (string.IsNullOrEmpty(payload))
+		{
+			return payload;
+		}
+		byte[] bytes = Encoding.UTF8.GetBytes(payload);
+		using MemoryStream memoryStream = new MemoryStream();
+		using (GZipStream gZipStream = new GZipStream(memoryStream, CompressionLevel.Optimal, leaveOpen: true))
+		{
+			gZipStream.Write(bytes, 0, bytes.Length);
+		}
+		return "gz:" + Convert.ToBase64String(memoryStream.ToArray());
+	}
+
+	private static string DecompressPayload(string payload)
+	{
+		if (string.IsNullOrEmpty(payload) || !payload.StartsWith("gz:"))
+		{
+			return payload;
+		}
+		byte[] buffer = Convert.FromBase64String(payload.Substring(3));
+		using MemoryStream stream = new MemoryStream(buffer);
+		using GZipStream stream2 = new GZipStream(stream, CompressionMode.Decompress);
+		using StreamReader streamReader = new StreamReader(stream2, Encoding.UTF8);
+		return streamReader.ReadToEnd();
+	}
+
 	public override void RegisterEvents()
 	{
 		CampaignEvents.HourlyTickEvent.AddNonSerializedListener((object)this, (Action)OnHourlyTick);
@@ -112,7 +143,7 @@ public class TaskManager : CampaignBehaviorBase
 			if (dataStore.IsSaving)
 			{
 				syncStage = "save-serialize-task-state";
-				serializedTaskState = SerializeTaskState();
+				serializedTaskState = CompressPayload(SerializeTaskState());
 			}
 			syncStage = "sync-taskManagerStateJson";
 			dataStore.SyncData<string>("AIInfluence_taskManagerStateJson", ref serializedTaskState);
@@ -122,7 +153,7 @@ public class TaskManager : CampaignBehaviorBase
 				syncStage = "load-deserialize-task-state";
 				if (!string.IsNullOrEmpty(serializedTaskState))
 				{
-					DeserializeTaskState(serializedTaskState);
+					DeserializeTaskState(DecompressPayload(serializedTaskState));
 				}
 				else
 				{
