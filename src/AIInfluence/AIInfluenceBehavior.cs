@@ -5179,7 +5179,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	public override void SyncData(IDataStore dataStore)
 	{
 		_saveQueueManager.ClearQueue();
-		bool binarySyncCompatibilityMode = true;
+		bool binarySyncCompatibilityMode = false;
 		if (binarySyncCompatibilityMode)
 		{
 			if (dataStore.IsLoading && _followingHeroIds == null)
