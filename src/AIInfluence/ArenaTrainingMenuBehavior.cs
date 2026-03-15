@@ -275,6 +275,12 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 		catch (Exception ex)
 		{
 			AIInfluenceBehavior.Instance?.LogMessage("[ERROR] ArenaTrainingMenuBehavior.SyncData failed at stage=" + syncStage + ". cooldownCount=" + (_partyCooldownEndHours?.Count ?? 0) + ". " + ex);
+			if (dataStore.IsLoading)
+			{
+				_partyCooldownEndHours = new Dictionary<string, double>();
+				AIInfluenceBehavior.Instance?.LogMessage("[ERROR] Recovering ArenaTrainingMenuBehavior load failure with empty cooldown state.");
+				return;
+			}
 			throw;
 		}
 	}

@@ -137,6 +137,13 @@ public class TaskManager : CampaignBehaviorBase
 		catch (Exception ex)
 		{
 			AIInfluenceBehavior.Instance?.LogMessage("[ERROR] TaskManager.SyncData failed at stage=" + syncStage + ". activeCount=" + (_activeTasks?.Count ?? 0) + ", completedCount=" + (_completedTasks?.Count ?? 0) + ". " + ex);
+			if (dataStore.IsLoading)
+			{
+				_activeTasks = new Dictionary<string, HeroTask>();
+				_completedTasks = new Dictionary<string, List<HeroTask>>();
+				AIInfluenceBehavior.Instance?.LogMessage("[ERROR] Recovering TaskManager load failure with empty task state.");
+				return;
+			}
 			throw;
 		}
 	}
