@@ -108,26 +108,26 @@
                     <!-- Middle panel layered background: dark base + soft texture + inner frame -->
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                             MarginLeft="4" MarginRight="4" MarginTop="4" MarginBottom="4"
-                            Sprite="BlankWhite" Color="#070604FF" AlphaFactor="0.78"
+                            Sprite="BlankWhite" Color="#130D09FF" AlphaFactor="0.86"
                             DoNotAcceptEvents="true" />
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                             MarginLeft="6" MarginRight="6" MarginTop="6" MarginBottom="6"
                             Sprite="General\CharacterCreation\character_creation_background_gradient"
-                            Color="#000000FF" AlphaFactor="0.25"
+                            Color="#2B1C12FF" AlphaFactor="0.18"
                             DoNotAcceptEvents="true" />
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                             MarginLeft="6" MarginRight="6" MarginTop="6" MarginBottom="6"
                             Sprite="frame_9" ExtendLeft="5" ExtendTop="5" ExtendRight="5" ExtendBottom="5"
-                            AlphaFactor="0.22" IsEnabled="false" />
+                            AlphaFactor="0.36" IsEnabled="false" />
                     <!-- Scroll region frame -->
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                             MarginTop="4" MarginBottom="!Input.H" MarginRight="24" MarginLeft="2"
-                            Sprite="BlankWhite" Color="#050403FF" AlphaFactor="0.62"
+                            Sprite="BlankWhite" Color="#120B08FF" AlphaFactor="0.66"
                             DoNotAcceptEvents="true">
                       <Children>
                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                 Sprite="frame_9" ExtendLeft="4" ExtendTop="4" ExtendRight="4" ExtendBottom="4"
-                                AlphaFactor="0.18" IsEnabled="false" />
+                                AlphaFactor="0.3" IsEnabled="false" />
                       </Children>
                     </Widget>
 
@@ -284,14 +284,14 @@
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
                             SuggestedHeight="!Input.H"
                             VerticalAlignment="Bottom"
-                            Sprite="BlankWhite" Color="#080604FF" AlphaFactor="0.85">
+                            Sprite="BlankWhite" Color="#1A110CFF" AlphaFactor="0.9">
                       <Children>
                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                 Sprite="frame_9" ExtendLeft="4" ExtendTop="4" ExtendRight="4" ExtendBottom="4"
-                                AlphaFactor="0.22" IsEnabled="false" />
+                                AlphaFactor="0.34" IsEnabled="false" />
                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                 Sprite="General\CharacterCreation\character_creation_background_gradient"
-                                Color="#000000FF" AlphaFactor="0.18" IsEnabled="false" />
+                                Color="#2A1A11FF" AlphaFactor="0.2" IsEnabled="false" />
                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
                                 SuggestedHeight="38"
                                 HorizontalAlignment="Left" VerticalAlignment="Center"
