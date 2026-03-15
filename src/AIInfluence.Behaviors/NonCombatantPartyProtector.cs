@@ -74,6 +74,11 @@ public class NonCombatantPartyProtector : CampaignBehaviorBase
 
 	public override void SyncData(IDataStore dataStore)
 	{
+		bool binarySyncCompatibilityMode = true;
+		if (binarySyncCompatibilityMode)
+		{
+			return;
+		}
 		try
 		{
 			string serializedState = null;
