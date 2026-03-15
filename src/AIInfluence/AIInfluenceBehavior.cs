@@ -176,7 +176,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	public void LogMessage(string message)
 	{
-		if (!_isInitialized || !GlobalSettings<ModSettings>.Instance.EnableDebugLogging)
+		bool isCriticalError = !string.IsNullOrEmpty(message) && message.StartsWith("[ERROR]");
+		if (!isCriticalError && (!_isInitialized || !(GlobalSettings<ModSettings>.Instance?.EnableDebugLogging ?? false)))
 		{
 			return;
 		}
@@ -5189,7 +5190,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 		catch (Exception ex)
 		{
-			LogMessage("[ERROR] SyncData failed: " + ex.Message);
+			LogMessage("[ERROR] SyncData failed: " + ex);
+			throw;
 		}
 	}
 
