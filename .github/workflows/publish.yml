@@ -1,6 +1,8 @@
 name: Build and Publish Mod
 
 on:
+  pull_request:
+    branches: [main]
   push:
     branches: [main]
 
@@ -13,9 +15,9 @@ jobs:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '8.0.x'
 
@@ -33,6 +35,7 @@ jobs:
           VERSION=$(xmllint --xpath 'string(//Version/@value)' SubModule.xml)
           if [ -z "$VERSION" ]; then echo "Failed to extract version from SubModule.xml"; exit 1; fi
           echo "value=$VERSION" >> $GITHUB_OUTPUT
+          echo "build_tag=${VERSION}-build.${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}" >> $GITHUB_OUTPUT
 
       - name: Stage mod files
         run: |
@@ -56,13 +59,21 @@ jobs:
           done
 
       - name: Create 7zip archive
-        run: cd staging && 7z a ../AIInfluence-${{ steps.version.outputs.value }}.7z AIInfluence/
+        run: cd staging && 7z a ../AIInfluence-${{ steps.version.outputs.build_tag }}.7z AIInfluence/
+
+      - name: Upload development artifact
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: AIInfluence-${{ steps.version.outputs.build_tag }}
+          path: AIInfluence-${{ steps.version.outputs.build_tag }}.7z
 
       - name: Publish release
+        if: github.event_name == 'push'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.version.outputs.value }}
-          name: AIInfluence ${{ steps.version.outputs.value }}
-          files: AIInfluence-${{ steps.version.outputs.value }}.7z
+          tag_name: ${{ steps.version.outputs.build_tag }}
+          name: AIInfluence ${{ steps.version.outputs.build_tag }}
+          files: AIInfluence-${{ steps.version.outputs.build_tag }}.7z
           generate_release_notes: true
           fail_on_unmatched_files: true

@@ -4577,4 +4577,46 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 	{
 		return GetEnabledEventTypes().Any();
 	}
+
+	[SettingPropertyGroup("Quest Debug", GroupOrder = 20)]
+	[SettingPropertyBool("Spawn Test Quest", Order = 0, RequireRestart = false, HintText = "Spawns a test AI quest on the nearest NPC with all reward types (gold, items, skill XP, influence, hostile party). Use to verify the quest system works in-game.")]
+	public bool DebugSpawnTestQuest
+	{
+		get => false;
+		set
+		{
+			if (value)
+			{
+				this.OnSettingChanged?.Invoke("DebugSpawnTestQuest", value);
+			}
+		}
+	}
+
+	[SettingPropertyGroup("Quest Debug", GroupOrder = 20)]
+	[SettingPropertyBool("View Active AI Quests", Order = 1, RequireRestart = false, HintText = "Prints all active AI quests (ID, title, giver, rewards, progress) to the game log and HUD.")]
+	public bool DebugViewActiveQuests
+	{
+		get => false;
+		set
+		{
+			if (value)
+			{
+				this.OnSettingChanged?.Invoke("DebugViewActiveQuests", value);
+			}
+		}
+	}
+
+	[SettingPropertyGroup("Quest Debug", GroupOrder = 20)]
+	[SettingPropertyBool("Fail All Active AI Quests", Order = 2, RequireRestart = false, HintText = "Immediately fails every active AI quest. Useful for clearing stuck quests during testing.")]
+	public bool DebugFailAllQuests
+	{
+		get => false;
+		set
+		{
+			if (value)
+			{
+				this.OnSettingChanged?.Invoke("DebugFailAllQuests", value);
+			}
+		}
+	}
 }
