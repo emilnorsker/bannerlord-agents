@@ -71,22 +71,21 @@
                 PositionXOffset="!Left.W"
                 Sprite="BlankWhiteSquare_9" Color="!SepColor" />
 
-        <!-- ══ CENTER + RIGHT — dark backdrop + Encyclopedia.Frame ══════════ -->
+        <!-- ══ CENTER + RIGHT — dark backdrop + custom frame ════════════════ -->
         <!-- MarginLeft=Frame.Start so the backdrop doesn't dim the character -->
         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                 MarginLeft="!Frame.Start"
                 Sprite="StdAssets\Popup\canvas_gradient" Color="#0A0A0AFF">
           <Children>
-            <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                         DoNotAcceptEvents="false"
-                         Brush="Encyclopedia.Frame">
+            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                    DoNotAcceptEvents="false">
               <Children>
 
                 <!-- Header: NPC name + title (spans center+right) -->
-                <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
-                             SuggestedHeight="!Header.H"
-                             VerticalAlignment="Top"
-                             Brush="Encyclopedia.TopBanner">
+                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
+                        SuggestedHeight="!Header.H"
+                        VerticalAlignment="Top"
+                        Sprite="StdAssets\Popup\canvas_gradient" Color="#1A120DFF" AlphaFactor="0.72">
                   <Children>
                     <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                    HorizontalAlignment="Center" VerticalAlignment="Top"
@@ -100,7 +99,7 @@
                                    Brush.FontSize="15" Color="!SubText"
                                    Text="@NpcTitle" IsDisabled="true" />
                   </Children>
-                </BrushWidget>
+                </Widget>
 
                 <!-- ── CENTER COLUMN: fills frame minus right panel ── -->
                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
@@ -430,7 +429,7 @@
                 </Widget>
 
               </Children>
-            </BrushWidget>
+            </Widget>
           </Children>
         </Widget>
 
