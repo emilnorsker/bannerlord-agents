@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Bannerlord.UIExtenderEx;
+using MCM.Abstractions.Base.Global;
 using SandBox;
 using SandBox.Missions.AgentBehaviors;
 using TaleWorlds.CampaignSystem;
@@ -883,14 +884,23 @@ public static class GameVersionCompatibility
 		//IL_02ec: Expected O, but got Unknown
 		try
 		{
+			bool flag = GlobalSettings<ModSettings>.Instance?.DebugQuestScenarioVerboseLogging ?? false;
 			Type type = Type.GetType("TaleWorlds.CampaignSystem.Party.PartyComponents.CustomPartyComponent, TaleWorlds.CampaignSystem");
 			if (type == null)
 			{
+				if (flag)
+				{
+					AIInfluenceBehavior.Instance?.LogMessage("[QuestDebugVerbose] CreateQuestParty: CustomPartyComponent type not found");
+				}
 				return null;
 			}
 			Type type2 = Type.GetType("TaleWorlds.CampaignSystem.CampaignVec2, TaleWorlds.CampaignSystem");
 			if (type2 == null)
 			{
+				if (flag)
+				{
+					AIInfluenceBehavior.Instance?.LogMessage("[QuestDebugVerbose] CreateQuestParty: CampaignVec2 type not found");
+				}
 				return null;
 			}
 			ConstructorInfo constructor = type2.GetConstructor(new Type[2]
@@ -900,6 +910,10 @@ public static class GameVersionCompatibility
 			});
 			if (constructor == null)
 			{
+				if (flag)
+				{
+					AIInfluenceBehavior.Instance?.LogMessage("[QuestDebugVerbose] CreateQuestParty: CampaignVec2(Vec2,bool) ctor not found");
+				}
 				return null;
 			}
 			object obj = constructor.Invoke(new object[2] { position, true });
@@ -920,11 +934,16 @@ public static class GameVersionCompatibility
 			}, null);
 			if (method != null)
 			{
-				return (MobileParty)method.Invoke(null, new object[12]
+				MobileParty mobileParty = (MobileParty)method.Invoke(null, new object[12]
 				{
 					obj, spawnRadius, homeSettlement, name, clan, memberRoster, prisonerRoster, owner, partyStringId ?? "", "",
 					0f, false
 				});
+				if (flag)
+				{
+					AIInfluenceBehavior.Instance?.LogMessage($"[QuestDebugVerbose] CreateQuestParty: invoked CreateQuestParty => '{((MBObjectBase)mobileParty)?.StringId ?? "null"}'");
+				}
+				return mobileParty;
 			}
 			method = type.GetMethod("CreateCustomPartyWithTroopRoster", BindingFlags.Static | BindingFlags.Public, null, new Type[12]
 			{
@@ -943,17 +962,26 @@ public static class GameVersionCompatibility
 			}, null);
 			if (method != null)
 			{
-				return (MobileParty)method.Invoke(null, new object[12]
+				MobileParty mobileParty2 = (MobileParty)method.Invoke(null, new object[12]
 				{
 					obj, spawnRadius, homeSettlement, name, clan, memberRoster, prisonerRoster, owner, partyStringId ?? "", "",
 					0f, false
 				});
+				if (flag)
+				{
+					AIInfluenceBehavior.Instance?.LogMessage($"[QuestDebugVerbose] CreateQuestParty: invoked CreateCustomPartyWithTroopRoster => '{((MBObjectBase)mobileParty2)?.StringId ?? "null"}'");
+				}
+				return mobileParty2;
+			}
+			if (flag)
+			{
+				AIInfluenceBehavior.Instance?.LogMessage("[QuestDebugVerbose] CreateQuestParty: no matching factory method found");
 			}
 			return null;
 		}
 		catch (Exception ex)
 		{
-			AIInfluenceBehavior.Instance?.LogMessage("[ERROR] CreateQuestParty failed: " + ex.Message);
+			AIInfluenceBehavior.Instance?.LogMessage("[ERROR] CreateQuestParty failed: " + ex.Message + "\n" + ex.StackTrace);
 			return null;
 		}
 	}

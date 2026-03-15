@@ -599,7 +599,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			return "none";
 		}
 		List<string> list = new List<string>();
-		foreach (TroopRosterElement item in (List<TroopRosterElement>)(object)party.MemberRoster.GetTroopRoster())
+		foreach (TroopRosterElement item in (IEnumerable<TroopRosterElement>)party.MemberRoster.GetTroopRoster())
 		{
 			if ((item).Number <= 0 || item.Character == null)
 			{
@@ -1146,6 +1146,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	private void SpawnQuestHostileParty(Hero questGiver, AIQuestInfo questInfo, QuestActionData questAction)
 	{
+		if (questInfo == null || questAction == null)
+		{
+			LogMessage($"[QUEST] SpawnQuestHostileParty aborted: questInfo_null={questInfo == null} questAction_null={questAction == null}");
+			return;
+		}
 		try
 		{
 			LogQuestScenarioVerbose($"SpawnQuestHostileParty start | quest_id={questInfo?.QuestId ?? "null"} anchor={questAction?.SpawnAnchor ?? "default"} near_npc={questAction?.SpawnNearNpcId ?? ""} near_settlement={questAction?.SpawnNearSettlementId ?? ""}");
@@ -1271,9 +1276,21 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				CleanupSpawnedQuestNotable(questInfo, "party creation failed");
 				return;
 			}
-			LogQuestScenarioVerbose($"SpawnQuestHostileParty created party id={((MBObjectBase)party).StringId}");
+			string stringId = ((MBObjectBase)party).StringId;
+			if (string.IsNullOrWhiteSpace(stringId))
+			{
+				LogMessage("[QUEST] Spawned hostile party has empty StringId; destroying to avoid inconsistent tracking");
+				DestroyPartyAction.Apply((PartyBase)null, party);
+				CleanupSpawnedQuestNotable(questInfo, "party string id invalid");
+				return;
+			}
+			LogQuestScenarioVerbose($"SpawnQuestHostileParty created party id={stringId}");
 			LogQuestScenarioVerbose("SpawnQuestHostileParty creation_mode=custom_quest_party");
-			questInfo.SpawnedPartyId = ((MBObjectBase)party).StringId;
+			if (!stringId.StartsWith("quest_party_", StringComparison.OrdinalIgnoreCase))
+			{
+				LogQuestScenarioVerbose($"SpawnQuestHostileParty warning: party id '{stringId}' does not match quest_party_* prefix");
+			}
+			questInfo.SpawnedPartyId = stringId;
 			if (party.MapFaction == null)
 			{
 				LogMessage($"[QUEST] Spawned hostile party '{((MBObjectBase)party).StringId}' has null MapFaction; destroying to avoid barter/pathing crashes");
@@ -1327,6 +1344,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	private bool TryAddNotableCharacterToParty(MobileParty party, Hero hero)
 	{
 		LogQuestScenarioVerbose($"TryAddNotableCharacterToParty start | party={((MBObjectBase)party)?.StringId ?? "null"} hero={((MBObjectBase)hero)?.StringId ?? "null"}");
+		if (party?.MemberRoster == null || party.Party == null)
+		{
+			LogMessage("[QUEST] TryAddNotableCharacterToParty failed due to null party/roster");
+			return false;
+		}
 		if (hero == null || !hero.IsNotable)
 		{
 			LogMessage("[QUEST] Could not create notable hero for hostile party");
@@ -1415,22 +1437,35 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	private bool EnsureQuestPartyNotableWorldState(Hero notableHero)
 	{
-		if (notableHero == null)
+		try
 		{
+			if (notableHero == null)
+			{
+				return false;
+			}
+			string stringId = ((MBObjectBase)notableHero).StringId;
+			NPCContext orCreateNPCContext = GetOrCreateNPCContext(notableHero);
+			if (orCreateNPCContext == null)
+			{
+				LogMessage($"[QUEST] EnsureQuestPartyNotableWorldState got null NPC context for '{stringId}'");
+				return false;
+			}
+			if (!orCreateNPCContext.KnowledgeGenerated)
+			{
+				WorldInfoManager.WorldSecretsManager.Instance?.CheckSecretKnowledge(notableHero, orCreateNPCContext);
+				WorldInfoManager.InformationManager.Instance?.CheckInfoKnowledge(notableHero, orCreateNPCContext);
+				orCreateNPCContext.KnowledgeGenerated = true;
+			}
+			UpdateContextData(orCreateNPCContext, notableHero);
+			SaveNPCContext(stringId, notableHero, orCreateNPCContext);
+			LogQuestScenarioVerbose($"EnsureQuestPartyNotableWorldState initialized context for '{stringId}'");
+			return true;
+		}
+		catch (Exception ex)
+		{
+			LogMessage("[QUEST] EnsureQuestPartyNotableWorldState error: " + ex.Message + "\n" + ex.StackTrace);
 			return false;
 		}
-		string stringId = ((MBObjectBase)notableHero).StringId;
-		NPCContext orCreateNPCContext = GetOrCreateNPCContext(notableHero);
-		if (!orCreateNPCContext.KnowledgeGenerated)
-		{
-			WorldInfoManager.WorldSecretsManager.Instance?.CheckSecretKnowledge(notableHero, orCreateNPCContext);
-			WorldInfoManager.InformationManager.Instance?.CheckInfoKnowledge(notableHero, orCreateNPCContext);
-			orCreateNPCContext.KnowledgeGenerated = true;
-		}
-		UpdateContextData(orCreateNPCContext, notableHero);
-		SaveNPCContext(stringId, notableHero, orCreateNPCContext);
-		LogQuestScenarioVerbose($"EnsureQuestPartyNotableWorldState initialized context for '{stringId}'");
-		return true;
 	}
 
 	private Clan ResolveHostileBanditClan(QuestActionData questAction, List<CharacterObject> compositionTroops, List<Clan> banditClans)
