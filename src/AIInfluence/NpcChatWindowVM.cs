@@ -112,6 +112,7 @@ public class NpcChatWindowVM : ViewModel
         }
         catch (Exception) { }
 
+        RightPanelItems.Add(new TextItemVM(" ", "#00000000"));
         RightPanelItems.Add(new TextItemVM("WHAT WE KNOW", Header));
         if (!string.IsNullOrWhiteSpace(context?.AIGeneratedPersonality))
             RightPanelItems.Add(new TextItemVM("• " + context.AIGeneratedPersonality));
@@ -123,6 +124,7 @@ public class NpcChatWindowVM : ViewModel
                 RightPanelItems.Add(new TextItemVM("• " + info));
 
         int rel = (int)npc.GetRelation(Hero.MainHero);
+        RightPanelItems.Add(new TextItemVM(" ", "#00000000"));
         RightPanelItems.Add(new TextItemVM("CHARACTER", Header));
         RightPanelItems.Add(new TextItemVM($"Relation: {rel:+#;-#;0}", rel >= 0 ? "#6FCF6FFF" : "#CF6F6FFF"));
         RightPanelItems.Add(new TextItemVM($"Trust: {context?.TrustLevel:F0}"));
