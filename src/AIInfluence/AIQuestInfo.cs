@@ -69,6 +69,9 @@ public class AIQuestInfo
 	[JsonProperty("spawned_party_id")]
 	public string SpawnedPartyId { get; set; }
 
+	[JsonProperty("spawned_notable_id")]
+	public string SpawnedNotableId { get; set; }
+
 	public List<string> GetEffectiveTargetNpcIds()
 	{
 		if (TargetNpcIds != null && TargetNpcIds.Count > 0)
