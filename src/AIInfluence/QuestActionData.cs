@@ -78,6 +78,30 @@ public class QuestActionData
 	[JsonProperty("hostile_troop_name")]
 	public string HostileTroopName { get; set; }
 
+	[JsonProperty("hostile_troop_names")]
+	public List<string> HostileTroopNames { get; set; }
+
+	[JsonProperty("hostile_faction_name")]
+	public string HostileFactionName { get; set; }
+
+	[JsonProperty("hostile_faction_id")]
+	public string HostileFactionId { get; set; }
+
+	[JsonProperty("hostile_faction_strict")]
+	public bool? HostileFactionStrict { get; set; }
+
+	[JsonProperty("spawn_anchor")]
+	public string SpawnAnchor { get; set; }
+
+	[JsonProperty("spawn_near_npc_id")]
+	public string SpawnNearNpcId { get; set; }
+
+	[JsonProperty("spawn_near_settlement_id")]
+	public string SpawnNearSettlementId { get; set; }
+
+	[JsonProperty("spawn_distance_days")]
+	public float? SpawnDistanceDays { get; set; }
+
 	public List<string> GetEffectiveTargetNpcIds()
 	{
 		if (TargetNpcIds != null && TargetNpcIds.Count > 0)

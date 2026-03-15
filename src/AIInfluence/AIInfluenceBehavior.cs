@@ -101,6 +101,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	private bool _welcomeCheckedThisSession = false;
 
+	private volatile bool _debugPromptQuestGenerationInProgress;
+
 	public static AIInfluenceBehavior Instance => _instance;
 
 	public NPCInitiativeSystem InitiativeSystem => _npcInitiativeSystem;
@@ -176,7 +178,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	public void LogMessage(string message)
 	{
-		if (!_isInitialized || !GlobalSettings<ModSettings>.Instance.EnableDebugLogging)
+		bool isCriticalError = !string.IsNullOrEmpty(message) && message.StartsWith("[ERROR]");
+		if (!isCriticalError && (!_isInitialized || !(GlobalSettings<ModSettings>.Instance?.EnableDebugLogging ?? false)))
 		{
 			return;
 		}
@@ -191,6 +194,19 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 		catch (Exception)
 		{
+		}
+	}
+
+	private bool IsQuestScenarioVerboseLoggingEnabled()
+	{
+		return GlobalSettings<ModSettings>.Instance?.DebugQuestScenarioVerboseLogging ?? false;
+	}
+
+	private void LogQuestScenarioVerbose(string message)
+	{
+		if (IsQuestScenarioVerboseLoggingEnabled())
+		{
+			LogMessage("[QuestDebugVerbose] " + message);
 		}
 	}
 
@@ -918,6 +934,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		//IL_0189: Unknown result type (might be due to invalid IL or missing references)
 		//IL_018e: Unknown result type (might be due to invalid IL or missing references)
 		string text = ((npc == null) ? null : ((object)npc.Name)?.ToString()) ?? "Unknown";
+		LogQuestScenarioVerbose($"ProcessCreateQuest start | npc='{text}' title='{questAction?.Title ?? ""}' spawn_hostile={questAction?.SpawnHostileParty ?? false}");
 		if (string.IsNullOrEmpty(questAction.Title) || string.IsNullOrEmpty(questAction.Description))
 		{
 			LogMessage("[QUEST] Quest from " + text + " has no title or description, ignoring");
@@ -1015,7 +1032,9 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 		if (questAction.SpawnHostileParty)
 		{
+			LogQuestScenarioVerbose($"ProcessCreateQuest hostile spawn requested | quest_id={text5}");
 			SpawnQuestHostileParty(npc, item, questAction);
+			SyncQuestInfoAcrossNpcs(item);
 			SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
 		}
 		LogMessage(string.Format("[QUEST] Created quest '{0}' (ID: {1}) from {2}, reward: {3}, duration: {4} days, targets: [{5}]", questAction.Title, text5, text, num, num2, string.Join(", ", effectiveTargetNpcIds)) + ((!string.IsNullOrEmpty(text2)) ? (", completer: " + text2) : "") + ((valueOrDefault > 0) ? $", progress: 0/{valueOrDefault} ({text4})" : ""));
@@ -1025,6 +1044,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	{
 		try
 		{
+			LogQuestScenarioVerbose($"SpawnQuestHostileParty start | quest_id={questInfo?.QuestId ?? "null"} anchor={questAction?.SpawnAnchor ?? "default"} near_npc={questAction?.SpawnNearNpcId ?? ""} near_settlement={questAction?.SpawnNearSettlementId ?? ""}");
 			int rawSize = questAction.HostilePartySize;
 			int troopCount = Math.Max(5, Math.Min(rawSize, 1500));
 			if (rawSize != troopCount)
@@ -1032,65 +1052,131 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage($"[QUEST] HostilePartySize {rawSize} clamped to {troopCount}");
 			}
 			string partyLabel = string.IsNullOrEmpty(questAction.HostilePartyLabel) ? "Quest Enemies" : questAction.HostilePartyLabel;
-			Clan banditClan = Clan.BanditFactions?.FirstOrDefault();
-			if (banditClan == null)
+			string spawnAnchorUsed;
+			Vec2 spawnPos = ResolveHostileQuestSpawnPosition(questGiver, questAction, out spawnAnchorUsed);
+			if (MobileParty.MainParty != null && spawnPos.Distance(MobileParty.MainParty.GetPosition2D()) < 8f)
 			{
-				LogMessage("[QUEST] No bandit clan found for hostile party spawn");
+				Vec2 playerPos = MobileParty.MainParty.GetPosition2D();
+				float playerDistance = spawnPos.Distance(playerPos);
+				float denominator = (playerDistance > 0.001f) ? playerDistance : 0.001f;
+				spawnPos = new Vec2(playerPos.x + (spawnPos.x - playerPos.x) * (8f / denominator), playerPos.y + (spawnPos.y - playerPos.y) * (8f / denominator));
+				spawnAnchorUsed += "|player_clearance";
+				LogMessage("[QUEST] Adjusted hostile spawn position to avoid spawning on top of the player");
+			}
+			if (TryFindNearbyNavigablePosition(spawnPos, 16f, out var safeSpawnPos))
+			{
+				spawnPos = safeSpawnPos;
+			}
+			LogQuestScenarioVerbose($"SpawnQuestHostileParty resolved spawn anchor '{spawnAnchorUsed}' -> ({spawnPos.X:F2}, {spawnPos.Y:F2})");
+			List<Clan> availableBanditClans = Clan.BanditFactions?
+				.Where((Clan c) => c != null && c.FactionMidSettlement != null)
+				.ToList() ?? new List<Clan>();
+			LogQuestScenarioVerbose($"SpawnQuestHostileParty found {availableBanditClans.Count} candidate bandit clans");
+			if (availableBanditClans.Count == 0)
+			{
+				LogMessage("[QUEST] No bandit clans found for hostile party spawn");
 				return;
 			}
-			Settlement currentSettlement = questGiver?.CurrentSettlement;
-			Vec2 spawnPos;
-			if (currentSettlement != null)
+			List<CharacterObject> compositionTroops = new List<CharacterObject>();
+			foreach (string troopName in (questAction.HostileTroopNames ?? new List<string>())
+				.Where((string name) => !string.IsNullOrWhiteSpace(name))
+				.Distinct(StringComparer.OrdinalIgnoreCase))
 			{
-				CampaignVec2 gate = currentSettlement.GatePosition;
-				spawnPos = gate.ToVec2();
-			}
-		else if (questGiver?.PartyBelongedTo != null)
-		{
-			spawnPos = questGiver.PartyBelongedTo.GetPosition2D();
-		}
-		else
-		{
-			spawnPos = MobileParty.MainParty?.GetPosition2D() ?? default;
-		}
-			CharacterObject basicTroop = null;
-			if (!string.IsNullOrEmpty(questAction.HostileTroopName))
-			{
-				basicTroop = ItemMentionParser.FindBestTroopMatch(questAction.HostileTroopName);
-				if (basicTroop != null)
+				CharacterObject val = ItemMentionParser.FindBestTroopMatch(troopName);
+				if (val != null)
 				{
-					LogMessage($"[QUEST] Resolved troop '{questAction.HostileTroopName}' → '{((BasicCharacterObject)basicTroop).Name}'");
+					compositionTroops.Add(val);
+					LogMessage($"[QUEST] Resolved troop '{troopName}' → '{((BasicCharacterObject)val).Name}'");
+				}
+				else
+				{
+					LogMessage($"[QUEST] Could not resolve troop '{troopName}' from hostile_troop_names");
 				}
 			}
-			basicTroop = basicTroop ?? banditClan.BasicTroop;
-			if (basicTroop == null)
+			Clan banditClan = ResolveHostileBanditClan(questAction, compositionTroops, availableBanditClans);
+			if (banditClan == null)
+			{
+				LogMessage("[QUEST] Failed to resolve bandit clan for hostile party spawn");
+				return;
+			}
+			if (banditClan.FactionMidSettlement == null)
+			{
+				LogMessage($"[QUEST] Resolved bandit clan '{banditClan.Name}' has null FactionMidSettlement; failing hostile party spawn");
+				return;
+			}
+			LogQuestScenarioVerbose($"SpawnQuestHostileParty selected clan id={((MBObjectBase)banditClan).StringId}");
+			if (compositionTroops.Count == 0 && !string.IsNullOrEmpty(questAction.HostileTroopName))
+			{
+				CharacterObject val2 = ItemMentionParser.FindBestTroopMatch(questAction.HostileTroopName);
+				if (val2 != null)
+				{
+					compositionTroops.Add(val2);
+					LogMessage($"[QUEST] Resolved troop '{questAction.HostileTroopName}' → '{((BasicCharacterObject)val2).Name}'");
+				}
+			}
+			if (compositionTroops.Count == 0 && banditClan.BasicTroop != null)
+			{
+				compositionTroops.Add(banditClan.BasicTroop);
+			}
+			if (compositionTroops.Count == 0)
 			{
 				LogMessage("[QUEST] No troop type found for hostile party spawn");
 				return;
 			}
-			Hideout anyHideout = Settlement.All?
-				.Where((Settlement s) => s.IsHideout && s.Hideout != null)
-				.Select((Settlement s) => s.Hideout)
-				.FirstOrDefault();
-			if (anyHideout == null)
+			LogQuestScenarioVerbose("SpawnQuestHostileParty composition resolved: " + string.Join(", ", compositionTroops.Select((CharacterObject t) => ((BasicCharacterObject)t).Name.ToString())));
+			Hero notableHero = CreateQuestPartyNotable(questGiver, spawnPos);
+			if (notableHero == null || !notableHero.IsNotable)
 			{
-				LogMessage("[QUEST] No hideout found on map — cannot spawn hostile party");
+				LogMessage("[QUEST] Could not create notable hero for hostile party");
+				questInfo.SpawnedNotableId = null;
 				return;
 			}
+			questInfo.SpawnedNotableId = ((MBObjectBase)notableHero).StringId;
+			int compositionCount = Math.Min(compositionTroops.Count, troopCount);
+			int baseCount = troopCount / compositionCount;
+			int remainder = troopCount % compositionCount;
+			Hideout nearestHideout = Settlement.All?
+				.Where((Settlement s) => s.IsHideout && s.Hideout != null)
+				.OrderBy((Settlement s) => s.GetPosition2D().Distance(spawnPos))
+				.Select((Settlement s) => s.Hideout)
+				.FirstOrDefault();
+			if (nearestHideout == null)
+			{
+				LogMessage("[QUEST] No hideout found for bandit party creation");
+				CleanupSpawnedQuestNotable(questInfo, "party creation failed");
+				return;
+			}
+			Settlement homeSettlement = Settlement.All?.OrderBy((Settlement s) => s.GetPosition2D().Distance(spawnPos)).FirstOrDefault();
 			CampaignVec2 campaignSpawnPos = new CampaignVec2(spawnPos, true);
-			MobileParty party = BanditPartyComponent.CreateBanditParty("quest_party_" + questInfo.QuestId, banditClan, anyHideout, false, (PartyTemplateObject)null, campaignSpawnPos);
+			MobileParty party = BanditPartyComponent.CreateBanditParty("quest_party_" + questInfo.QuestId, banditClan, nearestHideout, false, (PartyTemplateObject)null, campaignSpawnPos);
 			if (party == null)
 			{
 				LogMessage("[QUEST] BanditPartyComponent.CreateBanditParty returned null");
+				CleanupSpawnedQuestNotable(questInfo, "party creation failed");
 				return;
 			}
+			LogQuestScenarioVerbose($"SpawnQuestHostileParty created party id={((MBObjectBase)party).StringId}");
 			questInfo.SpawnedPartyId = ((MBObjectBase)party).StringId;
 			bool partySetupOk = false;
 			try
 			{
-				party.MemberRoster.AddToCounts(basicTroop, troopCount, false, 0, 0, true, -1);
 				party.Party.SetCustomName(new TextObject(partyLabel, (Dictionary<string, object>)null));
-				party.SetMovePatrolAroundPoint(campaignSpawnPos, (NavigationType)3);
+				if (!TryAddNotableCharacterToParty(party, notableHero))
+				{
+					throw new InvalidOperationException("Failed to add a notable character to spawned hostile party.");
+				}
+				for (int i = 0; i < compositionCount; i++)
+				{
+					int count = baseCount + ((i < remainder) ? 1 : 0);
+					if (count > 0)
+					{
+						party.MemberRoster.AddToCounts(compositionTroops[i], count, false, 0, 0, true, -1);
+					}
+				}
+				if (homeSettlement != null)
+				{
+					GameVersionCompatibility.SetMoveGoToSettlement(party, homeSettlement);
+				}
 				party.SetPartyUsedByQuest(true);
 				partySetupOk = true;
 			}
@@ -1099,6 +1185,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage("[QUEST] Error setting up hostile party, destroying it: " + setupEx.Message);
 				DestroyPartyAction.Apply((PartyBase)null, party);
 				questInfo.SpawnedPartyId = null;
+				CleanupSpawnedQuestNotable(questInfo, "party setup failed");
 			}
 			if (!partySetupOk)
 			{
@@ -1109,13 +1196,448 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			{
 				questBase.AddTrackedObject((ITrackableCampaignObject)(object)party);
 			}
-			LogMessage($"[QUEST] Spawned hostile party '{partyLabel}' ({troopCount} troops) near player for quest '{questInfo.Title}'");
+			LogMessage($"[QUEST] Spawned hostile party '{partyLabel}' ({troopCount} troops) using anchor '{spawnAnchorUsed}' with composition [{string.Join(", ", compositionTroops.Select((CharacterObject t) => ((BasicCharacterObject)t).Name.ToString()))}] and notable '{questInfo.SpawnedNotableId}' for quest '{questInfo.Title}'");
 			InformationManager.DisplayMessage(new InformationMessage($"A hostile party '{partyLabel}' has appeared on the map!", ExtraColors.RedAIInfluence));
 		}
 		catch (Exception ex)
 		{
 			LogMessage("[QUEST] Error spawning hostile party: " + ex.Message + "\n" + ex.StackTrace);
+			LogQuestScenarioVerbose("SpawnQuestHostileParty exception captured");
 		}
+	}
+
+	private bool TryAddNotableCharacterToParty(MobileParty party, Hero hero)
+	{
+		LogQuestScenarioVerbose($"TryAddNotableCharacterToParty start | party={((MBObjectBase)party)?.StringId ?? "null"} hero={((MBObjectBase)hero)?.StringId ?? "null"}");
+		if (hero == null || !hero.IsNotable)
+		{
+			LogMessage("[QUEST] Could not create notable hero for hostile party");
+			return false;
+		}
+		AddHeroToPartyAction.Apply(hero, party, true);
+		if (party.MemberRoster.GetTroopCount(hero.CharacterObject) <= 0)
+		{
+			party.MemberRoster.AddToCounts(hero.CharacterObject, 1, false, 0, 0, true, -1);
+		}
+		LogMessage($"[QUEST] Added notable '{hero.Name}' ({((MBObjectBase)hero).StringId}) to hostile party '{party.Name}'");
+		return true;
+	}
+
+	private Hero CreateQuestPartyNotable(Hero questGiver, Vec2 spawnPos)
+	{
+		LogQuestScenarioVerbose($"CreateQuestPartyNotable start | quest_giver={((MBObjectBase)questGiver)?.StringId ?? "null"} pos=({spawnPos.X:F2}, {spawnPos.Y:F2})");
+		Hero seedNotable = null;
+		Settlement seedSettlement = null;
+		List<Settlement> orderedSettlements = Settlement.All?.OrderBy((Settlement s) => s.GetPosition2D().Distance(spawnPos)).ToList();
+		if (orderedSettlements != null)
+		{
+			foreach (Settlement settlement in orderedSettlements)
+			{
+				Hero hero = settlement.Notables?.FirstOrDefault((Hero h) => h != null && h.IsAlive);
+				if (hero != null)
+				{
+					seedNotable = hero;
+					seedSettlement = settlement;
+					break;
+				}
+			}
+		}
+		if (seedNotable == null)
+		{
+			LogMessage("[QUEST] No seed notable found near hostile spawn position");
+			return null;
+		}
+		LogQuestScenarioVerbose($"CreateQuestPartyNotable seed notable={((MBObjectBase)seedNotable).StringId} settlement={((MBObjectBase)seedSettlement)?.StringId ?? "null"}");
+		Hero hero2 = null;
+		try
+		{
+			hero2 = HeroCreator.CreateRelativeNotableHero(seedNotable);
+		}
+		catch (Exception ex)
+		{
+			LogMessage("[QUEST] HeroCreator.CreateRelativeNotableHero failed: " + ex.Message);
+		}
+		if (hero2 == null)
+		{
+			try
+			{
+				hero2 = HeroCreator.CreateSpecialHero(seedNotable.CharacterObject, seedSettlement ?? questGiver?.CurrentSettlement, seedNotable.Clan, seedNotable.Clan, -1);
+			}
+			catch (Exception ex2)
+			{
+				LogMessage("[QUEST] HeroCreator.CreateSpecialHero fallback failed: " + ex2.Message);
+			}
+		}
+		if (hero2 != null && !hero2.IsNotable)
+		{
+			LogMessage("[QUEST] Created hero is not notable: " + hero2.Name);
+			try
+			{
+				KillCharacterAction.ApplyByMurder(hero2, null, false);
+			}
+			catch (Exception ex3)
+			{
+				LogMessage("[QUEST] Failed to remove non-notable created hero: " + ex3.Message);
+			}
+			return null;
+		}
+		LogQuestScenarioVerbose($"CreateQuestPartyNotable result={((MBObjectBase)hero2)?.StringId ?? "null"}");
+		return hero2;
+	}
+
+	private Clan ResolveHostileBanditClan(QuestActionData questAction, List<CharacterObject> compositionTroops, List<Clan> banditClans)
+	{
+		bool strictFactionResolution = questAction?.HostileFactionStrict ?? false;
+		string exactFactionId = questAction?.HostileFactionId;
+		LogQuestScenarioVerbose($"ResolveHostileBanditClan start | strict={strictFactionResolution} id='{exactFactionId ?? ""}' name='{questAction?.HostileFactionName ?? ""}' candidates={banditClans?.Count ?? 0}");
+		if (!string.IsNullOrWhiteSpace(exactFactionId))
+		{
+			Clan clan = banditClans.FirstOrDefault((Clan c) => string.Equals(((MBObjectBase)c).StringId, exactFactionId, StringComparison.OrdinalIgnoreCase));
+			if (clan != null)
+			{
+				LogMessage($"[QUEST] Selected bandit clan by hostile_faction_id exact match: '{clan.Name}' (id:{((MBObjectBase)clan).StringId})");
+				return clan;
+			}
+			LogMessage("[QUEST] hostile_faction_id '" + exactFactionId + "' not found among bandit clans");
+			if (strictFactionResolution)
+			{
+				LogMessage("[QUEST] hostile_faction_strict=true and exact id not found; failing hostile party spawn");
+				return null;
+			}
+			LogMessage("[QUEST] Falling back to fuzzy faction resolver after exact id miss");
+		}
+		string factionNameHint = questAction?.HostileFactionName;
+		string factionHint = NormalizeQuestSelectorText(factionNameHint);
+		Clan bestClan = null;
+		int bestScore = int.MinValue;
+		foreach (Clan banditClan in banditClans)
+		{
+			int score = 0;
+			int factionNameScore = 0;
+			string clanName = ((object)banditClan.Name)?.ToString() ?? "";
+			string clanId = ((MBObjectBase)banditClan).StringId ?? "";
+			CharacterObject basicTroop = banditClan.BasicTroop;
+			if (!string.IsNullOrEmpty(factionHint))
+			{
+				factionNameScore += ScoreQuestSelectorTerm(factionHint, clanName) * 3;
+				factionNameScore += ScoreQuestSelectorTerm(factionHint, clanId) * 3;
+				if (basicTroop != null)
+				{
+					factionNameScore += ScoreQuestSelectorTerm(factionHint, ((object)((BasicCharacterObject)basicTroop).Name)?.ToString() ?? "");
+					factionNameScore += ScoreQuestSelectorTerm(factionHint, ((MBObjectBase)basicTroop).StringId ?? "");
+				}
+			}
+			if (strictFactionResolution && !string.IsNullOrEmpty(factionHint) && factionNameScore <= 0)
+			{
+				continue;
+			}
+			score += factionNameScore;
+			if (compositionTroops != null && compositionTroops.Count > 0 && basicTroop != null)
+			{
+				int sameTroopCount = compositionTroops.Count((CharacterObject t) => t == basicTroop);
+				int sameCultureCount = compositionTroops.Count((CharacterObject t) => t?.Culture != null && basicTroop.Culture != null && t.Culture == basicTroop.Culture);
+				score += sameTroopCount * 150 + sameCultureCount * 25;
+			}
+			if (score > bestScore)
+			{
+				bestScore = score;
+				bestClan = banditClan;
+			}
+			LogQuestScenarioVerbose($"ResolveHostileBanditClan candidate id={clanId} score={score} faction_score={factionNameScore}");
+		}
+		if (bestClan != null && bestScore > 0)
+		{
+			LogMessage($"[QUEST] Selected bandit clan '{bestClan.Name}' (id:{((MBObjectBase)bestClan).StringId}) using hostile_faction_name='{factionNameHint ?? ""}' score={bestScore}");
+			return bestClan;
+		}
+		if (strictFactionResolution && !string.IsNullOrWhiteSpace(factionNameHint))
+		{
+			LogMessage("[QUEST] hostile_faction_strict=true and hostile_faction_name could not be resolved; failing hostile party spawn");
+			return null;
+		}
+		Clan clan2 = banditClans.OrderBy((Clan c) => ((MBObjectBase)c).StringId ?? "", StringComparer.OrdinalIgnoreCase).FirstOrDefault();
+		if (clan2 != null)
+		{
+			LogMessage($"[QUEST] No strict faction match found; using deterministic fallback clan '{clan2.Name}' (id:{((MBObjectBase)clan2).StringId})");
+		}
+		LogQuestScenarioVerbose($"ResolveHostileBanditClan fallback result={((MBObjectBase)clan2)?.StringId ?? "null"}");
+		return clan2;
+	}
+
+	private static string NormalizeQuestSelectorText(string value)
+	{
+		if (string.IsNullOrWhiteSpace(value))
+		{
+			return string.Empty;
+		}
+		StringBuilder stringBuilder = new StringBuilder(value.Length);
+		char c = '\0';
+		foreach (char c2 in value)
+		{
+			if (char.IsLetterOrDigit(c2))
+			{
+				char c3 = char.ToLowerInvariant(c2);
+				stringBuilder.Append(c3);
+				c = c3;
+			}
+			else if (c != ' ')
+			{
+				stringBuilder.Append(' ');
+				c = ' ';
+			}
+		}
+		return stringBuilder.ToString().Trim();
+	}
+
+	private static int ScoreQuestSelectorTerm(string normalizedQuery, string candidateValue)
+	{
+		string text = NormalizeQuestSelectorText(candidateValue);
+		if (string.IsNullOrEmpty(normalizedQuery) || string.IsNullOrEmpty(text))
+		{
+			return 0;
+		}
+		if (text == normalizedQuery)
+		{
+			return 100;
+		}
+		if (text.IndexOf(normalizedQuery, StringComparison.Ordinal) >= 0 || normalizedQuery.IndexOf(text, StringComparison.Ordinal) >= 0)
+		{
+			return 70;
+		}
+		string[] first = normalizedQuery.Split(new char[1] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+		string[] second = text.Split(new char[1] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+		int num = first.Intersect(second).Count();
+		if (num > 0)
+		{
+			return 20 * num;
+		}
+		return 0;
+	}
+
+	private Vec2 ResolveHostileQuestSpawnPosition(Hero questGiver, QuestActionData questAction, out string spawnAnchorUsed)
+	{
+		spawnAnchorUsed = "quest_giver_default";
+		string spawnAnchor = questAction?.SpawnAnchor;
+		LogQuestScenarioVerbose($"ResolveHostileQuestSpawnPosition start | anchor='{spawnAnchor ?? ""}'");
+		Vec2 anchorPos = GetDefaultHostileQuestSpawnPosition(questGiver);
+		if (string.IsNullOrWhiteSpace(spawnAnchor))
+		{
+			return ApplyHostileSpawnOffsetAndTerrainSafety(anchorPos, questGiver, questAction, ref spawnAnchorUsed);
+		}
+		if (spawnAnchor.Equals("player", StringComparison.OrdinalIgnoreCase))
+		{
+			spawnAnchorUsed = "player";
+			anchorPos = MobileParty.MainParty?.GetPosition2D() ?? GetDefaultHostileQuestSpawnPosition(questGiver);
+			return ApplyHostileSpawnOffsetAndTerrainSafety(anchorPos, questGiver, questAction, ref spawnAnchorUsed);
+		}
+		if (spawnAnchor.Equals("target_npc", StringComparison.OrdinalIgnoreCase))
+		{
+			string targetNpcId = questAction.GetEffectiveTargetNpcIds().FirstOrDefault();
+			if (TryResolveHeroSpawnPosition(targetNpcId, out var targetNpcPos))
+			{
+				spawnAnchorUsed = "target_npc:" + targetNpcId;
+				return ApplyHostileSpawnOffsetAndTerrainSafety(targetNpcPos, questGiver, questAction, ref spawnAnchorUsed);
+			}
+			LogMessage("[QUEST] spawn_anchor=target_npc failed to resolve target NPC position, falling back to default");
+			return ApplyHostileSpawnOffsetAndTerrainSafety(anchorPos, questGiver, questAction, ref spawnAnchorUsed);
+		}
+		if (spawnAnchor.Equals("npc_id", StringComparison.OrdinalIgnoreCase))
+		{
+			if (TryResolveHeroSpawnPosition(questAction.SpawnNearNpcId, out var npcPos))
+			{
+				spawnAnchorUsed = "npc_id:" + questAction.SpawnNearNpcId;
+				return ApplyHostileSpawnOffsetAndTerrainSafety(npcPos, questGiver, questAction, ref spawnAnchorUsed);
+			}
+			LogMessage("[QUEST] spawn_anchor=npc_id failed to resolve SpawnNearNpcId position, falling back to default");
+			return ApplyHostileSpawnOffsetAndTerrainSafety(anchorPos, questGiver, questAction, ref spawnAnchorUsed);
+		}
+		if (spawnAnchor.Equals("settlement_id", StringComparison.OrdinalIgnoreCase))
+		{
+			if (TryResolveSettlementSpawnPosition(questAction.SpawnNearSettlementId, out var settlementPos))
+			{
+				spawnAnchorUsed = "settlement_id:" + questAction.SpawnNearSettlementId;
+				return ApplyHostileSpawnOffsetAndTerrainSafety(settlementPos, questGiver, questAction, ref spawnAnchorUsed);
+			}
+			LogMessage("[QUEST] spawn_anchor=settlement_id failed to resolve SpawnNearSettlementId position, falling back to default");
+			return ApplyHostileSpawnOffsetAndTerrainSafety(anchorPos, questGiver, questAction, ref spawnAnchorUsed);
+		}
+		if (spawnAnchor.Equals("quest_giver", StringComparison.OrdinalIgnoreCase))
+		{
+			spawnAnchorUsed = "quest_giver";
+			return ApplyHostileSpawnOffsetAndTerrainSafety(anchorPos, questGiver, questAction, ref spawnAnchorUsed);
+		}
+		LogMessage("[QUEST] Unknown spawn_anchor '" + spawnAnchor + "', falling back to default");
+		return ApplyHostileSpawnOffsetAndTerrainSafety(anchorPos, questGiver, questAction, ref spawnAnchorUsed);
+	}
+
+	private Vec2 ApplyHostileSpawnOffsetAndTerrainSafety(Vec2 anchorPos, Hero questGiver, QuestActionData questAction, ref string spawnAnchorUsed)
+	{
+		Vec2 resolvedPos = anchorPos;
+		float distanceDays = Math.Max(0f, Math.Min(questAction?.SpawnDistanceDays ?? 0f, 3f));
+		LogQuestScenarioVerbose($"ApplyHostileSpawnOffsetAndTerrainSafety | distance_days={distanceDays:0.##} anchor=({anchorPos.X:F2}, {anchorPos.Y:F2})");
+		if (distanceDays > 0f)
+		{
+			float referenceSpeed = questGiver?.PartyBelongedTo?.Speed ?? MobileParty.MainParty?.Speed ?? 4f;
+			float mapDistance = Math.Max(1f, referenceSpeed * 24f * distanceDays);
+			if (TryFindNavigableOffsetPosition(anchorPos, mapDistance, out var offsetPos))
+			{
+				resolvedPos = offsetPos;
+				spawnAnchorUsed += $"|{distanceDays:0.##}d";
+			}
+			else
+			{
+				LogMessage($"[QUEST] Could not place hostile spawn at requested distance_days={distanceDays:0.##}; using anchor position");
+			}
+		}
+		if (TryFindNearbyNavigablePosition(resolvedPos, 24f, out var navigablePos))
+		{
+			LogQuestScenarioVerbose($"ApplyHostileSpawnOffsetAndTerrainSafety resolved navigable pos=({navigablePos.X:F2}, {navigablePos.Y:F2})");
+			return navigablePos;
+		}
+		Vec2 fallbackPos = GetDefaultHostileQuestSpawnPosition(questGiver);
+		if (TryFindNearbyNavigablePosition(fallbackPos, 24f, out var fallbackNavigable))
+		{
+			spawnAnchorUsed += "|navigable_fallback";
+			return fallbackNavigable;
+		}
+		LogMessage("[QUEST] Could not validate a navigable hostile spawn position; using unresolved position");
+		return resolvedPos;
+	}
+
+	private bool TryFindNavigableOffsetPosition(Vec2 anchorPos, float targetDistance, out Vec2 spawnPos)
+	{
+		spawnPos = anchorPos;
+		for (int pass = 0; pass < 3; pass++)
+		{
+			float passDistance = targetDistance * (1f - pass * 0.35f);
+			for (int attempt = 0; attempt < 24; attempt++)
+			{
+				float angle = (float)(_random.NextDouble() * Math.PI * 2.0);
+				float scale = 0.85f + (float)_random.NextDouble() * 0.3f;
+				float distance = Math.Max(1f, passDistance * scale);
+				Vec2 candidate = new Vec2(anchorPos.x + (float)Math.Cos(angle) * distance, anchorPos.y + (float)Math.Sin(angle) * distance);
+				if (IsCampaignLandPositionNavigable(candidate))
+				{
+					spawnPos = candidate;
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private bool TryFindNearbyNavigablePosition(Vec2 originPos, float maxRadius, out Vec2 navigablePos)
+	{
+		navigablePos = originPos;
+		if (IsCampaignLandPositionNavigable(originPos))
+		{
+			return true;
+		}
+		for (float radius = 2f; radius <= maxRadius; radius += 2f)
+		{
+			for (int step = 0; step < 16; step++)
+			{
+				float angle = (float)(step * (Math.PI * 2.0 / 16.0));
+				Vec2 candidate = new Vec2(originPos.x + (float)Math.Cos(angle) * radius, originPos.y + (float)Math.Sin(angle) * radius);
+				if (IsCampaignLandPositionNavigable(candidate))
+				{
+					navigablePos = candidate;
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private bool IsCampaignLandPositionNavigable(Vec2 position)
+	{
+		try
+		{
+			Type navHelperType = Type.GetType("TaleWorlds.CampaignSystem.NavigationHelper, TaleWorlds.CampaignSystem");
+			if (navHelperType == null)
+			{
+				return true;
+			}
+			MethodInfo method = navHelperType.GetMethod("IsPositionValidForNavigationType", BindingFlags.Static | BindingFlags.Public, null, new Type[2]
+			{
+				typeof(CampaignVec2),
+				typeof(NavigationType)
+			}, null);
+			if (method == null)
+			{
+				return true;
+			}
+			return (bool)method.Invoke(null, new object[2]
+			{
+				new CampaignVec2(position, true),
+				(NavigationType)1
+			});
+		}
+		catch (Exception ex)
+		{
+			LogMessage("[QUEST] IsCampaignLandPositionNavigable reflection check failed: " + ex.Message);
+			return true;
+		}
+	}
+
+	private Vec2 GetDefaultHostileQuestSpawnPosition(Hero questGiver)
+	{
+		Settlement currentSettlement = questGiver?.CurrentSettlement;
+		if (currentSettlement != null)
+		{
+			return currentSettlement.GetPosition2D();
+		}
+		if (questGiver?.PartyBelongedTo != null)
+		{
+			return questGiver.PartyBelongedTo.GetPosition2D();
+		}
+		return MobileParty.MainParty?.GetPosition2D() ?? default;
+	}
+
+	private bool TryResolveHeroSpawnPosition(string heroStringId, out Vec2 spawnPos)
+	{
+		spawnPos = default;
+		LogQuestScenarioVerbose("TryResolveHeroSpawnPosition for '" + (heroStringId ?? "") + "'");
+		if (string.IsNullOrEmpty(heroStringId))
+		{
+			return false;
+		}
+		Hero hero = Hero.FindFirst((Hero h) => ((MBObjectBase)h).StringId == heroStringId);
+		if (hero == null)
+		{
+			LogMessage("[QUEST] No hero found for spawn_near_npc_id '" + heroStringId + "'");
+			return false;
+		}
+		if (hero.CurrentSettlement != null)
+		{
+			spawnPos = hero.CurrentSettlement.GetPosition2D();
+			return true;
+		}
+		if (hero.PartyBelongedTo != null)
+		{
+			spawnPos = hero.PartyBelongedTo.GetPosition2D();
+			return true;
+		}
+		LogMessage("[QUEST] Hero '" + heroStringId + "' has no settlement or party position for hostile spawn");
+		return false;
+	}
+
+	private bool TryResolveSettlementSpawnPosition(string settlementStringId, out Vec2 spawnPos)
+	{
+		spawnPos = default;
+		LogQuestScenarioVerbose("TryResolveSettlementSpawnPosition for '" + (settlementStringId ?? "") + "'");
+		if (string.IsNullOrEmpty(settlementStringId))
+		{
+			return false;
+		}
+		Settlement settlement = Settlement.All?.FirstOrDefault((Settlement s) => ((MBObjectBase)s).StringId == settlementStringId);
+		if (settlement == null)
+		{
+			LogMessage("[QUEST] No settlement found for spawn_near_settlement_id '" + settlementStringId + "'");
+			return false;
+		}
+		spawnPos = settlement.GetPosition2D();
+		return true;
 	}
 
 	private void ApplyQuestItemRewards(AIQuestInfo questInfo)
@@ -1202,26 +1724,66 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	private void CleanupSpawnedQuestParty(AIQuestInfo questInfo)
 	{
-		if (string.IsNullOrEmpty(questInfo.SpawnedPartyId))
+		if (string.IsNullOrEmpty(questInfo.SpawnedPartyId) && string.IsNullOrEmpty(questInfo.SpawnedNotableId))
 		{
 			return;
 		}
 		try
 		{
-			MobileParty party = MobileParty.All?.FirstOrDefault((MobileParty p) => ((MBObjectBase)p).StringId == questInfo.SpawnedPartyId);
-			if (party != null)
+			if (!string.IsNullOrEmpty(questInfo.SpawnedPartyId))
 			{
-				QuestBase questBase = Campaign.Current?.QuestManager?.Quests?.FirstOrDefault((Func<QuestBase, bool>)((QuestBase q) => ((MBObjectBase)q).StringId == questInfo.QuestId && q.IsOngoing));
-				questBase?.RemoveTrackedObject((ITrackableCampaignObject)(object)party);
-				party.SetPartyUsedByQuest(false);
-				DestroyPartyAction.Apply((PartyBase)null, party);
-				LogMessage($"[QUEST] Destroyed spawned party '{questInfo.SpawnedPartyId}' on quest end");
+				MobileParty party = MobileParty.All?.FirstOrDefault((MobileParty p) => ((MBObjectBase)p).StringId == questInfo.SpawnedPartyId);
+				if (party != null)
+				{
+					QuestBase questBase = Campaign.Current?.QuestManager?.Quests?.FirstOrDefault((Func<QuestBase, bool>)((QuestBase q) => ((MBObjectBase)q).StringId == questInfo.QuestId && q.IsOngoing));
+					questBase?.RemoveTrackedObject((ITrackableCampaignObject)(object)party);
+					party.SetPartyUsedByQuest(false);
+					DestroyPartyAction.Apply((PartyBase)null, party);
+					LogMessage($"[QUEST] Destroyed spawned party '{questInfo.SpawnedPartyId}' on quest end");
+				}
 				questInfo.SpawnedPartyId = null;
 			}
+			CleanupSpawnedQuestNotable(questInfo, "quest ended");
 		}
 		catch (Exception ex)
 		{
 			LogMessage("[QUEST] Error destroying spawned party: " + ex.Message);
+		}
+	}
+
+	private void CleanupSpawnedQuestNotable(AIQuestInfo questInfo, string reason)
+	{
+		if (string.IsNullOrEmpty(questInfo.SpawnedNotableId))
+		{
+			return;
+		}
+		bool shouldClearNotableId = false;
+		try
+		{
+			Hero hero = Hero.FindFirst((Hero h) => ((MBObjectBase)h).StringId == questInfo.SpawnedNotableId);
+			if (hero == null)
+			{
+				LogMessage($"[QUEST] Spawned notable '{questInfo.SpawnedNotableId}' already missing during cleanup ({reason})");
+				shouldClearNotableId = true;
+			}
+			else if (hero.IsAlive)
+			{
+				KillCharacterAction.ApplyByMurder(hero, null, false);
+				LogMessage($"[QUEST] Cleaned up spawned notable '{hero.Name}' ({questInfo.SpawnedNotableId}) via KillCharacterAction ({reason})");
+				shouldClearNotableId = true;
+			}
+			else
+			{
+				shouldClearNotableId = true;
+			}
+		}
+		catch (Exception ex)
+		{
+			LogMessage("[QUEST] Error cleaning spawned notable: " + ex.Message);
+		}
+		if (shouldClearNotableId)
+		{
+			questInfo.SpawnedNotableId = null;
 		}
 	}
 
@@ -1580,6 +2142,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				{
 					aIQuestInfo.UpdateLogs = updatedQuestInfo.UpdateLogs;
 					aIQuestInfo.ProgressCurrent = updatedQuestInfo.ProgressCurrent;
+					aIQuestInfo.SpawnedPartyId = updatedQuestInfo.SpawnedPartyId;
+					aIQuestInfo.SpawnedNotableId = updatedQuestInfo.SpawnedNotableId;
 					flag = true;
 				}
 				AIQuestInfo aIQuestInfo2 = nPCContext.IncomingAIQuests?.Find((AIQuestInfo q) => q.QuestId == questId);
@@ -1587,6 +2151,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				{
 					aIQuestInfo2.UpdateLogs = updatedQuestInfo.UpdateLogs;
 					aIQuestInfo2.ProgressCurrent = updatedQuestInfo.ProgressCurrent;
+					aIQuestInfo2.SpawnedPartyId = updatedQuestInfo.SpawnedPartyId;
+					aIQuestInfo2.SpawnedNotableId = updatedQuestInfo.SpawnedNotableId;
 					flag = true;
 				}
 				if (flag)
@@ -1825,6 +2391,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					nPCContext2.ActiveAIQuests = new List<AIQuestInfo>();
 				}
 				AIQuestInfo aIQuestInfo2 = aIGeneratedQuest.ToQuestInfo();
+				RecoverSpawnLifecycleState(questId, aIQuestInfo2);
 				nPCContext2.ActiveAIQuests.Add(aIQuestInfo2);
 				_npcContexts[text3] = nPCContext2;
 				if (((QuestBase)aIGeneratedQuest).QuestGiver != null)
@@ -1941,6 +2508,40 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		catch (Exception ex3)
 		{
 			LogMessage("[QUEST_SYNC] Error during quest synchronization: " + ex3.Message + "\n" + ex3.StackTrace);
+		}
+	}
+
+	private void RecoverSpawnLifecycleState(string questId, AIQuestInfo questInfo)
+	{
+		if (questInfo == null || string.IsNullOrEmpty(questId))
+		{
+			return;
+		}
+		if (!string.IsNullOrEmpty(questInfo.SpawnedPartyId) && !string.IsNullOrEmpty(questInfo.SpawnedNotableId))
+		{
+			return;
+		}
+		foreach (NPCContext value in _npcContexts.Values)
+		{
+			AIQuestInfo existing = value?.ActiveAIQuests?.FirstOrDefault((AIQuestInfo q) => q.QuestId == questId)
+				?? value?.IncomingAIQuests?.FirstOrDefault((AIQuestInfo q) => q.QuestId == questId);
+			if (existing == null)
+			{
+				continue;
+			}
+			if (string.IsNullOrEmpty(questInfo.SpawnedPartyId) && !string.IsNullOrEmpty(existing.SpawnedPartyId))
+			{
+				questInfo.SpawnedPartyId = existing.SpawnedPartyId;
+			}
+			if (string.IsNullOrEmpty(questInfo.SpawnedNotableId) && !string.IsNullOrEmpty(existing.SpawnedNotableId))
+			{
+				questInfo.SpawnedNotableId = existing.SpawnedNotableId;
+			}
+			if (!string.IsNullOrEmpty(questInfo.SpawnedPartyId) || !string.IsNullOrEmpty(questInfo.SpawnedNotableId))
+			{
+				LogMessage($"[QUEST_SYNC] Recovered spawn lifecycle for quest '{questId}': party='{questInfo.SpawnedPartyId}', notable='{questInfo.SpawnedNotableId}'");
+				return;
+			}
 		}
 	}
 
@@ -4466,6 +5067,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			DebugSpawnTestQuest();
 			return;
 		}
+		if (settingName == "DebugGenerateQuestFromPrompt" && (bool)value)
+		{
+			DebugGenerateQuestFromPrompt();
+			return;
+		}
 		if (settingName == "DebugViewActiveQuests" && (bool)value)
 		{
 			DebugViewActiveQuests();
@@ -4532,18 +5138,37 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 	}
 
-	private void DebugSpawnTestQuest()
+	private static string SanitizeDebugQuestPrompt(string rawPrompt)
 	{
-		try
+		if (string.IsNullOrWhiteSpace(rawPrompt))
 		{
+			return string.Empty;
+		}
+		string text = new string(rawPrompt.Where((char ch) => !char.IsControl(ch) || ch == '\n' || ch == '\r' || ch == '\t').ToArray()).Trim();
+		if (text.Length > 500)
+		{
+			text = text.Substring(0, 500);
+		}
+		return text;
+	}
+
+	private Hero FindNearestSuitableQuestGiver()
+	{
 		Vec2 mainPos = MobileParty.MainParty?.GetPosition2D() ?? default;
-		Hero questGiver = Hero.FindAll((Hero h) => h != Hero.MainHero && h.IsAlive && h.IsActive && !h.IsWanderer)
+		return Hero.FindAll((Hero h) => h != Hero.MainHero && h.IsAlive && h.IsActive && !h.IsWanderer)
 			?.OrderBy((Hero h) =>
 			{
 				Vec2 pos = h.PartyBelongedTo != null ? h.PartyBelongedTo.GetPosition2D() : (h.CurrentSettlement?.GetPosition2D() ?? default);
 				return pos.Distance(mainPos);
 			})
 			?.FirstOrDefault();
+	}
+
+	private void DebugSpawnTestQuest()
+	{
+		try
+		{
+			Hero questGiver = FindNearestSuitableQuestGiver();
 			if (questGiver == null)
 			{
 				InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] No suitable NPC found for test quest.", ExtraColors.RedAIInfluence));
@@ -4580,6 +5205,141 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 	}
 
+	private void DebugGenerateQuestFromPrompt()
+	{
+		string prompt = SanitizeDebugQuestPrompt(GlobalSettings<ModSettings>.Instance?.DebugQuestGenerationPrompt);
+		LogQuestScenarioVerbose("DebugGenerateQuestFromPrompt invoked");
+		if (string.IsNullOrEmpty(prompt))
+		{
+			InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Quest Generation Prompt is empty.", ExtraColors.RedAIInfluence));
+			return;
+		}
+		LogQuestScenarioVerbose($"DebugGenerateQuestFromPrompt prompt length={prompt.Length}");
+		try
+		{
+			if (_debugPromptQuestGenerationInProgress)
+			{
+				LogQuestScenarioVerbose("DebugGenerateQuestFromPrompt skipped because a request is already running");
+				InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Prompt quest generation is already running.", ExtraColors.RedAIInfluence));
+				return;
+			}
+			Hero questGiver = FindNearestSuitableQuestGiver();
+			if (questGiver == null)
+			{
+				InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] No suitable NPC found for prompt quest.", ExtraColors.RedAIInfluence));
+				return;
+			}
+			LogQuestScenarioVerbose($"DebugGenerateQuestFromPrompt selected quest giver id={((MBObjectBase)questGiver).StringId} name={questGiver.Name}");
+			_debugPromptQuestGenerationInProgress = true;
+			InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Generating quest from prompt...", ExtraColors.GreenAIInfluence));
+			string requestPrompt = "You are generating a Bannerlord quest action for debugging.\nReturn ONLY valid JSON in this exact wrapper:\n{\"quest_action\":{...}}\nInside quest_action provide action=create_quest with fields title, description, duration_days (7-60), reward_gold (0-5000), optional target_npc_ids, completer_npc_id, ai_verification_notes, progress_target, progress_label, reward_items, reward_skill, reward_skill_xp, crime_rating_change, influence_change, spawn_hostile_party, hostile_party_size, hostile_party_label, hostile_faction_id, hostile_faction_name, hostile_faction_strict, hostile_troop_name, hostile_troop_names, spawn_anchor, spawn_near_npc_id, spawn_near_settlement_id, spawn_distance_days.\nhostile_faction_id is exact and takes priority; if not found, hostile_faction_name is used as fuzzy fallback.\nIf hostile_faction_strict=true and id/name cannot be resolved, the spawn fails.\nspawn_anchor allowed values: quest_giver, player, target_npc, npc_id, settlement_id.\nspawn_distance_days is optional travel-days offset from anchor (example 0.5 = half-day ride).\nDo not add explanations.\nPlayer quest request: " + prompt;
+			Task.Run(async delegate
+			{
+				string rawResponse = null;
+				string requestError = null;
+				try
+				{
+					LogQuestScenarioVerbose("DebugGenerateQuestFromPrompt background request started");
+					Task<string> requestTask = SendAIRequestRaw(requestPrompt);
+					Task timeoutTask = Task.Delay(45000);
+					Task completedTask = await Task.WhenAny(requestTask, timeoutTask);
+					if (completedTask == timeoutTask)
+					{
+						requestError = "Error: Timeout while waiting for AI response (45s)";
+						LogMessage("[QuestDebug] Prompt quest AI request timed out after 45s");
+					}
+					else
+					{
+						rawResponse = await requestTask;
+						LogQuestScenarioVerbose($"DebugGenerateQuestFromPrompt response length={rawResponse?.Length ?? 0}");
+					}
+				}
+				catch (Exception ex2)
+				{
+					requestError = "Error: " + ex2.Message;
+					LogMessage("[QuestDebug] Prompt quest AI request exception: " + ex2.Message + "\n" + ex2.StackTrace);
+				}
+				try
+				{
+					LogQuestScenarioVerbose("DebugGenerateQuestFromPrompt enqueueing main-thread response handling");
+					TtsLipSyncService.MainThreadQueue.Enqueue(delegate
+					{
+						try
+						{
+							_debugPromptQuestGenerationInProgress = false;
+							Hero liveQuestGiver = questGiver;
+							if (liveQuestGiver == null || !liveQuestGiver.IsAlive || !liveQuestGiver.IsActive)
+							{
+								InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Prompt quest cancelled: quest giver is no longer available.", ExtraColors.RedAIInfluence));
+								return;
+							}
+							NPCContext context = GetOrCreateNPCContext(liveQuestGiver);
+							string effectiveResponse = rawResponse;
+							if (!string.IsNullOrEmpty(requestError))
+							{
+								effectiveResponse = requestError;
+							}
+							HandleDebugGeneratedQuestResponse(liveQuestGiver, context, effectiveResponse);
+						}
+						catch (Exception ex3)
+						{
+							_debugPromptQuestGenerationInProgress = false;
+							LogMessage("[QuestDebug] Main-thread prompt quest handling error: " + ex3.Message + "\n" + ex3.StackTrace);
+							InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Prompt quest error — see mod_log.txt", ExtraColors.RedAIInfluence));
+						}
+					});
+				}
+				catch (Exception ex4)
+				{
+					_debugPromptQuestGenerationInProgress = false;
+					LogMessage("[QuestDebug] Failed to enqueue main-thread quest generation action: " + ex4.Message + "\n" + ex4.StackTrace);
+					LogQuestScenarioVerbose("DebugGenerateQuestFromPrompt failed to enqueue main-thread action");
+				}
+			});
+		}
+		catch (Exception ex)
+		{
+			_debugPromptQuestGenerationInProgress = false;
+			LogMessage("[QuestDebug] DebugGenerateQuestFromPrompt error: " + ex.Message + "\n" + ex.StackTrace);
+			InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Prompt quest error — see mod_log.txt", ExtraColors.RedAIInfluence));
+		}
+	}
+
+	private void HandleDebugGeneratedQuestResponse(Hero questGiver, NPCContext context, string rawResponse)
+	{
+		LogQuestScenarioVerbose($"HandleDebugGeneratedQuestResponse start | response_length={rawResponse?.Length ?? 0}");
+		if (string.IsNullOrEmpty(rawResponse) || rawResponse.StartsWith("Error:"))
+		{
+			LogMessage("[QuestDebug] Prompt quest AI request failed: " + (rawResponse ?? "empty response"));
+			InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Prompt quest generation failed: " + (rawResponse ?? "empty response"), ExtraColors.RedAIInfluence));
+			return;
+		}
+		string cleanedResponse = JsonCleaner.CleanJsonGeneric(rawResponse) ?? rawResponse;
+		LogQuestScenarioVerbose($"HandleDebugGeneratedQuestResponse cleaned_length={cleanedResponse?.Length ?? 0}");
+		AIResponse aiResponse = JsonConvert.DeserializeObject<AIResponse>(cleanedResponse);
+		QuestActionData questAction = aiResponse?.QuestAction;
+		if (questAction == null)
+		{
+			LogQuestScenarioVerbose("HandleDebugGeneratedQuestResponse falling back to direct QuestActionData parse");
+			questAction = JsonConvert.DeserializeObject<QuestActionData>(cleanedResponse);
+		}
+		if (questAction == null)
+		{
+			LogMessage("[QuestDebug] Prompt quest parse failed. Raw response: " + rawResponse);
+			InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Prompt quest parse failed. See mod_log.txt.", ExtraColors.RedAIInfluence));
+			return;
+		}
+		if (!"create_quest".Equals(questAction.Action, StringComparison.OrdinalIgnoreCase))
+		{
+			LogMessage("[QuestDebug] Prompt quest response had unsupported action: " + (questAction.Action ?? "null"));
+			InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Prompt quest response action must be create_quest.", ExtraColors.RedAIInfluence));
+			return;
+		}
+		LogQuestScenarioVerbose($"HandleDebugGeneratedQuestResponse parsed action=create_quest title='{questAction.Title ?? ""}' spawn_hostile={questAction.SpawnHostileParty}");
+		ProcessCreateQuest(questGiver, context, questAction);
+		InformationManager.DisplayMessage(new InformationMessage($"[QuestDebug] Prompt quest created on {questGiver.Name}.", ExtraColors.GreenAIInfluence));
+	}
+
 	private void DebugViewActiveQuests()
 	{
 		try
@@ -4596,9 +5356,10 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				{
 					string progress = q.ProgressTarget > 0 ? $" [{q.ProgressCurrent}/{q.ProgressTarget} {q.ProgressLabel}]" : "";
 					string party = !string.IsNullOrEmpty(q.SpawnedPartyId) ? $" | party:{q.SpawnedPartyId}" : "";
+					string notable = !string.IsNullOrEmpty(q.SpawnedNotableId) ? $" | notable:{q.SpawnedNotableId}" : "";
 					InformationManager.DisplayMessage(new InformationMessage(
-						$"[Quest] \"{q.Title}\" giver:{q.QuestGiverNpcId} gold:{q.RewardGold}{progress}{party}", ExtraColors.GreenAIInfluence));
-					LogMessage($"[QuestDebug] Active quest: {q.QuestId} | {q.Title} | giver:{q.QuestGiverNpcId} | gold:{q.RewardGold}{progress}{party}");
+						$"[Quest] \"{q.Title}\" giver:{q.QuestGiverNpcId} gold:{q.RewardGold}{progress}{party}{notable}", ExtraColors.GreenAIInfluence));
+					LogMessage($"[QuestDebug] Active quest: {q.QuestId} | {q.Title} | giver:{q.QuestGiverNpcId} | gold:{q.RewardGold}{progress}{party}{notable}");
 					total++;
 				}
 			}
@@ -5175,9 +5936,26 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		return _saveQueueManager.GetStats();
 	}
 
+	private static NPCContext CloneContextForSave(NPCContext source, int maxHistory)
+	{
+		NPCContext nPCContext = JsonConvert.DeserializeObject<NPCContext>(JsonConvert.SerializeObject(source)) ?? new NPCContext();
+		if (nPCContext.ConversationHistory != null && nPCContext.ConversationHistory.Count > maxHistory)
+		{
+			nPCContext.ConversationHistory = nPCContext.ConversationHistory.Skip(nPCContext.ConversationHistory.Count - maxHistory).ToList();
+		}
+		return nPCContext;
+	}
+
 	public override void SyncData(IDataStore dataStore)
 	{
 		_saveQueueManager.ClearQueue();
+		bool binarySyncCompatibilityMode = false;
+		if (binarySyncCompatibilityMode)
+		{
+			if (dataStore.IsLoading && _followingHeroIds == null)
+				_followingHeroIds = new List<string>();
+			return;
+		}
 		try
 		{
 			if (dataStore.IsSaving)
@@ -5190,23 +5968,47 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					LogMessage($"[SAVE] Saving {_followingHeroIds.Count} following hero IDs to game save");
 					LogMessage($"[SAVE] Serialized AI actions length: {_serializedActionState?.Length ?? 0}");
 				}
-				int maxHistory = GlobalSettings<ModSettings>.Instance?.PromptMaxHistory ?? 100;
+				int maxHistory = Math.Max(1, GlobalSettings<ModSettings>.Instance?.PromptMaxHistory ?? 100);
 				Dictionary<string, NPCContext> contextsToSave = _npcContexts
-					.Where(kvp => kvp.Value.InteractionCount > 0 || kvp.Value.LastInteractionTimeDays >= 0.0)
-					.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-				foreach (NPCContext ctx in contextsToSave.Values)
-				{
-					if (ctx.ConversationHistory?.Count > maxHistory)
-						ctx.ConversationHistory = ctx.ConversationHistory.Skip(ctx.ConversationHistory.Count - maxHistory).ToList();
-				}
+					.Where((KeyValuePair<string, NPCContext> kvp) => kvp.Value != null && (kvp.Value.InteractionCount > 0 || kvp.Value.LastInteractionTimeDays >= 0.0))
+					.ToDictionary((KeyValuePair<string, NPCContext> kvp) => kvp.Key, (KeyValuePair<string, NPCContext> kvp) => CloneContextForSave(kvp.Value, maxHistory));
 				_npcContextsJson = JsonConvert.SerializeObject(contextsToSave);
 				LogMessage($"[SAVE] Serialized {contextsToSave.Count}/{_npcContexts.Count} NPC contexts into game save (history capped at {maxHistory})");
 			}
-			dataStore.SyncData<List<string>>("followingHeroIds", ref _followingHeroIds);
-			dataStore.SyncData<string>("aiActionState", ref _serializedActionState);
-			dataStore.SyncData<string>("npcContexts", ref _npcContextsJson);
+			List<string> legacyFollowingHeroIds = _followingHeroIds;
+			string legacySerializedActionState = _serializedActionState;
+			string legacyNpcContextsJson = _npcContextsJson;
+			string legacyCurrentSaveFolder = _currentSaveFolder;
+			dataStore.SyncData<List<string>>("AIInfluence_followingHeroIds", ref _followingHeroIds);
+			dataStore.SyncData<string>("AIInfluence_aiActionState", ref _serializedActionState);
+			dataStore.SyncData<string>("AIInfluence_npcContexts", ref _npcContextsJson);
+			dataStore.SyncData<List<string>>("followingHeroIds", ref legacyFollowingHeroIds);
+			dataStore.SyncData<string>("aiActionState", ref legacySerializedActionState);
+			dataStore.SyncData<string>("npcContexts", ref legacyNpcContextsJson);
+			dataStore.SyncData<string>("AIInfluence_currentSaveFolder", ref _currentSaveFolder);
+			dataStore.SyncData<string>("currentSaveFolder", ref legacyCurrentSaveFolder);
 			if (dataStore.IsLoading)
 			{
+				if ((_followingHeroIds == null || _followingHeroIds.Count == 0) && legacyFollowingHeroIds != null && legacyFollowingHeroIds.Count > 0)
+				{
+					_followingHeroIds = legacyFollowingHeroIds;
+					LogMessage($"[LOAD] Loaded {_followingHeroIds.Count} following hero IDs from legacy key");
+				}
+				if (string.IsNullOrEmpty(_serializedActionState) && !string.IsNullOrEmpty(legacySerializedActionState))
+				{
+					_serializedActionState = legacySerializedActionState;
+					LogMessage("[LOAD] Loaded AI action state from legacy key");
+				}
+				if (string.IsNullOrEmpty(_npcContextsJson) && !string.IsNullOrEmpty(legacyNpcContextsJson))
+				{
+					_npcContextsJson = legacyNpcContextsJson;
+					LogMessage("[LOAD] Loaded NPC contexts from legacy key");
+				}
+				if (string.IsNullOrEmpty(_currentSaveFolder) && !string.IsNullOrEmpty(legacyCurrentSaveFolder))
+				{
+					_currentSaveFolder = legacyCurrentSaveFolder;
+					LogMessage("[LOAD] Loaded current save folder from legacy key");
+				}
 				if (!string.IsNullOrEmpty(_npcContextsJson))
 				{
 					try
@@ -5249,11 +6051,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					}
 				}
 			}
-			dataStore.SyncData<string>("currentSaveFolder", ref _currentSaveFolder);
 		}
 		catch (Exception ex)
 		{
-			LogMessage("[ERROR] SyncData failed: " + ex.Message);
+			LogMessage("[ERROR] SyncData failed: " + ex);
+			throw;
 		}
 	}
 
@@ -7862,11 +8664,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			TextObject name2 = hero.Name;
 			Hero obj3 = killer;
 			LogMessage(string.Format("[CHARACTER_DEATH] {0} has been killed successfully by {1}", name2, ((obj3 == null) ? null : ((object)obj3.Name)?.ToString()) ?? "unknown"));
-			if (hero.CurrentSettlement != null && hero.CurrentSettlement.Notables != null && ((List<Hero>)(object)hero.CurrentSettlement.Notables).Contains(hero))
-			{
-				((List<Hero>)(object)hero.CurrentSettlement.Notables).Remove(hero);
-				LogMessage($"[CHARACTER_DEATH] Removed dead hero {hero.Name} from {hero.CurrentSettlement.Name}.Notables to prevent crash");
-			}
 		}
 		catch (Exception ex2)
 		{

@@ -254,17 +254,25 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 
 	public override void SyncData(IDataStore dataStore)
 	{
+		bool binarySyncCompatibilityMode = true;
+		if (binarySyncCompatibilityMode)
+		{
+			_partyCooldownEndHours ??= new Dictionary<string, double>();
+			return;
+		}
 		try
 		{
-			dataStore.SyncData<Dictionary<string, double>>("_arenaPartyCooldownEndHours", ref _partyCooldownEndHours);
+			dataStore.SyncData<Dictionary<string, double>>("AIInfluence_arenaPartyCooldownEndHours", ref _partyCooldownEndHours);
 			if (_partyCooldownEndHours == null)
 			{
 				_partyCooldownEndHours = new Dictionary<string, double>();
 			}
 		}
-		catch
+		catch (Exception ex)
 		{
 			_partyCooldownEndHours = new Dictionary<string, double>();
+			AIInfluenceBehavior.Instance?.LogMessage("[ERROR] ArenaTrainingMenuBehavior.SyncData failed: " + ex);
+			throw;
 		}
 	}
 

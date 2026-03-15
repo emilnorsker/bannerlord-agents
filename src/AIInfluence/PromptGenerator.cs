@@ -4613,10 +4613,18 @@ public static class PromptGenerator
 			"- `\"crime_rating_change\"`: integer (negative = reduce crime, positive = increase). Applied to the player's current kingdom.\n" +
 			"- `\"influence_change\"`: integer influence change for the player's clan (positive = gain, negative = lose).\n" +
 			"Hostile party (optional, for combat quests):\n" +
-			"- `\"spawn_hostile_party\": true`: spawns a bandit party on the map near the player when the quest is created. The player must defeat it.\n" +
+			"- `\"spawn_hostile_party\": true`: spawns a bandit party on the map when the quest is created. The player must defeat it.\n" +
 			"- `\"hostile_party_size\"`: number of troops (5–1500).\n" +
 			"- `\"hostile_party_label\"`: display name of the party (e.g. \"Bandits sent by Radagos\").\n" +
-			"- `\"hostile_troop_name\"`: troop type name (e.g. \"looter\", \"forest bandit\", \"sea raider\", \"mountain bandit\"). The system fuzzy-matches to the closest real troop. Omit to use default bandits.\n");
+			"- `\"hostile_faction_id\"`: optional exact bandit faction string_id. If found, this is used directly.\n" +
+			"- `\"hostile_faction_name\"`: optional bandit faction hint (name or id). Used only if hostile_faction_id is missing or not found.\n" +
+			"- `\"hostile_faction_strict\"`: optional bool. If true and faction_id/name cannot be resolved, spawn fails instead of falling back.\n" +
+			"- `\"hostile_troop_name\"`: troop type name (e.g. \"looter\", \"forest bandit\", \"sea raider\", \"mountain bandit\"). The system fuzzy-matches to the closest real troop. Omit to use default bandits.\n" +
+			"- `\"hostile_troop_names\"`: optional array of troop type names for mixed compositions (e.g. [\"marauder\", \"vlandian footman\"]). The system splits party size across resolved troop types.\n" +
+			"- `\"spawn_anchor\"` (optional): where to spawn the hostile party. Allowed values: \"quest_giver\" (default), \"player\", \"target_npc\", \"npc_id\", \"settlement_id\".\n" +
+			"- `\"spawn_near_npc_id\"` (optional): required when spawn_anchor=\"npc_id\".\n" +
+			"- `\"spawn_near_settlement_id\"` (optional): required when spawn_anchor=\"settlement_id\".\n" +
+			"- `\"spawn_distance_days\"` (optional): desired offset distance from the selected anchor in travel-days (e.g. 0.5 = half-day ride).\n");
 		stringBuilder.Append("\n");
 		return stringBuilder.ToString();
 	}
@@ -4721,7 +4729,7 @@ public static class PromptGenerator
 		return "- `quest_action`: (object) Quest-related action. **Omit if no quest interaction.**\n" +
 		"  Create: {\"action\": \"create_quest\", \"title\": \"...\", \"description\": \"...\", \"duration_days\": N, \"target_npc_ids\": [\"id1\"], \"completer_npc_id\": \"id or null\", \"ai_verification_notes\": \"private notes\", \"progress_target\": N_or_null, \"progress_label\": \"label_or_null\", " +
 		"\"reward_gold\": N, \"reward_items\": [{\"item_name\": \"grain\", \"count\": 10}], \"reward_skill\": \"Charm\", \"reward_skill_xp\": 200, \"crime_rating_change\": -10, \"influence_change\": 5, " +
-		"\"spawn_hostile_party\": false, \"hostile_party_size\": 10, \"hostile_party_label\": \"Bandits\", \"hostile_troop_name\": \"looter\"}\n" +
+		"\"spawn_hostile_party\": false, \"hostile_party_size\": 10, \"hostile_party_label\": \"Bandits\", \"hostile_faction_id\": \"forest_bandits\", \"hostile_faction_name\": \"forest bandits\", \"hostile_faction_strict\": false, \"hostile_troop_name\": \"looter\", \"hostile_troop_names\": [\"marauder\", \"vlandian footman\"], \"spawn_anchor\": \"player\", \"spawn_near_npc_id\": null, \"spawn_near_settlement_id\": null, \"spawn_distance_days\": 0.5}\n" +
 		"  Update: {\"action\": \"update_quest\", \"quest_id\": \"...\", \"update_log\": \"your note\", \"set_progress\": N_or_null}\n" +
 		"  Complete: {\"action\": \"complete_quest\", \"quest_id\": \"...\", \"completion_reason\": \"why\", \"set_progress\": N_or_null} — all rewards applied automatically\n" +
 		"  Fail: {\"action\": \"fail_quest\", \"quest_id\": \"...\", \"completion_reason\": \"why failed\"}\n";
