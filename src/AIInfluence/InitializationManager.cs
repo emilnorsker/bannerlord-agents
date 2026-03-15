@@ -52,7 +52,6 @@ public class InitializationManager
 			}
 			DialogManager.Instance.RegisterDialogs(campaignGameStarter);
 			behavior?.LogMessage("[INIT_MANAGER] DialogManager инициализирован и диалоги зарегистрированы.");
-			behavior?.LoadAllNPCsForEvent();
 			behavior?.CreateKingdomLeadersContexts();
 			DynamicEventsManager.Instance.Initialize();
 			behavior?.LogMessage("[INIT_MANAGER] DynamicEventsManager инициализирован.");

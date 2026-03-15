@@ -3759,8 +3759,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 		catch (Exception ex)
 		{
-			LogMessage("[ERROR] Failed to load NPC context for " + npcId + ": " + ex.Message);
-			return new NPCContext();
+			LogMessage("[ERROR] Failed to load NPC context for " + npcId + ": " + ex);
+			throw;
 		}
 	}
 
@@ -4350,7 +4350,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		if (settingName == "LoadAllNPCs" && (bool)value)
 		{
 			GlobalSettings<ModSettings>.Instance.LoadAllNPCs = false;
-			LoadAllNPCsForEvent();
+			LogMessage("[WARNING] LoadAllNPCs ignored: sidecar NPC import is disabled in native save mode.");
 			return;
 		}
 		if (settingName == "EraseSpecificNPC" && (bool)value)
