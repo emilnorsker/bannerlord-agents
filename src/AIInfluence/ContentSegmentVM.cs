@@ -11,11 +11,14 @@ public class ContentSegmentVM : ViewModel
     [DataSourceProperty] public string Text      { get; set; } = "";
     [DataSourceProperty] public string TextColor { get; set; } = "#E8DCC8FF";
     [DataSourceProperty] public string BackColor { get; set; } = "#00000000";
+    [DataSourceProperty] public bool IsPill      { get; set; } = false;
+    [DataSourceProperty] public bool IsBody      => !IsPill;
 
-    public ContentSegmentVM(string text, string textColor, string backColor)
+    public ContentSegmentVM(string text, string textColor, string backColor, bool isPill = false)
     {
         Text      = text;
         TextColor = textColor;
         BackColor = backColor;
+        IsPill    = isPill;
     }
 }

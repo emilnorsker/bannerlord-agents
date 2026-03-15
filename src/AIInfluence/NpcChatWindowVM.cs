@@ -141,6 +141,7 @@ public class NpcChatWindowVM : ViewModel
     private const string PlayerBubbleColor = "#000000D0"; // darker for player speech
     private const string EmoteColor       = "#CF4444FF";
     private const string ActionColor      = "#9B59B6FF";
+    private const string ActionBubbleColor = "#241433E8";
 
     private bool IsPlayerSender(string sender)
     {
@@ -264,7 +265,7 @@ public class NpcChatWindowVM : ViewModel
                     var npcItem = ParseLine($"{npcName}: {reply}", tone);
                     string actionText = BuildActionText(pendingResponse);
                     if (!string.IsNullOrEmpty(actionText))
-                        npcItem.ContentSegments.Add(new ContentSegmentVM(actionText, ActionColor, NpcBubbleColor));
+                        npcItem.ContentSegments.Add(new ContentSegmentVM(actionText, ActionColor, ActionBubbleColor, true));
                     MessageList.Add(npcItem);
                 }
                 catch (Exception) { }
