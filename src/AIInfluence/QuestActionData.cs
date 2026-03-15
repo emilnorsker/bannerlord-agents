@@ -84,6 +84,9 @@ public class QuestActionData
 	[JsonProperty("hostile_faction_name")]
 	public string HostileFactionName { get; set; }
 
+	[JsonProperty("hostile_faction_id")]
+	public string HostileFactionId { get; set; }
+
 	[JsonProperty("spawn_anchor")]
 	public string SpawnAnchor { get; set; }
 
