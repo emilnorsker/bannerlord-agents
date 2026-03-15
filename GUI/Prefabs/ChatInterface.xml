@@ -17,7 +17,7 @@
     <Constant Name="Right.W"       Value="300" />
     <Constant Name="Sep.W"         Value="2" />
     <Constant Name="Input.H"       Value="52" />
-    <Constant Name="Bubble.W"      Value="560" />
+    <Constant Name="Bubble.W"      Value="430" />
     <Constant Name="Gold"          Value="#FFE6B685" />
     <Constant Name="SubText"       Value="#9BA4B5FF" />
     <Constant Name="SepColor"      Value="#FFFFFF22" />
@@ -196,14 +196,8 @@
                                           <ItemTemplate>
                                             <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Bubble.W" HeightSizePolicy="CoverChildren"
                                                     HorizontalAlignment="Left"
-                                                    Sprite="name_shadow_9" Color="@BackColor">
+                                                    Sprite="General\CharacterCreation\name_input_area" Color="@BackColor">
                                               <Children>
-                                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                                                        Sprite="General\CharacterCreation\name_input_area"
-                                                        Color="#1C2A3AFF" AlphaFactor="0.4" IsEnabled="false" />
-                                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                                                        Sprite="frame_9" ExtendLeft="3" ExtendTop="3" ExtendRight="3" ExtendBottom="3"
-                                                        AlphaFactor="0.28" IsEnabled="false" />
                                                 <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                                Margin="14,6,14,6"
                                                                Brush="Conversation.ConversedPartyLine.Text" Color="@TextColor"
@@ -241,14 +235,8 @@
                                           <ItemTemplate>
                                             <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Bubble.W" HeightSizePolicy="CoverChildren"
                                                     HorizontalAlignment="Right"
-                                                    Sprite="name_shadow_9" Color="@BackColor">
+                                                    Sprite="General\CharacterCreation\name_input_area" Color="@BackColor">
                                               <Children>
-                                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                                                        Sprite="General\CharacterCreation\name_input_area"
-                                                        Color="#3A2216FF" AlphaFactor="0.4" IsEnabled="false" />
-                                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                                                        Sprite="frame_9" ExtendLeft="3" ExtendTop="3" ExtendRight="3" ExtendBottom="3"
-                                                        AlphaFactor="0.18" IsEnabled="false" />
                                                 <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                                Margin="14,6,14,6"
                                                                Brush="Conversation.ConversedPartyLine.Text" Color="@TextColor"
