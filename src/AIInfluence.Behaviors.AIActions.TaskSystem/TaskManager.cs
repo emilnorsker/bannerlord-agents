@@ -49,8 +49,9 @@ public class TaskManager : CampaignBehaviorBase
 
 	public override void SyncData(IDataStore dataStore)
 	{
-		dataStore.SyncData<Dictionary<string, HeroTask>>("_activeTasks", ref _activeTasks);
-		dataStore.SyncData<Dictionary<string, List<HeroTask>>>("_completedTasks", ref _completedTasks);
+		// Do not serialize HeroTask graphs via IDataStore; this can corrupt save load.
+		_activeTasks ??= new Dictionary<string, HeroTask>();
+		_completedTasks ??= new Dictionary<string, List<HeroTask>>();
 		if (dataStore.IsLoading)
 		{
 			RestoreTasksAfterLoad();
