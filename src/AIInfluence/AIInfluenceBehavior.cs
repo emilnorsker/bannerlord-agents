@@ -1081,39 +1081,39 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage("[QUEST] No troop type found for hostile party spawn");
 				return;
 			}
-			Hideout anyHideout = Settlement.All?
-				.Where((Settlement s) => s.IsHideout && s.Hideout != null)
-				.Select((Settlement s) => s.Hideout)
-				.FirstOrDefault();
-			if (anyHideout == null)
+			Hero notableHero = CreateQuestPartyNotable(questGiver, spawnPos);
+			if (notableHero == null || !notableHero.IsNotable)
 			{
-				LogMessage("[QUEST] No hideout found on map — cannot spawn hostile party");
+				LogMessage("[QUEST] Could not create notable hero for hostile party");
 				return;
 			}
+			TroopRoster memberRoster = new TroopRoster((PartyBase)null);
+			TroopRoster prisonerRoster = new TroopRoster((PartyBase)null);
+			int compositionCount = Math.Min(compositionTroops.Count, troopCount);
+			int baseCount = troopCount / compositionCount;
+			int remainder = troopCount % compositionCount;
+			for (int i = 0; i < compositionCount; i++)
+			{
+				int count = baseCount + ((i < remainder) ? 1 : 0);
+				if (count > 0)
+				{
+					memberRoster.AddToCounts(compositionTroops[i], count, false, 0, 0, true, -1);
+				}
+			}
+			Settlement homeSettlement = Settlement.All?.OrderBy((Settlement s) => s.GetPosition2D().Distance(spawnPos)).FirstOrDefault();
 			CampaignVec2 campaignSpawnPos = new CampaignVec2(spawnPos, true);
-			MobileParty party = BanditPartyComponent.CreateBanditParty("quest_party_" + questInfo.QuestId, banditClan, anyHideout, false, (PartyTemplateObject)null, campaignSpawnPos);
+			MobileParty party = GameVersionCompatibility.CreateQuestParty(spawnPos, 0.1f, homeSettlement, new TextObject(partyLabel, (Dictionary<string, object>)null), banditClan, memberRoster, prisonerRoster, notableHero);
 			if (party == null)
 			{
-				LogMessage("[QUEST] BanditPartyComponent.CreateBanditParty returned null");
+				LogMessage("[QUEST] GameVersionCompatibility.CreateQuestParty returned null");
 				return;
 			}
 			questInfo.SpawnedPartyId = ((MBObjectBase)party).StringId;
 			bool partySetupOk = false;
 			try
 			{
-				int compositionCount = Math.Min(compositionTroops.Count, troopCount);
-				int baseCount = troopCount / compositionCount;
-				int remainder = troopCount % compositionCount;
-				for (int i = 0; i < compositionCount; i++)
-				{
-					int count = baseCount + ((i < remainder) ? 1 : 0);
-					if (count > 0)
-					{
-						party.MemberRoster.AddToCounts(compositionTroops[i], count, false, 0, 0, true, -1);
-					}
-				}
 				party.Party.SetCustomName(new TextObject(partyLabel, (Dictionary<string, object>)null));
-				if (!TryAddNotableCharacterToParty(party, questGiver, spawnPos))
+				if (!TryAddNotableCharacterToParty(party, notableHero))
 				{
 					throw new InvalidOperationException("Failed to add a notable character to spawned hostile party.");
 				}
@@ -1145,9 +1145,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 	}
 
-	private bool TryAddNotableCharacterToParty(MobileParty party, Hero questGiver, Vec2 spawnPos)
+	private bool TryAddNotableCharacterToParty(MobileParty party, Hero hero)
 	{
-		Hero hero = CreateQuestPartyNotable(questGiver, spawnPos);
 		if (hero == null || !hero.IsNotable)
 		{
 			LogMessage("[QUEST] Could not create notable hero for hostile party");
