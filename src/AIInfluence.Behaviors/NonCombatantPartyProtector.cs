@@ -74,31 +74,34 @@ public class NonCombatantPartyProtector : CampaignBehaviorBase
 
 	public override void SyncData(IDataStore dataStore)
 	{
+		string syncStage = "sync-start";
 		try
 		{
+			LogDebug($"[SYNC-TRACE] NonCombatantPartyProtector.SyncData enter. isSaving={dataStore.IsSaving}, isLoading={dataStore.IsLoading}");
 			string serializedState = null;
 			if (dataStore.IsSaving)
 			{
+				syncStage = "save-serialize-state";
 				serializedState = SerializeState();
 			}
+			syncStage = "sync-state-json";
 			dataStore.SyncData<string>("AIInfluence_nonCombatantPartyProtectorStateJson", ref serializedState);
 			if (dataStore.IsLoading)
 			{
 				_protectedParties = new Dictionary<MobileParty, ProtectionInfo>();
 				_lastWarningTime = new Dictionary<Hero, CampaignTime>();
+				LogDebug("[SYNC-TRACE] NonCombatantPartyProtector.SyncData payloadLength=" + (serializedState?.Length ?? 0));
 				if (!string.IsNullOrEmpty(serializedState))
 				{
+					syncStage = "load-deserialize-state";
 					DeserializeState(serializedState);
 				}
-				else
-				{
-					DeserializeLegacyState(dataStore);
-				}
 			}
+			LogDebug("[SYNC-TRACE] NonCombatantPartyProtector.SyncData exit success.");
 		}
 		catch (Exception ex)
 		{
-			LogError("Error in SyncData: " + ex);
+			LogError("SyncData failed at stage=" + syncStage + ". protectedCount=" + (_protectedParties?.Count ?? 0) + ", warningCount=" + (_lastWarningTime?.Count ?? 0) + ". " + ex);
 			throw;
 		}
 	}
@@ -141,11 +144,7 @@ public class NonCombatantPartyProtector : CampaignBehaviorBase
 		{
 			return;
 		}
-		NonCombatantPartyProtectorState nonCombatantPartyProtectorState = JsonConvert.DeserializeObject<NonCombatantPartyProtectorState>(serializedState);
-		if (nonCombatantPartyProtectorState == null)
-		{
-			return;
-		}
+		NonCombatantPartyProtectorState nonCombatantPartyProtectorState = JsonConvert.DeserializeObject<NonCombatantPartyProtectorState>(serializedState) ?? throw new InvalidOperationException("NonCombatantPartyProtector state payload deserialized to null.");
 		foreach (ProtectionInfoState protectedParty in nonCombatantPartyProtectorState.ProtectedParties ?? new List<ProtectionInfoState>())
 		{
 			if (protectedParty == null || string.IsNullOrEmpty(protectedParty.PartyId) || string.IsNullOrEmpty(protectedParty.OriginalLeaderId))
@@ -178,46 +177,6 @@ public class NonCombatantPartyProtector : CampaignBehaviorBase
 		}
 	}
 
-	private void DeserializeLegacyState(IDataStore dataStore)
-	{
-		List<MobileParty> protectedParties = new List<MobileParty>();
-		List<Hero> protectedLeaders = new List<Hero>();
-		List<CampaignTime> protectedStartTimes = new List<CampaignTime>();
-		List<string> protectedActions = new List<string>();
-		List<bool> protectedWarnings = new List<bool>();
-		dataStore.SyncData<List<MobileParty>>("ProtectedPartiesList", ref protectedParties);
-		dataStore.SyncData<List<Hero>>("ProtectedLeadersList", ref protectedLeaders);
-		dataStore.SyncData<List<CampaignTime>>("ProtectedStartTimesList", ref protectedStartTimes);
-		dataStore.SyncData<List<string>>("ProtectedActionsList", ref protectedActions);
-		dataStore.SyncData<List<bool>>("ProtectedWarningsList", ref protectedWarnings);
-		int count = Math.Min(protectedParties?.Count ?? 0, protectedLeaders?.Count ?? 0);
-		for (int i = 0; i < count; i++)
-		{
-			MobileParty party = protectedParties[i];
-			Hero leader = protectedLeaders[i];
-			if (party == null || leader == null)
-			{
-				continue;
-			}
-			_protectedParties[party] = new ProtectionInfo
-			{
-				OriginalLeader = leader,
-				ProtectionStartTime = (protectedStartTimes != null && i < protectedStartTimes.Count) ? protectedStartTimes[i] : CampaignTime.Now,
-				ActionName = (protectedActions != null && i < protectedActions.Count) ? protectedActions[i] : "Unknown",
-				WarningShown = protectedWarnings != null && i < protectedWarnings.Count && protectedWarnings[i]
-			};
-		}
-		Dictionary<Hero, CampaignTime> legacyLastWarningTime = null;
-		dataStore.SyncData<Dictionary<Hero, CampaignTime>>("_lastWarningTime", ref legacyLastWarningTime);
-		if (legacyLastWarningTime != null)
-		{
-			_lastWarningTime = legacyLastWarningTime;
-		}
-		if (_protectedParties.Count > 0 || _lastWarningTime.Count > 0)
-		{
-			LogDebug($"Migrated legacy state: protected={_protectedParties.Count}, warnings={_lastWarningTime.Count}");
-		}
-	}
 
 	public void RegisterPartyForProtection(MobileParty party, Hero leader, string actionName)
 	{
