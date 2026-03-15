@@ -50,10 +50,8 @@ public class NpcChatWindowVM : ViewModel
         set { }
     }
 
-    // ── Right panel ───────────────────────────────────────────────────────
-    [DataSourceProperty] public MBBindingList<TextItemVM> WorldEventList { get; } = new MBBindingList<TextItemVM>();
-    [DataSourceProperty] public MBBindingList<TextItemVM> KnowledgeList { get; } = new MBBindingList<TextItemVM>();
-    [DataSourceProperty] public MBBindingList<TextItemVM> StatList { get; } = new MBBindingList<TextItemVM>();
+    // ── Right panel – flat list, section headers included as items ────────
+    [DataSourceProperty] public MBBindingList<TextItemVM> RightPanelItems { get; } = new MBBindingList<TextItemVM>();
 
     public NpcChatWindowVM(Hero npc, NPCContext context, Action onReturn)
     {
@@ -97,7 +95,9 @@ public class NpcChatWindowVM : ViewModel
 
     private void PopulateRightPanel(Hero npc, NPCContext context)
     {
-        // World events
+        const string Header = "#888888FF";
+
+        RightPanelItems.Add(new TextItemVM("WORLD EVENTS", Header));
         try
         {
             var events = DynamicEventsManager.Instance?.GetActiveEvents()
@@ -107,28 +107,28 @@ public class NpcChatWindowVM : ViewModel
             {
                 string text = string.IsNullOrWhiteSpace(e.Title) ? e.Description : e.Title;
                 if (!string.IsNullOrWhiteSpace(text))
-                    WorldEventList.Add(new TextItemVM(text));
+                    RightPanelItems.Add(new TextItemVM("• " + text));
             }
         }
         catch (Exception) { }
 
-        // What we know
+        RightPanelItems.Add(new TextItemVM("WHAT WE KNOW", Header));
         if (!string.IsNullOrWhiteSpace(context?.AIGeneratedPersonality))
-            KnowledgeList.Add(new TextItemVM(context.AIGeneratedPersonality));
-        foreach (string q in context?.Quirks ?? new System.Collections.Generic.List<string>())
+            RightPanelItems.Add(new TextItemVM("• " + context.AIGeneratedPersonality));
+        foreach (string q in context?.Quirks ?? new List<string>())
             if (!string.IsNullOrWhiteSpace(q))
-                KnowledgeList.Add(new TextItemVM(q));
-        foreach (string info in context?.KnownInfo ?? new System.Collections.Generic.List<string>())
+                RightPanelItems.Add(new TextItemVM("• " + q));
+        foreach (string info in context?.KnownInfo ?? new List<string>())
             if (!string.IsNullOrWhiteSpace(info))
-                KnowledgeList.Add(new TextItemVM(info));
+                RightPanelItems.Add(new TextItemVM("• " + info));
 
-        // Stats
         int rel = (int)npc.GetRelation(Hero.MainHero);
-        StatList.Add(new TextItemVM($"Relation: {rel:+#;-#;0}", rel >= 0 ? "#6FCF6FFF" : "#CF6F6FFF"));
-        StatList.Add(new TextItemVM($"Trust: {context?.TrustLevel:F0}"));
-        StatList.Add(new TextItemVM($"Interactions: {context?.InteractionCount ?? 0}"));
+        RightPanelItems.Add(new TextItemVM("CHARACTER", Header));
+        RightPanelItems.Add(new TextItemVM($"Relation: {rel:+#;-#;0}", rel >= 0 ? "#6FCF6FFF" : "#CF6F6FFF"));
+        RightPanelItems.Add(new TextItemVM($"Trust: {context?.TrustLevel:F0}"));
+        RightPanelItems.Add(new TextItemVM($"Interactions: {context?.InteractionCount ?? 0}"));
         if (!string.IsNullOrWhiteSpace(context?.EmotionalState?.Mood))
-            StatList.Add(new TextItemVM($"Mood: {context.EmotionalState.Mood}"));
+            RightPanelItems.Add(new TextItemVM($"Mood: {context.EmotionalState.Mood}"));
     }
 
     // ── Segment parser ────────────────────────────────────────────────────
@@ -155,17 +155,16 @@ public class NpcChatWindowVM : ViewModel
             {
                 string speech = content.Substring(pos, m.Index - pos).Trim();
                 if (!string.IsNullOrEmpty(speech))
-                    yield return new ChatMessageItemVM("", SenderColor, speech, "#1A1A1A99", "speech");
+                    yield return new ChatMessageItemVM("", "#E8DCC8FF", speech, "#2A2218CC", "speech");
             }
             yield return new ChatMessageItemVM("", "#CF4444FF", m.Value, "#00000000", "emote");
             pos = m.Index + m.Length;
         }
-        // Remaining speech after last emote
         if (pos < content.Length)
         {
             string remainder = content.Substring(pos).Trim();
             if (!string.IsNullOrEmpty(remainder))
-                yield return new ChatMessageItemVM("", SenderColor, remainder, "#1A1A1A99", "speech");
+                yield return new ChatMessageItemVM("", "#E8DCC8FF", remainder, "#2A2218CC", "speech");
         }
     }
 
