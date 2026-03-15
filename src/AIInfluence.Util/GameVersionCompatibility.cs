@@ -964,11 +964,15 @@ public static class GameVersionCompatibility
 			{
 				MobileParty mobileParty2 = (MobileParty)method.Invoke(null, new object[12]
 				{
-					obj, spawnRadius, homeSettlement, name, clan, memberRoster, prisonerRoster, owner, partyStringId ?? "", "",
+					obj, spawnRadius, homeSettlement, name, clan, memberRoster, prisonerRoster, owner, "", "",
 					0f, false
 				});
 				if (flag)
 				{
+					if (!string.IsNullOrEmpty(partyStringId))
+					{
+						AIInfluenceBehavior.Instance?.LogMessage($"[QuestDebugVerbose] CreateQuestParty: CreateCustomPartyWithTroopRoster does not accept explicit party string id in this build; ignored requested id '{partyStringId}'");
+					}
 					AIInfluenceBehavior.Instance?.LogMessage($"[QuestDebugVerbose] CreateQuestParty: invoked CreateCustomPartyWithTroopRoster => '{((MBObjectBase)mobileParty2)?.StringId ?? "null"}'");
 				}
 				return mobileParty2;

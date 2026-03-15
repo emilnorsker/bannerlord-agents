@@ -549,14 +549,47 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 	}
 
-	private static bool IsQuestPartyDebugTarget(MobileParty party)
+	private bool IsQuestPartyDebugTarget(MobileParty party)
 	{
 		if (party == null)
 		{
 			return false;
 		}
 		string stringId = ((MBObjectBase)party).StringId;
-		return !string.IsNullOrEmpty(stringId) && stringId.StartsWith("quest_party_", StringComparison.OrdinalIgnoreCase);
+		if (!string.IsNullOrEmpty(stringId) && stringId.StartsWith("quest_party_", StringComparison.OrdinalIgnoreCase))
+		{
+			return true;
+		}
+		return IsAiInfluenceSpawnedQuestPartyId(stringId);
+	}
+
+	private bool IsAiInfluenceSpawnedQuestPartyId(string partyId)
+	{
+		if (string.IsNullOrWhiteSpace(partyId))
+		{
+			return false;
+		}
+		foreach (NPCContext value in _npcContexts.Values)
+		{
+			if (value?.ActiveQuests == null)
+			{
+				continue;
+			}
+			if (value.ActiveQuests.Any((AIQuestInfo q) => q != null && !string.IsNullOrEmpty(q.SpawnedPartyId) && string.Equals(q.SpawnedPartyId, partyId, StringComparison.OrdinalIgnoreCase)))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public bool IsAiInfluenceSpawnedQuestParty(MobileParty party)
+	{
+		if (party == null)
+		{
+			return false;
+		}
+		return IsAiInfluenceSpawnedQuestPartyId(((MBObjectBase)party).StringId);
 	}
 
 	private string BuildQuestPartyDebugSnapshot(MobileParty party, string source)
