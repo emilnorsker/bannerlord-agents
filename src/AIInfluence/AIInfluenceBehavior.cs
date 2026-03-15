@@ -5128,6 +5128,10 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					LogMessage($"[SAVE] Serialized AI actions length: {_serializedActionState?.Length ?? 0}");
 				}
 				int maxHistory = GlobalSettings<ModSettings>.Instance?.PromptMaxHistory ?? 100;
+				int maxProcessedMessageHashes = Math.Max(200, maxHistory * 4);
+				const int maxLastSeenFriends = 256;
+				const int maxQuestEntries = 64;
+				const int maxDynamicEvents = 256;
 				Dictionary<string, NPCContext> contextsToSave = _npcContexts
 					.Where(kvp => kvp.Value.InteractionCount > 0 || kvp.Value.LastInteractionTimeDays >= 0.0)
 					.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
@@ -5135,6 +5139,18 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				{
 					if (ctx.ConversationHistory?.Count > maxHistory)
 						ctx.ConversationHistory = ctx.ConversationHistory.Skip(ctx.ConversationHistory.Count - maxHistory).ToList();
+					if (ctx.ProcessedMessageHashes?.Count > maxProcessedMessageHashes)
+						ctx.ProcessedMessageHashes = new HashSet<string>(ctx.ProcessedMessageHashes.Skip(ctx.ProcessedMessageHashes.Count - maxProcessedMessageHashes));
+					if (ctx.LastSeenFriends?.Count > maxLastSeenFriends)
+						ctx.LastSeenFriends = ctx.LastSeenFriends.OrderByDescending((KeyValuePair<string, float> kvp) => kvp.Value).Take(maxLastSeenFriends).ToDictionary((KeyValuePair<string, float> kvp) => kvp.Key, (KeyValuePair<string, float> kvp) => kvp.Value);
+					if (ctx.ActiveAIQuests?.Count > maxQuestEntries)
+						ctx.ActiveAIQuests = ctx.ActiveAIQuests.Skip(ctx.ActiveAIQuests.Count - maxQuestEntries).ToList();
+					if (ctx.IncomingAIQuests?.Count > maxQuestEntries)
+						ctx.IncomingAIQuests = ctx.IncomingAIQuests.Skip(ctx.IncomingAIQuests.Count - maxQuestEntries).ToList();
+					if (ctx.CompletedQuestHistory?.Count > maxQuestEntries)
+						ctx.CompletedQuestHistory = ctx.CompletedQuestHistory.Skip(ctx.CompletedQuestHistory.Count - maxQuestEntries).ToList();
+					if (ctx.DynamicEvents?.Count > maxDynamicEvents)
+						ctx.DynamicEvents = ctx.DynamicEvents.Skip(ctx.DynamicEvents.Count - maxDynamicEvents).ToList();
 				}
 				_npcContextsJson = JsonConvert.SerializeObject(contextsToSave);
 				LogMessage($"[SAVE] Serialized {contextsToSave.Count}/{_npcContexts.Count} NPC contexts into game save (history capped at {maxHistory})");
