@@ -189,7 +189,6 @@ public class NpcChatWindowVM : ViewModel
                 MessageList.Add(seg);
 
             if (AIInfluenceBehavior.Instance == null) return;
-            if (AIInfluenceBehavior.Instance == null) return;
             string reply = await AIInfluenceBehavior.Instance.ProcessChatInput(_npc, message);
             if (!string.IsNullOrEmpty(reply))
             {
