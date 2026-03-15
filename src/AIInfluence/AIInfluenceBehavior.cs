@@ -103,6 +103,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	private volatile bool _debugPromptQuestGenerationInProgress;
 
+	private float _questPartyDebugHeartbeatTimer;
+
 	public static AIInfluenceBehavior Instance => _instance;
 
 	public NPCInitiativeSystem InitiativeSystem => _npcInitiativeSystem;
@@ -513,6 +515,106 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		_saveQueueManager?.Tick(dt);
 		DiseaseManager.Instance?.TickDiseaseQueue();
 		AIActionIntegration.Instance.Update(dt);
+		TickQuestPartyDebugTelemetry(dt);
+	}
+
+	private void TickQuestPartyDebugTelemetry(float dt)
+	{
+		if (!IsQuestScenarioVerboseLoggingEnabled())
+		{
+			_questPartyDebugHeartbeatTimer = 0f;
+			return;
+		}
+		_questPartyDebugHeartbeatTimer += Math.Max(0f, dt);
+		if (_questPartyDebugHeartbeatTimer < 3f)
+		{
+			return;
+		}
+		_questPartyDebugHeartbeatTimer = 0f;
+		List<MobileParty> list = MobileParty.All?.Where(IsQuestPartyDebugTarget).ToList() ?? new List<MobileParty>();
+		if (list.Count == 0)
+		{
+			LogQuestScenarioVerbose("QuestParty heartbeat | no active quest_party_* mobile parties");
+			return;
+		}
+		foreach (MobileParty item in list)
+		{
+			try
+			{
+				LogQuestScenarioVerbose(BuildQuestPartyDebugSnapshot(item, "heartbeat"));
+			}
+			catch (Exception ex)
+			{
+				LogQuestScenarioVerbose($"QuestParty heartbeat logging failed for '{((MBObjectBase)item).StringId}': {ex.Message}");
+			}
+		}
+	}
+
+	private static bool IsQuestPartyDebugTarget(MobileParty party)
+	{
+		if (party == null)
+		{
+			return false;
+		}
+		string stringId = ((MBObjectBase)party).StringId;
+		return !string.IsNullOrEmpty(stringId) && stringId.StartsWith("quest_party_", StringComparison.OrdinalIgnoreCase);
+	}
+
+	private string BuildQuestPartyDebugSnapshot(MobileParty party, string source)
+	{
+		if (party == null)
+		{
+			return "QuestPartyDebug snapshot requested for null party";
+		}
+		string stringId = ((MBObjectBase)party).StringId;
+		Vec2 position2D = party.GetPosition2D();
+		Vec2 position2D2 = MobileParty.MainParty?.GetPosition2D() ?? position2D;
+		float num = position2D.Distance(position2D2);
+		Hero leaderHero = party.LeaderHero;
+		string text = ((leaderHero != null) ? ((object)leaderHero.Name)?.ToString() : null) ?? "none";
+		string text2 = ((leaderHero != null) ? ((MBObjectBase)leaderHero).StringId : null) ?? "none";
+		string text3 = (party.CurrentSettlement != null) ? ((MBObjectBase)party.CurrentSettlement).StringId : "none";
+		string text4 = BuildQuestPartyCompositionDebugString(party);
+		int num2 = 0;
+		QuestManager questManager = Campaign.Current?.QuestManager;
+		if (questManager?.Quests != null)
+		{
+			foreach (QuestBase quest in (IEnumerable<QuestBase>)questManager.Quests)
+			{
+				if (quest != null && quest.IsOngoing && quest.IsTracked((ITrackableCampaignObject)(object)party))
+				{
+					num2++;
+				}
+			}
+		}
+		return $"QuestPartyDebug {source} | id={stringId} name='{party.Name}' pos=({position2D.X:F2},{position2D.Y:F2}) distance_to_player={num:F2} leader='{text}' leader_id={text2} men={party.MemberRoster?.TotalManCount ?? 0} settlement={text3} visible={party.IsVisible} tracked_by_quests={num2} composition=[{text4}]";
+	}
+
+	private string BuildQuestPartyCompositionDebugString(MobileParty party)
+	{
+		if (party?.MemberRoster == null)
+		{
+			return "none";
+		}
+		List<string> list = new List<string>();
+		foreach (TroopRosterElement item in (List<TroopRosterElement>)(object)party.MemberRoster.GetTroopRoster())
+		{
+			if ((item).Number <= 0 || item.Character == null)
+			{
+				continue;
+			}
+			list.Add($"{((BasicCharacterObject)item.Character).Name}:{(item).Number}");
+		}
+		if (list.Count == 0)
+		{
+			return "none";
+		}
+		List<string> list2 = list.Take(8).ToList();
+		if (list.Count > list2.Count)
+		{
+			list2.Add($"+{list.Count - list2.Count} more troop types");
+		}
+		return string.Join(", ", list2);
 	}
 
 	private void OnDailyTick()
@@ -1196,6 +1298,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			{
 				questBase.AddTrackedObject((ITrackableCampaignObject)(object)party);
 			}
+			LogQuestScenarioVerbose(BuildQuestPartyDebugSnapshot(party, "spawn"));
 			LogMessage($"[QUEST] Spawned hostile party '{partyLabel}' ({troopCount} troops) using anchor '{spawnAnchorUsed}' with composition [{string.Join(", ", compositionTroops.Select((CharacterObject t) => ((BasicCharacterObject)t).Name.ToString()))}] and notable '{questInfo.SpawnedNotableId}' for quest '{questInfo.Title}'");
 			InformationManager.DisplayMessage(new InformationMessage($"A hostile party '{partyLabel}' has appeared on the map!", ExtraColors.RedAIInfluence));
 		}
