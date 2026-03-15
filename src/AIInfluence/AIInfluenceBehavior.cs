@@ -1196,7 +1196,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			{
 				questBase.AddTrackedObject((ITrackableCampaignObject)(object)party);
 			}
-			CreateQuestPartyMapMarker(questInfo, party, partyLabel);
 			LogMessage($"[QUEST] Spawned hostile party '{partyLabel}' ({troopCount} troops) using anchor '{spawnAnchorUsed}' with composition [{string.Join(", ", compositionTroops.Select((CharacterObject t) => ((BasicCharacterObject)t).Name.ToString()))}] and notable '{questInfo.SpawnedNotableId}' for quest '{questInfo.Title}'");
 			InformationManager.DisplayMessage(new InformationMessage($"A hostile party '{partyLabel}' has appeared on the map!", ExtraColors.RedAIInfluence));
 		}
@@ -1725,7 +1724,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	private void CleanupSpawnedQuestParty(AIQuestInfo questInfo)
 	{
-		RemoveQuestMapMarkers(questInfo);
 		if (string.IsNullOrEmpty(questInfo.SpawnedPartyId) && string.IsNullOrEmpty(questInfo.SpawnedNotableId))
 		{
 			return;
@@ -1786,45 +1784,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		if (shouldClearNotableId)
 		{
 			questInfo.SpawnedNotableId = null;
-		}
-	}
-
-	private void CreateQuestPartyMapMarker(AIQuestInfo questInfo, MobileParty party, string partyLabel)
-	{
-		if (questInfo == null || party == null || string.IsNullOrEmpty(questInfo.QuestId))
-		{
-			return;
-		}
-		try
-		{
-			var mapMarkerManager = Campaign.Current?.MapMarkerManager;
-			if (mapMarkerManager == null)
-			{
-				return;
-			}
-			mapMarkerManager.RemoveAllMapMarkersByQuestId(questInfo.QuestId);
-			mapMarkerManager.CreateMapMarker(party.Banner, new TextObject(partyLabel ?? "Quest Party", (Dictionary<string, object>)null), party.GetPositionAsVec3(), true, questInfo.QuestId);
-			LogMessage($"[QUEST] Created map marker for spawned hostile party '{partyLabel}' (quest: {questInfo.QuestId})");
-		}
-		catch (Exception ex)
-		{
-			LogMessage("[QUEST] Failed to create hostile party map marker: " + ex.Message);
-		}
-	}
-
-	private void RemoveQuestMapMarkers(AIQuestInfo questInfo)
-	{
-		if (questInfo == null || string.IsNullOrEmpty(questInfo.QuestId))
-		{
-			return;
-		}
-		try
-		{
-			Campaign.Current?.MapMarkerManager?.RemoveAllMapMarkersByQuestId(questInfo.QuestId);
-		}
-		catch (Exception ex)
-		{
-			LogMessage("[QUEST] Failed to remove quest map markers: " + ex.Message);
 		}
 	}
 
