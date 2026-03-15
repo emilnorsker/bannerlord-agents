@@ -1160,9 +1160,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				{
 					GameVersionCompatibility.SetMoveGoToSettlement(party, homeSettlement);
 				}
-				party.SetMoveModeHold();
-				GameVersionCompatibility.ConditionalDisableAi(party);
-				LogMessage("[QUEST] Spawned hostile quest party AI set to hold/disabled to avoid patrol AI crashes");
 				party.SetPartyUsedByQuest(true);
 				partySetupOk = true;
 			}

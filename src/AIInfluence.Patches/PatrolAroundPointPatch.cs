@@ -10,6 +10,7 @@ public static class PatrolAroundPointPatch
 {
 	private static bool Prefix(MobileParty owner, CampaignVec2 position, NavigationType navigationType, bool isFromPort)
 	{
-		return !PatrolActionGuard.ShouldBlockPointOrder(owner);
+		PatrolActionGuard.ShouldBlockPointOrder(owner);
+		return true;
 	}
 }

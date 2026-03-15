@@ -10,6 +10,7 @@ public static class PatrolAroundSettlementPatch
 {
 	private static bool Prefix(MobileParty owner, Settlement settlement, NavigationType navigationType, bool isFromPort, bool isTargetingPort)
 	{
-		return !PatrolActionGuard.ShouldBlockSettlementOrder(owner, settlement);
+		PatrolActionGuard.ShouldBlockSettlementOrder(owner, settlement);
+		return true;
 	}
 }
