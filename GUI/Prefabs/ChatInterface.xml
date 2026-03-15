@@ -105,6 +105,31 @@
                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                         MarginTop="!Header.H" MarginRight="!Frame.End">
                   <Children>
+                    <!-- Middle panel layered background: dark base + soft texture + inner frame -->
+                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                            MarginLeft="4" MarginRight="4" MarginTop="4" MarginBottom="4"
+                            Sprite="BlankWhite" Color="#070604FF" AlphaFactor="0.78"
+                            DoNotAcceptEvents="true" />
+                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                            MarginLeft="6" MarginRight="6" MarginTop="6" MarginBottom="6"
+                            Sprite="General\CharacterCreation\character_creation_background_gradient"
+                            Color="#000000FF" AlphaFactor="0.25"
+                            DoNotAcceptEvents="true" />
+                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                            MarginLeft="6" MarginRight="6" MarginTop="6" MarginBottom="6"
+                            Sprite="frame_9" ExtendLeft="5" ExtendTop="5" ExtendRight="5" ExtendBottom="5"
+                            AlphaFactor="0.22" IsEnabled="false" />
+                    <!-- Scroll region frame -->
+                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                            MarginTop="4" MarginBottom="!Input.H" MarginRight="24" MarginLeft="2"
+                            Sprite="BlankWhite" Color="#050403FF" AlphaFactor="0.62"
+                            DoNotAcceptEvents="true">
+                      <Children>
+                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                                Sprite="frame_9" ExtendLeft="4" ExtendTop="4" ExtendRight="4" ExtendBottom="4"
+                                AlphaFactor="0.18" IsEnabled="false" />
+                      </Children>
+                    </Widget>
 
                     <!-- Message scroll area -->
                     <ScrollablePanel Id="MsgScroll"
@@ -170,8 +195,14 @@
                                                    Spacing="2">
                                           <ItemTemplate>
                                             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                    Sprite="BlankWhiteSquare_9" Color="@BackColor">
+                                                    Sprite="BlankWhite" Color="@BackColor">
                                               <Children>
+                                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                                                        Sprite="General\CharacterCreation\character_creation_background_gradient"
+                                                        Color="#000000FF" AlphaFactor="0.12" IsEnabled="false" />
+                                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                                                        Sprite="frame_9" ExtendLeft="3" ExtendTop="3" ExtendRight="3" ExtendBottom="3"
+                                                        AlphaFactor="0.2" IsEnabled="false" />
                                                 <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                                Margin="10,5,10,5"
                                                                Brush="Conversation.ConversedPartyLine.Text" Color="@TextColor"
@@ -207,8 +238,14 @@
                                                    Spacing="2">
                                           <ItemTemplate>
                                             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                    Sprite="BlankWhiteSquare_9" Color="@BackColor">
+                                                    Sprite="BlankWhite" Color="@BackColor">
                                               <Children>
+                                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                                                        Sprite="General\CharacterCreation\character_creation_background_gradient"
+                                                        Color="#000000FF" AlphaFactor="0.12" IsEnabled="false" />
+                                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                                                        Sprite="frame_9" ExtendLeft="3" ExtendTop="3" ExtendRight="3" ExtendBottom="3"
+                                                        AlphaFactor="0.2" IsEnabled="false" />
                                                 <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                                Margin="10,5,10,5"
                                                                Brush="Conversation.ConversedPartyLine.Text" Color="@TextColor"
@@ -247,14 +284,23 @@
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
                             SuggestedHeight="!Input.H"
                             VerticalAlignment="Bottom"
-                            Sprite="BlankWhiteSquare_9" Color="#0A0806FF">
+                            Sprite="BlankWhite" Color="#080604FF" AlphaFactor="0.85">
                       <Children>
+                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                                Sprite="frame_9" ExtendLeft="4" ExtendTop="4" ExtendRight="4" ExtendBottom="4"
+                                AlphaFactor="0.22" IsEnabled="false" />
+                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                                Sprite="General\CharacterCreation\character_creation_background_gradient"
+                                Color="#000000FF" AlphaFactor="0.18" IsEnabled="false" />
                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
                                 SuggestedHeight="38"
                                 HorizontalAlignment="Left" VerticalAlignment="Center"
                                 MarginLeft="8" MarginRight="106"
                                 Sprite="General\CharacterCreation\name_input_area">
                           <Children>
+                            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                                    Sprite="frame_9" ExtendLeft="3" ExtendTop="3" ExtendRight="3" ExtendBottom="3"
+                                    AlphaFactor="0.16" IsEnabled="false" />
                             <EditableTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                                HorizontalAlignment="Center" VerticalAlignment="Center"
                                                Margin="10,4,10,4"
