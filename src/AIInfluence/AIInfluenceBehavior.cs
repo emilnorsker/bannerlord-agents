@@ -1068,7 +1068,9 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				spawnPos = safeSpawnPos;
 			}
 			LogQuestScenarioVerbose($"SpawnQuestHostileParty resolved spawn anchor '{spawnAnchorUsed}' -> ({spawnPos.X:F2}, {spawnPos.Y:F2})");
-			List<Clan> availableBanditClans = Clan.BanditFactions?.Where((Clan c) => c != null).ToList() ?? new List<Clan>();
+			List<Clan> availableBanditClans = Clan.BanditFactions?
+				.Where((Clan c) => c != null && c.FactionMidSettlement != null)
+				.ToList() ?? new List<Clan>();
 			LogQuestScenarioVerbose($"SpawnQuestHostileParty found {availableBanditClans.Count} candidate bandit clans");
 			if (availableBanditClans.Count == 0)
 			{
