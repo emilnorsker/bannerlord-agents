@@ -3090,6 +3090,70 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 	}
 
+	public async Task<string> ProcessChatInput(Hero npc, string playerMessage)
+	{
+		if (npc == null || string.IsNullOrEmpty(playerMessage))
+			return "";
+		string npcId = ((MBObjectBase)npc).StringId;
+		string npcName = ((object)npc.Name)?.ToString() ?? "Unknown";
+		Clan clan = npc.Clan;
+		string faction = ((clan == null) ? null : ((object)clan.Name)?.ToString()) ?? "No faction";
+		NPCContext context = GetOrCreateNPCContext(npc);
+		UpdateContextData(context, npc);
+		string heroDisplayName = ((object)Hero.MainHero?.Name)?.ToString() ?? "Player";
+		context.AddMessage(heroDisplayName + ": " + playerMessage);
+		SaveNPCContext(npcId, npc, context);
+		WorldInfoManager.Instance.UpdateTimeContext(context);
+		WorldInfoManager.Instance.UpdateWarStatus(context);
+		string prompt = PromptGenerator.GeneratePrompt(npc, context);
+		string aiResponse = null;
+		for (int attempt = 1; attempt <= 3; attempt++)
+		{
+			try
+			{
+				aiResponse = await AIClient.GetAIResponse(npcName, faction, prompt + "\nPlayer: " + playerMessage);
+				if (!string.IsNullOrEmpty(aiResponse) && !aiResponse.StartsWith("Error:"))
+					break;
+				if (attempt < 3)
+					await Task.Delay(1000 * attempt);
+			}
+			catch (Exception ex)
+			{
+				LogMessage($"[ChatWindow] Attempt {attempt} failed: {ex.Message}");
+				if (attempt < 3)
+					await Task.Delay(1000 * attempt);
+			}
+		}
+		if (string.IsNullOrEmpty(aiResponse) || aiResponse.StartsWith("Error:"))
+			return "";
+		string cleaned = JsonCleaner.CleanJsonResponse(aiResponse);
+		AIResponse aiResult;
+		try
+		{
+			aiResult = JsonCleaner.IsValidJson(cleaned)
+				? JsonConvert.DeserializeObject<AIResponse>(cleaned)
+				: new AIResponse { Response = JsonCleaner.ExtractFallbackResponse(aiResponse, npcName), Decision = "none" };
+		}
+		catch (Exception)
+		{
+			aiResult = new AIResponse { Response = JsonCleaner.ExtractFallbackResponse(aiResponse, npcName), Decision = "none" };
+		}
+		if (aiResult == null)
+			return "";
+		string reply = aiResult.Response ?? "";
+		context.PendingAIResponse = aiResult;
+		context.LastDynamicResponse = reply;
+		context.AddMessage(npcName + ": " + reply);
+		SaveNPCContext(npcId, npc, context);
+		// Only run dialog-system side effects when a conversation is actually active
+		if (Campaign.Current?.ConversationManager != null)
+		{
+			try { MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", reply, false); } catch (Exception) { }
+			try { _decisionHandler.HandleAIDecision(context, npc, aiResult, playerMessage); } catch (Exception) { }
+		}
+		return reply;
+	}
+
 	public async Task HandlePlayerDiplomaticInput()
 	{
 		if (!GlobalSettings<ModSettings>.Instance.EnableModification)
