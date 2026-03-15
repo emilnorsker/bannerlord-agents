@@ -1107,6 +1107,10 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					}
 				}
 				party.Party.SetCustomName(new TextObject(partyLabel, (Dictionary<string, object>)null));
+				if (!TryAddNotableCharacterToParty(party, questGiver, spawnPos))
+				{
+					throw new InvalidOperationException("Failed to add a notable character to spawned hostile party.");
+				}
 				party.SetMovePatrolAroundPoint(campaignSpawnPos, (NavigationType)3);
 				party.SetPartyUsedByQuest(true);
 				partySetupOk = true;
@@ -1133,6 +1137,74 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			LogMessage("[QUEST] Error spawning hostile party: " + ex.Message + "\n" + ex.StackTrace);
 		}
+	}
+
+	private bool TryAddNotableCharacterToParty(MobileParty party, Hero questGiver, Vec2 spawnPos)
+	{
+		Hero hero = CreateQuestPartyNotable(questGiver, spawnPos);
+		if (hero == null || !hero.IsNotable)
+		{
+			LogMessage("[QUEST] Could not create notable hero for hostile party");
+			return false;
+		}
+		AddHeroToPartyAction.Apply(hero, party, true);
+		if (party.MemberRoster.GetTroopCount(hero.CharacterObject) <= 0)
+		{
+			party.MemberRoster.AddToCounts(hero.CharacterObject, 1, false, 0, 0, true, -1);
+		}
+		LogMessage($"[QUEST] Added notable '{hero.Name}' ({((MBObjectBase)hero).StringId}) to hostile party '{party.Name}'");
+		return true;
+	}
+
+	private Hero CreateQuestPartyNotable(Hero questGiver, Vec2 spawnPos)
+	{
+		Hero seedNotable = null;
+		Settlement seedSettlement = null;
+		List<Settlement> orderedSettlements = Settlement.All?.OrderBy((Settlement s) => s.GetPosition2D().Distance(spawnPos)).ToList();
+		if (orderedSettlements != null)
+		{
+			foreach (Settlement settlement in orderedSettlements)
+			{
+				Hero hero = settlement.Notables?.FirstOrDefault((Hero h) => h != null && h.IsAlive);
+				if (hero != null)
+				{
+					seedNotable = hero;
+					seedSettlement = settlement;
+					break;
+				}
+			}
+		}
+		if (seedNotable == null)
+		{
+			LogMessage("[QUEST] No seed notable found near hostile spawn position");
+			return null;
+		}
+		Hero hero2 = null;
+		try
+		{
+			hero2 = HeroCreator.CreateRelativeNotableHero(seedNotable);
+		}
+		catch (Exception ex)
+		{
+			LogMessage("[QUEST] HeroCreator.CreateRelativeNotableHero failed: " + ex.Message);
+		}
+		if (hero2 == null)
+		{
+			try
+			{
+				hero2 = HeroCreator.CreateSpecialHero(seedNotable.CharacterObject, seedSettlement ?? questGiver?.CurrentSettlement, seedNotable.Clan, seedNotable.Clan, -1);
+			}
+			catch (Exception ex2)
+			{
+				LogMessage("[QUEST] HeroCreator.CreateSpecialHero fallback failed: " + ex2.Message);
+			}
+		}
+		if (hero2 != null && !hero2.IsNotable)
+		{
+			LogMessage("[QUEST] Created hero is not notable: " + hero2.Name);
+			return null;
+		}
+		return hero2;
 	}
 
 	private Vec2 ResolveHostileQuestSpawnPosition(Hero questGiver, QuestActionData questAction, out string spawnAnchorUsed)
