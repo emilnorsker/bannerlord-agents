@@ -1477,8 +1477,9 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		LogQuestScenarioVerbose($"ApplyHostileSpawnOffsetAndTerrainSafety | distance_days={distanceDays:0.##} anchor=({anchorPos.X:F2}, {anchorPos.Y:F2})");
 		if (distanceDays > 0f)
 		{
-			float referenceSpeed = questGiver?.PartyBelongedTo?.Speed ?? MobileParty.MainParty?.Speed ?? 4f;
-			float mapDistance = Math.Max(1f, referenceSpeed * 24f * distanceDays);
+			float averageSpeed = Campaign.Current?.EstimatedAverageLordPartySpeed ?? questGiver?.PartyBelongedTo?.Speed ?? MobileParty.MainParty?.Speed ?? 4f;
+			float hoursPerDay = (CampaignTime.HoursInDay > 0) ? (float)CampaignTime.HoursInDay : 24f;
+			float mapDistance = Math.Max(1f, averageSpeed * hoursPerDay * distanceDays);
 			if (TryFindNavigableOffsetPosition(anchorPos, mapDistance, out var offsetPos))
 			{
 				resolvedPos = offsetPos;
