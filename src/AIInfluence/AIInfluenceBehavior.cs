@@ -101,6 +101,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	private bool _welcomeCheckedThisSession = false;
 
+	private volatile bool _debugPromptQuestGenerationInProgress;
+
 	public static AIInfluenceBehavior Instance => _instance;
 
 	public NPCInitiativeSystem InitiativeSystem => _npcInitiativeSystem;
@@ -5014,6 +5016,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 		try
 		{
+			if (_debugPromptQuestGenerationInProgress)
+			{
+				InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Prompt quest generation is already running.", ExtraColors.RedAIInfluence));
+				return;
+			}
 			Vec2 mainPos = MobileParty.MainParty?.GetPosition2D() ?? default;
 			Hero questGiver = Hero.FindAll((Hero h) => h != Hero.MainHero && h.IsAlive && h.IsActive && !h.IsWanderer)
 				?.OrderBy((Hero h) =>
@@ -5027,42 +5034,106 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] No suitable NPC found for prompt quest.", ExtraColors.RedAIInfluence));
 				return;
 			}
-			NPCContext context = GetOrCreateNPCContext(questGiver);
+			_debugPromptQuestGenerationInProgress = true;
+			InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Generating quest from prompt...", ExtraColors.GreenAIInfluence));
 			string requestPrompt = "You are generating a Bannerlord quest action for debugging.\nReturn ONLY valid JSON in this exact wrapper:\n{\"quest_action\":{...}}\nInside quest_action provide action=create_quest with fields title, description, duration_days (7-60), reward_gold (0-5000), optional target_npc_ids, completer_npc_id, ai_verification_notes, progress_target, progress_label, reward_items, reward_skill, reward_skill_xp, crime_rating_change, influence_change, spawn_hostile_party, hostile_party_size, hostile_party_label, hostile_faction_id, hostile_faction_name, hostile_faction_strict, hostile_troop_name, hostile_troop_names, spawn_anchor, spawn_near_npc_id, spawn_near_settlement_id.\nhostile_faction_id is exact and takes priority; if not found, hostile_faction_name is used as fuzzy fallback.\nIf hostile_faction_strict=true and id/name cannot be resolved, the spawn fails.\nspawn_anchor allowed values: quest_giver, player, target_npc, npc_id, settlement_id.\nDo not add explanations.\nPlayer quest request: " + prompt;
-			string rawResponse = SendAIRequestRaw(requestPrompt).GetAwaiter().GetResult();
-			if (string.IsNullOrEmpty(rawResponse) || rawResponse.StartsWith("Error:"))
+			Task.Run(async delegate
 			{
-				LogMessage("[QuestDebug] Prompt quest AI request failed: " + (rawResponse ?? "empty response"));
-				InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Prompt quest generation failed: " + (rawResponse ?? "empty response"), ExtraColors.RedAIInfluence));
-				return;
-			}
-			string cleanedResponse = JsonCleaner.CleanJsonGeneric(rawResponse) ?? rawResponse;
-			AIResponse aiResponse = JsonConvert.DeserializeObject<AIResponse>(cleanedResponse);
-			QuestActionData questAction = aiResponse?.QuestAction;
-			if (questAction == null)
-			{
-				questAction = JsonConvert.DeserializeObject<QuestActionData>(cleanedResponse);
-			}
-			if (questAction == null)
-			{
-				LogMessage("[QuestDebug] Prompt quest parse failed. Raw response: " + rawResponse);
-				InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Prompt quest parse failed. See mod_log.txt.", ExtraColors.RedAIInfluence));
-				return;
-			}
-			if (!"create_quest".Equals(questAction.Action, StringComparison.OrdinalIgnoreCase))
-			{
-				LogMessage("[QuestDebug] Prompt quest response had unsupported action: " + (questAction.Action ?? "null"));
-				InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Prompt quest response action must be create_quest.", ExtraColors.RedAIInfluence));
-				return;
-			}
-			ProcessCreateQuest(questGiver, context, questAction);
-			InformationManager.DisplayMessage(new InformationMessage($"[QuestDebug] Prompt quest created on {questGiver.Name}.", ExtraColors.GreenAIInfluence));
+				string rawResponse = null;
+				string requestError = null;
+				try
+				{
+					Task<string> requestTask = SendAIRequestRaw(requestPrompt);
+					Task timeoutTask = Task.Delay(45000);
+					Task completedTask = await Task.WhenAny(requestTask, timeoutTask);
+					if (completedTask == timeoutTask)
+					{
+						requestError = "Error: Timeout while waiting for AI response (45s)";
+						LogMessage("[QuestDebug] Prompt quest AI request timed out after 45s");
+					}
+					else
+					{
+						rawResponse = await requestTask;
+					}
+				}
+				catch (Exception ex2)
+				{
+					requestError = "Error: " + ex2.Message;
+					LogMessage("[QuestDebug] Prompt quest AI request exception: " + ex2.Message + "\n" + ex2.StackTrace);
+				}
+				try
+				{
+					TtsLipSyncService.MainThreadQueue.Enqueue(delegate
+					{
+						try
+						{
+							_debugPromptQuestGenerationInProgress = false;
+							Hero liveQuestGiver = questGiver;
+							if (liveQuestGiver == null || !liveQuestGiver.IsAlive || !liveQuestGiver.IsActive)
+							{
+								InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Prompt quest cancelled: quest giver is no longer available.", ExtraColors.RedAIInfluence));
+								return;
+							}
+							NPCContext context = GetOrCreateNPCContext(liveQuestGiver);
+							string effectiveResponse = rawResponse;
+							if (!string.IsNullOrEmpty(requestError))
+							{
+								effectiveResponse = requestError;
+							}
+							HandleDebugGeneratedQuestResponse(liveQuestGiver, context, effectiveResponse);
+						}
+						catch (Exception ex3)
+						{
+							_debugPromptQuestGenerationInProgress = false;
+							LogMessage("[QuestDebug] Main-thread prompt quest handling error: " + ex3.Message + "\n" + ex3.StackTrace);
+							InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Prompt quest error — see mod_log.txt", ExtraColors.RedAIInfluence));
+						}
+					});
+				}
+				catch (Exception ex4)
+				{
+					_debugPromptQuestGenerationInProgress = false;
+					LogMessage("[QuestDebug] Failed to enqueue main-thread quest generation action: " + ex4.Message + "\n" + ex4.StackTrace);
+				}
+			});
 		}
 		catch (Exception ex)
 		{
+			_debugPromptQuestGenerationInProgress = false;
 			LogMessage("[QuestDebug] DebugGenerateQuestFromPrompt error: " + ex.Message + "\n" + ex.StackTrace);
 			InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Prompt quest error — see mod_log.txt", ExtraColors.RedAIInfluence));
 		}
+	}
+
+	private void HandleDebugGeneratedQuestResponse(Hero questGiver, NPCContext context, string rawResponse)
+	{
+		if (string.IsNullOrEmpty(rawResponse) || rawResponse.StartsWith("Error:"))
+		{
+			LogMessage("[QuestDebug] Prompt quest AI request failed: " + (rawResponse ?? "empty response"));
+			InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Prompt quest generation failed: " + (rawResponse ?? "empty response"), ExtraColors.RedAIInfluence));
+			return;
+		}
+		string cleanedResponse = JsonCleaner.CleanJsonGeneric(rawResponse) ?? rawResponse;
+		AIResponse aiResponse = JsonConvert.DeserializeObject<AIResponse>(cleanedResponse);
+		QuestActionData questAction = aiResponse?.QuestAction;
+		if (questAction == null)
+		{
+			questAction = JsonConvert.DeserializeObject<QuestActionData>(cleanedResponse);
+		}
+		if (questAction == null)
+		{
+			LogMessage("[QuestDebug] Prompt quest parse failed. Raw response: " + rawResponse);
+			InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Prompt quest parse failed. See mod_log.txt.", ExtraColors.RedAIInfluence));
+			return;
+		}
+		if (!"create_quest".Equals(questAction.Action, StringComparison.OrdinalIgnoreCase))
+		{
+			LogMessage("[QuestDebug] Prompt quest response had unsupported action: " + (questAction.Action ?? "null"));
+			InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Prompt quest response action must be create_quest.", ExtraColors.RedAIInfluence));
+			return;
+		}
+		ProcessCreateQuest(questGiver, context, questAction);
+		InformationManager.DisplayMessage(new InformationMessage($"[QuestDebug] Prompt quest created on {questGiver.Name}.", ExtraColors.GreenAIInfluence));
 	}
 
 	private void DebugViewActiveQuests()
