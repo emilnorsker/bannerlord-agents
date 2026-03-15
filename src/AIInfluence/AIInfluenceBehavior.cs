@@ -5178,12 +5178,23 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	public override void SyncData(IDataStore dataStore)
 	{
-		_saveQueueManager.ClearQueue();
-		bool binarySyncCompatibilityMode = false;
+		bool binarySyncCompatibilityMode = true;
 		if (binarySyncCompatibilityMode)
 		{
-			if (dataStore.IsLoading && _followingHeroIds == null)
-				_followingHeroIds = new List<string>();
+			if (dataStore.IsSaving)
+			{
+				FlushAllNpcContextsForSave();
+			}
+			if (dataStore.IsLoading)
+			{
+				if (_followingHeroIds == null)
+				{
+					_followingHeroIds = new List<string>();
+				}
+				_npcContexts = new Dictionary<string, NPCContext>();
+				_npcFilePathCache.Clear();
+				_stringIdToContextKey.Clear();
+			}
 			return;
 		}
 		try
@@ -5255,6 +5266,22 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			LogMessage("[ERROR] SyncData failed: " + ex);
 			throw;
+		}
+	}
+
+	private void FlushAllNpcContextsForSave()
+	{
+		foreach (KeyValuePair<string, NPCContext> item in _npcContexts.ToList())
+		{
+			if (string.IsNullOrEmpty(item.Key) || item.Value == null)
+			{
+				continue;
+			}
+			Hero val = Hero.FindFirst((Func<Hero, bool>)((Hero h) => ((MBObjectBase)h).StringId == item.Key));
+			if (val != null)
+			{
+				SaveNPCContextImmediate(item.Key, val, item.Value);
+			}
 		}
 	}
 
