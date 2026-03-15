@@ -1254,6 +1254,14 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		if (hero2 != null && !hero2.IsNotable)
 		{
 			LogMessage("[QUEST] Created hero is not notable: " + hero2.Name);
+			try
+			{
+				KillCharacterAction.ApplyByMurder(hero2, null, false);
+			}
+			catch (Exception ex3)
+			{
+				LogMessage("[QUEST] Failed to remove non-notable created hero: " + ex3.Message);
+			}
 			return null;
 		}
 		LogQuestScenarioVerbose($"CreateQuestPartyNotable result={((MBObjectBase)hero2)?.StringId ?? "null"}");
@@ -1745,10 +1753,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			{
 				KillCharacterAction.ApplyByMurder(hero, null, false);
 				LogMessage($"[QUEST] Cleaned up spawned notable '{hero.Name}' ({questInfo.SpawnedNotableId}) via KillCharacterAction ({reason})");
-				if (hero.CurrentSettlement != null && hero.CurrentSettlement.Notables != null && ((List<Hero>)(object)hero.CurrentSettlement.Notables).Contains(hero))
-				{
-					((List<Hero>)(object)hero.CurrentSettlement.Notables).Remove(hero);
-				}
 				shouldClearNotableId = true;
 			}
 			else
@@ -5117,18 +5121,37 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 	}
 
+	private static string SanitizeDebugQuestPrompt(string rawPrompt)
+	{
+		if (string.IsNullOrWhiteSpace(rawPrompt))
+		{
+			return string.Empty;
+		}
+		string text = new string(rawPrompt.Where((char ch) => !char.IsControl(ch) || ch == '\n' || ch == '\r' || ch == '\t').ToArray()).Trim();
+		if (text.Length > 500)
+		{
+			text = text.Substring(0, 500);
+		}
+		return text;
+	}
+
+	private Hero FindNearestSuitableQuestGiver()
+	{
+		Vec2 mainPos = MobileParty.MainParty?.GetPosition2D() ?? default;
+		return Hero.FindAll((Hero h) => h != Hero.MainHero && h.IsAlive && h.IsActive && !h.IsWanderer)
+			?.OrderBy((Hero h) =>
+			{
+				Vec2 pos = h.PartyBelongedTo != null ? h.PartyBelongedTo.GetPosition2D() : (h.CurrentSettlement?.GetPosition2D() ?? default);
+				return pos.Distance(mainPos);
+			})
+			?.FirstOrDefault();
+	}
+
 	private void DebugSpawnTestQuest()
 	{
 		try
 		{
-			Vec2 mainPos = MobileParty.MainParty?.GetPosition2D() ?? default;
-			Hero questGiver = Hero.FindAll((Hero h) => h != Hero.MainHero && h.IsAlive && h.IsActive && !h.IsWanderer)
-				?.OrderBy((Hero h) =>
-				{
-					Vec2 pos = h.PartyBelongedTo != null ? h.PartyBelongedTo.GetPosition2D() : (h.CurrentSettlement?.GetPosition2D() ?? default);
-					return pos.Distance(mainPos);
-				})
-				?.FirstOrDefault();
+			Hero questGiver = FindNearestSuitableQuestGiver();
 			if (questGiver == null)
 			{
 				InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] No suitable NPC found for test quest.", ExtraColors.RedAIInfluence));
@@ -5167,7 +5190,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	private void DebugGenerateQuestFromPrompt()
 	{
-		string prompt = GlobalSettings<ModSettings>.Instance?.DebugQuestGenerationPrompt?.Trim();
+		string prompt = SanitizeDebugQuestPrompt(GlobalSettings<ModSettings>.Instance?.DebugQuestGenerationPrompt);
 		LogQuestScenarioVerbose("DebugGenerateQuestFromPrompt invoked");
 		if (string.IsNullOrEmpty(prompt))
 		{
@@ -5183,14 +5206,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Prompt quest generation is already running.", ExtraColors.RedAIInfluence));
 				return;
 			}
-			Vec2 mainPos = MobileParty.MainParty?.GetPosition2D() ?? default;
-			Hero questGiver = Hero.FindAll((Hero h) => h != Hero.MainHero && h.IsAlive && h.IsActive && !h.IsWanderer)
-				?.OrderBy((Hero h) =>
-				{
-					Vec2 pos = h.PartyBelongedTo != null ? h.PartyBelongedTo.GetPosition2D() : (h.CurrentSettlement?.GetPosition2D() ?? default);
-					return pos.Distance(mainPos);
-				})
-				?.FirstOrDefault();
+			Hero questGiver = FindNearestSuitableQuestGiver();
 			if (questGiver == null)
 			{
 				InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] No suitable NPC found for prompt quest.", ExtraColors.RedAIInfluence));
@@ -5903,6 +5919,16 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		return _saveQueueManager.GetStats();
 	}
 
+	private static NPCContext CloneContextForSave(NPCContext source, int maxHistory)
+	{
+		NPCContext nPCContext = JsonConvert.DeserializeObject<NPCContext>(JsonConvert.SerializeObject(source)) ?? new NPCContext();
+		if (nPCContext.ConversationHistory != null && nPCContext.ConversationHistory.Count > maxHistory)
+		{
+			nPCContext.ConversationHistory = nPCContext.ConversationHistory.Skip(nPCContext.ConversationHistory.Count - maxHistory).ToList();
+		}
+		return nPCContext;
+	}
+
 	public override void SyncData(IDataStore dataStore)
 	{
 		_saveQueueManager.ClearQueue();
@@ -5925,15 +5951,47 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					LogMessage($"[SAVE] Saving {_followingHeroIds.Count} following hero IDs to game save");
 					LogMessage($"[SAVE] Serialized AI actions length: {_serializedActionState?.Length ?? 0}");
 				}
-				Dictionary<string, NPCContext> contextsToSave = new Dictionary<string, NPCContext>(_npcContexts);
+				int maxHistory = Math.Max(1, GlobalSettings<ModSettings>.Instance?.PromptMaxHistory ?? 100);
+				Dictionary<string, NPCContext> contextsToSave = _npcContexts
+					.Where((KeyValuePair<string, NPCContext> kvp) => kvp.Value != null && (kvp.Value.InteractionCount > 0 || kvp.Value.LastInteractionTimeDays >= 0.0))
+					.ToDictionary((KeyValuePair<string, NPCContext> kvp) => kvp.Key, (KeyValuePair<string, NPCContext> kvp) => CloneContextForSave(kvp.Value, maxHistory));
 				_npcContextsJson = JsonConvert.SerializeObject(contextsToSave);
-				LogMessage($"[SAVE] Serialized {contextsToSave.Count} NPC contexts into game save");
+				LogMessage($"[SAVE] Serialized {contextsToSave.Count}/{_npcContexts.Count} NPC contexts into game save (history capped at {maxHistory})");
 			}
+			List<string> legacyFollowingHeroIds = _followingHeroIds;
+			string legacySerializedActionState = _serializedActionState;
+			string legacyNpcContextsJson = _npcContextsJson;
+			string legacyCurrentSaveFolder = _currentSaveFolder;
 			dataStore.SyncData<List<string>>("AIInfluence_followingHeroIds", ref _followingHeroIds);
 			dataStore.SyncData<string>("AIInfluence_aiActionState", ref _serializedActionState);
 			dataStore.SyncData<string>("AIInfluence_npcContexts", ref _npcContextsJson);
+			dataStore.SyncData<List<string>>("followingHeroIds", ref legacyFollowingHeroIds);
+			dataStore.SyncData<string>("aiActionState", ref legacySerializedActionState);
+			dataStore.SyncData<string>("npcContexts", ref legacyNpcContextsJson);
+			dataStore.SyncData<string>("AIInfluence_currentSaveFolder", ref _currentSaveFolder);
+			dataStore.SyncData<string>("currentSaveFolder", ref legacyCurrentSaveFolder);
 			if (dataStore.IsLoading)
 			{
+				if ((_followingHeroIds == null || _followingHeroIds.Count == 0) && legacyFollowingHeroIds != null && legacyFollowingHeroIds.Count > 0)
+				{
+					_followingHeroIds = legacyFollowingHeroIds;
+					LogMessage($"[LOAD] Loaded {_followingHeroIds.Count} following hero IDs from legacy key");
+				}
+				if (string.IsNullOrEmpty(_serializedActionState) && !string.IsNullOrEmpty(legacySerializedActionState))
+				{
+					_serializedActionState = legacySerializedActionState;
+					LogMessage("[LOAD] Loaded AI action state from legacy key");
+				}
+				if (string.IsNullOrEmpty(_npcContextsJson) && !string.IsNullOrEmpty(legacyNpcContextsJson))
+				{
+					_npcContextsJson = legacyNpcContextsJson;
+					LogMessage("[LOAD] Loaded NPC contexts from legacy key");
+				}
+				if (string.IsNullOrEmpty(_currentSaveFolder) && !string.IsNullOrEmpty(legacyCurrentSaveFolder))
+				{
+					_currentSaveFolder = legacyCurrentSaveFolder;
+					LogMessage("[LOAD] Loaded current save folder from legacy key");
+				}
 				if (!string.IsNullOrEmpty(_npcContextsJson))
 				{
 					try
@@ -5976,7 +6034,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					}
 				}
 			}
-			dataStore.SyncData<string>("AIInfluence_currentSaveFolder", ref _currentSaveFolder);
 		}
 		catch (Exception ex)
 		{
@@ -8590,11 +8647,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			TextObject name2 = hero.Name;
 			Hero obj3 = killer;
 			LogMessage(string.Format("[CHARACTER_DEATH] {0} has been killed successfully by {1}", name2, ((obj3 == null) ? null : ((object)obj3.Name)?.ToString()) ?? "unknown"));
-			if (hero.CurrentSettlement != null && hero.CurrentSettlement.Notables != null && ((List<Hero>)(object)hero.CurrentSettlement.Notables).Contains(hero))
-			{
-				((List<Hero>)(object)hero.CurrentSettlement.Notables).Remove(hero);
-				LogMessage($"[CHARACTER_DEATH] Removed dead hero {hero.Name} from {hero.CurrentSettlement.Name}.Notables to prevent crash");
-			}
 		}
 		catch (Exception ex2)
 		{
