@@ -14,6 +14,7 @@ public class NpcChatWindowLayer : GauntletLayer
 {
     private object _movie;
     private NpcChatWindowVM _viewModel;
+    private const float ConversationCameraOffsetX = -0.18f;
 
     public NpcChatWindowLayer(Hero npc, NPCContext context, Action onReturn)
         : base("NpcChatWindowLayer", 300, false)
@@ -35,6 +36,7 @@ public class NpcChatWindowLayer : GauntletLayer
         _viewModel = new NpcChatWindowVM(npc, context, onReturn);
         _movie = base.LoadMovie("ChatInterface", (ViewModel)(object)_viewModel);
         ((ScreenLayer)this).InputRestrictions.SetInputRestrictions(true, (InputUsageMask)7);
+        ApplyConversationCameraOffset(ConversationCameraOffsetX);
     }
 
     protected override void OnFinalize()
@@ -57,6 +59,25 @@ public class NpcChatWindowLayer : GauntletLayer
             _movie = null;
         }
         _viewModel = null;
+        ApplyConversationCameraOffset(0f);
         base.OnFinalize();
+    }
+
+    private static void ApplyConversationCameraOffset(float offsetX)
+    {
+        try
+        {
+            object topScreen = ScreenManager.TopScreen;
+            if (topScreen == null) return;
+            foreach (string methodName in new[] { "SetConversationCameraOffsetX", "SetConversationCameraXOffset", "SetConversationSceneOffsetX" })
+            {
+                MethodInfo method = topScreen.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new[] { typeof(float) }, null);
+                if (method != null) { method.Invoke(topScreen, new object[] { offsetX }); return; }
+            }
+        }
+        catch (Exception ex)
+        {
+            InformationManager.DisplayMessage(new InformationMessage("[NpcChatWindow] Camera offset failed: " + ex.Message));
+        }
     }
 }
