@@ -144,7 +144,7 @@
                                        DataSource="{MessageList}"
                                        WidthSizePolicy="StretchToParent"
                                        HeightSizePolicy="CoverChildren"
-                                       StackLayout.LayoutMethod="VerticalTopToBottom"
+                                       StackLayout.LayoutMethod="VerticalBottomToTop"
                                        Spacing="1"
                                        MarginLeft="8" MarginRight="8"
                                        MarginTop="6" MarginBottom="6">
@@ -160,7 +160,7 @@
 
                                     <!-- NPC side: left-aligned, constrained right -->
                                     <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                               StackLayout.LayoutMethod="VerticalTopToBottom"
+                                               StackLayout.LayoutMethod="VerticalBottomToTop"
                                                MarginLeft="4" MarginRight="160"
                                                IsVisible="@IsNpc">
                                       <Children>
@@ -186,7 +186,7 @@
                                         <!-- Ordered content segments -->
                                         <ListPanel DataSource="{ContentSegments}"
                                                    WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                   StackLayout.LayoutMethod="VerticalTopToBottom"
+                                                   StackLayout.LayoutMethod="VerticalBottomToTop"
                                                    Spacing="1">
                                           <ItemTemplate>
                                             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
@@ -211,7 +211,7 @@
 
                                     <!-- Player side: right-aligned, constrained left -->
                                     <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                               StackLayout.LayoutMethod="VerticalTopToBottom"
+                                               StackLayout.LayoutMethod="VerticalBottomToTop"
                                                MarginLeft="160" MarginRight="4"
                                                HorizontalAlignment="Right"
                                                IsVisible="@IsPlayer">
@@ -229,7 +229,7 @@
                                         <!-- Ordered content segments (right-aligned text) -->
                                         <ListPanel DataSource="{ContentSegments}"
                                                    WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                   StackLayout.LayoutMethod="VerticalTopToBottom"
+                                                   StackLayout.LayoutMethod="VerticalBottomToTop"
                                                    Spacing="1">
                                           <ItemTemplate>
                                             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
