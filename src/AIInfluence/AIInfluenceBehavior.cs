@@ -103,8 +103,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	private volatile bool _debugPromptQuestGenerationInProgress;
 
-	private float _questPartyVisibilityRefreshTimer;
-
 	public static AIInfluenceBehavior Instance => _instance;
 
 	public NPCInitiativeSystem InitiativeSystem => _npcInitiativeSystem;
@@ -486,12 +484,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		_delayedTaskManager.Tick(dt);
 		_saveQueueManager.Tick(dt);
 		DiseaseManager.Instance?.TickInMission(dt);
-		_questPartyVisibilityRefreshTimer += dt;
-		if (_questPartyVisibilityRefreshTimer >= 1f)
-		{
-			_questPartyVisibilityRefreshTimer = 0f;
-			EnsureSpawnedQuestPartiesVisible();
-		}
 		if (_npcInitiativeSystem != null)
 		{
 			_npcInitiativeSystem.Tick(dt);
@@ -506,27 +498,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			catch (Exception ex)
 			{
 				LogMessage("[LipSync] MainThread action error: " + ex.Message);
-			}
-		}
-	}
-
-	private void EnsureSpawnedQuestPartiesVisible()
-	{
-		IEnumerable<MobileParty> all = MobileParty.All;
-		if (all == null)
-		{
-			return;
-		}
-		foreach (MobileParty item in all)
-		{
-			if (item == null)
-			{
-				continue;
-			}
-			string stringId = ((MBObjectBase)item).StringId;
-			if (!string.IsNullOrEmpty(stringId) && stringId.StartsWith("quest_party_", StringComparison.OrdinalIgnoreCase) && !item.IsVisible)
-			{
-				item.IsVisible = true;
 			}
 		}
 	}
@@ -1206,7 +1177,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				{
 					GameVersionCompatibility.SetMoveGoToSettlement(party, homeSettlement);
 				}
-				party.IsVisible = true;
 				party.SetPartyUsedByQuest(true);
 				partySetupOk = true;
 			}
