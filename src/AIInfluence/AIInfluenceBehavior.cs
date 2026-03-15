@@ -573,6 +573,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		Hero leaderHero = party.LeaderHero;
 		string text = ((leaderHero != null) ? ((object)leaderHero.Name)?.ToString() : null) ?? "none";
 		string text2 = ((leaderHero != null) ? ((MBObjectBase)leaderHero).StringId : null) ?? "none";
+		string text5 = ((leaderHero != null && leaderHero.Clan != null) ? ((MBObjectBase)leaderHero.Clan).StringId : null) ?? "none";
+		string text6 = ((party.MapFaction != null) ? ((MBObjectBase)party.MapFaction).StringId : null) ?? "none";
 		string text3 = (party.CurrentSettlement != null) ? ((MBObjectBase)party.CurrentSettlement).StringId : "none";
 		string text4 = BuildQuestPartyCompositionDebugString(party);
 		int num2 = 0;
@@ -587,7 +589,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				}
 			}
 		}
-		return $"QuestPartyDebug {source} | id={stringId} name='{party.Name}' pos=({position2D.X:F2},{position2D.Y:F2}) distance_to_player={num:F2} leader='{text}' leader_id={text2} men={party.MemberRoster?.TotalManCount ?? 0} settlement={text3} visible={party.IsVisible} tracked_by_quests={num2} composition=[{text4}]";
+		return $"QuestPartyDebug {source} | id={stringId} name='{party.Name}' pos=({position2D.X:F2},{position2D.Y:F2}) distance_to_player={num:F2} leader='{text}' leader_id={text2} leader_clan={text5} party_faction={text6} men={party.MemberRoster?.TotalManCount ?? 0} settlement={text3} visible={party.IsVisible} tracked_by_quests={num2} composition=[{text4}]";
 	}
 
 	private string BuildQuestPartyCompositionDebugString(MobileParty party)
@@ -1233,6 +1235,14 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				questInfo.SpawnedNotableId = null;
 				return;
 			}
+			notableHero.Clan = banditClan;
+			if (notableHero.MapFaction == null)
+			{
+				LogMessage($"[QUEST] Spawn notable '{((MBObjectBase)notableHero).StringId}' has null MapFaction after clan assignment; failing hostile party spawn");
+				questInfo.SpawnedNotableId = null;
+				CleanupSpawnedQuestNotable(questInfo, "notable faction invalid");
+				return;
+			}
 			questInfo.SpawnedNotableId = ((MBObjectBase)notableHero).StringId;
 			int compositionCount = Math.Min(compositionTroops.Count, troopCount);
 			int baseCount = troopCount / compositionCount;
@@ -1259,6 +1269,14 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			}
 			LogQuestScenarioVerbose($"SpawnQuestHostileParty created party id={((MBObjectBase)party).StringId}");
 			questInfo.SpawnedPartyId = ((MBObjectBase)party).StringId;
+			if (party.MapFaction == null)
+			{
+				LogMessage($"[QUEST] Spawned hostile party '{((MBObjectBase)party).StringId}' has null MapFaction; destroying to avoid barter/pathing crashes");
+				DestroyPartyAction.Apply((PartyBase)null, party);
+				questInfo.SpawnedPartyId = null;
+				CleanupSpawnedQuestNotable(questInfo, "party faction invalid");
+				return;
+			}
 			bool partySetupOk = false;
 			try
 			{
