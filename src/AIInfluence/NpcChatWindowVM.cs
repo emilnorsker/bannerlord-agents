@@ -88,7 +88,7 @@ public class NpcChatWindowVM : ViewModel
         if (context?.ConversationHistory == null) return;
         var history = context.ConversationHistory;
         int skip = Math.Max(0, history.Count - 10);
-        foreach (string line in history.Skip(skip))
+        foreach (string line in history.Skip(skip).Reverse())
             MessageList.Add(ParseLine(line));
     }
 
