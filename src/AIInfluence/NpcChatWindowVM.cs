@@ -138,26 +138,40 @@ public class NpcChatWindowVM : ViewModel
     private static readonly Regex EmoteRegex = new Regex(@"\*([^*]+)\*", RegexOptions.Compiled);
     private const string SenderColor = "#C6AC8DFF";
 
-    private IEnumerable<ChatMessageItemVM> ParseLine(string line)
+    private bool IsPlayerSender(string sender)
+    {
+        if (string.IsNullOrEmpty(sender)) return false;
+        string playerName = ((object)Hero.MainHero?.Name)?.ToString() ?? "";
+        return sender.Equals(playerName, StringComparison.OrdinalIgnoreCase)
+            || sender.Equals("Player", StringComparison.OrdinalIgnoreCase)
+            || sender.Equals("You", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private IEnumerable<ChatMessageItemVM> ParseLine(string line, string typeTag = "")
     {
         int colonIdx = line.IndexOf(": ", StringComparison.Ordinal);
         string sender = colonIdx > 0 ? line.Substring(0, colonIdx) : "";
         string content = colonIdx > 0 ? line.Substring(colonIdx + 2) : line;
 
-        // Sender label always first
-        if (!string.IsNullOrEmpty(sender))
-            yield return new ChatMessageItemVM(sender, SenderColor, "", "#00000000", "sender");
+        bool isPlayer = IsPlayerSender(sender);
+        // Player messages get a dark bubble; NPC messages sit on transparent background
+        string speechBubbleColor = isPlayer ? "#000000B0" : "#00000000";
 
-        // Split content into segments preserving order
+        if (!string.IsNullOrEmpty(sender))
+        {
+            var seg = new ChatMessageItemVM(sender, SenderColor, "", "#00000000", "sender");
+            seg.TypeTag = isPlayer ? "" : typeTag;
+            yield return seg;
+        }
+
         int pos = 0;
         foreach (Match m in EmoteRegex.Matches(content))
         {
-            // Text before emote
             if (m.Index > pos)
             {
                 string speech = content.Substring(pos, m.Index - pos).Trim();
                 if (!string.IsNullOrEmpty(speech))
-                    yield return new ChatMessageItemVM("", "#E8DCC8FF", speech, "#000000B0", "speech");
+                    yield return new ChatMessageItemVM("", "#E8DCC8FF", speech, speechBubbleColor, "speech");
             }
             yield return new ChatMessageItemVM("", "#CF4444FF", m.Value, "#00000000", "emote");
             pos = m.Index + m.Length;
@@ -166,7 +180,7 @@ public class NpcChatWindowVM : ViewModel
         {
             string remainder = content.Substring(pos).Trim();
             if (!string.IsNullOrEmpty(remainder))
-                yield return new ChatMessageItemVM("", "#E8DCC8FF", remainder, "#000000B0", "speech");
+                yield return new ChatMessageItemVM("", "#E8DCC8FF", remainder, speechBubbleColor, "speech");
         }
     }
 
@@ -195,12 +209,20 @@ public class NpcChatWindowVM : ViewModel
             if (!string.IsNullOrEmpty(reply))
             {
                 string npcName = ((object)_npc?.Name)?.ToString() ?? "NPC";
-                // UI list mutations after await may run on a thread-pool thread.
-                // This mirrors the existing async pattern in this codebase; wrap to
-                // prevent a threading exception from leaking past the finally block.
+                string tone = "";
                 try
                 {
-                    foreach (var seg in ParseLine($"{npcName}: {reply}"))
+                    tone = AIInfluenceBehavior.Instance
+                               ?.GetOrCreateNPCContext(_npc)
+                               ?.PendingAIResponse?.Tone ?? "";
+                }
+                catch (Exception) { }
+
+                // UI list mutations after await may run on a thread-pool thread.
+                // Wrap to prevent a threading exception from leaking past the finally block.
+                try
+                {
+                    foreach (var seg in ParseLine($"{npcName}: {reply}", tone))
                         MessageList.Add(seg);
                 }
                 catch (Exception) { }

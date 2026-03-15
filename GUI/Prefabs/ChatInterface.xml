@@ -180,15 +180,27 @@
                                        MarginLeft="2" MarginRight="2" MarginTop="2">
                               <Children>
 
-                                <!-- Sender name row: name_shadow_9 background, gold Galahad text -->
-                                <!-- Height = 0 when SenderName is empty (no sender segment) -->
+                                <!-- Sender name row: name_shadow_9 background, gold name + small grey type tag -->
+                                <!-- Height = 0 when SenderName is empty (non-sender segments) -->
                                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                         Sprite="name_shadow_9" AlphaFactor="0.7">
                                   <Children>
-                                    <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                   MarginLeft="12" MarginTop="4" MarginBottom="4"
-                                                   Brush="Conversation.HeaderText" Color="@SenderColor"
-                                                   Text="@SenderName" IsDisabled="true" />
+                                    <!-- Horizontal: gold name then small grey type tag -->
+                                    <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                               StackLayout.LayoutMethod="HorizontalLeftToRight"
+                                               MarginLeft="12" MarginTop="4" MarginBottom="4">
+                                      <Children>
+                                        <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                       Brush="Conversation.HeaderText" Color="@SenderColor"
+                                                       Text="@SenderName" IsDisabled="true" />
+                                        <!-- TypeTag: "Rumor", "Cautious", etc. Empty = zero width, invisible -->
+                                        <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                       VerticalAlignment="Bottom" MarginLeft="8" MarginBottom="4"
+                                                       Brush="SPScoreboard.Subtitle.Text"
+                                                       Brush.FontSize="13" Color="!SubText"
+                                                       Text="@TypeTag" IsDisabled="true" />
+                                      </Children>
+                                    </ListPanel>
                                   </Children>
                                 </Widget>
 
