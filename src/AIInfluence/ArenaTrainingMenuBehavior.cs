@@ -262,9 +262,11 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 				_partyCooldownEndHours = new Dictionary<string, double>();
 			}
 		}
-		catch
+		catch (Exception ex)
 		{
 			_partyCooldownEndHours = new Dictionary<string, double>();
+			AIInfluenceBehavior.Instance?.LogMessage("[ERROR] ArenaTrainingMenuBehavior.SyncData failed: " + ex);
+			throw;
 		}
 	}
 
