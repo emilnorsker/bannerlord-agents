@@ -1139,7 +1139,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				}
 			}
 			Settlement homeSettlement = Settlement.All?.OrderBy((Settlement s) => s.GetPosition2D().Distance(spawnPos)).FirstOrDefault();
-			CampaignVec2 campaignSpawnPos = new CampaignVec2(spawnPos, true);
 			MobileParty party = GameVersionCompatibility.CreateQuestParty(spawnPos, 0.1f, homeSettlement, new TextObject(partyLabel, (Dictionary<string, object>)null), banditClan, memberRoster, prisonerRoster, notableHero);
 			if (party == null)
 			{
@@ -1157,7 +1156,10 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				{
 					throw new InvalidOperationException("Failed to add a notable character to spawned hostile party.");
 				}
-				party.SetMovePatrolAroundPoint(campaignSpawnPos, (NavigationType)3);
+				if (homeSettlement != null)
+				{
+					GameVersionCompatibility.SetMoveGoToSettlement(party, homeSettlement);
+				}
 				party.SetPartyUsedByQuest(true);
 				partySetupOk = true;
 			}
