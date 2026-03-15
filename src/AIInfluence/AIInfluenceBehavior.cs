@@ -1063,6 +1063,10 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				spawnAnchorUsed += "|player_clearance";
 				LogMessage("[QUEST] Adjusted hostile spawn position to avoid spawning on top of the player");
 			}
+			if (TryFindNearbyNavigablePosition(spawnPos, 16f, out var safeSpawnPos))
+			{
+				spawnPos = safeSpawnPos;
+			}
 			LogQuestScenarioVerbose($"SpawnQuestHostileParty resolved spawn anchor '{spawnAnchorUsed}' -> ({spawnPos.X:F2}, {spawnPos.Y:F2})");
 			List<Clan> availableBanditClans = Clan.BanditFactions?.Where((Clan c) => c != null).ToList() ?? new List<Clan>();
 			LogQuestScenarioVerbose($"SpawnQuestHostileParty found {availableBanditClans.Count} candidate bandit clans");
@@ -1388,14 +1392,16 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		spawnAnchorUsed = "quest_giver_default";
 		string spawnAnchor = questAction?.SpawnAnchor;
 		LogQuestScenarioVerbose($"ResolveHostileQuestSpawnPosition start | anchor='{spawnAnchor ?? ""}'");
+		Vec2 anchorPos = GetDefaultHostileQuestSpawnPosition(questGiver);
 		if (string.IsNullOrWhiteSpace(spawnAnchor))
 		{
-			return GetDefaultHostileQuestSpawnPosition(questGiver);
+			return ApplyHostileSpawnOffsetAndTerrainSafety(anchorPos, questGiver, questAction, ref spawnAnchorUsed);
 		}
 		if (spawnAnchor.Equals("player", StringComparison.OrdinalIgnoreCase))
 		{
 			spawnAnchorUsed = "player";
-			return MobileParty.MainParty?.GetPosition2D() ?? GetDefaultHostileQuestSpawnPosition(questGiver);
+			anchorPos = MobileParty.MainParty?.GetPosition2D() ?? GetDefaultHostileQuestSpawnPosition(questGiver);
+			return ApplyHostileSpawnOffsetAndTerrainSafety(anchorPos, questGiver, questAction, ref spawnAnchorUsed);
 		}
 		if (spawnAnchor.Equals("target_npc", StringComparison.OrdinalIgnoreCase))
 		{
@@ -1403,38 +1409,148 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			if (TryResolveHeroSpawnPosition(targetNpcId, out var targetNpcPos))
 			{
 				spawnAnchorUsed = "target_npc:" + targetNpcId;
-				return targetNpcPos;
+				return ApplyHostileSpawnOffsetAndTerrainSafety(targetNpcPos, questGiver, questAction, ref spawnAnchorUsed);
 			}
 			LogMessage("[QUEST] spawn_anchor=target_npc failed to resolve target NPC position, falling back to default");
-			return GetDefaultHostileQuestSpawnPosition(questGiver);
+			return ApplyHostileSpawnOffsetAndTerrainSafety(anchorPos, questGiver, questAction, ref spawnAnchorUsed);
 		}
 		if (spawnAnchor.Equals("npc_id", StringComparison.OrdinalIgnoreCase))
 		{
 			if (TryResolveHeroSpawnPosition(questAction.SpawnNearNpcId, out var npcPos))
 			{
 				spawnAnchorUsed = "npc_id:" + questAction.SpawnNearNpcId;
-				return npcPos;
+				return ApplyHostileSpawnOffsetAndTerrainSafety(npcPos, questGiver, questAction, ref spawnAnchorUsed);
 			}
 			LogMessage("[QUEST] spawn_anchor=npc_id failed to resolve SpawnNearNpcId position, falling back to default");
-			return GetDefaultHostileQuestSpawnPosition(questGiver);
+			return ApplyHostileSpawnOffsetAndTerrainSafety(anchorPos, questGiver, questAction, ref spawnAnchorUsed);
 		}
 		if (spawnAnchor.Equals("settlement_id", StringComparison.OrdinalIgnoreCase))
 		{
 			if (TryResolveSettlementSpawnPosition(questAction.SpawnNearSettlementId, out var settlementPos))
 			{
 				spawnAnchorUsed = "settlement_id:" + questAction.SpawnNearSettlementId;
-				return settlementPos;
+				return ApplyHostileSpawnOffsetAndTerrainSafety(settlementPos, questGiver, questAction, ref spawnAnchorUsed);
 			}
 			LogMessage("[QUEST] spawn_anchor=settlement_id failed to resolve SpawnNearSettlementId position, falling back to default");
-			return GetDefaultHostileQuestSpawnPosition(questGiver);
+			return ApplyHostileSpawnOffsetAndTerrainSafety(anchorPos, questGiver, questAction, ref spawnAnchorUsed);
 		}
 		if (spawnAnchor.Equals("quest_giver", StringComparison.OrdinalIgnoreCase))
 		{
 			spawnAnchorUsed = "quest_giver";
-			return GetDefaultHostileQuestSpawnPosition(questGiver);
+			return ApplyHostileSpawnOffsetAndTerrainSafety(anchorPos, questGiver, questAction, ref spawnAnchorUsed);
 		}
 		LogMessage("[QUEST] Unknown spawn_anchor '" + spawnAnchor + "', falling back to default");
-		return GetDefaultHostileQuestSpawnPosition(questGiver);
+		return ApplyHostileSpawnOffsetAndTerrainSafety(anchorPos, questGiver, questAction, ref spawnAnchorUsed);
+	}
+
+	private Vec2 ApplyHostileSpawnOffsetAndTerrainSafety(Vec2 anchorPos, Hero questGiver, QuestActionData questAction, ref string spawnAnchorUsed)
+	{
+		Vec2 resolvedPos = anchorPos;
+		float distanceDays = Math.Max(0f, Math.Min(questAction?.SpawnDistanceDays ?? 0f, 3f));
+		LogQuestScenarioVerbose($"ApplyHostileSpawnOffsetAndTerrainSafety | distance_days={distanceDays:0.##} anchor=({anchorPos.X:F2}, {anchorPos.Y:F2})");
+		if (distanceDays > 0f)
+		{
+			float referenceSpeed = questGiver?.PartyBelongedTo?.Speed ?? MobileParty.MainParty?.Speed ?? 4f;
+			float mapDistance = Math.Max(1f, referenceSpeed * 24f * distanceDays);
+			if (TryFindNavigableOffsetPosition(anchorPos, mapDistance, out var offsetPos))
+			{
+				resolvedPos = offsetPos;
+				spawnAnchorUsed += $"|{distanceDays:0.##}d";
+			}
+			else
+			{
+				LogMessage($"[QUEST] Could not place hostile spawn at requested distance_days={distanceDays:0.##}; using anchor position");
+			}
+		}
+		if (TryFindNearbyNavigablePosition(resolvedPos, 24f, out var navigablePos))
+		{
+			LogQuestScenarioVerbose($"ApplyHostileSpawnOffsetAndTerrainSafety resolved navigable pos=({navigablePos.X:F2}, {navigablePos.Y:F2})");
+			return navigablePos;
+		}
+		Vec2 fallbackPos = GetDefaultHostileQuestSpawnPosition(questGiver);
+		if (TryFindNearbyNavigablePosition(fallbackPos, 24f, out var fallbackNavigable))
+		{
+			spawnAnchorUsed += "|navigable_fallback";
+			return fallbackNavigable;
+		}
+		LogMessage("[QUEST] Could not validate a navigable hostile spawn position; using unresolved position");
+		return resolvedPos;
+	}
+
+	private bool TryFindNavigableOffsetPosition(Vec2 anchorPos, float targetDistance, out Vec2 spawnPos)
+	{
+		spawnPos = anchorPos;
+		for (int pass = 0; pass < 3; pass++)
+		{
+			float passDistance = targetDistance * (1f - pass * 0.35f);
+			for (int attempt = 0; attempt < 24; attempt++)
+			{
+				float angle = (float)(_random.NextDouble() * Math.PI * 2.0);
+				float scale = 0.85f + (float)_random.NextDouble() * 0.3f;
+				float distance = Math.Max(1f, passDistance * scale);
+				Vec2 candidate = new Vec2(anchorPos.x + (float)Math.Cos(angle) * distance, anchorPos.y + (float)Math.Sin(angle) * distance);
+				if (IsCampaignLandPositionNavigable(candidate))
+				{
+					spawnPos = candidate;
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private bool TryFindNearbyNavigablePosition(Vec2 originPos, float maxRadius, out Vec2 navigablePos)
+	{
+		navigablePos = originPos;
+		if (IsCampaignLandPositionNavigable(originPos))
+		{
+			return true;
+		}
+		for (float radius = 2f; radius <= maxRadius; radius += 2f)
+		{
+			for (int step = 0; step < 16; step++)
+			{
+				float angle = (float)(step * (Math.PI * 2.0 / 16.0));
+				Vec2 candidate = new Vec2(originPos.x + (float)Math.Cos(angle) * radius, originPos.y + (float)Math.Sin(angle) * radius);
+				if (IsCampaignLandPositionNavigable(candidate))
+				{
+					navigablePos = candidate;
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private bool IsCampaignLandPositionNavigable(Vec2 position)
+	{
+		try
+		{
+			Type navHelperType = Type.GetType("TaleWorlds.CampaignSystem.NavigationHelper, TaleWorlds.CampaignSystem");
+			if (navHelperType == null)
+			{
+				return true;
+			}
+			MethodInfo method = navHelperType.GetMethod("IsPositionValidForNavigationType", BindingFlags.Static | BindingFlags.Public, null, new Type[2]
+			{
+				typeof(CampaignVec2),
+				typeof(NavigationType)
+			}, null);
+			if (method == null)
+			{
+				return true;
+			}
+			return (bool)method.Invoke(null, new object[2]
+			{
+				new CampaignVec2(position, true),
+				(NavigationType)1
+			});
+		}
+		catch (Exception ex)
+		{
+			LogMessage("[QUEST] IsCampaignLandPositionNavigable reflection check failed: " + ex.Message);
+			return true;
+		}
 	}
 
 	private Vec2 GetDefaultHostileQuestSpawnPosition(Hero questGiver)
@@ -5081,7 +5197,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			LogQuestScenarioVerbose($"DebugGenerateQuestFromPrompt selected quest giver id={((MBObjectBase)questGiver).StringId} name={questGiver.Name}");
 			_debugPromptQuestGenerationInProgress = true;
 			InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Generating quest from prompt...", ExtraColors.GreenAIInfluence));
-			string requestPrompt = "You are generating a Bannerlord quest action for debugging.\nReturn ONLY valid JSON in this exact wrapper:\n{\"quest_action\":{...}}\nInside quest_action provide action=create_quest with fields title, description, duration_days (7-60), reward_gold (0-5000), optional target_npc_ids, completer_npc_id, ai_verification_notes, progress_target, progress_label, reward_items, reward_skill, reward_skill_xp, crime_rating_change, influence_change, spawn_hostile_party, hostile_party_size, hostile_party_label, hostile_faction_id, hostile_faction_name, hostile_faction_strict, hostile_troop_name, hostile_troop_names, spawn_anchor, spawn_near_npc_id, spawn_near_settlement_id.\nhostile_faction_id is exact and takes priority; if not found, hostile_faction_name is used as fuzzy fallback.\nIf hostile_faction_strict=true and id/name cannot be resolved, the spawn fails.\nspawn_anchor allowed values: quest_giver, player, target_npc, npc_id, settlement_id.\nDo not add explanations.\nPlayer quest request: " + prompt;
+			string requestPrompt = "You are generating a Bannerlord quest action for debugging.\nReturn ONLY valid JSON in this exact wrapper:\n{\"quest_action\":{...}}\nInside quest_action provide action=create_quest with fields title, description, duration_days (7-60), reward_gold (0-5000), optional target_npc_ids, completer_npc_id, ai_verification_notes, progress_target, progress_label, reward_items, reward_skill, reward_skill_xp, crime_rating_change, influence_change, spawn_hostile_party, hostile_party_size, hostile_party_label, hostile_faction_id, hostile_faction_name, hostile_faction_strict, hostile_troop_name, hostile_troop_names, spawn_anchor, spawn_near_npc_id, spawn_near_settlement_id, spawn_distance_days.\nhostile_faction_id is exact and takes priority; if not found, hostile_faction_name is used as fuzzy fallback.\nIf hostile_faction_strict=true and id/name cannot be resolved, the spawn fails.\nspawn_anchor allowed values: quest_giver, player, target_npc, npc_id, settlement_id.\nspawn_distance_days is optional travel-days offset from anchor (example 0.5 = half-day ride).\nDo not add explanations.\nPlayer quest request: " + prompt;
 			Task.Run(async delegate
 			{
 				string rawResponse = null;

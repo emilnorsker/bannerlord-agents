@@ -99,6 +99,9 @@ public class QuestActionData
 	[JsonProperty("spawn_near_settlement_id")]
 	public string SpawnNearSettlementId { get; set; }
 
+	[JsonProperty("spawn_distance_days")]
+	public float? SpawnDistanceDays { get; set; }
+
 	public List<string> GetEffectiveTargetNpcIds()
 	{
 		if (TargetNpcIds != null && TargetNpcIds.Count > 0)
