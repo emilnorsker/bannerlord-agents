@@ -2209,6 +2209,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					nPCContext2.ActiveAIQuests = new List<AIQuestInfo>();
 				}
 				AIQuestInfo aIQuestInfo2 = aIGeneratedQuest.ToQuestInfo();
+				RecoverSpawnLifecycleState(questId, aIQuestInfo2);
 				nPCContext2.ActiveAIQuests.Add(aIQuestInfo2);
 				_npcContexts[text3] = nPCContext2;
 				if (((QuestBase)aIGeneratedQuest).QuestGiver != null)
@@ -2325,6 +2326,40 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		catch (Exception ex3)
 		{
 			LogMessage("[QUEST_SYNC] Error during quest synchronization: " + ex3.Message + "\n" + ex3.StackTrace);
+		}
+	}
+
+	private void RecoverSpawnLifecycleState(string questId, AIQuestInfo questInfo)
+	{
+		if (questInfo == null || string.IsNullOrEmpty(questId))
+		{
+			return;
+		}
+		if (!string.IsNullOrEmpty(questInfo.SpawnedPartyId) && !string.IsNullOrEmpty(questInfo.SpawnedNotableId))
+		{
+			return;
+		}
+		foreach (NPCContext value in _npcContexts.Values)
+		{
+			AIQuestInfo existing = value?.ActiveAIQuests?.FirstOrDefault((AIQuestInfo q) => q.QuestId == questId)
+				?? value?.IncomingAIQuests?.FirstOrDefault((AIQuestInfo q) => q.QuestId == questId);
+			if (existing == null)
+			{
+				continue;
+			}
+			if (string.IsNullOrEmpty(questInfo.SpawnedPartyId) && !string.IsNullOrEmpty(existing.SpawnedPartyId))
+			{
+				questInfo.SpawnedPartyId = existing.SpawnedPartyId;
+			}
+			if (string.IsNullOrEmpty(questInfo.SpawnedNotableId) && !string.IsNullOrEmpty(existing.SpawnedNotableId))
+			{
+				questInfo.SpawnedNotableId = existing.SpawnedNotableId;
+			}
+			if (!string.IsNullOrEmpty(questInfo.SpawnedPartyId) || !string.IsNullOrEmpty(questInfo.SpawnedNotableId))
+			{
+				LogMessage($"[QUEST_SYNC] Recovered spawn lifecycle for quest '{questId}': party='{questInfo.SpawnedPartyId}', notable='{questInfo.SpawnedNotableId}'");
+				return;
+			}
 		}
 	}
 
