@@ -94,7 +94,6 @@ public class SettlementPenaltyManager : CampaignBehaviorBase
 		catch (Exception ex)
 		{
 			_logger.LogError("AddPenalty", ex.Message, ex);
-			throw;
 		}
 	}
 
@@ -239,7 +238,6 @@ public class SettlementPenaltyManager : CampaignBehaviorBase
 		catch (Exception ex)
 		{
 			_logger.LogError("OnDailyTick", ex.Message, ex);
-			throw;
 		}
 	}
 

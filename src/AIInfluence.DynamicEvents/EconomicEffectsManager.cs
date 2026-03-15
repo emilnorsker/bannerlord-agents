@@ -47,7 +47,6 @@ public class EconomicEffectsManager : CampaignBehaviorBase
 		catch (Exception ex)
 		{
 			AIInfluenceBehavior.Instance?.LogMessage("[ERROR] EconomicEffectsManager failed loading persisted effects: " + ex);
-			throw;
 		}
 	}
 
@@ -545,7 +544,6 @@ public class EconomicEffectsManager : CampaignBehaviorBase
 		catch (Exception ex)
 		{
 			AIInfluenceBehavior.Instance?.LogMessage("[ERROR] EconomicEffectsManager.OnDailyTick persistence failed: " + ex);
-			throw;
 		}
 	}
 
