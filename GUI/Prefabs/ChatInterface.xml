@@ -46,11 +46,11 @@
                          VerticalAlignment="Top"
                          Brush="Encyclopedia.TopBanner">
               <Children>
+                <!-- Conversation.HeaderText = gold Galahad confirmed in ConversationBrush.xml -->
                 <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                HorizontalAlignment="Center" VerticalAlignment="Top"
-                               PositionYOffset="12"
-                               Brush="SPScoreboard.Subtitle.Text"
-                               Brush.FontSize="26" Color="!Gold"
+                               PositionYOffset="10"
+                               Brush="Conversation.HeaderText"
                                Text="@NpcName" IsDisabled="true" />
                 <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                HorizontalAlignment="Center" VerticalAlignment="Bottom"
@@ -88,23 +88,22 @@
                              VerticalAlignment="Top"
                              Brush="Encyclopedia.TopBanner">
                   <Children>
+                    <!-- Conversation.Relation.Text = native stat overlay brush (FiraSansExtraCondensed-Regular, size 14) -->
                     <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                    HorizontalAlignment="Left" VerticalAlignment="Top"
                                    PositionXOffset="10" PositionYOffset="8"
-                                   Brush="SPScoreboard.Subtitle.Text"
+                                   Brush="Conversation.Relation.Text"
                                    Brush.FontSize="16" Color="@RelationColor"
                                    Text="@RelationText" IsDisabled="true" />
                     <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                    HorizontalAlignment="Right" VerticalAlignment="Top"
                                    PositionXOffset="-10" PositionYOffset="8"
-                                   Brush="SPScoreboard.Subtitle.Text"
-                                   Brush.FontSize="12" Color="!SubText"
+                                   Brush="Conversation.Relation.Text"
                                    Text="@TrustLabel" IsDisabled="true" />
                     <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                    HorizontalAlignment="Left" VerticalAlignment="Bottom"
                                    PositionXOffset="10" PositionYOffset="-8"
-                                   Brush="SPScoreboard.Subtitle.Text"
-                                   Brush.FontSize="11" Color="!SubText"
+                                   Brush="Conversation.Relation.Text"
                                    Text="@EmotionLabel" IsDisabled="true" />
                   </Children>
                 </BrushWidget>
@@ -166,33 +165,47 @@
                                    MarginTop="6" MarginBottom="6">
                           <ItemTemplate>
                             <!--
-                              Change 2: Widget+Sprite for background, inner ListPanel for text.
-                              Confirmed: Widget Sprite="BlankWhiteSquare_9" Color="@Bound"
-                              is used in WorldEventsWindow line 188-189 for category badges.
+                              Sender segments:   SenderName non-empty, MessageText empty.
+                              Content segments:  SenderName empty,     MessageText non-empty.
+                              Empty RichTextWidget → CoverChildren → zero height → invisible.
+
+                              name_shadow_9 : native NPC name shadow (SPConversation.xml line 182).
+                              Conversation.HeaderText : native gold Galahad NPC name brush.
+                              Conversation.ConversedPartyLine.Text : native white dialogue text.
+                              @MessageColor #000000B0 for speech (ConversationItemBrush.Simple),
+                                            #00000000 transparent for emote/action/sender.
                             -->
-                            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                    Sprite="BlankWhiteSquare_9" Color="@MessageColor"
-                                    MarginLeft="2" MarginRight="2">
+                            <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                       StackLayout.LayoutMethod="VerticalTopToBottom"
+                                       MarginLeft="2" MarginRight="2" MarginTop="2">
                               <Children>
-                                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                           StackLayout.LayoutMethod="VerticalTopToBottom">
+
+                                <!-- Sender name row: name_shadow_9 background, gold Galahad text -->
+                                <!-- Height = 0 when SenderName is empty (no sender segment) -->
+                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                        Sprite="name_shadow_9" AlphaFactor="0.7">
                                   <Children>
-                                    <!-- Sender name (non-empty only on sender segments) -->
                                     <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                   MarginLeft="8" MarginTop="4"
-                                                   Brush="SPScoreboard.Subtitle.Text"
-                                                   Brush.FontSize="15" Color="@SenderColor"
+                                                   MarginLeft="12" MarginTop="4" MarginBottom="4"
+                                                   Brush="Conversation.HeaderText" Color="@SenderColor"
                                                    Text="@SenderName" IsDisabled="true" />
-                                    <!-- Message text (non-empty on content segments) -->
+                                  </Children>
+                                </Widget>
+
+                                <!-- Message row: dark bubble for speech, transparent for emote/action -->
+                                <!-- Height = 0 when MessageText is empty (sender segment) -->
+                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                        Sprite="BlankWhiteSquare_9" Color="@MessageColor">
+                                  <Children>
                                     <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                   Margin="8,3,8,6"
-                                                   Brush="SPScoreboard.Subtitle.Text"
-                                                   Brush.FontSize="14" Color="@SenderColor"
+                                                   Margin="10,5,10,5"
+                                                   Brush="Conversation.ConversedPartyLine.Text" Color="@SenderColor"
                                                    Text="@MessageText" IsDisabled="true" />
                                   </Children>
-                                </ListPanel>
+                                </Widget>
+
                               </Children>
-                            </Widget>
+                            </ListPanel>
                           </ItemTemplate>
                         </ListPanel>
 
