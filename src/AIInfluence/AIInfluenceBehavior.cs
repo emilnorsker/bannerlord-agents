@@ -1041,17 +1041,36 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			}
 			string spawnAnchorUsed;
 			Vec2 spawnPos = ResolveHostileQuestSpawnPosition(questGiver, questAction, out spawnAnchorUsed);
-			CharacterObject basicTroop = null;
-			if (!string.IsNullOrEmpty(questAction.HostileTroopName))
+			List<CharacterObject> compositionTroops = new List<CharacterObject>();
+			foreach (string troopName in (questAction.HostileTroopNames ?? new List<string>())
+				.Where((string name) => !string.IsNullOrWhiteSpace(name))
+				.Distinct(StringComparer.OrdinalIgnoreCase))
 			{
-				basicTroop = ItemMentionParser.FindBestTroopMatch(questAction.HostileTroopName);
-				if (basicTroop != null)
+				CharacterObject val = ItemMentionParser.FindBestTroopMatch(troopName);
+				if (val != null)
 				{
-					LogMessage($"[QUEST] Resolved troop '{questAction.HostileTroopName}' → '{((BasicCharacterObject)basicTroop).Name}'");
+					compositionTroops.Add(val);
+					LogMessage($"[QUEST] Resolved troop '{troopName}' → '{((BasicCharacterObject)val).Name}'");
+				}
+				else
+				{
+					LogMessage($"[QUEST] Could not resolve troop '{troopName}' from hostile_troop_names");
 				}
 			}
-			basicTroop = basicTroop ?? banditClan.BasicTroop;
-			if (basicTroop == null)
+			if (compositionTroops.Count == 0 && !string.IsNullOrEmpty(questAction.HostileTroopName))
+			{
+				CharacterObject val2 = ItemMentionParser.FindBestTroopMatch(questAction.HostileTroopName);
+				if (val2 != null)
+				{
+					compositionTroops.Add(val2);
+					LogMessage($"[QUEST] Resolved troop '{questAction.HostileTroopName}' → '{((BasicCharacterObject)val2).Name}'");
+				}
+			}
+			if (compositionTroops.Count == 0 && banditClan.BasicTroop != null)
+			{
+				compositionTroops.Add(banditClan.BasicTroop);
+			}
+			if (compositionTroops.Count == 0)
 			{
 				LogMessage("[QUEST] No troop type found for hostile party spawn");
 				return;
@@ -1076,7 +1095,17 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			bool partySetupOk = false;
 			try
 			{
-				party.MemberRoster.AddToCounts(basicTroop, troopCount, false, 0, 0, true, -1);
+				int compositionCount = Math.Min(compositionTroops.Count, troopCount);
+				int baseCount = troopCount / compositionCount;
+				int remainder = troopCount % compositionCount;
+				for (int i = 0; i < compositionCount; i++)
+				{
+					int count = baseCount + ((i < remainder) ? 1 : 0);
+					if (count > 0)
+					{
+						party.MemberRoster.AddToCounts(compositionTroops[i], count, false, 0, 0, true, -1);
+					}
+				}
 				party.Party.SetCustomName(new TextObject(partyLabel, (Dictionary<string, object>)null));
 				party.SetMovePatrolAroundPoint(campaignSpawnPos, (NavigationType)3);
 				party.SetPartyUsedByQuest(true);
@@ -1097,7 +1126,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			{
 				questBase.AddTrackedObject((ITrackableCampaignObject)(object)party);
 			}
-			LogMessage($"[QUEST] Spawned hostile party '{partyLabel}' ({troopCount} troops) using anchor '{spawnAnchorUsed}' for quest '{questInfo.Title}'");
+			LogMessage($"[QUEST] Spawned hostile party '{partyLabel}' ({troopCount} troops) using anchor '{spawnAnchorUsed}' with composition [{string.Join(", ", compositionTroops.Select((CharacterObject t) => ((BasicCharacterObject)t).Name.ToString()))}] for quest '{questInfo.Title}'");
 			InformationManager.DisplayMessage(new InformationMessage($"A hostile party '{partyLabel}' has appeared on the map!", ExtraColors.RedAIInfluence));
 		}
 		catch (Exception ex)
@@ -4708,7 +4737,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				return;
 			}
 			NPCContext context = GetOrCreateNPCContext(questGiver);
-			string requestPrompt = "You are generating a Bannerlord quest action for debugging.\nReturn ONLY valid JSON in this exact wrapper:\n{\"quest_action\":{...}}\nInside quest_action provide action=create_quest with fields title, description, duration_days (7-60), reward_gold (0-5000), optional target_npc_ids, completer_npc_id, ai_verification_notes, progress_target, progress_label, reward_items, reward_skill, reward_skill_xp, crime_rating_change, influence_change, spawn_hostile_party, hostile_party_size, hostile_party_label, hostile_troop_name, spawn_anchor, spawn_near_npc_id, spawn_near_settlement_id.\nspawn_anchor allowed values: quest_giver, player, target_npc, npc_id, settlement_id.\nDo not add explanations.\nPlayer quest request: " + prompt;
+			string requestPrompt = "You are generating a Bannerlord quest action for debugging.\nReturn ONLY valid JSON in this exact wrapper:\n{\"quest_action\":{...}}\nInside quest_action provide action=create_quest with fields title, description, duration_days (7-60), reward_gold (0-5000), optional target_npc_ids, completer_npc_id, ai_verification_notes, progress_target, progress_label, reward_items, reward_skill, reward_skill_xp, crime_rating_change, influence_change, spawn_hostile_party, hostile_party_size, hostile_party_label, hostile_troop_name, hostile_troop_names, spawn_anchor, spawn_near_npc_id, spawn_near_settlement_id.\nspawn_anchor allowed values: quest_giver, player, target_npc, npc_id, settlement_id.\nDo not add explanations.\nPlayer quest request: " + prompt;
 			string rawResponse = SendAIRequestRaw(requestPrompt).GetAwaiter().GetResult();
 			if (string.IsNullOrEmpty(rawResponse) || rawResponse.StartsWith("Error:"))
 			{

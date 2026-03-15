@@ -78,6 +78,9 @@ public class QuestActionData
 	[JsonProperty("hostile_troop_name")]
 	public string HostileTroopName { get; set; }
 
+	[JsonProperty("hostile_troop_names")]
+	public List<string> HostileTroopNames { get; set; }
+
 	[JsonProperty("spawn_anchor")]
 	public string SpawnAnchor { get; set; }
 
