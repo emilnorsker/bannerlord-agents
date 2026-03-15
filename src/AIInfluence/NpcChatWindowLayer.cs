@@ -14,6 +14,11 @@ public class NpcChatWindowLayer : GauntletLayer
 {
     private object _movie;
     private NpcChatWindowVM _viewModel;
+    private ScreenBase _conversationScreen;
+    /// <summary>
+    /// Horizontal conversation-camera offset (scene units), tuned so the NPC
+    /// appears centered inside the left chat panel in ChatInterface.xml.
+    /// </summary>
     private const float ConversationCameraOffsetX = -0.18f;
 
     public NpcChatWindowLayer(Hero npc, NPCContext context, Action onReturn)
@@ -36,7 +41,8 @@ public class NpcChatWindowLayer : GauntletLayer
         _viewModel = new NpcChatWindowVM(npc, context, onReturn);
         _movie = base.LoadMovie("ChatInterface", (ViewModel)(object)_viewModel);
         ((ScreenLayer)this).InputRestrictions.SetInputRestrictions(true, (InputUsageMask)7);
-        ApplyConversationCameraOffset(ConversationCameraOffsetX);
+        _conversationScreen = ScreenManager.TopScreen;
+        ApplyConversationCameraOffset(_conversationScreen, ConversationCameraOffsetX);
     }
 
     protected override void OnFinalize()
@@ -59,21 +65,23 @@ public class NpcChatWindowLayer : GauntletLayer
             _movie = null;
         }
         _viewModel = null;
-        ApplyConversationCameraOffset(0f);
+        ApplyConversationCameraOffset(_conversationScreen, 0f);
+        _conversationScreen = null;
         base.OnFinalize();
     }
 
-    private static void ApplyConversationCameraOffset(float offsetX)
+    private static void ApplyConversationCameraOffset(object screen, float offsetX)
     {
         try
         {
-            object topScreen = ScreenManager.TopScreen;
-            if (topScreen == null) return;
+            if (screen == null) return;
             foreach (string methodName in new[] { "SetConversationCameraOffsetX", "SetConversationCameraXOffset", "SetConversationSceneOffsetX" })
             {
-                MethodInfo method = topScreen.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new[] { typeof(float) }, null);
-                if (method != null) { method.Invoke(topScreen, new object[] { offsetX }); return; }
+                MethodInfo method = screen.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new[] { typeof(float) }, null);
+                if (method != null) { method.Invoke(screen, new object[] { offsetX }); return; }
             }
+            if (offsetX != 0f)
+                InformationManager.DisplayMessage(new InformationMessage("[NpcChatWindow] Camera offset: no matching method found on " + screen.GetType().Name));
         }
         catch (Exception ex)
         {
