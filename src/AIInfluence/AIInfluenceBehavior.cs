@@ -29,7 +29,6 @@ using TaleWorlds.CampaignSystem.Extensions;
 using TaleWorlds.CampaignSystem.GameMenus;
 using TaleWorlds.CampaignSystem.MapEvents;
 using TaleWorlds.CampaignSystem.Party;
-using TaleWorlds.CampaignSystem.Party.PartyComponents;
 using TaleWorlds.CampaignSystem.Roster;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.CampaignSystem.Settlements.Workshops;
@@ -575,6 +574,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		string text2 = ((leaderHero != null) ? ((MBObjectBase)leaderHero).StringId : null) ?? "none";
 		string text5 = ((leaderHero != null && leaderHero.Clan != null) ? ((MBObjectBase)leaderHero.Clan).StringId : null) ?? "none";
 		string text6 = ((party.MapFaction != null) ? ((MBObjectBase)party.MapFaction).StringId : null) ?? "none";
+		bool flag = party.IsBandit;
 		string text3 = (party.CurrentSettlement != null) ? ((MBObjectBase)party.CurrentSettlement).StringId : "none";
 		string text4 = BuildQuestPartyCompositionDebugString(party);
 		int num2 = 0;
@@ -589,7 +589,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				}
 			}
 		}
-		return $"QuestPartyDebug {source} | id={stringId} name='{party.Name}' pos=({position2D.X:F2},{position2D.Y:F2}) distance_to_player={num:F2} leader='{text}' leader_id={text2} leader_clan={text5} party_faction={text6} men={party.MemberRoster?.TotalManCount ?? 0} settlement={text3} visible={party.IsVisible} tracked_by_quests={num2} composition=[{text4}]";
+		return $"QuestPartyDebug {source} | id={stringId} name='{party.Name}' pos=({position2D.X:F2},{position2D.Y:F2}) distance_to_player={num:F2} leader='{text}' leader_id={text2} leader_clan={text5} party_faction={text6} is_bandit={flag} men={party.MemberRoster?.TotalManCount ?? 0} settlement={text3} visible={party.IsVisible} tracked_by_quests={num2} composition=[{text4}]";
 	}
 
 	private string BuildQuestPartyCompositionDebugString(MobileParty party)
