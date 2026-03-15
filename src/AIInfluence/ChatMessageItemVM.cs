@@ -12,6 +12,7 @@ public class ChatMessageItemVM : ViewModel
     [DataSourceProperty] public string SenderName  { get; set; } = "";
     [DataSourceProperty] public string SenderColor { get; set; } = "#C6AC8DFF";
     [DataSourceProperty] public string TypeTag     { get; set; } = "";
+    [DataSourceProperty] public string TypeTagColor { get; set; } = "#9BA4B5FF";
 
     // ── Ordered content (speech, emote, action in original sequence) ────────
     [DataSourceProperty] public MBBindingList<ContentSegmentVM> ContentSegments { get; }

@@ -151,6 +151,19 @@ public class NpcChatWindowVM : ViewModel
             || sender.Equals("You", StringComparison.OrdinalIgnoreCase);
     }
 
+    private static string ResolveTypeTagColor(string typeTag)
+    {
+        string tone = (typeTag ?? "").Trim().ToLowerInvariant();
+        return tone switch
+        {
+            "friendly" => "#6FCF6FFF",
+            "hostile" or "angry" => "#CF6F6FFF",
+            "cautious" => "#D0A96BFF",
+            "neutral" => "#9BA4B5FF",
+            _ => "#B6BDD0FF"
+        };
+    }
+
     /// <summary>
     /// Produces ONE ChatMessageItemVM per conversation turn.
     /// ContentSegments preserves the original speech/emote interleaving order.
@@ -169,6 +182,7 @@ public class NpcChatWindowVM : ViewModel
             SenderName  = sender,
             SenderColor = NameColor,
             TypeTag     = isPlayer ? "" : typeTag,
+            TypeTagColor = isPlayer ? "#00000000" : ResolveTypeTagColor(typeTag),
             IsPlayer    = isPlayer
         };
 
@@ -182,7 +196,7 @@ public class NpcChatWindowVM : ViewModel
                 if (!string.IsNullOrEmpty(speech))
                     item.ContentSegments.Add(new ContentSegmentVM(speech, SpeechTextColor, bubbleColor));
             }
-            item.ContentSegments.Add(new ContentSegmentVM(m.Value, EmoteColor, "#00000000"));
+            item.ContentSegments.Add(new ContentSegmentVM(m.Value, EmoteColor, bubbleColor));
             pos = m.Index + m.Length;
         }
         if (pos < content.Length)
@@ -250,7 +264,7 @@ public class NpcChatWindowVM : ViewModel
                     var npcItem = ParseLine($"{npcName}: {reply}", tone);
                     string actionText = BuildActionText(pendingResponse);
                     if (!string.IsNullOrEmpty(actionText))
-                        npcItem.ContentSegments.Add(new ContentSegmentVM(actionText, ActionColor, "#00000000"));
+                        npcItem.ContentSegments.Add(new ContentSegmentVM(actionText, ActionColor, NpcBubbleColor));
                     MessageList.Add(npcItem);
                 }
                 catch (Exception) { }
