@@ -5187,6 +5187,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			}
 			if (dataStore.IsLoading)
 			{
+				_saveQueueManager.ClearQueue();
 				if (_followingHeroIds == null)
 				{
 					_followingHeroIds = new List<string>();
