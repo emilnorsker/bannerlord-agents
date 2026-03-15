@@ -3926,13 +3926,20 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	public void SaveNPCContext(string npcId, Hero npc, NPCContext context)
 	{
-		if (!string.IsNullOrEmpty(npcId) && context != null)
+		if (string.IsNullOrEmpty(npcId))
 		{
-			_npcContexts[npcId] = context;
-			if (!string.IsNullOrEmpty(context.StringId))
-			{
-				UpdateStringIdIndex(npcId, context.StringId);
-			}
+			LogMessage("[ERROR] SaveNPCContext called with empty npcId.");
+			throw new ArgumentException("npcId must not be null or empty.", "npcId");
+		}
+		if (context == null)
+		{
+			LogMessage("[ERROR] SaveNPCContext called with null context for npcId=" + npcId + ".");
+			throw new ArgumentNullException("context");
+		}
+		_npcContexts[npcId] = context;
+		if (!string.IsNullOrEmpty(context.StringId))
+		{
+			UpdateStringIdIndex(npcId, context.StringId);
 		}
 	}
 
@@ -5220,6 +5227,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			if (dataStore.IsSaving)
 			{
+				_npcContexts ??= new Dictionary<string, NPCContext>();
 				AIActionManager instance = AIActionManager.Instance;
 				if (instance != null)
 				{
@@ -5241,13 +5249,14 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				{
 					try
 					{
-						_npcContexts = JsonConvert.DeserializeObject<Dictionary<string, NPCContext>>(_npcContextsJson) ?? _npcContexts;
+						_npcContexts = JsonConvert.DeserializeObject<Dictionary<string, NPCContext>>(_npcContextsJson) ?? throw new InvalidOperationException("NPC context payload deserialized to null.");
 						_npcContextsJson = null; // free the raw string now that objects are materialized
 						LogMessage($"[LOAD] Restored {_npcContexts.Count} NPC contexts from game save");
 					}
 					catch (Exception ex)
 					{
-						LogMessage($"[ERROR] Failed to deserialize NPC contexts from save, will fall back to JSON files: {ex.Message}");
+						LogMessage("[ERROR] Failed to deserialize NPC contexts from game save. payloadLength=" + _npcContextsJson.Length + ". " + ex);
+						throw;
 					}
 				}
 				if (_followingHeroIds == null)
