@@ -109,7 +109,7 @@ public class TaskManager : CampaignBehaviorBase
 		{
 			serializedTaskState = SerializeTaskState();
 		}
-		dataStore.SyncData<string>("_taskManagerStateJson", ref serializedTaskState);
+		dataStore.SyncData<string>("AIInfluence_taskManagerStateJson", ref serializedTaskState);
 		if (dataStore.IsLoading && !string.IsNullOrEmpty(serializedTaskState))
 		{
 			DeserializeTaskState(serializedTaskState);

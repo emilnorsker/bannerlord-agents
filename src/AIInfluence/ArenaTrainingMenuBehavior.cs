@@ -256,7 +256,7 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 	{
 		try
 		{
-			dataStore.SyncData<Dictionary<string, double>>("_arenaPartyCooldownEndHours", ref _partyCooldownEndHours);
+			dataStore.SyncData<Dictionary<string, double>>("AIInfluence_arenaPartyCooldownEndHours", ref _partyCooldownEndHours);
 			if (_partyCooldownEndHours == null)
 			{
 				_partyCooldownEndHours = new Dictionary<string, double>();
