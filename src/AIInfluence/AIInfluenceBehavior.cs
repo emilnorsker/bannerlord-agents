@@ -1215,6 +1215,17 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	private Clan ResolveHostileBanditClan(QuestActionData questAction, List<CharacterObject> compositionTroops, List<Clan> banditClans)
 	{
+		string exactFactionId = questAction?.HostileFactionId;
+		if (!string.IsNullOrWhiteSpace(exactFactionId))
+		{
+			Clan clan = banditClans.FirstOrDefault((Clan c) => string.Equals(((MBObjectBase)c).StringId, exactFactionId, StringComparison.OrdinalIgnoreCase));
+			if (clan != null)
+			{
+				LogMessage($"[QUEST] Selected bandit clan by hostile_faction_id exact match: '{clan.Name}' (id:{((MBObjectBase)clan).StringId})");
+				return clan;
+			}
+			LogMessage("[QUEST] hostile_faction_id '" + exactFactionId + "' not found among bandit clans; falling back to fuzzy resolver");
+		}
 		string factionHint = NormalizeQuestSelectorText(questAction?.HostileFactionName);
 		Clan bestClan = null;
 		int bestScore = int.MinValue;
@@ -4906,7 +4917,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				return;
 			}
 			NPCContext context = GetOrCreateNPCContext(questGiver);
-			string requestPrompt = "You are generating a Bannerlord quest action for debugging.\nReturn ONLY valid JSON in this exact wrapper:\n{\"quest_action\":{...}}\nInside quest_action provide action=create_quest with fields title, description, duration_days (7-60), reward_gold (0-5000), optional target_npc_ids, completer_npc_id, ai_verification_notes, progress_target, progress_label, reward_items, reward_skill, reward_skill_xp, crime_rating_change, influence_change, spawn_hostile_party, hostile_party_size, hostile_party_label, hostile_faction_name, hostile_troop_name, hostile_troop_names, spawn_anchor, spawn_near_npc_id, spawn_near_settlement_id.\nspawn_anchor allowed values: quest_giver, player, target_npc, npc_id, settlement_id.\nDo not add explanations.\nPlayer quest request: " + prompt;
+			string requestPrompt = "You are generating a Bannerlord quest action for debugging.\nReturn ONLY valid JSON in this exact wrapper:\n{\"quest_action\":{...}}\nInside quest_action provide action=create_quest with fields title, description, duration_days (7-60), reward_gold (0-5000), optional target_npc_ids, completer_npc_id, ai_verification_notes, progress_target, progress_label, reward_items, reward_skill, reward_skill_xp, crime_rating_change, influence_change, spawn_hostile_party, hostile_party_size, hostile_party_label, hostile_faction_id, hostile_faction_name, hostile_troop_name, hostile_troop_names, spawn_anchor, spawn_near_npc_id, spawn_near_settlement_id.\nhostile_faction_id is exact and takes priority; if not found, hostile_faction_name is used as fuzzy fallback.\nspawn_anchor allowed values: quest_giver, player, target_npc, npc_id, settlement_id.\nDo not add explanations.\nPlayer quest request: " + prompt;
 			string rawResponse = SendAIRequestRaw(requestPrompt).GetAwaiter().GetResult();
 			if (string.IsNullOrEmpty(rawResponse) || rawResponse.StartsWith("Error:"))
 			{
