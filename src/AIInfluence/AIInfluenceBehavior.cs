@@ -1228,7 +1228,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				return;
 			}
 			LogQuestScenarioVerbose("SpawnQuestHostileParty composition resolved: " + string.Join(", ", compositionTroops.Select((CharacterObject t) => ((BasicCharacterObject)t).Name.ToString())));
-			Hero notableHero = CreateQuestPartyNotable(questGiver, spawnPos);
+			Hero notableHero = CreateQuestPartyNotable(questGiver, spawnPos, banditClan);
 			if (notableHero == null || !notableHero.IsNotable)
 			{
 				LogMessage("[QUEST] Could not create notable hero for hostile party");
@@ -1241,6 +1241,13 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage($"[QUEST] Spawn notable '{((MBObjectBase)notableHero).StringId}' has null MapFaction after clan assignment; failing hostile party spawn");
 				questInfo.SpawnedNotableId = null;
 				CleanupSpawnedQuestNotable(questInfo, "notable faction invalid");
+				return;
+			}
+			if (!EnsureQuestPartyNotableWorldState(notableHero))
+			{
+				LogMessage($"[QUEST] Failed to initialize spawned notable '{((MBObjectBase)notableHero).StringId}' world context; failing hostile party spawn");
+				questInfo.SpawnedNotableId = null;
+				CleanupSpawnedQuestNotable(questInfo, "notable context init failed");
 				return;
 			}
 			questInfo.SpawnedNotableId = ((MBObjectBase)notableHero).StringId;
@@ -1344,12 +1351,19 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		return true;
 	}
 
-	private Hero CreateQuestPartyNotable(Hero questGiver, Vec2 spawnPos)
+	private Hero CreateQuestPartyNotable(Hero questGiver, Vec2 spawnPos, Clan banditClan)
 	{
 		LogQuestScenarioVerbose($"CreateQuestPartyNotable start | quest_giver={((MBObjectBase)questGiver)?.StringId ?? "null"} pos=({spawnPos.X:F2}, {spawnPos.Y:F2})");
 		Hero seedNotable = null;
 		Settlement seedSettlement = null;
-		List<Settlement> orderedSettlements = Settlement.All?.OrderBy((Settlement s) => s.GetPosition2D().Distance(spawnPos)).ToList();
+		CultureObject preferredCulture = banditClan?.Culture;
+		Settlement preferredMidSettlement = banditClan?.FactionMidSettlement;
+		List<Settlement> orderedSettlements = Settlement.All?
+			.Where((Settlement s) => s != null)
+			.OrderBy((Settlement s) => (s == preferredMidSettlement) ? 0 : 1)
+			.ThenBy((Settlement s) => (preferredCulture != null && s.Culture == preferredCulture) ? 0 : 1)
+			.ThenBy((Settlement s) => s.GetPosition2D().Distance(spawnPos))
+			.ToList();
 		if (orderedSettlements != null)
 		{
 			foreach (Settlement settlement in orderedSettlements)
@@ -1404,6 +1418,26 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 		LogQuestScenarioVerbose($"CreateQuestPartyNotable result={((MBObjectBase)hero2)?.StringId ?? "null"}");
 		return hero2;
+	}
+
+	private bool EnsureQuestPartyNotableWorldState(Hero notableHero)
+	{
+		if (notableHero == null)
+		{
+			return false;
+		}
+		string stringId = ((MBObjectBase)notableHero).StringId;
+		NPCContext orCreateNPCContext = GetOrCreateNPCContext(notableHero);
+		if (!orCreateNPCContext.KnowledgeGenerated)
+		{
+			WorldInfoManager.WorldSecretsManager.Instance?.CheckSecretKnowledge(notableHero, orCreateNPCContext);
+			WorldInfoManager.InformationManager.Instance?.CheckInfoKnowledge(notableHero, orCreateNPCContext);
+			orCreateNPCContext.KnowledgeGenerated = true;
+		}
+		UpdateContextData(orCreateNPCContext, notableHero);
+		SaveNPCContext(stringId, notableHero, orCreateNPCContext);
+		LogQuestScenarioVerbose($"EnsureQuestPartyNotableWorldState initialized context for '{stringId}'");
+		return true;
 	}
 
 	private Clan ResolveHostileBanditClan(QuestActionData questAction, List<CharacterObject> compositionTroops, List<Clan> banditClans)
