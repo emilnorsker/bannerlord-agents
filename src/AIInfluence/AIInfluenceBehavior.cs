@@ -1017,6 +1017,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		if (questAction.SpawnHostileParty)
 		{
 			SpawnQuestHostileParty(npc, item, questAction);
+			SyncQuestInfoAcrossNpcs(item);
 			SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
 		}
 		LogMessage(string.Format("[QUEST] Created quest '{0}' (ID: {1}) from {2}, reward: {3}, duration: {4} days, targets: [{5}]", questAction.Title, text5, text, num, num2, string.Join(", ", effectiveTargetNpcIds)) + ((!string.IsNullOrEmpty(text2)) ? (", completer: " + text2) : "") + ((valueOrDefault > 0) ? $", progress: 0/{valueOrDefault} ({text4})" : ""));
@@ -1085,8 +1086,10 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			if (notableHero == null || !notableHero.IsNotable)
 			{
 				LogMessage("[QUEST] Could not create notable hero for hostile party");
+				questInfo.SpawnedNotableId = null;
 				return;
 			}
+			questInfo.SpawnedNotableId = ((MBObjectBase)notableHero).StringId;
 			TroopRoster memberRoster = new TroopRoster((PartyBase)null);
 			TroopRoster prisonerRoster = new TroopRoster((PartyBase)null);
 			int compositionCount = Math.Min(compositionTroops.Count, troopCount);
@@ -1106,6 +1109,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			if (party == null)
 			{
 				LogMessage("[QUEST] GameVersionCompatibility.CreateQuestParty returned null");
+				CleanupSpawnedQuestNotable(questInfo, "party creation failed");
 				return;
 			}
 			questInfo.SpawnedPartyId = ((MBObjectBase)party).StringId;
@@ -1126,6 +1130,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage("[QUEST] Error setting up hostile party, destroying it: " + setupEx.Message);
 				DestroyPartyAction.Apply((PartyBase)null, party);
 				questInfo.SpawnedPartyId = null;
+				CleanupSpawnedQuestNotable(questInfo, "party setup failed");
 			}
 			if (!partySetupOk)
 			{
@@ -1136,7 +1141,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			{
 				questBase.AddTrackedObject((ITrackableCampaignObject)(object)party);
 			}
-			LogMessage($"[QUEST] Spawned hostile party '{partyLabel}' ({troopCount} troops) using anchor '{spawnAnchorUsed}' with composition [{string.Join(", ", compositionTroops.Select((CharacterObject t) => ((BasicCharacterObject)t).Name.ToString()))}] for quest '{questInfo.Title}'");
+			LogMessage($"[QUEST] Spawned hostile party '{partyLabel}' ({troopCount} troops) using anchor '{spawnAnchorUsed}' with composition [{string.Join(", ", compositionTroops.Select((CharacterObject t) => ((BasicCharacterObject)t).Name.ToString()))}] and notable '{questInfo.SpawnedNotableId}' for quest '{questInfo.Title}'");
 			InformationManager.DisplayMessage(new InformationMessage($"A hostile party '{partyLabel}' has appeared on the map!", ExtraColors.RedAIInfluence));
 		}
 		catch (Exception ex)
@@ -1533,26 +1538,70 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	private void CleanupSpawnedQuestParty(AIQuestInfo questInfo)
 	{
-		if (string.IsNullOrEmpty(questInfo.SpawnedPartyId))
+		if (string.IsNullOrEmpty(questInfo.SpawnedPartyId) && string.IsNullOrEmpty(questInfo.SpawnedNotableId))
 		{
 			return;
 		}
 		try
 		{
-			MobileParty party = MobileParty.All?.FirstOrDefault((MobileParty p) => ((MBObjectBase)p).StringId == questInfo.SpawnedPartyId);
-			if (party != null)
+			if (!string.IsNullOrEmpty(questInfo.SpawnedPartyId))
 			{
-				QuestBase questBase = Campaign.Current?.QuestManager?.Quests?.FirstOrDefault((Func<QuestBase, bool>)((QuestBase q) => ((MBObjectBase)q).StringId == questInfo.QuestId && q.IsOngoing));
-				questBase?.RemoveTrackedObject((ITrackableCampaignObject)(object)party);
-				party.SetPartyUsedByQuest(false);
-				DestroyPartyAction.Apply((PartyBase)null, party);
-				LogMessage($"[QUEST] Destroyed spawned party '{questInfo.SpawnedPartyId}' on quest end");
+				MobileParty party = MobileParty.All?.FirstOrDefault((MobileParty p) => ((MBObjectBase)p).StringId == questInfo.SpawnedPartyId);
+				if (party != null)
+				{
+					QuestBase questBase = Campaign.Current?.QuestManager?.Quests?.FirstOrDefault((Func<QuestBase, bool>)((QuestBase q) => ((MBObjectBase)q).StringId == questInfo.QuestId && q.IsOngoing));
+					questBase?.RemoveTrackedObject((ITrackableCampaignObject)(object)party);
+					party.SetPartyUsedByQuest(false);
+					DestroyPartyAction.Apply((PartyBase)null, party);
+					LogMessage($"[QUEST] Destroyed spawned party '{questInfo.SpawnedPartyId}' on quest end");
+				}
 				questInfo.SpawnedPartyId = null;
 			}
+			CleanupSpawnedQuestNotable(questInfo, "quest ended");
 		}
 		catch (Exception ex)
 		{
 			LogMessage("[QUEST] Error destroying spawned party: " + ex.Message);
+		}
+	}
+
+	private void CleanupSpawnedQuestNotable(AIQuestInfo questInfo, string reason)
+	{
+		if (string.IsNullOrEmpty(questInfo.SpawnedNotableId))
+		{
+			return;
+		}
+		bool shouldClearNotableId = false;
+		try
+		{
+			Hero hero = Hero.FindFirst((Hero h) => ((MBObjectBase)h).StringId == questInfo.SpawnedNotableId);
+			if (hero == null)
+			{
+				LogMessage($"[QUEST] Spawned notable '{questInfo.SpawnedNotableId}' already missing during cleanup ({reason})");
+				shouldClearNotableId = true;
+			}
+			else if (hero.IsAlive)
+			{
+				KillCharacterAction.ApplyByMurder(hero, null, false);
+				LogMessage($"[QUEST] Cleaned up spawned notable '{hero.Name}' ({questInfo.SpawnedNotableId}) via KillCharacterAction ({reason})");
+				if (hero.CurrentSettlement != null && hero.CurrentSettlement.Notables != null && ((List<Hero>)(object)hero.CurrentSettlement.Notables).Contains(hero))
+				{
+					((List<Hero>)(object)hero.CurrentSettlement.Notables).Remove(hero);
+				}
+				shouldClearNotableId = true;
+			}
+			else
+			{
+				shouldClearNotableId = true;
+			}
+		}
+		catch (Exception ex)
+		{
+			LogMessage("[QUEST] Error cleaning spawned notable: " + ex.Message);
+		}
+		if (shouldClearNotableId)
+		{
+			questInfo.SpawnedNotableId = null;
 		}
 	}
 
@@ -1911,6 +1960,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				{
 					aIQuestInfo.UpdateLogs = updatedQuestInfo.UpdateLogs;
 					aIQuestInfo.ProgressCurrent = updatedQuestInfo.ProgressCurrent;
+					aIQuestInfo.SpawnedPartyId = updatedQuestInfo.SpawnedPartyId;
+					aIQuestInfo.SpawnedNotableId = updatedQuestInfo.SpawnedNotableId;
 					flag = true;
 				}
 				AIQuestInfo aIQuestInfo2 = nPCContext.IncomingAIQuests?.Find((AIQuestInfo q) => q.QuestId == questId);
@@ -1918,6 +1969,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				{
 					aIQuestInfo2.UpdateLogs = updatedQuestInfo.UpdateLogs;
 					aIQuestInfo2.ProgressCurrent = updatedQuestInfo.ProgressCurrent;
+					aIQuestInfo2.SpawnedPartyId = updatedQuestInfo.SpawnedPartyId;
+					aIQuestInfo2.SpawnedNotableId = updatedQuestInfo.SpawnedNotableId;
 					flag = true;
 				}
 				if (flag)
@@ -4993,9 +5046,10 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				{
 					string progress = q.ProgressTarget > 0 ? $" [{q.ProgressCurrent}/{q.ProgressTarget} {q.ProgressLabel}]" : "";
 					string party = !string.IsNullOrEmpty(q.SpawnedPartyId) ? $" | party:{q.SpawnedPartyId}" : "";
+					string notable = !string.IsNullOrEmpty(q.SpawnedNotableId) ? $" | notable:{q.SpawnedNotableId}" : "";
 					InformationManager.DisplayMessage(new InformationMessage(
-						$"[Quest] \"{q.Title}\" giver:{q.QuestGiverNpcId} gold:{q.RewardGold}{progress}{party}", ExtraColors.GreenAIInfluence));
-					LogMessage($"[QuestDebug] Active quest: {q.QuestId} | {q.Title} | giver:{q.QuestGiverNpcId} | gold:{q.RewardGold}{progress}{party}");
+						$"[Quest] \"{q.Title}\" giver:{q.QuestGiverNpcId} gold:{q.RewardGold}{progress}{party}{notable}", ExtraColors.GreenAIInfluence));
+					LogMessage($"[QuestDebug] Active quest: {q.QuestId} | {q.Title} | giver:{q.QuestGiverNpcId} | gold:{q.RewardGold}{progress}{party}{notable}");
 					total++;
 				}
 			}
