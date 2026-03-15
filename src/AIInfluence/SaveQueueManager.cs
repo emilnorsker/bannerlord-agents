@@ -77,6 +77,11 @@ public class SaveQueueManager
 
 	public void QueueSave(string npcId, Hero npc, NPCContext context)
 	{
+		if (string.IsNullOrEmpty(npcId) || npc == null || context == null)
+		{
+			_behavior.LogMessage("[ERROR] [SAVE_QUEUE] QueueSave rejected invalid input. npcId=" + (npcId ?? "<null>") + ", npcNull=" + (npc == null) + ", contextNull=" + (context == null));
+			return;
+		}
 		lock (_queuedNpcIds)
 		{
 			if (_processingNpcs.Contains(npcId) || _queuedNpcIds.Contains(npcId))
@@ -88,10 +93,7 @@ public class SaveQueueManager
 				SaveTask saveTask = _saveQueue.Dequeue();
 				_queuedNpcIds.Remove(saveTask.NpcId);
 				_skippedOldSaves++;
-				if (_skippedOldSaves % 50 == 0)
-				{
-					_behavior.LogMessage($"[SAVE_QUEUE] Queue full! Skipped {_skippedOldSaves} old saves");
-				}
+				_behavior.LogMessage("[ERROR] [SAVE_QUEUE] Queue full (150). Dropping oldest pending save for npcId=" + saveTask.NpcId + ". droppedTotal=" + _skippedOldSaves + ", incomingNpcId=" + npcId);
 			}
 			_queuedNpcIds.Add(npcId);
 			_saveQueue.Enqueue(new SaveTask
@@ -171,11 +173,7 @@ public class SaveQueueManager
 		}
 		catch (Exception ex)
 		{
-			Exception ex2 = ex;
-			if (_processedCount % 100 == 0)
-			{
-				_behavior.LogMessage("[SAVE_QUEUE] Batch error: " + ex2.Message);
-			}
+			_behavior.LogMessage("[ERROR] [SAVE_QUEUE] Batch processing failed: " + ex);
 		}
 		finally
 		{
@@ -189,6 +187,7 @@ public class SaveQueueManager
 		{
 			if (!(await _concurrentSaveLimiter.WaitAsync(3000).ConfigureAwait(continueOnCapturedContext: false)))
 			{
+				_behavior.LogMessage("[ERROR] [SAVE_QUEUE] Timed out waiting for concurrency slot. npcId=" + npcId);
 				return;
 			}
 			try
@@ -200,8 +199,9 @@ public class SaveQueueManager
 				_concurrentSaveLimiter.Release();
 			}
 		}
-		catch
+		catch (Exception ex)
 		{
+			_behavior.LogMessage("[ERROR] [SAVE_QUEUE] ProcessSaveWithLimiterAsync failed for npcId=" + npcId + ": " + ex);
 		}
 		finally
 		{
@@ -221,25 +221,29 @@ public class SaveQueueManager
 			{
 				if (!(await fileLock.WaitAsync(2000).ConfigureAwait(continueOnCapturedContext: false)))
 				{
+					_behavior.LogMessage("[ERROR] [SAVE_QUEUE] Timed out waiting file lock. npcId=" + npcId);
 					return;
 				}
 				try
 				{
 					_behavior.SaveNPCContextImmediate(npcId, npc, context);
 				}
-				catch (IOException)
+				catch (IOException ex)
 				{
+					_behavior.LogMessage("[ERROR] [SAVE_QUEUE] IO save failure for npcId=" + npcId + ": " + ex);
 				}
-				catch
+				catch (Exception ex2)
 				{
+					_behavior.LogMessage("[ERROR] [SAVE_QUEUE] Unexpected save failure for npcId=" + npcId + ": " + ex2);
 				}
 				finally
 				{
 					fileLock.Release();
 				}
 			}
-			catch
+			catch (Exception ex3)
 			{
+				_behavior.LogMessage("[ERROR] [SAVE_QUEUE] ProcessSaveImmediateAsync failed for npcId=" + npcId + ": " + ex3);
 			}
 		});
 	}
