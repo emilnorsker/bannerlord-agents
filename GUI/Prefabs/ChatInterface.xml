@@ -199,15 +199,15 @@
                                                     Sprite="name_shadow_9" Color="@BackColor">
                                               <Children>
                                                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                                                        Sprite="General\CharacterCreation\character_creation_background_gradient"
-                                                        Color="#1C2A3AFF" AlphaFactor="0.18" IsEnabled="false" />
+                                                        Sprite="StdAssets\Popup\canvas_gradient"
+                                                        Color="#1C2A3AFF" AlphaFactor="0.32" IsEnabled="false" />
                                                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                                         Sprite="frame_9" ExtendLeft="3" ExtendTop="3" ExtendRight="3" ExtendBottom="3"
                                                         AlphaFactor="0.28" IsEnabled="false" />
                                                 <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                                                Margin="14,6,14,6"
                                                                Brush="Conversation.ConversedPartyLine.Text" Color="@TextColor"
-                                                               Text="@Text" IsDisabled="true" />
+                                                               Text="@Text" />
                                               </Children>
                                             </Widget>
                                           </ItemTemplate>
@@ -244,8 +244,8 @@
                                                     Sprite="name_shadow_9" Color="@BackColor">
                                               <Children>
                                                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                                                        Sprite="General\CharacterCreation\character_creation_background_gradient"
-                                                        Color="#3A2216FF" AlphaFactor="0.2" IsEnabled="false" />
+                                                        Sprite="StdAssets\Popup\canvas_gradient"
+                                                        Color="#3A2216FF" AlphaFactor="0.32" IsEnabled="false" />
                                                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                                         Sprite="frame_9" ExtendLeft="3" ExtendTop="3" ExtendRight="3" ExtendBottom="3"
                                                         AlphaFactor="0.18" IsEnabled="false" />
@@ -253,7 +253,7 @@
                                                                Margin="14,6,14,6"
                                                                Brush="Conversation.ConversedPartyLine.Text" Color="@TextColor"
                                                                Brush.TextHorizontalAlignment="Right"
-                                                               Text="@Text" IsDisabled="true" />
+                                                               Text="@Text" />
                                               </Children>
                                             </Widget>
                                           </ItemTemplate>
