@@ -176,8 +176,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	public void LogMessage(string message)
 	{
-		bool isCriticalError = !string.IsNullOrEmpty(message) && message.StartsWith("[ERROR]");
-		if (!isCriticalError && (!_isInitialized || !(GlobalSettings<ModSettings>.Instance?.EnableDebugLogging ?? false)))
+		bool isAlwaysLog = !string.IsNullOrEmpty(message) && (message.StartsWith("[ERROR]") || message.StartsWith("[SYNC-TRACE]"));
+		if (!isAlwaysLog && (!_isInitialized || !(GlobalSettings<ModSettings>.Instance?.EnableDebugLogging ?? false)))
 		{
 			return;
 		}
@@ -5223,10 +5223,13 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			}
 			return;
 		}
+		string syncStage = "sync-start";
 		try
 		{
+			LogMessage($"[SYNC-TRACE] Enter SyncData. isSaving={dataStore.IsSaving}, isLoading={dataStore.IsLoading}");
 			if (dataStore.IsSaving)
 			{
+				syncStage = "save-prepare-state";
 				_npcContexts ??= new Dictionary<string, NPCContext>();
 				AIActionManager instance = AIActionManager.Instance;
 				if (instance != null)
@@ -5240,22 +5243,27 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				_npcContextsJson = JsonConvert.SerializeObject(contextsToSave);
 				LogMessage($"[SAVE] Serialized {contextsToSave.Count} NPC contexts into game save");
 			}
+			syncStage = "sync-followingHeroIds";
 			dataStore.SyncData<List<string>>("AIInfluence_followingHeroIds", ref _followingHeroIds);
+			syncStage = "sync-aiActionState";
 			dataStore.SyncData<string>("AIInfluence_aiActionState", ref _serializedActionState);
+			syncStage = "sync-npcContexts";
 			dataStore.SyncData<string>("AIInfluence_npcContexts", ref _npcContextsJson);
 			if (dataStore.IsLoading)
 			{
+				LogMessage("[SYNC-TRACE] After SyncData read. followingHeroIdsCount=" + (_followingHeroIds?.Count ?? 0) + ", aiActionStateLength=" + (_serializedActionState?.Length ?? 0) + ", npcPayloadLength=" + (_npcContextsJson?.Length ?? 0));
 				if (!string.IsNullOrEmpty(_npcContextsJson))
 				{
 					try
 					{
+						syncStage = "load-deserialize-npcContexts";
 						_npcContexts = JsonConvert.DeserializeObject<Dictionary<string, NPCContext>>(_npcContextsJson) ?? throw new InvalidOperationException("NPC context payload deserialized to null.");
 						_npcContextsJson = null; // free the raw string now that objects are materialized
 						LogMessage($"[LOAD] Restored {_npcContexts.Count} NPC contexts from game save");
 					}
 					catch (Exception ex)
 					{
-						LogMessage("[ERROR] Failed to deserialize NPC contexts from game save. payloadLength=" + _npcContextsJson.Length + ". " + ex);
+						LogMessage("[ERROR] Failed to deserialize NPC contexts from game save. stage=" + syncStage + ", payloadLength=" + (_npcContextsJson?.Length ?? 0) + ". " + ex);
 						throw;
 					}
 				}
@@ -5267,6 +5275,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				bool flag = false;
 				if (!string.IsNullOrEmpty(_serializedActionState))
 				{
+					syncStage = "load-schedule-action-state-restore";
 					flag = true;
 					string stateCopy = _serializedActionState;
 					_delayedTaskManager.AddTask(3.0, delegate
@@ -5276,6 +5285,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				}
 				if (!flag)
 				{
+					syncStage = "load-schedule-following-restore";
 					LogMessage($"[LOAD] Loaded {_followingHeroIds.Count} following hero IDs from game save");
 					if (_followingHeroIds.Count > 0)
 					{
@@ -5288,11 +5298,13 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					}
 				}
 			}
+			syncStage = "sync-currentSaveFolder";
 			dataStore.SyncData<string>("AIInfluence_currentSaveFolder", ref _currentSaveFolder);
+			LogMessage("[SYNC-TRACE] Exit SyncData success.");
 		}
 		catch (Exception ex)
 		{
-			LogMessage("[ERROR] SyncData failed: " + ex);
+			LogMessage("[ERROR] SyncData failed at stage=" + syncStage + ". followingHeroIdsCount=" + (_followingHeroIds?.Count ?? 0) + ", aiActionStateLength=" + (_serializedActionState?.Length ?? 0) + ", npcPayloadLength=" + (_npcContextsJson?.Length ?? 0) + ". " + ex);
 			throw;
 		}
 	}
