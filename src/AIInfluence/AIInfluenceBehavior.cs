@@ -1054,6 +1054,15 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			string partyLabel = string.IsNullOrEmpty(questAction.HostilePartyLabel) ? "Quest Enemies" : questAction.HostilePartyLabel;
 			string spawnAnchorUsed;
 			Vec2 spawnPos = ResolveHostileQuestSpawnPosition(questGiver, questAction, out spawnAnchorUsed);
+			if (MobileParty.MainParty != null && spawnPos.Distance(MobileParty.MainParty.GetPosition2D()) < 8f)
+			{
+				Vec2 playerPos = MobileParty.MainParty.GetPosition2D();
+				float playerDistance = spawnPos.Distance(playerPos);
+				float denominator = (playerDistance > 0.001f) ? playerDistance : 0.001f;
+				spawnPos = new Vec2(playerPos.x + (spawnPos.x - playerPos.x) * (8f / denominator), playerPos.y + (spawnPos.y - playerPos.y) * (8f / denominator));
+				spawnAnchorUsed += "|player_clearance";
+				LogMessage("[QUEST] Adjusted hostile spawn position to avoid spawning on top of the player");
+			}
 			LogQuestScenarioVerbose($"SpawnQuestHostileParty resolved spawn anchor '{spawnAnchorUsed}' -> ({spawnPos.X:F2}, {spawnPos.Y:F2})");
 			List<Clan> availableBanditClans = Clan.BanditFactions?.Where((Clan c) => c != null).ToList() ?? new List<Clan>();
 			LogQuestScenarioVerbose($"SpawnQuestHostileParty found {availableBanditClans.Count} candidate bandit clans");
