@@ -1,21 +1,74 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.ObjectSystem;
-using TaleWorlds.SaveSystem;
 
 namespace AIInfluence.Behaviors.AIActions.TaskSystem;
 
 public class TaskManager : CampaignBehaviorBase
 {
+	private sealed class TaskManagerSaveState
+	{
+		public Dictionary<string, HeroTaskState> ActiveTasks { get; set; } = new Dictionary<string, HeroTaskState>();
+
+		public Dictionary<string, List<HeroTaskState>> CompletedTasks { get; set; } = new Dictionary<string, List<HeroTaskState>>();
+	}
+
+	private sealed class HeroTaskState
+	{
+		public string TaskId { get; set; }
+
+		public string HeroId { get; set; }
+
+		public TaskStatus Status { get; set; }
+
+		public List<TaskStepState> Steps { get; set; } = new List<TaskStepState>();
+
+		public int CurrentStepIndex { get; set; }
+
+		public double CreatedTimeDays { get; set; }
+
+		public double? CompletedTimeDays { get; set; }
+
+		public string Description { get; set; }
+	}
+
+	private sealed class TaskStepState
+	{
+		public TaskStepType StepType { get; set; }
+
+		public TaskStepStatus Status { get; set; }
+
+		public string TargetSettlementId { get; set; }
+
+		public string TargetPartyId { get; set; }
+
+		public float WaitDays { get; set; }
+
+		public double? WaitStartTimeDays { get; set; }
+
+		public double? WaitUntilTimeDays { get; set; }
+
+		public string CustomData { get; set; }
+
+		public float PatrolDurationDays { get; set; }
+
+		public bool PatrolAutoReturn { get; set; }
+
+		public float WaitNearDurationDays { get; set; }
+
+		public float WaitNearRadius { get; set; }
+
+		public string Description { get; set; }
+	}
+
 	private static TaskManager _instance;
 
-	[SaveableField(1)]
 	private Dictionary<string, HeroTask> _activeTasks;
 
-	[SaveableField(2)]
 	private Dictionary<string, List<HeroTask>> _completedTasks;
 
 	public static TaskManager Instance
@@ -49,13 +102,127 @@ public class TaskManager : CampaignBehaviorBase
 
 	public override void SyncData(IDataStore dataStore)
 	{
-		// Do not serialize HeroTask graphs via IDataStore; this can corrupt save load.
 		_activeTasks ??= new Dictionary<string, HeroTask>();
 		_completedTasks ??= new Dictionary<string, List<HeroTask>>();
+		string serializedTaskState = null;
+		if (dataStore.IsSaving)
+		{
+			serializedTaskState = SerializeTaskState();
+		}
+		dataStore.SyncData<string>("_taskManagerStateJson", ref serializedTaskState);
+		if (dataStore.IsLoading && !string.IsNullOrEmpty(serializedTaskState))
+		{
+			DeserializeTaskState(serializedTaskState);
+		}
 		if (dataStore.IsLoading)
 		{
 			RestoreTasksAfterLoad();
 		}
+	}
+
+	private string SerializeTaskState()
+	{
+		TaskManagerSaveState taskManagerSaveState = new TaskManagerSaveState
+		{
+			ActiveTasks = _activeTasks.ToDictionary((KeyValuePair<string, HeroTask> kvp) => kvp.Key, (KeyValuePair<string, HeroTask> kvp) => ToHeroTaskState(kvp.Value)),
+			CompletedTasks = _completedTasks.ToDictionary((KeyValuePair<string, List<HeroTask>> kvp) => kvp.Key, (KeyValuePair<string, List<HeroTask>> kvp) => (kvp.Value ?? new List<HeroTask>()).Select(ToHeroTaskState).ToList())
+		};
+		return JsonConvert.SerializeObject(taskManagerSaveState);
+	}
+
+	private void DeserializeTaskState(string serializedTaskState)
+	{
+		TaskManagerSaveState taskManagerSaveState = JsonConvert.DeserializeObject<TaskManagerSaveState>(serializedTaskState) ?? new TaskManagerSaveState();
+		_activeTasks = (taskManagerSaveState.ActiveTasks ?? new Dictionary<string, HeroTaskState>()).Where((KeyValuePair<string, HeroTaskState> kvp) => kvp.Value != null).ToDictionary((KeyValuePair<string, HeroTaskState> kvp) => kvp.Key, (KeyValuePair<string, HeroTaskState> kvp) => FromHeroTaskState(kvp.Value));
+		_completedTasks = (taskManagerSaveState.CompletedTasks ?? new Dictionary<string, List<HeroTaskState>>()).ToDictionary((KeyValuePair<string, List<HeroTaskState>> kvp) => kvp.Key, (KeyValuePair<string, List<HeroTaskState>> kvp) => (kvp.Value ?? new List<HeroTaskState>()).Where((HeroTaskState state) => state != null).Select(FromHeroTaskState).ToList());
+	}
+
+	private static HeroTaskState ToHeroTaskState(HeroTask task)
+	{
+		HeroTaskState heroTaskState = new HeroTaskState
+		{
+			TaskId = task?.TaskId,
+			HeroId = task?.HeroId,
+			Status = ((task != null) ? task.Status : TaskStatus.Active),
+			CurrentStepIndex = ((task != null) ? task.CurrentStepIndex : 0),
+			Description = task?.Description
+		};
+		if (task != null)
+		{
+			CampaignTime createdTime = task.CreatedTime;
+			heroTaskState.CreatedTimeDays = (createdTime).ToDays;
+			heroTaskState.CompletedTimeDays = task.CompletedTime.HasValue ? new double?((task.CompletedTime.Value).ToDays) : null;
+			heroTaskState.Steps = (task.Steps ?? new List<TaskStep>()).Select(ToTaskStepState).ToList();
+		}
+		return heroTaskState;
+	}
+
+	private static HeroTask FromHeroTaskState(HeroTaskState state)
+	{
+		HeroTask heroTask = new HeroTask
+		{
+			TaskId = state.TaskId ?? Guid.NewGuid().ToString(),
+			HeroId = state.HeroId,
+			Status = state.Status,
+			CurrentStepIndex = Math.Max(0, state.CurrentStepIndex),
+			Description = state.Description,
+			CreatedTime = CampaignTime.Days((float)state.CreatedTimeDays),
+			CompletedTime = (state.CompletedTimeDays.HasValue ? new CampaignTime?(CampaignTime.Days((float)state.CompletedTimeDays.Value)) : null),
+			Steps = (state.Steps ?? new List<TaskStepState>()).Where((TaskStepState stepState) => stepState != null).Select(FromTaskStepState).ToList()
+		};
+		if (heroTask.CurrentStepIndex > heroTask.Steps.Count)
+		{
+			heroTask.CurrentStepIndex = heroTask.Steps.Count;
+		}
+		return heroTask;
+	}
+
+	private static TaskStepState ToTaskStepState(TaskStep step)
+	{
+		if (step == null)
+		{
+			return new TaskStepState();
+		}
+		return new TaskStepState
+		{
+			StepType = step.StepType,
+			Status = step.Status,
+			TargetSettlementId = step.TargetSettlementId,
+			TargetPartyId = step.TargetPartyId,
+			WaitDays = step.WaitDays,
+			WaitStartTimeDays = step.WaitStartTime.HasValue ? new double?((step.WaitStartTime.Value).ToDays) : null,
+			WaitUntilTimeDays = step.WaitUntilTime.HasValue ? new double?((step.WaitUntilTime.Value).ToDays) : null,
+			CustomData = step.CustomData,
+			PatrolDurationDays = step.PatrolDurationDays,
+			PatrolAutoReturn = step.PatrolAutoReturn,
+			WaitNearDurationDays = step.WaitNearDurationDays,
+			WaitNearRadius = step.WaitNearRadius,
+			Description = step.Description
+		};
+	}
+
+	private static TaskStep FromTaskStepState(TaskStepState state)
+	{
+		if (state == null)
+		{
+			return new TaskStep();
+		}
+		return new TaskStep
+		{
+			StepType = state.StepType,
+			Status = state.Status,
+			TargetSettlementId = state.TargetSettlementId,
+			TargetPartyId = state.TargetPartyId,
+			WaitDays = state.WaitDays,
+			WaitStartTime = (state.WaitStartTimeDays.HasValue ? new CampaignTime?(CampaignTime.Days((float)state.WaitStartTimeDays.Value)) : null),
+			WaitUntilTime = (state.WaitUntilTimeDays.HasValue ? new CampaignTime?(CampaignTime.Days((float)state.WaitUntilTimeDays.Value)) : null),
+			CustomData = state.CustomData,
+			PatrolDurationDays = state.PatrolDurationDays,
+			PatrolAutoReturn = state.PatrolAutoReturn,
+			WaitNearDurationDays = state.WaitNearDurationDays,
+			WaitNearRadius = state.WaitNearRadius,
+			Description = state.Description
+		};
 	}
 
 	public HeroTask CreateTask(Hero hero, string description = null)
