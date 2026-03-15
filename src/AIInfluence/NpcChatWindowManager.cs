@@ -44,10 +44,13 @@ public static class NpcChatWindowManager
         _layer = null;
         _ownerScreen = null;
 
-        // End the underlying conversation so the game returns to the map/mission screen
+        // Only end the conversation if one is actually active — prevents spurious
+        // OnConversationEnd events when the window is closed from outside a dialog.
         try
         {
-            Campaign.Current?.ConversationManager?.EndConversation();
+            var cm = Campaign.Current?.ConversationManager;
+            if (cm != null && cm.IsConversationInProgress)
+                cm.EndConversation();
         }
         catch (Exception) { }
     }

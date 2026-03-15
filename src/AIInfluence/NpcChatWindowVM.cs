@@ -234,22 +234,21 @@ public class NpcChatWindowVM : ViewModel
             if (!string.IsNullOrEmpty(reply))
             {
                 string npcName = ((object)_npc?.Name)?.ToString() ?? "NPC";
-                string tone = "";
-                try
-                {
-                    tone = AIInfluenceBehavior.Instance
-                               ?.GetOrCreateNPCContext(_npc)
-                               ?.PendingAIResponse?.Tone ?? "";
-                }
+
+                // Call GetOrCreateNPCContext once — avoids two off-thread calls and a
+                // race with the main game tick that could mutate the context dictionary.
+                AIResponse pendingResponse = null;
+                try { pendingResponse = AIInfluenceBehavior.Instance?.GetOrCreateNPCContext(_npc)?.PendingAIResponse; }
                 catch (Exception) { }
+
+                string tone = pendingResponse?.Tone ?? "";
 
                 // UI list mutations after await may run on a thread-pool thread.
                 // Wrap to prevent a threading exception from leaking past the finally block.
                 try
                 {
                     var npcItem = ParseLine($"{npcName}: {reply}", tone);
-                    string actionText = BuildActionText(
-                        AIInfluenceBehavior.Instance?.GetOrCreateNPCContext(_npc)?.PendingAIResponse);
+                    string actionText = BuildActionText(pendingResponse);
                     if (!string.IsNullOrEmpty(actionText))
                         npcItem.ContentSegments.Add(new ContentSegmentVM(actionText, ActionColor, "#00000000"));
                     MessageList.Add(npcItem);

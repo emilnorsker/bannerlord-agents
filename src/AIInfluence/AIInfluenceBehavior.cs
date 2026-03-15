@@ -3099,7 +3099,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		string faction = ((clan == null) ? null : ((object)clan.Name)?.ToString()) ?? "No faction";
 		NPCContext context = GetOrCreateNPCContext(npc);
 		UpdateContextData(context, npc);
-		context.AddMessage("Player: " + playerMessage);
+		string heroDisplayName = ((object)Hero.MainHero?.Name)?.ToString() ?? "Player";
+		context.AddMessage(heroDisplayName + ": " + playerMessage);
 		SaveNPCContext(npcId, npc, context);
 		WorldInfoManager.Instance.UpdateTimeContext(context);
 		WorldInfoManager.Instance.UpdateWarStatus(context);
@@ -3140,11 +3141,15 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			return "";
 		string reply = aiResult.Response ?? "";
 		context.PendingAIResponse = aiResult;
-		MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", reply, false);
 		context.LastDynamicResponse = reply;
 		context.AddMessage(npcName + ": " + reply);
 		SaveNPCContext(npcId, npc, context);
-		try { _decisionHandler.HandleAIDecision(context, npc, aiResult, playerMessage); } catch (Exception) { }
+		// Only run dialog-system side effects when a conversation is actually active
+		if (Campaign.Current?.ConversationManager != null)
+		{
+			try { MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", reply, false); } catch (Exception) { }
+			try { _decisionHandler.HandleAIDecision(context, npc, aiResult, playerMessage); } catch (Exception) { }
+		}
 		return reply;
 	}
 
