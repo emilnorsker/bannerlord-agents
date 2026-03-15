@@ -1215,6 +1215,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	private Clan ResolveHostileBanditClan(QuestActionData questAction, List<CharacterObject> compositionTroops, List<Clan> banditClans)
 	{
+		bool strictFactionResolution = questAction?.HostileFactionStrict ?? false;
 		string exactFactionId = questAction?.HostileFactionId;
 		if (!string.IsNullOrWhiteSpace(exactFactionId))
 		{
@@ -1224,27 +1225,40 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage($"[QUEST] Selected bandit clan by hostile_faction_id exact match: '{clan.Name}' (id:{((MBObjectBase)clan).StringId})");
 				return clan;
 			}
-			LogMessage("[QUEST] hostile_faction_id '" + exactFactionId + "' not found among bandit clans; falling back to fuzzy resolver");
+			LogMessage("[QUEST] hostile_faction_id '" + exactFactionId + "' not found among bandit clans");
+			if (strictFactionResolution)
+			{
+				LogMessage("[QUEST] hostile_faction_strict=true and exact id not found; failing hostile party spawn");
+				return null;
+			}
+			LogMessage("[QUEST] Falling back to fuzzy faction resolver after exact id miss");
 		}
-		string factionHint = NormalizeQuestSelectorText(questAction?.HostileFactionName);
+		string factionNameHint = questAction?.HostileFactionName;
+		string factionHint = NormalizeQuestSelectorText(factionNameHint);
 		Clan bestClan = null;
 		int bestScore = int.MinValue;
 		foreach (Clan banditClan in banditClans)
 		{
 			int score = 0;
+			int factionNameScore = 0;
 			string clanName = ((object)banditClan.Name)?.ToString() ?? "";
 			string clanId = ((MBObjectBase)banditClan).StringId ?? "";
 			CharacterObject basicTroop = banditClan.BasicTroop;
 			if (!string.IsNullOrEmpty(factionHint))
 			{
-				score += ScoreQuestSelectorTerm(factionHint, clanName) * 3;
-				score += ScoreQuestSelectorTerm(factionHint, clanId) * 3;
+				factionNameScore += ScoreQuestSelectorTerm(factionHint, clanName) * 3;
+				factionNameScore += ScoreQuestSelectorTerm(factionHint, clanId) * 3;
 				if (basicTroop != null)
 				{
-					score += ScoreQuestSelectorTerm(factionHint, ((object)((BasicCharacterObject)basicTroop).Name)?.ToString() ?? "");
-					score += ScoreQuestSelectorTerm(factionHint, ((MBObjectBase)basicTroop).StringId ?? "");
+					factionNameScore += ScoreQuestSelectorTerm(factionHint, ((object)((BasicCharacterObject)basicTroop).Name)?.ToString() ?? "");
+					factionNameScore += ScoreQuestSelectorTerm(factionHint, ((MBObjectBase)basicTroop).StringId ?? "");
 				}
 			}
+			if (strictFactionResolution && !string.IsNullOrEmpty(factionHint) && factionNameScore <= 0)
+			{
+				continue;
+			}
+			score += factionNameScore;
 			if (compositionTroops != null && compositionTroops.Count > 0 && basicTroop != null)
 			{
 				int sameTroopCount = compositionTroops.Count((CharacterObject t) => t == basicTroop);
@@ -1257,12 +1271,22 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				bestClan = banditClan;
 			}
 		}
-		if (bestClan != null)
+		if (bestClan != null && bestScore > 0)
 		{
-			LogMessage($"[QUEST] Selected bandit clan '{bestClan.Name}' (id:{((MBObjectBase)bestClan).StringId}) using hostile_faction_name='{questAction?.HostileFactionName ?? ""}' score={bestScore}");
+			LogMessage($"[QUEST] Selected bandit clan '{bestClan.Name}' (id:{((MBObjectBase)bestClan).StringId}) using hostile_faction_name='{factionNameHint ?? ""}' score={bestScore}");
 			return bestClan;
 		}
-		return banditClans.FirstOrDefault();
+		if (strictFactionResolution && !string.IsNullOrWhiteSpace(factionNameHint))
+		{
+			LogMessage("[QUEST] hostile_faction_strict=true and hostile_faction_name could not be resolved; failing hostile party spawn");
+			return null;
+		}
+		Clan clan2 = banditClans.OrderBy((Clan c) => ((MBObjectBase)c).StringId ?? "", StringComparer.OrdinalIgnoreCase).FirstOrDefault();
+		if (clan2 != null)
+		{
+			LogMessage($"[QUEST] No strict faction match found; using deterministic fallback clan '{clan2.Name}' (id:{((MBObjectBase)clan2).StringId})");
+		}
+		return clan2;
 	}
 
 	private static string NormalizeQuestSelectorText(string value)
@@ -4917,7 +4941,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				return;
 			}
 			NPCContext context = GetOrCreateNPCContext(questGiver);
-			string requestPrompt = "You are generating a Bannerlord quest action for debugging.\nReturn ONLY valid JSON in this exact wrapper:\n{\"quest_action\":{...}}\nInside quest_action provide action=create_quest with fields title, description, duration_days (7-60), reward_gold (0-5000), optional target_npc_ids, completer_npc_id, ai_verification_notes, progress_target, progress_label, reward_items, reward_skill, reward_skill_xp, crime_rating_change, influence_change, spawn_hostile_party, hostile_party_size, hostile_party_label, hostile_faction_id, hostile_faction_name, hostile_troop_name, hostile_troop_names, spawn_anchor, spawn_near_npc_id, spawn_near_settlement_id.\nhostile_faction_id is exact and takes priority; if not found, hostile_faction_name is used as fuzzy fallback.\nspawn_anchor allowed values: quest_giver, player, target_npc, npc_id, settlement_id.\nDo not add explanations.\nPlayer quest request: " + prompt;
+			string requestPrompt = "You are generating a Bannerlord quest action for debugging.\nReturn ONLY valid JSON in this exact wrapper:\n{\"quest_action\":{...}}\nInside quest_action provide action=create_quest with fields title, description, duration_days (7-60), reward_gold (0-5000), optional target_npc_ids, completer_npc_id, ai_verification_notes, progress_target, progress_label, reward_items, reward_skill, reward_skill_xp, crime_rating_change, influence_change, spawn_hostile_party, hostile_party_size, hostile_party_label, hostile_faction_id, hostile_faction_name, hostile_faction_strict, hostile_troop_name, hostile_troop_names, spawn_anchor, spawn_near_npc_id, spawn_near_settlement_id.\nhostile_faction_id is exact and takes priority; if not found, hostile_faction_name is used as fuzzy fallback.\nIf hostile_faction_strict=true and id/name cannot be resolved, the spawn fails.\nspawn_anchor allowed values: quest_giver, player, target_npc, npc_id, settlement_id.\nDo not add explanations.\nPlayer quest request: " + prompt;
 			string rawResponse = SendAIRequestRaw(requestPrompt).GetAwaiter().GetResult();
 			if (string.IsNullOrEmpty(rawResponse) || rawResponse.StartsWith("Error:"))
 			{
