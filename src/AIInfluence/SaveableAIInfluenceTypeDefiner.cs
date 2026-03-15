@@ -13,13 +13,7 @@ public class SaveableAIInfluenceTypeDefiner : SaveableTypeDefiner
 
 	protected override void DefineClassTypes()
 	{
-		try
-		{
-			base.AddClassDefinition(typeof(AIGeneratedQuest), 1, (IObjectResolver)null);
-		}
-		catch (ArgumentException)
-		{
-		}
+		base.AddClassDefinition(typeof(AIGeneratedQuest), 1, (IObjectResolver)null);
 	}
 
 	protected override void DefineStructTypes()
