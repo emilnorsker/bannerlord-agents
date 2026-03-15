@@ -92,9 +92,18 @@ public class HospitalMenuBehavior : CampaignBehaviorBase
 
 	public override void SyncData(IDataStore dataStore)
 	{
-		if (dataStore.IsSaving)
+		try
 		{
-			DiseaseManager.Instance?.SaveAll();
+			if (dataStore.IsSaving)
+			{
+				AIInfluenceBehavior.Instance?.LogMessage("[SYNC-TRACE] HospitalMenuBehavior.SyncData invoking DiseaseManager.SaveAll.");
+				DiseaseManager.Instance?.SaveAll();
+			}
+		}
+		catch (Exception ex)
+		{
+			AIInfluenceBehavior.Instance?.LogMessage("[ERROR] HospitalMenuBehavior.SyncData failed: " + ex);
+			throw;
 		}
 	}
 

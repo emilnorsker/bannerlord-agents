@@ -176,7 +176,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	public void LogMessage(string message)
 	{
-		if (!_isInitialized || !GlobalSettings<ModSettings>.Instance.EnableDebugLogging)
+		bool isAlwaysLog = !string.IsNullOrEmpty(message) && (message.StartsWith("[ERROR]") || message.StartsWith("[SYNC-TRACE]"));
+		if (!isAlwaysLog && (!_isInitialized || !(GlobalSettings<ModSettings>.Instance?.EnableDebugLogging ?? false)))
 		{
 			return;
 		}
@@ -3748,123 +3749,13 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				if (cached.ProcessedMessageHashes == null) cached.ProcessedMessageHashes = new HashSet<string>();
 				return cached;
 			}
-			if (string.IsNullOrEmpty(_currentSaveFolder))
+			NPCContext newContext = new NPCContext
 			{
-				_currentSaveFolder = GetActiveSaveDirectory();
-			}
-			string text = FindNPCFileByStringId(_currentSaveFolder, npcId);
-			if (!string.IsNullOrEmpty(text) && File.Exists(text))
-			{
-				string text2 = File.ReadAllText(text);
-				NPCContext nPCContext = JsonConvert.DeserializeObject<NPCContext>(text2) ?? new NPCContext();
-				if (string.IsNullOrEmpty(nPCContext.StringId))
-				{
-					nPCContext.StringId = npcId;
-				}
-				if (nPCContext.Gender == "unknown")
-				{
-					nPCContext.Gender = (((IEnumerable<Hero>)Hero.AllAliveHeroes).FirstOrDefault((Func<Hero, bool>)((Hero h) => ((MBObjectBase)h).StringId == npcId)).IsFemale ? "female" : "male");
-				}
-				if (string.IsNullOrEmpty(nPCContext.AssignedTTSVoice))
-				{
-					string text3 = AssignRandomVoiceForGender(nPCContext.Gender);
-					if (!string.IsNullOrEmpty(text3))
-					{
-						nPCContext.AssignedTTSVoice = text3;
-					}
-					else
-					{
-						LogMessage("[WARNING] Failed to assign TTS voice to " + nPCContext.Name + " (gender: " + nPCContext.Gender + "). TTS will be disabled for this NPC.");
-					}
-				}
-				else if (nPCContext.PlayerInfo == null)
-				{
-					nPCContext.PlayerInfo = new PlayerInfo();
-				}
-				if (nPCContext.PlayerInfo.RealGender == null)
-				{
-					nPCContext.PlayerInfo.RealGender = (Hero.MainHero.IsFemale ? "female" : "male");
-				}
-				if (Hero.MainHero != null && !string.IsNullOrEmpty(nPCContext.PlayerInfo.PlayerStringId) && nPCContext.PlayerInfo.PlayerStringId != ((MBObjectBase)Hero.MainHero).StringId)
-				{
-					LogMessage("[PLAYER_CHANGE] LoadNPCContext: PlayerStringId mismatch for " + nPCContext.Name + ". Stored: " + nPCContext.PlayerInfo.PlayerStringId + ", Current: " + ((MBObjectBase)Hero.MainHero).StringId + ". Refreshing PlayerInfo.");
-					RefreshPlayerInfoInContext(nPCContext, Hero.MainHero);
-					nPCContext.IsPlayerKnown = false;
-					nPCContext.PlayerInfo.ClaimedName = null;
-					nPCContext.PlayerInfo.ClaimedClan = null;
-					nPCContext.PlayerInfo.ClaimedAge = 0;
-					nPCContext.PlayerInfo.ClaimedGold = 0;
-					nPCContext.PlayerInfo.SuspectedLie = false;
-				}
-				if (nPCContext.ConversationHistory == null)
-				{
-					nPCContext.ConversationHistory = new List<string>();
-				}
-				if (nPCContext.RecentEvents == null)
-				{
-					nPCContext.RecentEvents = new List<CampaignEvent>();
-				}
-				if (nPCContext.LastEventAnalysisMessageIndex < -1)
-				{
-					nPCContext.LastEventAnalysisMessageIndex = -1;
-				}
-				if (nPCContext.ProcessedMessageHashes == null)
-				{
-					nPCContext.ProcessedMessageHashes = new HashSet<string>();
-				}
-				if (nPCContext.LastEventAnalysisMessageIndex >= 0 && nPCContext.ConversationHistory != null && nPCContext.ConversationHistory.Count > 0 && nPCContext.ProcessedMessageHashes.Count == 0)
-				{
-					for (int num = 0; num <= nPCContext.LastEventAnalysisMessageIndex && num < nPCContext.ConversationHistory.Count; num++)
-					{
-						string text4 = nPCContext.ConversationHistory[num];
-						if (!string.IsNullOrEmpty(text4))
-						{
-							using SHA256 sHA = SHA256.Create();
-							byte[] inArray = sHA.ComputeHash(Encoding.UTF8.GetBytes(text4));
-							string item = Convert.ToBase64String(inArray);
-							nPCContext.ProcessedMessageHashes.Add(item);
-						}
-					}
-				}
-				if (nPCContext.Quirks == null)
-				{
-					nPCContext.Quirks = new List<string>();
-				}
-				if (nPCContext.KnownSecrets == null)
-				{
-					nPCContext.KnownSecrets = new List<string>();
-				}
-				if (nPCContext.KnownInfo == null)
-				{
-					nPCContext.KnownInfo = new List<string>();
-				}
-				if (!nPCContext.KnowledgeGenerated && ((nPCContext.KnownSecrets != null && nPCContext.KnownSecrets.Count > 0) || (nPCContext.KnownInfo != null && nPCContext.KnownInfo.Count > 0)))
-				{
-					nPCContext.KnowledgeGenerated = true;
-				}
-				if (nPCContext.AIGeneratedPersonality != null && string.IsNullOrEmpty(nPCContext.AIGeneratedPersonality))
-				{
-					nPCContext.AIGeneratedPersonality = null;
-				}
-				if (nPCContext.AIGeneratedBackstory != null && string.IsNullOrEmpty(nPCContext.AIGeneratedBackstory))
-				{
-					nPCContext.AIGeneratedBackstory = null;
-				}
-				if (nPCContext.AIGeneratedSpeechQuirks != null && string.IsNullOrEmpty(nPCContext.AIGeneratedSpeechQuirks))
-				{
-					nPCContext.AIGeneratedSpeechQuirks = null;
-				}
-				MigrateRomanceData(nPCContext);
-				UpdateStringIdIndex(npcId, nPCContext.StringId);
-				Hero val = ((IEnumerable<Hero>)Hero.AllAliveHeroes).FirstOrDefault((Func<Hero, bool>)((Hero h) => ((MBObjectBase)h).StringId == npcId));
-				if (val != null)
-				{
-					CharacterInfo.UpdateEncyclopediaDescription(val, nPCContext.AIGeneratedBackstory, nPCContext.AIGeneratedPersonality);
-				}
-				return nPCContext;
-			}
-			LogMessage("[WARNING] No save file found for NPC " + npcId + ". Creating new context.");
-			return new NPCContext();
+				StringId = npcId
+			};
+			_npcContexts[npcId] = newContext;
+			UpdateStringIdIndex(npcId, npcId);
+			return newContext;
 		}
 		catch (Exception ex)
 		{
@@ -3914,7 +3805,21 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	public void SaveNPCContext(string npcId, Hero npc, NPCContext context)
 	{
-		_saveQueueManager.QueueSave(npcId, npc, context);
+		if (string.IsNullOrEmpty(npcId))
+		{
+			LogMessage("[ERROR] SaveNPCContext called with empty npcId.");
+			throw new ArgumentException("npcId must not be null or empty.", "npcId");
+		}
+		if (context == null)
+		{
+			LogMessage("[ERROR] SaveNPCContext called with null context for npcId=" + npcId + ".");
+			throw new ArgumentNullException("context");
+		}
+		_npcContexts[npcId] = context;
+		if (!string.IsNullOrEmpty(context.StringId))
+		{
+			UpdateStringIdIndex(npcId, context.StringId);
+		}
 	}
 
 	public void SaveNPCContextImmediate(string npcId, Hero npc, NPCContext context)
@@ -5177,11 +5082,34 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	public override void SyncData(IDataStore dataStore)
 	{
-		_saveQueueManager.ClearQueue();
-		try
+		bool binarySyncCompatibilityMode = false;
+		if (binarySyncCompatibilityMode)
 		{
 			if (dataStore.IsSaving)
 			{
+				FlushAllNpcContextsForSave();
+			}
+			if (dataStore.IsLoading)
+			{
+				_saveQueueManager.ClearQueue();
+				if (_followingHeroIds == null)
+				{
+					_followingHeroIds = new List<string>();
+				}
+				_npcContexts = new Dictionary<string, NPCContext>();
+				_npcFilePathCache.Clear();
+				_stringIdToContextKey.Clear();
+			}
+			return;
+		}
+		string syncStage = "sync-start";
+		try
+		{
+			LogMessage($"[SYNC-TRACE] Enter SyncData. isSaving={dataStore.IsSaving}, isLoading={dataStore.IsLoading}");
+			if (dataStore.IsSaving)
+			{
+				syncStage = "save-prepare-state";
+				_npcContexts ??= new Dictionary<string, NPCContext>();
 				AIActionManager instance = AIActionManager.Instance;
 				if (instance != null)
 				{
@@ -5190,34 +5118,32 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					LogMessage($"[SAVE] Saving {_followingHeroIds.Count} following hero IDs to game save");
 					LogMessage($"[SAVE] Serialized AI actions length: {_serializedActionState?.Length ?? 0}");
 				}
-				int maxHistory = GlobalSettings<ModSettings>.Instance?.PromptMaxHistory ?? 100;
-				Dictionary<string, NPCContext> contextsToSave = _npcContexts
-					.Where(kvp => kvp.Value.InteractionCount > 0 || kvp.Value.LastInteractionTimeDays >= 0.0)
-					.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-				foreach (NPCContext ctx in contextsToSave.Values)
-				{
-					if (ctx.ConversationHistory?.Count > maxHistory)
-						ctx.ConversationHistory = ctx.ConversationHistory.Skip(ctx.ConversationHistory.Count - maxHistory).ToList();
-				}
+				Dictionary<string, NPCContext> contextsToSave = new Dictionary<string, NPCContext>(_npcContexts);
 				_npcContextsJson = JsonConvert.SerializeObject(contextsToSave);
-				LogMessage($"[SAVE] Serialized {contextsToSave.Count}/{_npcContexts.Count} NPC contexts into game save (history capped at {maxHistory})");
+				LogMessage($"[SAVE] Serialized {contextsToSave.Count} NPC contexts into game save");
 			}
-			dataStore.SyncData<List<string>>("followingHeroIds", ref _followingHeroIds);
-			dataStore.SyncData<string>("aiActionState", ref _serializedActionState);
-			dataStore.SyncData<string>("npcContexts", ref _npcContextsJson);
+			syncStage = "sync-followingHeroIds";
+			dataStore.SyncData<List<string>>("AIInfluence_followingHeroIds", ref _followingHeroIds);
+			syncStage = "sync-aiActionState";
+			dataStore.SyncData<string>("AIInfluence_aiActionState", ref _serializedActionState);
+			syncStage = "sync-npcContexts";
+			dataStore.SyncData<string>("AIInfluence_npcContexts", ref _npcContextsJson);
 			if (dataStore.IsLoading)
 			{
+				LogMessage("[SYNC-TRACE] After SyncData read. followingHeroIdsCount=" + (_followingHeroIds?.Count ?? 0) + ", aiActionStateLength=" + (_serializedActionState?.Length ?? 0) + ", npcPayloadLength=" + (_npcContextsJson?.Length ?? 0));
 				if (!string.IsNullOrEmpty(_npcContextsJson))
 				{
 					try
 					{
-						_npcContexts = JsonConvert.DeserializeObject<Dictionary<string, NPCContext>>(_npcContextsJson) ?? _npcContexts;
+						syncStage = "load-deserialize-npcContexts";
+						_npcContexts = JsonConvert.DeserializeObject<Dictionary<string, NPCContext>>(_npcContextsJson) ?? throw new InvalidOperationException("NPC context payload deserialized to null.");
 						_npcContextsJson = null; // free the raw string now that objects are materialized
 						LogMessage($"[LOAD] Restored {_npcContexts.Count} NPC contexts from game save");
 					}
 					catch (Exception ex)
 					{
-						LogMessage($"[ERROR] Failed to deserialize NPC contexts from save, will fall back to JSON files: {ex.Message}");
+						LogMessage("[ERROR] Failed to deserialize NPC contexts from game save. stage=" + syncStage + ", payloadLength=" + (_npcContextsJson?.Length ?? 0) + ". " + ex);
+						throw;
 					}
 				}
 				if (_followingHeroIds == null)
@@ -5228,6 +5154,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				bool flag = false;
 				if (!string.IsNullOrEmpty(_serializedActionState))
 				{
+					syncStage = "load-schedule-action-state-restore";
 					flag = true;
 					string stateCopy = _serializedActionState;
 					_delayedTaskManager.AddTask(3.0, delegate
@@ -5237,6 +5164,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				}
 				if (!flag)
 				{
+					syncStage = "load-schedule-following-restore";
 					LogMessage($"[LOAD] Loaded {_followingHeroIds.Count} following hero IDs from game save");
 					if (_followingHeroIds.Count > 0)
 					{
@@ -5249,11 +5177,30 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					}
 				}
 			}
-			dataStore.SyncData<string>("currentSaveFolder", ref _currentSaveFolder);
+			syncStage = "sync-currentSaveFolder";
+			dataStore.SyncData<string>("AIInfluence_currentSaveFolder", ref _currentSaveFolder);
+			LogMessage("[SYNC-TRACE] Exit SyncData success.");
 		}
 		catch (Exception ex)
 		{
-			LogMessage("[ERROR] SyncData failed: " + ex.Message);
+			LogMessage("[ERROR] SyncData failed at stage=" + syncStage + ". followingHeroIdsCount=" + (_followingHeroIds?.Count ?? 0) + ", aiActionStateLength=" + (_serializedActionState?.Length ?? 0) + ", npcPayloadLength=" + (_npcContextsJson?.Length ?? 0) + ". " + ex);
+			throw;
+		}
+	}
+
+	private void FlushAllNpcContextsForSave()
+	{
+		foreach (KeyValuePair<string, NPCContext> item in _npcContexts.ToList())
+		{
+			if (string.IsNullOrEmpty(item.Key) || item.Value == null)
+			{
+				continue;
+			}
+			Hero val = Hero.FindFirst((Func<Hero, bool>)((Hero h) => ((MBObjectBase)h).StringId == item.Key));
+			if (val != null)
+			{
+				SaveNPCContextImmediate(item.Key, val, item.Value);
+			}
 		}
 	}
 

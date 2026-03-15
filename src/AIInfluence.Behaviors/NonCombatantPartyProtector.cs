@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using AIInfluence.Behaviors.AIActions;
+using Newtonsoft.Json;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.CampaignBehaviors;
@@ -10,11 +11,32 @@ using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
+using TaleWorlds.ObjectSystem;
 
 namespace AIInfluence.Behaviors;
 
 public class NonCombatantPartyProtector : CampaignBehaviorBase
 {
+	private class NonCombatantPartyProtectorState
+	{
+		public List<ProtectionInfoState> ProtectedParties { get; set; } = new List<ProtectionInfoState>();
+
+		public Dictionary<string, double> LastWarningTimeDays { get; set; } = new Dictionary<string, double>();
+	}
+
+	private class ProtectionInfoState
+	{
+		public string PartyId { get; set; }
+
+		public string OriginalLeaderId { get; set; }
+
+		public double ProtectionStartTimeDays { get; set; }
+
+		public string ActionName { get; set; }
+
+		public bool WarningShown { get; set; }
+	}
+
 	private class ProtectionInfo
 	{
 		public Hero OriginalLeader;
@@ -52,61 +74,109 @@ public class NonCombatantPartyProtector : CampaignBehaviorBase
 
 	public override void SyncData(IDataStore dataStore)
 	{
-		//IL_023d: Unknown result type (might be due to invalid IL or missing references)
-		//IL_024d: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0248: Unknown result type (might be due to invalid IL or missing references)
+		string syncStage = "sync-start";
 		try
 		{
+			LogDebug($"[SYNC-TRACE] NonCombatantPartyProtector.SyncData enter. isSaving={dataStore.IsSaving}, isLoading={dataStore.IsLoading}");
+			string serializedState = null;
 			if (dataStore.IsSaving)
 			{
-				List<MobileParty> list = _protectedParties.Keys.ToList();
-				List<Hero> list2 = _protectedParties.Values.Select((ProtectionInfo x) => x.OriginalLeader).ToList();
-				List<CampaignTime> list3 = _protectedParties.Values.Select((ProtectionInfo x) => x.ProtectionStartTime).ToList();
-				List<string> list4 = _protectedParties.Values.Select((ProtectionInfo x) => x.ActionName).ToList();
-				List<bool> list5 = _protectedParties.Values.Select((ProtectionInfo x) => x.WarningShown).ToList();
-				dataStore.SyncData<List<MobileParty>>("ProtectedPartiesList", ref list);
-				dataStore.SyncData<List<Hero>>("ProtectedLeadersList", ref list2);
-				dataStore.SyncData<List<CampaignTime>>("ProtectedStartTimesList", ref list3);
-				dataStore.SyncData<List<string>>("ProtectedActionsList", ref list4);
-				dataStore.SyncData<List<bool>>("ProtectedWarningsList", ref list5);
+				syncStage = "save-serialize-state";
+				serializedState = SerializeState();
 			}
-			else
+			syncStage = "sync-state-json";
+			dataStore.SyncData<string>("AIInfluence_nonCombatantPartyProtectorStateJson", ref serializedState);
+			if (dataStore.IsLoading)
 			{
-				List<MobileParty> list6 = new List<MobileParty>();
-				List<Hero> list7 = new List<Hero>();
-				List<CampaignTime> list8 = new List<CampaignTime>();
-				List<string> list9 = new List<string>();
-				List<bool> list10 = new List<bool>();
-				dataStore.SyncData<List<MobileParty>>("ProtectedPartiesList", ref list6);
-				dataStore.SyncData<List<Hero>>("ProtectedLeadersList", ref list7);
-				dataStore.SyncData<List<CampaignTime>>("ProtectedStartTimesList", ref list8);
-				dataStore.SyncData<List<string>>("ProtectedActionsList", ref list9);
-				dataStore.SyncData<List<bool>>("ProtectedWarningsList", ref list10);
 				_protectedParties = new Dictionary<MobileParty, ProtectionInfo>();
-				if (list6 != null && list7 != null && list6.Count == list7.Count)
+				_lastWarningTime = new Dictionary<Hero, CampaignTime>();
+				LogDebug("[SYNC-TRACE] NonCombatantPartyProtector.SyncData payloadLength=" + (serializedState?.Length ?? 0));
+				if (!string.IsNullOrEmpty(serializedState))
 				{
-					for (int num = 0; num < list6.Count; num++)
-					{
-						if (list6[num] != null && list7[num] != null)
-						{
-							_protectedParties[list6[num]] = new ProtectionInfo
-							{
-								OriginalLeader = list7[num],
-								ProtectionStartTime = ((list8 != null && num < list8.Count) ? list8[num] : CampaignTime.Now),
-								ActionName = ((list9 != null && num < list9.Count) ? list9[num] : "Unknown"),
-								WarningShown = (list10 != null && num < list10.Count && list10[num])
-							};
-						}
-					}
+					syncStage = "load-deserialize-state";
+					DeserializeState(serializedState);
 				}
 			}
-			dataStore.SyncData<Dictionary<Hero, CampaignTime>>("_lastWarningTime", ref _lastWarningTime);
+			LogDebug("[SYNC-TRACE] NonCombatantPartyProtector.SyncData exit success.");
 		}
 		catch (Exception ex)
 		{
-			LogError("Error in SyncData: " + ex.Message);
+			LogError("SyncData failed at stage=" + syncStage + ". protectedCount=" + (_protectedParties?.Count ?? 0) + ", warningCount=" + (_lastWarningTime?.Count ?? 0) + ". " + ex);
+			throw;
 		}
 	}
+
+	private string SerializeState()
+	{
+		NonCombatantPartyProtectorState nonCombatantPartyProtectorState = new NonCombatantPartyProtectorState();
+		foreach (KeyValuePair<MobileParty, ProtectionInfo> protectedParty in _protectedParties)
+		{
+			MobileParty key = protectedParty.Key;
+			ProtectionInfo value = protectedParty.Value;
+			if (key == null || value?.OriginalLeader == null)
+			{
+				continue;
+			}
+			CampaignTime protectionStartTime = value.ProtectionStartTime;
+			nonCombatantPartyProtectorState.ProtectedParties.Add(new ProtectionInfoState
+			{
+				PartyId = ((MBObjectBase)key).StringId,
+				OriginalLeaderId = ((MBObjectBase)value.OriginalLeader).StringId,
+				ProtectionStartTimeDays = (protectionStartTime).ToDays,
+				ActionName = value.ActionName,
+				WarningShown = value.WarningShown
+			});
+		}
+		foreach (KeyValuePair<Hero, CampaignTime> item in _lastWarningTime)
+		{
+			if (item.Key != null)
+			{
+				CampaignTime value2 = item.Value;
+				nonCombatantPartyProtectorState.LastWarningTimeDays[((MBObjectBase)item.Key).StringId] = (value2).ToDays;
+			}
+		}
+		return JsonConvert.SerializeObject(nonCombatantPartyProtectorState);
+	}
+
+	private void DeserializeState(string serializedState)
+	{
+		if (string.IsNullOrEmpty(serializedState))
+		{
+			return;
+		}
+		NonCombatantPartyProtectorState nonCombatantPartyProtectorState = JsonConvert.DeserializeObject<NonCombatantPartyProtectorState>(serializedState) ?? throw new InvalidOperationException("NonCombatantPartyProtector state payload deserialized to null.");
+		foreach (ProtectionInfoState protectedParty in nonCombatantPartyProtectorState.ProtectedParties ?? new List<ProtectionInfoState>())
+		{
+			if (protectedParty == null || string.IsNullOrEmpty(protectedParty.PartyId) || string.IsNullOrEmpty(protectedParty.OriginalLeaderId))
+			{
+				continue;
+			}
+			MobileParty mobileParty = ((IEnumerable<MobileParty>)MobileParty.All).FirstOrDefault((Func<MobileParty, bool>)((MobileParty p) => ((MBObjectBase)p).StringId == protectedParty.PartyId));
+			Hero val = Hero.FindFirst((Func<Hero, bool>)((Hero h) => ((MBObjectBase)h).StringId == protectedParty.OriginalLeaderId));
+			if (mobileParty != null && val != null)
+			{
+				_protectedParties[mobileParty] = new ProtectionInfo
+				{
+					OriginalLeader = val,
+					ProtectionStartTime = CampaignTime.Days((float)protectedParty.ProtectionStartTimeDays),
+					ActionName = protectedParty.ActionName ?? "Unknown",
+					WarningShown = protectedParty.WarningShown
+				};
+			}
+		}
+		foreach (KeyValuePair<string, double> item in nonCombatantPartyProtectorState.LastWarningTimeDays ?? new Dictionary<string, double>())
+		{
+			if (!string.IsNullOrEmpty(item.Key))
+			{
+				Hero val2 = Hero.FindFirst((Func<Hero, bool>)((Hero h) => ((MBObjectBase)h).StringId == item.Key));
+				if (val2 != null)
+				{
+					_lastWarningTime[val2] = CampaignTime.Days((float)item.Value);
+				}
+			}
+		}
+	}
+
 
 	public void RegisterPartyForProtection(MobileParty party, Hero leader, string actionName)
 	{

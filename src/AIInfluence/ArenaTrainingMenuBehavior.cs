@@ -254,17 +254,28 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 
 	public override void SyncData(IDataStore dataStore)
 	{
+		bool binarySyncCompatibilityMode = false;
+		if (binarySyncCompatibilityMode)
+		{
+			_partyCooldownEndHours ??= new Dictionary<string, double>();
+			return;
+		}
+		string syncStage = "sync-start";
 		try
 		{
-			dataStore.SyncData<Dictionary<string, double>>("_arenaPartyCooldownEndHours", ref _partyCooldownEndHours);
+			AIInfluenceBehavior.Instance?.LogMessage($"[SYNC-TRACE] ArenaTrainingMenuBehavior.SyncData enter. isSaving={dataStore.IsSaving}, isLoading={dataStore.IsLoading}");
+			syncStage = "sync-arenaPartyCooldownEndHours";
+			dataStore.SyncData<Dictionary<string, double>>("AIInfluence_arenaPartyCooldownEndHours", ref _partyCooldownEndHours);
 			if (_partyCooldownEndHours == null)
 			{
 				_partyCooldownEndHours = new Dictionary<string, double>();
 			}
+			AIInfluenceBehavior.Instance?.LogMessage("[SYNC-TRACE] ArenaTrainingMenuBehavior.SyncData exit success. cooldownCount=" + _partyCooldownEndHours.Count);
 		}
-		catch
+		catch (Exception ex)
 		{
-			_partyCooldownEndHours = new Dictionary<string, double>();
+			AIInfluenceBehavior.Instance?.LogMessage("[ERROR] ArenaTrainingMenuBehavior.SyncData failed at stage=" + syncStage + ". cooldownCount=" + (_partyCooldownEndHours?.Count ?? 0) + ". " + ex);
+			throw;
 		}
 	}
 
