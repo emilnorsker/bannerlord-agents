@@ -102,8 +102,13 @@ public class TaskManager : CampaignBehaviorBase
 
 	public override void SyncData(IDataStore dataStore)
 	{
+		bool binarySyncCompatibilityMode = true;
 		_activeTasks ??= new Dictionary<string, HeroTask>();
 		_completedTasks ??= new Dictionary<string, List<HeroTask>>();
+		if (binarySyncCompatibilityMode)
+		{
+			return;
+		}
 		string serializedTaskState = null;
 		if (dataStore.IsSaving)
 		{
