@@ -1033,14 +1033,14 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage($"[QUEST] HostilePartySize {rawSize} clamped to {troopCount}");
 			}
 			string partyLabel = string.IsNullOrEmpty(questAction.HostilePartyLabel) ? "Quest Enemies" : questAction.HostilePartyLabel;
-			Clan banditClan = Clan.BanditFactions?.FirstOrDefault();
-			if (banditClan == null)
-			{
-				LogMessage("[QUEST] No bandit clan found for hostile party spawn");
-				return;
-			}
 			string spawnAnchorUsed;
 			Vec2 spawnPos = ResolveHostileQuestSpawnPosition(questGiver, questAction, out spawnAnchorUsed);
+			List<Clan> availableBanditClans = Clan.BanditFactions?.Where((Clan c) => c != null).ToList() ?? new List<Clan>();
+			if (availableBanditClans.Count == 0)
+			{
+				LogMessage("[QUEST] No bandit clans found for hostile party spawn");
+				return;
+			}
 			List<CharacterObject> compositionTroops = new List<CharacterObject>();
 			foreach (string troopName in (questAction.HostileTroopNames ?? new List<string>())
 				.Where((string name) => !string.IsNullOrWhiteSpace(name))
@@ -1056,6 +1056,12 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				{
 					LogMessage($"[QUEST] Could not resolve troop '{troopName}' from hostile_troop_names");
 				}
+			}
+			Clan banditClan = ResolveHostileBanditClan(questAction, compositionTroops, availableBanditClans);
+			if (banditClan == null)
+			{
+				LogMessage("[QUEST] Failed to resolve bandit clan for hostile party spawn");
+				return;
 			}
 			if (compositionTroops.Count == 0 && !string.IsNullOrEmpty(questAction.HostileTroopName))
 			{
@@ -1205,6 +1211,97 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			return null;
 		}
 		return hero2;
+	}
+
+	private Clan ResolveHostileBanditClan(QuestActionData questAction, List<CharacterObject> compositionTroops, List<Clan> banditClans)
+	{
+		string factionHint = NormalizeQuestSelectorText(questAction?.HostileFactionName);
+		Clan bestClan = null;
+		int bestScore = int.MinValue;
+		foreach (Clan banditClan in banditClans)
+		{
+			int score = 0;
+			string clanName = ((object)banditClan.Name)?.ToString() ?? "";
+			string clanId = ((MBObjectBase)banditClan).StringId ?? "";
+			CharacterObject basicTroop = banditClan.BasicTroop;
+			if (!string.IsNullOrEmpty(factionHint))
+			{
+				score += ScoreQuestSelectorTerm(factionHint, clanName) * 3;
+				score += ScoreQuestSelectorTerm(factionHint, clanId) * 3;
+				if (basicTroop != null)
+				{
+					score += ScoreQuestSelectorTerm(factionHint, ((object)((BasicCharacterObject)basicTroop).Name)?.ToString() ?? "");
+					score += ScoreQuestSelectorTerm(factionHint, ((MBObjectBase)basicTroop).StringId ?? "");
+				}
+			}
+			if (compositionTroops != null && compositionTroops.Count > 0 && basicTroop != null)
+			{
+				int sameTroopCount = compositionTroops.Count((CharacterObject t) => t == basicTroop);
+				int sameCultureCount = compositionTroops.Count((CharacterObject t) => t?.Culture != null && basicTroop.Culture != null && t.Culture == basicTroop.Culture);
+				score += sameTroopCount * 150 + sameCultureCount * 25;
+			}
+			if (score > bestScore)
+			{
+				bestScore = score;
+				bestClan = banditClan;
+			}
+		}
+		if (bestClan != null)
+		{
+			LogMessage($"[QUEST] Selected bandit clan '{bestClan.Name}' (id:{((MBObjectBase)bestClan).StringId}) using hostile_faction_name='{questAction?.HostileFactionName ?? ""}' score={bestScore}");
+			return bestClan;
+		}
+		return banditClans.FirstOrDefault();
+	}
+
+	private static string NormalizeQuestSelectorText(string value)
+	{
+		if (string.IsNullOrWhiteSpace(value))
+		{
+			return string.Empty;
+		}
+		StringBuilder stringBuilder = new StringBuilder(value.Length);
+		char c = '\0';
+		foreach (char c2 in value)
+		{
+			if (char.IsLetterOrDigit(c2))
+			{
+				char c3 = char.ToLowerInvariant(c2);
+				stringBuilder.Append(c3);
+				c = c3;
+			}
+			else if (c != ' ')
+			{
+				stringBuilder.Append(' ');
+				c = ' ';
+			}
+		}
+		return stringBuilder.ToString().Trim();
+	}
+
+	private static int ScoreQuestSelectorTerm(string normalizedQuery, string candidateValue)
+	{
+		string text = NormalizeQuestSelectorText(candidateValue);
+		if (string.IsNullOrEmpty(normalizedQuery) || string.IsNullOrEmpty(text))
+		{
+			return 0;
+		}
+		if (text == normalizedQuery)
+		{
+			return 100;
+		}
+		if (text.IndexOf(normalizedQuery, StringComparison.Ordinal) >= 0 || normalizedQuery.IndexOf(text, StringComparison.Ordinal) >= 0)
+		{
+			return 70;
+		}
+		string[] first = normalizedQuery.Split(new char[1] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+		string[] second = text.Split(new char[1] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+		int num = first.Intersect(second).Count();
+		if (num > 0)
+		{
+			return 20 * num;
+		}
+		return 0;
 	}
 
 	private Vec2 ResolveHostileQuestSpawnPosition(Hero questGiver, QuestActionData questAction, out string spawnAnchorUsed)
@@ -4809,7 +4906,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				return;
 			}
 			NPCContext context = GetOrCreateNPCContext(questGiver);
-			string requestPrompt = "You are generating a Bannerlord quest action for debugging.\nReturn ONLY valid JSON in this exact wrapper:\n{\"quest_action\":{...}}\nInside quest_action provide action=create_quest with fields title, description, duration_days (7-60), reward_gold (0-5000), optional target_npc_ids, completer_npc_id, ai_verification_notes, progress_target, progress_label, reward_items, reward_skill, reward_skill_xp, crime_rating_change, influence_change, spawn_hostile_party, hostile_party_size, hostile_party_label, hostile_troop_name, hostile_troop_names, spawn_anchor, spawn_near_npc_id, spawn_near_settlement_id.\nspawn_anchor allowed values: quest_giver, player, target_npc, npc_id, settlement_id.\nDo not add explanations.\nPlayer quest request: " + prompt;
+			string requestPrompt = "You are generating a Bannerlord quest action for debugging.\nReturn ONLY valid JSON in this exact wrapper:\n{\"quest_action\":{...}}\nInside quest_action provide action=create_quest with fields title, description, duration_days (7-60), reward_gold (0-5000), optional target_npc_ids, completer_npc_id, ai_verification_notes, progress_target, progress_label, reward_items, reward_skill, reward_skill_xp, crime_rating_change, influence_change, spawn_hostile_party, hostile_party_size, hostile_party_label, hostile_faction_name, hostile_troop_name, hostile_troop_names, spawn_anchor, spawn_near_npc_id, spawn_near_settlement_id.\nspawn_anchor allowed values: quest_giver, player, target_npc, npc_id, settlement_id.\nDo not add explanations.\nPlayer quest request: " + prompt;
 			string rawResponse = SendAIRequestRaw(requestPrompt).GetAwaiter().GetResult();
 			if (string.IsNullOrEmpty(rawResponse) || rawResponse.StartsWith("Error:"))
 			{
