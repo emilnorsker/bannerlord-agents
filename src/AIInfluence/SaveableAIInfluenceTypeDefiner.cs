@@ -7,7 +7,7 @@ namespace AIInfluence;
 public class SaveableAIInfluenceTypeDefiner : SaveableTypeDefiner
 {
 	public SaveableAIInfluenceTypeDefiner()
-		: base(4190117)
+		: base(941820731)
 	{
 	}
 
