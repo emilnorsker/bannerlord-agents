@@ -102,26 +102,33 @@ public class TaskManager : CampaignBehaviorBase
 
 	public override void SyncData(IDataStore dataStore)
 	{
-		bool binarySyncCompatibilityMode = true;
-		_activeTasks ??= new Dictionary<string, HeroTask>();
-		_completedTasks ??= new Dictionary<string, List<HeroTask>>();
-		if (binarySyncCompatibilityMode)
+		try
 		{
-			return;
+			_activeTasks ??= new Dictionary<string, HeroTask>();
+			_completedTasks ??= new Dictionary<string, List<HeroTask>>();
+			string serializedTaskState = null;
+			if (dataStore.IsSaving)
+			{
+				serializedTaskState = SerializeTaskState();
+			}
+			dataStore.SyncData<string>("AIInfluence_taskManagerStateJson", ref serializedTaskState);
+			if (dataStore.IsLoading)
+			{
+				if (!string.IsNullOrEmpty(serializedTaskState))
+				{
+					DeserializeTaskState(serializedTaskState);
+				}
+				else
+				{
+					DeserializeLegacyTaskState(dataStore);
+				}
+				RestoreTasksAfterLoad();
+			}
 		}
-		string serializedTaskState = null;
-		if (dataStore.IsSaving)
+		catch (Exception ex)
 		{
-			serializedTaskState = SerializeTaskState();
-		}
-		dataStore.SyncData<string>("AIInfluence_taskManagerStateJson", ref serializedTaskState);
-		if (dataStore.IsLoading && !string.IsNullOrEmpty(serializedTaskState))
-		{
-			DeserializeTaskState(serializedTaskState);
-		}
-		if (dataStore.IsLoading)
-		{
-			RestoreTasksAfterLoad();
+			AIInfluenceBehavior.Instance?.LogMessage("[ERROR] TaskManager.SyncData failed: " + ex);
+			throw;
 		}
 	}
 
@@ -140,6 +147,26 @@ public class TaskManager : CampaignBehaviorBase
 		TaskManagerSaveState taskManagerSaveState = JsonConvert.DeserializeObject<TaskManagerSaveState>(serializedTaskState) ?? new TaskManagerSaveState();
 		_activeTasks = (taskManagerSaveState.ActiveTasks ?? new Dictionary<string, HeroTaskState>()).Where((KeyValuePair<string, HeroTaskState> kvp) => kvp.Value != null).ToDictionary((KeyValuePair<string, HeroTaskState> kvp) => kvp.Key, (KeyValuePair<string, HeroTaskState> kvp) => FromHeroTaskState(kvp.Value));
 		_completedTasks = (taskManagerSaveState.CompletedTasks ?? new Dictionary<string, List<HeroTaskState>>()).ToDictionary((KeyValuePair<string, List<HeroTaskState>> kvp) => kvp.Key, (KeyValuePair<string, List<HeroTaskState>> kvp) => (kvp.Value ?? new List<HeroTaskState>()).Where((HeroTaskState state) => state != null).Select(FromHeroTaskState).ToList());
+	}
+
+	private void DeserializeLegacyTaskState(IDataStore dataStore)
+	{
+		Dictionary<string, HeroTask> legacyActiveTasks = null;
+		Dictionary<string, List<HeroTask>> legacyCompletedTasks = null;
+		dataStore.SyncData<Dictionary<string, HeroTask>>("_activeTasks", ref legacyActiveTasks);
+		dataStore.SyncData<Dictionary<string, List<HeroTask>>>("_completedTasks", ref legacyCompletedTasks);
+		if (legacyActiveTasks != null)
+		{
+			_activeTasks = legacyActiveTasks;
+		}
+		if (legacyCompletedTasks != null)
+		{
+			_completedTasks = legacyCompletedTasks;
+		}
+		if ((legacyActiveTasks != null && legacyActiveTasks.Count > 0) || (legacyCompletedTasks != null && legacyCompletedTasks.Count > 0))
+		{
+			AIInfluenceBehavior.Instance?.LogMessage($"[LOAD] TaskManager migrated legacy state: active={_activeTasks.Count}, completed={_completedTasks.Count}");
+		}
 	}
 
 	private static HeroTaskState ToHeroTaskState(HeroTask task)
@@ -177,6 +204,7 @@ public class TaskManager : CampaignBehaviorBase
 		};
 		if (heroTask.CurrentStepIndex > heroTask.Steps.Count)
 		{
+			// Steps.Count is a valid sentinel for completed tasks.
 			heroTask.CurrentStepIndex = heroTask.Steps.Count;
 		}
 		return heroTask;
