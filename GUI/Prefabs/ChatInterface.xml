@@ -169,7 +169,7 @@
                                                MarginLeft="4" MarginRight="160"
                                                IsVisible="@IsNpc">
                                       <Children>
-                                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                        <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                                 Sprite="name_shadow_9" AlphaFactor="0.7">
                                           <Children>
                                             <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
@@ -194,7 +194,8 @@
                                                    StackLayout.LayoutMethod="VerticalBottomToTop"
                                                    Spacing="1">
                                           <ItemTemplate>
-                                            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                            <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                    HorizontalAlignment="Left"
                                                     Sprite="BlankWhite" Color="@BackColor">
                                               <Children>
                                                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
@@ -203,7 +204,7 @@
                                                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                                         Sprite="frame_9" ExtendLeft="3" ExtendTop="3" ExtendRight="3" ExtendBottom="3"
                                                         AlphaFactor="0.2" IsEnabled="false" />
-                                                <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                                                Margin="8,3,8,3"
                                                                Brush="Conversation.ConversedPartyLine.Text" Color="@TextColor"
                                                                Text="@Text" IsDisabled="true" />
@@ -221,7 +222,8 @@
                                                HorizontalAlignment="Right"
                                                IsVisible="@IsPlayer">
                                       <Children>
-                                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                        <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                HorizontalAlignment="Right"
                                                 Sprite="name_shadow_9" AlphaFactor="0.7">
                                           <Children>
                                             <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
@@ -237,7 +239,8 @@
                                                    StackLayout.LayoutMethod="VerticalBottomToTop"
                                                    Spacing="1">
                                           <ItemTemplate>
-                                            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                            <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                    HorizontalAlignment="Right"
                                                     Sprite="BlankWhite" Color="@BackColor">
                                               <Children>
                                                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
@@ -246,7 +249,7 @@
                                                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                                         Sprite="frame_9" ExtendLeft="3" ExtendTop="3" ExtendRight="3" ExtendBottom="3"
                                                         AlphaFactor="0.2" IsEnabled="false" />
-                                                <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                                                Margin="8,3,8,3"
                                                                Brush="Conversation.ConversedPartyLine.Text" Color="@TextColor"
                                                                Brush.TextHorizontalAlignment="Right"
