@@ -5155,9 +5155,9 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				_npcContextsJson = JsonConvert.SerializeObject(contextsToSave);
 				LogMessage($"[SAVE] Serialized {contextsToSave.Count}/{_npcContexts.Count} NPC contexts into game save (history capped at {maxHistory})");
 			}
-			dataStore.SyncData<List<string>>("followingHeroIds", ref _followingHeroIds);
-			dataStore.SyncData<string>("aiActionState", ref _serializedActionState);
-			dataStore.SyncData<string>("npcContexts", ref _npcContextsJson);
+			dataStore.SyncData<List<string>>("AIInfluence_followingHeroIds", ref _followingHeroIds);
+			dataStore.SyncData<string>("AIInfluence_aiActionState", ref _serializedActionState);
+			dataStore.SyncData<string>("AIInfluence_npcContexts", ref _npcContextsJson);
 			if (dataStore.IsLoading)
 			{
 				if (!string.IsNullOrEmpty(_npcContextsJson))
@@ -5202,7 +5202,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					}
 				}
 			}
-			dataStore.SyncData<string>("currentSaveFolder", ref _currentSaveFolder);
+			dataStore.SyncData<string>("AIInfluence_currentSaveFolder", ref _currentSaveFolder);
 		}
 		catch (Exception ex)
 		{

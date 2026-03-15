@@ -81,7 +81,7 @@ public class NonCombatantPartyProtector : CampaignBehaviorBase
 			{
 				serializedState = SerializeState();
 			}
-			dataStore.SyncData<string>("_nonCombatantPartyProtectorStateJson", ref serializedState);
+			dataStore.SyncData<string>("AIInfluence_nonCombatantPartyProtectorStateJson", ref serializedState);
 			if (dataStore.IsLoading)
 			{
 				_protectedParties = new Dictionary<MobileParty, ProtectionInfo>();
