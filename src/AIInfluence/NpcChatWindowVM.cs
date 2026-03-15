@@ -190,7 +190,7 @@ public class NpcChatWindowVM : ViewModel
             bubbleColor: bubbleColor,
             emoteText:   string.Join(" ", emoteParts),
             actionText:  ""
-        );
+        ) { IsPlayer = isPlayer };
     }
 
     // ── Commands ──────────────────────────────────────────────────────────

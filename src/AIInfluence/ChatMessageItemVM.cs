@@ -28,6 +28,10 @@ public class ChatMessageItemVM : ViewModel
     [DataSourceProperty] public string ActionText  { get; set; } = "";
     [DataSourceProperty] public bool   HasAction   => !string.IsNullOrEmpty(ActionText);
 
+    // ── Alignment ────────────────────────────────────────────────────────────
+    [DataSourceProperty] public bool IsPlayer { get; set; } = false;
+    [DataSourceProperty] public bool IsNpc    => !IsPlayer;
+
     public ChatMessageItemVM() { }
 
     public ChatMessageItemVM(

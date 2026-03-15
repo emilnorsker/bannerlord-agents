@@ -68,19 +68,26 @@
                     MarginTop="!Header.H">
               <Children>
 
-                <!-- Solid dark base so portrait never bleeds transparent -->
+                <!-- Very dark stone base — character creation feel -->
                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                        Sprite="BlankWhiteSquare_9" Color="#050302FF" />
+                        Sprite="BlankWhiteSquare_9" Color="#030201FF" />
 
-                <!-- Gradient backdrop (confirmed AIInfluenceTextQueryPopup line 24) -->
+                <!-- Character creation gradient darkening the edges -->
                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                         Sprite="General\CharacterCreation\character_creation_background_gradient"
-                        AlphaFactor="0.5" Color="#000000FF" />
+                        AlphaFactor="0.8" Color="#000000FF" />
 
-                <!-- Portrait fills the column (no tuple_portrait_slot — it's 110x110 only) -->
+                <!-- Portrait: centred, fills available height -->
                 <AIInfluencePortraitWidget
                     WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                     HorizontalAlignment="Center" VerticalAlignment="Center" />
+
+                <!-- Bottom vignette — dark fade at the feet like character creation -->
+                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
+                        SuggestedHeight="120"
+                        VerticalAlignment="Bottom"
+                        Sprite="General\CharacterCreation\character_creation_background_gradient"
+                        AlphaFactor="1.0" Color="#000000FF" />
 
                 <!-- Stat overlay at top -->
                 <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
@@ -165,72 +172,99 @@
                                    MarginTop="6" MarginBottom="6">
                           <ItemTemplate>
                             <!--
-                              One item per conversation TURN.
-                              Row order: sender name → speech bubble → emote → action.
-                              IsVisible collapses rows with no content
-                              (confirmed pattern: SPConversation.xml @IsPersuading).
-
-                              name_shadow_9            – native NPC name shadow sprite.
-                              Conversation.HeaderText  – gold Galahad NPC name brush.
-                              Conversation.ConversedPartyLine.Text – white dialogue text.
-                              @BubbleColor #000000B0 for player (bubble), #00000000 for NPC (no bubble).
+                              Messenger-style layout: NPC on left, player on right.
+                              @IsNpc / @IsPlayer drives which side is visible.
+                              IsVisible collapses the inactive side to 0 height.
+                              Confirmed IsVisible collapse pattern: SPConversation.xml @IsPersuading.
+                              MarginRight="100" constrains NPC to left 70%; MarginLeft="100" constrains player to right 70%.
                             -->
-                            <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                       StackLayout.LayoutMethod="VerticalTopToBottom"
-                                       MarginLeft="4" MarginRight="4" MarginTop="4" MarginBottom="2">
+                            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                    MarginTop="4" MarginBottom="2">
                               <Children>
 
-                                <!-- Row 1: Sender name + tone tag -->
-                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                        Sprite="name_shadow_9" AlphaFactor="0.7">
+                                <!-- ── NPC side (left-aligned) ── -->
+                                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                           StackLayout.LayoutMethod="VerticalTopToBottom"
+                                           MarginLeft="4" MarginRight="100"
+                                           IsVisible="@IsNpc">
                                   <Children>
-                                    <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                               StackLayout.LayoutMethod="HorizontalLeftToRight"
-                                               MarginLeft="12" MarginTop="4" MarginBottom="4">
+                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                            Sprite="name_shadow_9" AlphaFactor="0.7">
+                                      <Children>
+                                        <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                   StackLayout.LayoutMethod="HorizontalLeftToRight"
+                                                   MarginLeft="10" MarginTop="4" MarginBottom="4">
+                                          <Children>
+                                            <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                           Brush="Conversation.HeaderText"
+                                                           Text="@SenderName" IsDisabled="true" />
+                                            <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                           VerticalAlignment="Bottom" MarginLeft="8" MarginBottom="3"
+                                                           Brush="SPScoreboard.Subtitle.Text"
+                                                           Brush.FontSize="13" Color="!SubText"
+                                                           Text="@TypeTag" IsDisabled="true" />
+                                          </Children>
+                                        </ListPanel>
+                                      </Children>
+                                    </Widget>
+                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                            Sprite="BlankWhiteSquare_9" Color="@BubbleColor"
+                                            IsVisible="@HasSpeech">
+                                      <Children>
+                                        <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                       Margin="10,5,10,5"
+                                                       Brush="Conversation.ConversedPartyLine.Text" Color="@SpeechColor"
+                                                       Text="@SpeechText" IsDisabled="true" />
+                                      </Children>
+                                    </Widget>
+                                    <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                   Margin="10,3,10,3"
+                                                   Brush="Conversation.ConversedPartyLine.Text" Color="#CF4444FF"
+                                                   Text="@EmoteText" IsVisible="@HasEmote" IsDisabled="true" />
+                                    <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                   Margin="10,3,10,3"
+                                                   Brush="Conversation.ConversedPartyLine.Text" Color="#9B59B6FF"
+                                                   Text="@ActionText" IsVisible="@HasAction" IsDisabled="true" />
+                                  </Children>
+                                </ListPanel>
+
+                                <!-- ── Player side (right-aligned) ── -->
+                                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                           StackLayout.LayoutMethod="VerticalTopToBottom"
+                                           MarginLeft="100" MarginRight="4"
+                                           HorizontalAlignment="Right"
+                                           IsVisible="@IsPlayer">
+                                  <Children>
+                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                            Sprite="name_shadow_9" AlphaFactor="0.7">
                                       <Children>
                                         <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                       Brush="Conversation.HeaderText" Color="@SenderColor"
+                                                       HorizontalAlignment="Right"
+                                                       MarginRight="10" MarginTop="4" MarginBottom="4"
+                                                       Brush="Conversation.HeaderText"
                                                        Text="@SenderName" IsDisabled="true" />
-                                        <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                       VerticalAlignment="Bottom" MarginLeft="8" MarginBottom="3"
-                                                       Brush="SPScoreboard.Subtitle.Text"
-                                                       Brush.FontSize="13" Color="!SubText"
-                                                       Text="@TypeTag" IsDisabled="true" />
                                       </Children>
-                                    </ListPanel>
-                                  </Children>
-                                </Widget>
-
-                                <!-- Row 2: Speech bubble (IsVisible=false collapses it when no speech) -->
-                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                        Sprite="BlankWhiteSquare_9" Color="@BubbleColor"
-                                        IsVisible="@HasSpeech">
-                                  <Children>
+                                    </Widget>
+                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                            Sprite="BlankWhiteSquare_9" Color="@BubbleColor"
+                                            IsVisible="@HasSpeech">
+                                      <Children>
+                                        <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                       Margin="10,5,10,5"
+                                                       Brush="Conversation.ConversedPartyLine.Text" Color="@SpeechColor"
+                                                       Brush.TextHorizontalAlignment="Right"
+                                                       Text="@SpeechText" IsDisabled="true" />
+                                      </Children>
+                                    </Widget>
                                     <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                   Margin="10,5,10,5"
-                                                   Brush="Conversation.ConversedPartyLine.Text" Color="@SpeechColor"
-                                                   Text="@SpeechText" IsDisabled="true" />
+                                                   Margin="10,3,10,3"
+                                                   Brush="Conversation.ConversedPartyLine.Text" Color="#CF4444FF"
+                                                   Text="@EmoteText" IsVisible="@HasEmote" IsDisabled="true" />
                                   </Children>
-                                </Widget>
-
-                                <!-- Row 3: Emote – red ambient text, no bubble -->
-                                <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                               Margin="10,3,10,3"
-                                               Brush="Conversation.ConversedPartyLine.Text" Color="#CF4444FF"
-                                               Text="@EmoteText"
-                                               IsVisible="@HasEmote"
-                                               IsDisabled="true" />
-
-                                <!-- Row 4: Action – purple inline -->
-                                <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                               Margin="10,3,10,3"
-                                               Brush="Conversation.ConversedPartyLine.Text" Color="#9B59B6FF"
-                                               Text="@ActionText"
-                                               IsVisible="@HasAction"
-                                               IsDisabled="true" />
+                                </ListPanel>
 
                               </Children>
-                            </ListPanel>
+                            </Widget>
                           </ItemTemplate>
                         </ListPanel>
 
