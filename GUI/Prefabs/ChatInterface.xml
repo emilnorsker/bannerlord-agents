@@ -120,16 +120,11 @@
                             Sprite="frame_9" ExtendLeft="5" ExtendTop="5" ExtendRight="5" ExtendBottom="5"
                             AlphaFactor="0.36" IsEnabled="false" />
                     <!-- Scroll region frame -->
+                    <!-- Scroll region frame -->
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                            MarginTop="4" MarginBottom="!Input.H" MarginRight="24" MarginLeft="2"
+                            MarginTop="4" MarginBottom="!Input.H" MarginRight="24"
                             Sprite="BlankWhite" Color="#120B08FF" AlphaFactor="0.66"
                             DoNotAcceptEvents="true">
-                      <Children>
-                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                                Sprite="frame_9" ExtendLeft="4" ExtendTop="4" ExtendRight="4" ExtendBottom="4"
-                                AlphaFactor="0.3" IsEnabled="false" />
-                      </Children>
-                    </Widget>
 
                     <!-- Message scroll area -->
                     <ScrollablePanel Id="MsgScroll"
