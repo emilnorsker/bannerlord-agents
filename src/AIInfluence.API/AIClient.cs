@@ -136,8 +136,10 @@ public static class AIClient
 			["content"] = (JToken)(userMessage)
 		});
 		val["messages"] = (JToken)val2;
-		val["response_format"] = (JToken)new JObject { ["type"] = (JToken)("json_object") };
-		val["stream"] = (JToken)(onOpenRouterStreamUpdate != null);
+		bool isStreaming = onOpenRouterStreamUpdate != null;
+		if (!isStreaming)
+			val["response_format"] = (JToken)new JObject { ["type"] = (JToken)("json_object") };
+		val["stream"] = (JToken)isStreaming;
 		JObject requestBody = val;
 		string json = ((JToken)requestBody).ToString((Formatting)0, Array.Empty<JsonConverter>());
 		StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -189,7 +191,7 @@ public static class AIClient
 				string text5 = stringBuilder.ToString();
 				if (!text5.TrimStart(Array.Empty<char>()).StartsWith("{", StringComparison.Ordinal))
 				{
-					LogWarning("OpenRouter streaming completed without JSON object output. Model may not support response_format=json_object with streaming.");
+					LogWarning("OpenRouter streaming completed without JSON object output. Falling back to plain-text preview mode.");
 				}
 				return text5;
 			}

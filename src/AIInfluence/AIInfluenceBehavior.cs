@@ -3107,6 +3107,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		Match match = StreamingResponseFieldRegex.Match(partialJson);
 		if (!match.Success)
 		{
+			if (!partialJson.TrimStart(Array.Empty<char>()).StartsWith("{", StringComparison.Ordinal))
+				return partialJson;
 			return "";
 		}
 		string value = match.Groups["text"].Value;

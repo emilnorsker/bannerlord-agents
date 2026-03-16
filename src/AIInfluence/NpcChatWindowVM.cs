@@ -260,8 +260,11 @@ public class NpcChatWindowVM : ViewModel
             }
             string reply = await AIInfluenceBehavior.Instance.ProcessChatInput(_npc, message, partial =>
             {
-                if (streamingSegment != null)
-                    TtsLipSyncService.MainThreadQueue.Enqueue(() => streamingSegment.Text = partial ?? "");
+                TtsLipSyncService.MainThreadQueue.Enqueue(() =>
+                {
+                    if (streamingSegment != null)
+                        streamingSegment.Text = partial ?? "";
+                });
             });
             if (!string.IsNullOrEmpty(reply))
             {
@@ -277,6 +280,7 @@ public class NpcChatWindowVM : ViewModel
                 // Wrap to prevent a threading exception from leaking past the finally block.
                 try
                 {
+                    streamingSegment = null;
                     if (streamingItem != null)
                         MessageList.Remove(streamingItem);
                     var npcItem = ParseLine($"{npcName}: {reply}", tone);
@@ -289,6 +293,7 @@ public class NpcChatWindowVM : ViewModel
             }
             else if (streamingItem != null)
             {
+                streamingSegment = null;
                 MessageList.Remove(streamingItem);
             }
         }
