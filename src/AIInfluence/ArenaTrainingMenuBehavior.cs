@@ -61,10 +61,6 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 	{
 		public static readonly _003C_003Ec _003C_003E9 = new _003C_003Ec();
 
-		public static Func<MobileParty, TroopRoster> _003C_003E9__35_0;
-
-		public static Func<MobileParty, bool> _003C_003E9__36_0;
-
 		public static OnConditionDelegate _003C_003E9__39_0;
 
 		public static OnConsequenceDelegate _003C_003E9__39_1;
@@ -72,16 +68,6 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 		public static OnConditionDelegate _003C_003E9__39_2;
 
 		public static OnConsequenceDelegate _003C_003E9__39_3;
-
-		public static Func<MobileParty, InquiryElement> _003C_003E9__46_0;
-
-		public static Func<TroopRoster, bool> _003C_003E9__48_0;
-
-		public static Func<MobileParty, bool> _003C_003E9__51_0;
-
-		public static Func<MobileParty, int> _003C_003E9__52_0;
-
-		public static Func<MobileParty, bool> _003C_003E9__53_0;
 
 		internal TroopRoster _003CGetTrainingRosters_003Eb__35_0(MobileParty p)
 		{
@@ -165,8 +151,6 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 	private const int CooldownHours = 72;
 
 	private const int MinTrainingCost = 50;
-
-	private static bool _isTraining;
 
 	private static int _trainingHoursRemaining;
 
@@ -365,7 +349,6 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 		//IL_0090: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0095: Unknown result type (might be due to invalid IL or missing references)
 		//IL_009f: Expected O, but got Unknown
-		_isTraining = false;
 		List<MobileParty> trainingParties = GetTrainingParties();
 		UnlockAllTrainingParties();
 		foreach (MobileParty item in trainingParties)
@@ -387,7 +370,6 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 		//IL_001f: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0024: Unknown result type (might be due to invalid IL or missing references)
 		//IL_002e: Expected O, but got Unknown
-		_isTraining = false;
 		UnlockAllTrainingParties();
 		TextObject val = new TextObject("{=AIInfluence_ArenaTrainCancelled}Training cancelled. Troops return without additional experience.", (Dictionary<string, object>)null);
 		InformationManager.DisplayMessage(new InformationMessage(((object)val).ToString(), Colors.Gray));
@@ -931,7 +913,6 @@ public class ArenaTrainingMenuBehavior : CampaignBehaviorBase
 
 	private static void BeginTraining()
 	{
-		_isTraining = true;
 		_trainingHoursRemaining = 8;
 		_totalTrained = 0;
 		_totalXpGiven = 0;

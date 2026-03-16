@@ -89,7 +89,6 @@ public class KingdomWarStats
 		}
 		set
 		{
-			bool flag = true;
 			LastUpdateTimeDays = (float)(value).ToDays;
 		}
 	}

@@ -856,8 +856,8 @@ public class DefenderSpawner
 			}
 			IAgentOriginBase val6 = obj;
 			bool flag = combat.LocationType == LocationType.SmallIndoor;
-			AgentBuildData val7 = new AgentBuildData((BasicCharacterObject)(object)character).Team(val4).TroopOrigin(val6).InitialPosition(ref spawnPosition)
-				.InitialDirection(ref val2)
+			AgentBuildData val7 = new AgentBuildData((BasicCharacterObject)(object)character).Team(val4).TroopOrigin(val6).InitialPosition(in spawnPosition)
+				.InitialDirection(in val2)
 				.Equipment(((BasicCharacterObject)character).Equipment)
 				.NoHorses(flag)
 				.ClothingColor1(val4.Color)
@@ -1079,8 +1079,8 @@ public class DefenderSpawner
 			}
 			IAgentOriginBase val9 = obj;
 			bool flag2 = combat.LocationType == LocationType.SmallIndoor;
-			AgentBuildData val10 = new AgentBuildData((BasicCharacterObject)(object)character).Team(val7).TroopOrigin(val9).InitialPosition(ref val)
-				.InitialDirection(ref val5)
+			AgentBuildData val10 = new AgentBuildData((BasicCharacterObject)(object)character).Team(val7).TroopOrigin(val9).InitialPosition(in val)
+				.InitialDirection(in val5)
 				.Equipment(((BasicCharacterObject)character).Equipment)
 				.NoHorses(flag2)
 				.ClothingColor1(val7.Color)
@@ -1322,8 +1322,8 @@ public class DefenderSpawner
 			}
 			IAgentOriginBase val8 = obj;
 			bool flag5 = combat.LocationType == LocationType.SmallIndoor;
-			AgentBuildData val9 = new AgentBuildData((BasicCharacterObject)(object)character).Team(val6).TroopOrigin(val8).InitialPosition(ref val2)
-				.InitialDirection(ref val4)
+			AgentBuildData val9 = new AgentBuildData((BasicCharacterObject)(object)character).Team(val6).TroopOrigin(val8).InitialPosition(in val2)
+				.InitialDirection(in val4)
 				.Equipment(((BasicCharacterObject)character).Equipment)
 				.NoHorses(flag5)
 				.ClothingColor1(val6.Color)

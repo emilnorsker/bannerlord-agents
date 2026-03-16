@@ -558,7 +558,6 @@ public class DynamicEventsAnalyzer
 		}
 		stringBuilder.AppendLine();
 		stringBuilder.AppendLine("Alliances of participating kingdoms:");
-		bool flag4 = false;
 		foreach (Kingdom kingdom in list3)
 		{
 			List<Kingdom> list4 = ((IEnumerable<Kingdom>)Kingdom.All).Where((Kingdom val21) => !val21.IsEliminated && val21 != kingdom && allianceSystem.AreAllied(kingdom, val21)).ToList();
@@ -575,7 +574,6 @@ public class DynamicEventsAnalyzer
 					}
 					stringBuilder.AppendLine($"    - {item4.Name} (string_id:{((MBObjectBase)item4).StringId}){arg}");
 				}
-				flag4 = true;
 			}
 			else
 			{
@@ -983,7 +981,6 @@ public class DynamicEventsAnalyzer
 		{
 			val7 = CampaignTime.Now;
 			float num7 = (float)(val7).ToDays;
-			int num8 = 0;
 			foreach (KingdomStatement statement2 in list2)
 			{
 				Kingdom val19 = ((IEnumerable<Kingdom>)Kingdom.All).FirstOrDefault((Func<Kingdom, bool>)((Kingdom val21) => ((MBObjectBase)val21).StringId == statement2.KingdomId));

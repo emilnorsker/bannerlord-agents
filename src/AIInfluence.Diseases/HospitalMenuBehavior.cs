@@ -54,29 +54,9 @@ public class HospitalMenuBehavior : CampaignBehaviorBase
 		public static OnConditionDelegate _003C14_003E__LeaveCondition;
 
 		public static OnConsequenceDelegate _003C15_003E__LeaveConsequence;
-
-		public static Action<List<InquiryElement>> _003C16_003E__OnPlayerTreatmentSelected;
-
-		public static Action<List<InquiryElement>> _003C17_003E__OnCompanionTreatmentSelected;
-
-		public static Action<List<InquiryElement>> _003C18_003E__OnCompanionTreatmentMethodSelected;
-
-		public static Action<List<InquiryElement>> _003C19_003E__OnDiseaseGroupSelected;
-
-		public static Action<List<InquiryElement>> _003C20_003E__OnTroopTreatmentMethodSelected;
-
-		public static Action<List<InquiryElement>> _003C21_003E__OnPrisonerGroupSelected;
-
-		public static Action<List<InquiryElement>> _003C22_003E__OnPrisonerLordTreatmentSelected;
-
-		public static Action<List<InquiryElement>> _003C23_003E__OnPrisonerTroopTreatmentMethodSelected;
-
-		public static Action<List<InquiryElement>> _003C24_003E__OnHerbSelected;
 	}
 
 	private static string _parentMenuId = "town";
-
-	private static DiseaseInstance _selectedDiseaseForTreatment;
 
 	private static Hero _selectedCompanionForTreatment;
 

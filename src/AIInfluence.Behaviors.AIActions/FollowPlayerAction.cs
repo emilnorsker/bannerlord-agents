@@ -1962,7 +1962,7 @@ public class FollowPlayerAction : AIActionBase
 				}
 			}
 			object agentControllerTypeAI = GameVersionCompatibility.GetAgentControllerTypeAI();
-			AgentBuildData val4 = new AgentBuildData((BasicCharacterObject)(object)base.TargetHero.CharacterObject).Team(Mission.Current.PlayerTeam).InitialPosition(ref val2).InitialDirection(ref val3);
+			AgentBuildData val4 = new AgentBuildData((BasicCharacterObject)(object)base.TargetHero.CharacterObject).Team(Mission.Current.PlayerTeam).InitialPosition(in val2).InitialDirection(in val3);
 			if (agentControllerTypeAI != null)
 			{
 				MethodInfo method = typeof(AgentBuildData).GetMethod("Controller", BindingFlags.Instance | BindingFlags.Public);

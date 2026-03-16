@@ -7,7 +7,7 @@
     <Platforms>x64</Platforms>
     <LangVersion>12.0</LangVersion>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <Nullable>disable</Nullable>
+    <Nullable>annotations</Nullable>
     <!-- Keep the DLL named AIInfluence.dll, not AIInfluence.v1.x.x.dll -->
     <OverrideAssemblyName>false</OverrideAssemblyName>
   </PropertyGroup>
@@ -16,7 +16,6 @@
     <Reference Include="OggVorbisEncoder">
       <HintPath>../bin/Win64_Shipping_Client/OggVorbisEncoder.dll</HintPath>
     </Reference>
-    <Reference Include="System.Net.Http" />
   </ItemGroup>
 
   <ItemGroup>

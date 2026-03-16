@@ -190,7 +190,7 @@ public class PostCombatEventCreator
 				else
 				{
 					DiplomacyLogger.Instance?.Log("Event " + dynamicEvent.Id + " created diplomatic situation involving " + string.Join(", ", list));
-					ProcessDiplomaticEventAsync(dynamicEvent);
+					_ = ProcessDiplomaticEventAsync(dynamicEvent);
 				}
 			}
 		}

@@ -2543,7 +2543,7 @@ public class DynamicEventsGenerator
 				dynamicEvent.ParticipatingKingdoms = list;
 				dynamicEvent.RequiresDiplomaticAnalysis = true;
 				DiplomacyLogger.Instance?.Log("Event " + dynamicEvent.Id + " created diplomatic situation involving " + string.Join(", ", list));
-				ProcessDiplomaticEventAsync(dynamicEvent);
+				_ = ProcessDiplomaticEventAsync(dynamicEvent);
 			}
 		}
 	}
@@ -3810,7 +3810,7 @@ public class DynamicEventsGenerator
 			DynamicEventsLogger.Instance.Log($"[KINGDOM_DESTRUCTION] Kingdom '{destroyedKingdom.Name}' (string_id: {((MBObjectBase)destroyedKingdom).StringId}) has been destroyed");
 			KingdomDestructionInfo kingdomDestructionInfo = DetermineKingdomDestroyer(destroyedKingdom);
 			_kingdomDestructionTracker[((MBObjectBase)destroyedKingdom).StringId] = kingdomDestructionInfo;
-			CreateKingdomDestructionEvent(destroyedKingdom, kingdomDestructionInfo);
+			_ = CreateKingdomDestructionEvent(destroyedKingdom, kingdomDestructionInfo);
 		}
 	}
 

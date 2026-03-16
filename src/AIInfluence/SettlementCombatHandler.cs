@@ -28,12 +28,6 @@ public class SettlementCombatHandler
 
 	private readonly Random _random = new Random();
 
-	private bool _combatInitiated = false;
-
-	private Settlement _currentCombatSettlement;
-
-	private SettlementCombatType _currentCombatType;
-
 	public SettlementCombatHandler(AIInfluenceBehavior behavior)
 	{
 		_behavior = behavior;

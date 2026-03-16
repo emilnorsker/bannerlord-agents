@@ -21,8 +21,6 @@ public class QuarantineSettlementExitBlocker : CampaignBehaviorBase
 	[CompilerGenerated]
 	private static class _003C_003EO
 	{
-		public static Action<MobileParty, Settlement, Hero> _003C0_003E__OnSettlementEntered;
-
 		public static OnInitDelegate _003C1_003E__OnInitQuarantineBlockedMenu;
 	}
 

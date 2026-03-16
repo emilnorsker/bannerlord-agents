@@ -1142,6 +1142,7 @@ public class NPCInitiativeSystem
 
 	private async Task GenerateAndStartPartyConversation(NPCInitiativeRequest request)
 	{
+		await Task.CompletedTask;
 		try
 		{
 			if (request.NPC == null || !request.NPC.IsAlive || request.NPC.IsPrisoner)
@@ -1501,7 +1502,7 @@ public class NPCInitiativeSystem
 			return;
 		}
 		LogMessage($"[NPC_MESSENGER] Delivering player's letter to {val.Name}");
-		GenerateNPCResponseToPlayerLetter(val, letter);
+		_ = GenerateNPCResponseToPlayerLetter(val, letter);
 	}
 
 	private async Task GenerateNPCResponseToPlayerLetter(Hero npc, PendingPlayerLetter letter)

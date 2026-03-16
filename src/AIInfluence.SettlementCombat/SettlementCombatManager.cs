@@ -947,7 +947,6 @@ public class SettlementCombatManager
 					continue;
 				}
 				CompanionCombatDecision decision = CompanionCombatDecision.StayOut;
-				bool flag = false;
 				if (dictionary2 != null && dictionary2.TryGetValue(((MBObjectBase)playerCompanion).StringId, out var value))
 				{
 					if (!TryParseCompanionDecision(value, out decision))

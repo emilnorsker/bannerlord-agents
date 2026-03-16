@@ -1123,8 +1123,8 @@ public class PlayerReinforcementMissionLogic : MissionLogic
 			IAgentOriginBase val3 = (IAgentOriginBase)new PartyAgentOrigin(mainParty.Party, character, -1, default(UniqueTroopDescriptor), false, false);
 			Vec2 val4 = ((Agent.Main != null && Agent.Main.IsActive()) ? Agent.Main.GetMovementDirection() : Vec2.Forward);
 			bool flag2 = !flag;
-			AgentBuildData val5 = new AgentBuildData((BasicCharacterObject)(object)character).Team(playerTeam).TroopOrigin(val3).InitialPosition(ref val2)
-				.InitialDirection(ref val4)
+			AgentBuildData val5 = new AgentBuildData((BasicCharacterObject)(object)character).Team(playerTeam).TroopOrigin(val3).InitialPosition(in val2)
+				.InitialDirection(in val4)
 				.Equipment(((BasicCharacterObject)character).Equipment)
 				.NoHorses(flag2)
 				.Controller((AgentControllerType)1)

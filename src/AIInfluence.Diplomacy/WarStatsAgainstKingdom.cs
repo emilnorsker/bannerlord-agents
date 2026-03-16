@@ -49,7 +49,6 @@ public class WarStatsAgainstKingdom
 		}
 		set
 		{
-			bool flag = true;
 			WarStartTimeDays = (float)(value).ToDays;
 		}
 	}

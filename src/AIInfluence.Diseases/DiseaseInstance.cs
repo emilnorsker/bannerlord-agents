@@ -162,10 +162,6 @@ public class DiseaseInstance
 			//IL_0010: Unknown result type (might be due to invalid IL or missing references)
 			//IL_0015: Unknown result type (might be due to invalid IL or missing references)
 			_ = CampaignTime.Now;
-			if (false)
-			{
-				return 0;
-			}
 			CampaignTime now = CampaignTime.Now;
 			float num = (float)(now).ToDays;
 			return Math.Max(0, (int)(num - InfectedAt));
@@ -234,10 +230,6 @@ public class DiseaseInstance
 			return true;
 		}
 		_ = CampaignTime.Now;
-		if (false)
-		{
-			return false;
-		}
 		CampaignTime now = CampaignTime.Now;
 		float num = (float)(now).ToDays;
 		return num >= PreventionEndDays.Value;
@@ -253,10 +245,6 @@ public class DiseaseInstance
 			return false;
 		}
 		_ = CampaignTime.Now;
-		if (false)
-		{
-			return true;
-		}
 		CampaignTime now = CampaignTime.Now;
 		return (float)(now).ToDays < SeasonalImmunityEndDays.Value;
 	}

@@ -1294,7 +1294,6 @@ public class CivilianBehavior
 					new Vec2(val.x, val.y - 15f),
 					val
 				};
-				bool flag2 = true;
 				float num9 = 0f;
 				Vec2[] array2 = array;
 				foreach (Vec2 val3 in array2)

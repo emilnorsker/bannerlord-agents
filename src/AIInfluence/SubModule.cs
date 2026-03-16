@@ -43,8 +43,6 @@ public class SubModule : MBSubModuleBase
 
 	private float _startMessageTimer;
 
-	private float _backendCheckTimer;
-
 	private const float BackendCheckInterval = 1f;
 
 	private WorldEventsUILayer _worldEventsUILayer;

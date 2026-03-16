@@ -20,8 +20,6 @@ public static class HospitalVisitSettlementNotificationPatch
 
 	private static readonly Dictionary<Settlement, SettlementNameplateNotificationsVM> _registry;
 
-	private static bool _eventSubscribed;
-
 	static HospitalVisitSettlementNotificationPatch()
 	{
 		SettlementField = AccessTools.Field(typeof(SettlementNameplateNotificationsVM), "_settlement");
