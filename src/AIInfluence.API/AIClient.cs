@@ -166,20 +166,24 @@ public static class AIClient
 						{
 							break;
 						}
-						string text3 = JObject.Parse(text2)?["choices"]?[0]?["delta"]?["content"]?.ToString();
-						if (string.IsNullOrEmpty(text3))
+						JObject val3 = JObject.Parse(text2);
+						string text3 = val3?["error"]?["message"]?.ToString();
+						if (!string.IsNullOrEmpty(text3))
+						{
+							throw new InvalidOperationException("OpenRouter stream error: " + text3);
+						}
+						JToken val4 = val3?["choices"]?[0];
+						if (string.Equals(val4?["finish_reason"]?.ToString(), "error", StringComparison.OrdinalIgnoreCase))
+						{
+							throw new InvalidOperationException("OpenRouter stream terminated with finish_reason=error.");
+						}
+						string text4 = val4?["delta"]?["content"]?.ToString();
+						if (string.IsNullOrEmpty(text4))
 						{
 							continue;
 						}
-						stringBuilder.Append(text3);
-						try
-						{
-							onOpenRouterStreamUpdate(stringBuilder.ToString());
-						}
-						catch (Exception ex)
-						{
-							LogWarning("OpenRouter stream callback failed: " + ex.Message);
-						}
+						stringBuilder.Append(text4);
+						onOpenRouterStreamUpdate(stringBuilder.ToString());
 					}
 				}
 				return stringBuilder.ToString();
