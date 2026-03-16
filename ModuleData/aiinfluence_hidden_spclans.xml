@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Factions>
+	<Faction id="aiinfluence_hidden_ai_driver_clan"
+		banner_key="11.163.166.1528.1528.764.764.1.0.0.789.171.171.483.483.764.764.0.0.0"
+		label_color="FF66CCFF"
+		color="FF66CCFF"
+		color2="FF66CCFF"
+		alternative_color="FF66CCFF"
+		alternative_color2="FF66CCFF"
+		culture="Culture.empire"
+		default_party_template="PartyTemplate.kingdom_hero_party_empire_template"
+		settlement_banner_mesh="encounter_flag_f"
+		is_minor_faction="true"
+		is_clan_type_mercenary="true"
+		initial_posX="530.0"
+		initial_posY="595.0"
+		name="{=AIInfluence_HiddenDriverClanName}Hidden Hand"
+		short_name="{=AIInfluence_HiddenDriverClanShort}Hidden Hand"
+		tier="4"
+		text="{=AIInfluence_HiddenDriverClanText}A concealed technical clan used as a stable AI driver for AIInfluence quest parties.">
+		<minor_faction_character_templates>
+			<template id="NPCCharacter.spc_notable_sturgia_8"/>
+		</minor_faction_character_templates>
+	</Faction>
+</Factions>

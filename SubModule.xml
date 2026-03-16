@@ -34,5 +34,11 @@
         </SubModule>
     </SubModules>
 	<Xmls>
+		<XmlNode>
+			<XmlName id="Factions" path="aiinfluence_hidden_spclans"/>
+			<IncludedGameTypes>
+				<GameType value="Campaign"/>
+			</IncludedGameTypes>
+		</XmlNode>
     </Xmls>
 </Module>
