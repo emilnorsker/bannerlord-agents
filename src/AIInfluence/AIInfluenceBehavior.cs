@@ -3322,8 +3322,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			else
 			{
 				AIActionManager.Instance?.StopAction(npc, actionName);
-				if (AIActionIntegration.Instance.TryPrepareActionParameter(npc, actionName, payload))
-					AIActionManager.Instance?.StartAction(npc, actionName);
+			if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, actionName, payload) == true)
+				AIActionManager.Instance?.StartAction(npc, actionName);
 			}
 			}
 			aiResult.TechnicalAction = null;
