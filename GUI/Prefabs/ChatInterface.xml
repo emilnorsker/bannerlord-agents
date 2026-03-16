@@ -182,7 +182,7 @@
                                                 <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                                             VerticalAlignment="Bottom" MarginLeft="8" MarginBottom="3"
                                                             Brush="SPScoreboard.Subtitle.Text"
-                                                            Brush.FontSize="13" Color="@TypeTagColor"
+                                                            Brush.FontSize="13" Brush.FontColor="@TypeTagColor"
                                                             Text="@TypeTag" />
                                               </Children>
                                             </ListPanel>
@@ -200,7 +200,7 @@
                                               <Children>
                                                 <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                             Margin="14,6,14,6"
-                                                            Brush="Conversation.ConversedPartyLine.Text" Color="@TextColor"
+                                                            Brush="Conversation.ConversedPartyLine.Text" Brush.FontColor="@TextColor"
                                                             Text="@Text" />
                                               </Children>
                                             </Widget>
@@ -210,7 +210,7 @@
                                               <Children>
                                                 <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                                             Margin="12,4,12,4"
-                                                            Brush="Conversation.ConversedPartyLine.Text" Color="@TextColor"
+                                                            Brush="Conversation.ConversedPartyLine.Text" Brush.FontColor="@TextColor"
                                                             Text="@Text" />
                                               </Children>
                                             </Widget>
@@ -249,7 +249,7 @@
                                               <Children>
                                                 <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                             Margin="14,6,14,6"
-                                                            Brush="Conversation.ConversedPartyLine.Text" Color="@TextColor"
+                                                            Brush="Conversation.ConversedPartyLine.Text" Brush.FontColor="@TextColor"
                                                             TextHorizontalAlignment="Right"
                                                             Text="@Text" />
                                               </Children>
@@ -260,7 +260,7 @@
                                               <Children>
                                                 <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                                             Margin="12,4,12,4"
-                                                            Brush="Conversation.ConversedPartyLine.Text" Color="@TextColor"
+                                                            Brush="Conversation.ConversedPartyLine.Text" Brush.FontColor="@TextColor"
                                                             TextHorizontalAlignment="Right"
                                                             Text="@Text" />
                                               </Children>
