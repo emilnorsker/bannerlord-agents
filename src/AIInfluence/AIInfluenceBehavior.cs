@@ -3343,6 +3343,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			ProcessItemTransfers(npc, context, aiResult.ItemTransfers);
 		if (!string.IsNullOrEmpty(aiResult.KingdomAction) && !aiResult.KingdomAction.Equals("none", StringComparison.OrdinalIgnoreCase))
 			ProcessKingdomAction(npc, aiResult, context);
+		if (aiResult.QuestAction != null && !string.IsNullOrEmpty(aiResult.QuestAction.Action))
+		{
+			QuestActionData capturedQuestAction = aiResult.QuestAction;
+			GetDelayedTaskManager().AddTask(5.0, delegate { try { ProcessQuestAction(npc, GetOrCreateNPCContext(npc), capturedQuestAction); } catch (Exception ex7) { LogMessage("[ERROR] Chat quest action failed: " + ex7.Message); } });
+		}
 		if (aiResult.Tone == "positive")
 		{
 			int rel = _random.Next(GlobalSettings<ModSettings>.Instance.MinPositiveRelationChange, GlobalSettings<ModSettings>.Instance.MaxPositiveRelationChange + 1);
