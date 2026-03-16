@@ -1,0 +1,931 @@
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using TaleWorlds.CampaignSystem.Actions;
+using TaleWorlds.CampaignSystem.GameMenus;
+using TaleWorlds.CampaignSystem.MapEvents;
+using TaleWorlds.CampaignSystem.Party;
+using TaleWorlds.CampaignSystem.Roster;
+using TaleWorlds.CampaignSystem.Settlements;
+using TaleWorlds.Core;
+using TaleWorlds.Localization;
+using TaleWorlds.SaveSystem;
+
+namespace TaleWorlds.CampaignSystem.Issues;
+
+public class ExtortionByDesertersIssueBehavior : CampaignBehaviorBase
+{
+	public class ExtortionByDesertersIssue : IssueBase
+	{
+		internal const int IssuePreConditionMaxSecurityLevel = 50;
+
+		internal const int IssueStayAliveConditionMaxSecurityLevel = 80;
+
+		internal const float IssuePreConditionMinPlayerRelation = -10f;
+
+		internal const int MinimumRequiredMenCount = 20;
+
+		internal const int IssueDuration = 15;
+
+		internal const int QuestTimeLimit = 12;
+
+		internal const int AlternativeSolutionTroopTierRequirement = 2;
+
+		private const int AlternativeSolutionRangedSkillThreshold = 150;
+
+		private const int AlternativeSolutionEngineeringSkillThreshold = 120;
+
+		private const int AlternativeSolutionHonorRewardOnSuccess = 60;
+
+		private const int AlternativeSolutionHonorPenaltyOnFail = -20;
+
+		private const int AlternativeSolutionRelationRewardOnSuccess = 8;
+
+		private const int AlternativeSolutionRelationPenaltyOnFail = -10;
+
+		private const int AlternativeSolutionIssueOwnerPowerBonusOnSuccess = 15;
+
+		private const int AlternativeSolutionIssueOwnerPowerPenaltyOnFail = -10;
+
+		private const int AlternativeSolutionTownSecurityBonusOnSuccess = 10;
+
+		private const int AlternativeSolutionTownSecurityPenaltyOnFail = -10;
+
+		private const int AlternativeSolutionTownProsperityBonusOnSuccess = 100;
+
+		private const int AlternativeSolutionTownProsperityPenaltyOnFail = -50;
+
+		private const int AlternativeSolutionPlayerRenownBonusOnSuccess = 2;
+
+		public override AlternativeSolutionScaleFlag AlternativeSolutionScaleFlags
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		protected override int CompanionSkillRewardXP
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public override TextObject IssueBriefByIssueGiver
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public override TextObject IssueAcceptByPlayer
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public override TextObject IssueQuestSolutionExplanationByIssueGiver
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public override TextObject IssueQuestSolutionAcceptByPlayer
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public override TextObject IssueAlternativeSolutionSuccessLog
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public override bool IsThereAlternativeSolution
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public override int AlternativeSolutionBaseNeededMenCount
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		protected override int AlternativeSolutionBaseDurationInDaysInternal
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		protected override int RewardGold
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public override TextObject IssueAlternativeSolutionExplanationByIssueGiver
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public override TextObject IssueAlternativeSolutionAcceptByPlayer
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public override TextObject IssueDiscussAlternativeSolution
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public override TextObject IssueAlternativeSolutionResponseByIssueGiver
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		protected override TextObject AlternativeSolutionStartLog
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public override bool IsThereLordSolution
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public override TextObject Title
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public override TextObject Description
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public override TextObject IssueAsRumorInSettlement
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		internal static void AutoGeneratedStaticCollectObjectsExtortionByDesertersIssue(object o, List<object> collectedObjects)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override void AutoGeneratedInstanceCollectObjects(List<object> collectedObjects)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public override bool DoTroopsSatisfyAlternativeSolution(TroopRoster troopRoster, out TextObject explanation)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public override bool AlternativeSolutionCondition(out TextObject explanation)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public override bool IsTroopTypeNeededByAlternativeSolution(CharacterObject character)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override void AlternativeSolutionEndWithSuccessConsequence()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override void AlternativeSolutionEndWithFailureConsequence()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override void OnGameLoad()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override void HourlyTick()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override QuestBase GenerateIssueQuest(string questId)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public override IssueFrequency GetFrequency()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override bool CanPlayerTakeQuestConditions(Hero issueGiver, out PreconditionFlags flag, out Hero relationHero, out SkillObject skill)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override void CompleteIssueWithTimedOutConsequences()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public override bool IssueStayAliveConditions()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public ExtortionByDesertersIssue(Hero issueOwner)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override float GetIssueEffectAmountInternal(IssueEffect issueEffect)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public override (SkillObject, int) GetAlternativeSolutionSkill(Hero hero)
+		{
+			throw null;
+		}
+	}
+
+	public class ExtortionByDesertersIssueQuest : QuestBase
+	{
+		private readonly struct ExtortionByDesertersQuestResult
+		{
+			public readonly int RenownChange;
+
+			public readonly int HonorChange;
+
+			public readonly float GoldMultiplier;
+
+			public readonly int QuestGiverRelationChange;
+
+			public readonly int QuestGiverPowerChange;
+
+			public readonly int TownSecurityChange;
+
+			public readonly int TownProsperityChange;
+
+			public readonly bool IsSuccess;
+
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			public ExtortionByDesertersQuestResult(int renownChange, int honorChange, float goldMultiplier, int questGiverRelationChange, int questGiverPowerChange, int townSecurityChange, int townProsperityChange, bool isSuccess)
+			{
+				throw null;
+			}
+		}
+
+		internal enum ExtortionByDesertersQuestState
+		{
+			DesertersMovingToSettlement,
+			DesertersRunningAwayFromPlayer,
+			DesertersDefeatedPlayer,
+			DesertersAreDefeated
+		}
+
+		private const float SightOffsetToLoseDeserterParty = 3f;
+
+		private const float SightRatioToStartEvadingPlayerParty = 0.8f;
+
+		[SaveableField(1)]
+		private MobileParty _deserterMobileParty;
+
+		[SaveableField(2)]
+		private MobileParty _defenderMobileParty;
+
+		[SaveableField(3)]
+		private ExtortionByDesertersQuestState _currentState;
+
+		[SaveableField(4)]
+		private readonly float _questDifficultyMultiplier;
+
+		[SaveableField(5)]
+		private bool _deserterBattleFinalizedForTheFirstTime;
+
+		private bool _playerAwayFromSettlementNotificationSent;
+
+		[SaveableField(6)]
+		private CampaignTime _desertersRunAwayTimeoutTime;
+
+		public override TextObject Title
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		private ExtortionByDesertersQuestResult _questResultSuccess1
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		private ExtortionByDesertersQuestResult _questResultSuccess2
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		private ExtortionByDesertersQuestResult _questResultSuccess3
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		private ExtortionByDesertersQuestResult _questResultFail1
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		private ExtortionByDesertersQuestResult _questResultFail2
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		private ExtortionByDesertersQuestResult _questResultFail3
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		private ExtortionByDesertersQuestResult _questResultTimeOut
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		private ExtortionByDesertersQuestResult _questResultCancel1
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		private ExtortionByDesertersQuestResult _questResultCancel2
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		private TextObject OnQuestStartedLogText
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		private TextObject OnQuestSucceededLogText
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		private TextObject OnQuestFailed1LogText
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		private TextObject OnQuestFailed2LogText
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		private TextObject OnQuestFailed3LogText
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		private TextObject OnQuestTimedOutLogText
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		private TextObject OnQuestCancel1LogText
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		private TextObject PlayerDeclaredWarQuestLogText
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		private TextObject OnQuestCancel2LogText
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		private TextObject OnDeserterPartyDefeatedLogText
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		private TextObject OnPlayerLeftQuestSettlementNotificationText
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		private TextObject OnPlayerDefeatedDesertersNotificationText
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		private TextObject OnDesertersNoticedPlayerNotificationText
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		private DialogFlow QuestCompletionDialogFlow
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		private DialogFlow DeserterPartyAmbushedDialogFlow
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		private int DeserterPartyMenCount
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		private int DefenderPartyMenCount
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public Settlement QuestSettlement
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public override bool IsRemainingTimeHidden
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		internal static void AutoGeneratedStaticCollectObjectsExtortionByDesertersIssueQuest(object o, List<object> collectedObjects)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override void AutoGeneratedInstanceCollectObjects(List<object> collectedObjects)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		internal static object AutoGeneratedGetMemberValue_deserterMobileParty(object o)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		internal static object AutoGeneratedGetMemberValue_defenderMobileParty(object o)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		internal static object AutoGeneratedGetMemberValue_currentState(object o)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		internal static object AutoGeneratedGetMemberValue_questDifficultyMultiplier(object o)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		internal static object AutoGeneratedGetMemberValue_deserterBattleFinalizedForTheFirstTime(object o)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		internal static object AutoGeneratedGetMemberValue_desertersRunAwayTimeoutTime(object o)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public ExtortionByDesertersIssueQuest(string questId, Hero questGiver, float difficultyMultiplier, int rewardGold, CampaignTime duration)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override void InitializeQuestOnGameLoad()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override void SetDialogs()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private void OnQuestAccepted()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private void ApplyQuestResult(in ExtortionByDesertersQuestResult result)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override void RegisterEvents()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private void OnMapEventStarted(MapEvent mapEvent, PartyBase attackerParty, PartyBase defenderParty)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override void OnFinalize()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private void TickDesertersPartyLogic()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override void HourlyTick()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private void MapEventEnded(MapEvent mapEvent)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private void GameMenuOpened(MenuCallbackArgs mArgs)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private void OnClanChangedKingdom(Clan clan, Kingdom oldKingdom, Kingdom newKingdom, ChangeKingdomAction.ChangeKingdomActionDetail detail, bool showNotification = true)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private void OnWarDeclared(IFaction faction1, IFaction faction2, DeclareWarAction.DeclareWarDetail detail)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private void OnVillageBeingRaided(Village village)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private void SettlementEntered(MobileParty party, Settlement settlement, Hero hero)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private void GameMenuOptionSelected(GameMenu gameMenu, GameMenuOption gameMenuOption)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private void OnGameLoadFinished()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override void OnTimedOut()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private void CreateDeserterParty()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private void DestroyDeserterParty()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private void ReleaseDeserterParty()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private void CreateDefenderParty()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private void DestroyDefenderParty()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private void HandleDesertersRunningAway()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private void StartAmbushEncounter()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private CampaignVec2 FindFreePositionBetweenPointAndParty(MobileParty party, in CampaignVec2 point, out float distance, float maxIterations = 10f, float acceptThres = 1E-05f, float maxPathDistance = 1000f, float euclideanThressholdFactor = 1.5f)
+		{
+			throw null;
+		}
+	}
+
+	public class ExtortionByDesertersIssueBehaviorTypeDefiner : SaveableTypeDefiner
+	{
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public ExtortionByDesertersIssueBehaviorTypeDefiner()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override void DefineClassTypes()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override void DefineEnumTypes()
+		{
+			throw null;
+		}
+	}
+
+	private const IssueBase.IssueFrequency ExtortionByDesertersIssueFrequency = IssueBase.IssueFrequency.Common;
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	private void OnCheckForIssue(Hero hero)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	private IssueBase OnIssueSelected(in PotentialIssueData pid, Hero issueOwner)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	private bool ConditionsHold(Hero issueGiver)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public override void RegisterEvents()
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public override void SyncData(IDataStore dataStore)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public ExtortionByDesertersIssueBehavior()
+	{
+		throw null;
+	}
+}

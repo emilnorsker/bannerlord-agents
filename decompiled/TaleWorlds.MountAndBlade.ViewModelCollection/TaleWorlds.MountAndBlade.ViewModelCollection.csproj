@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>TaleWorlds.MountAndBlade.ViewModelCollection</AssemblyName>
+    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup>
+    <LangVersion>12.0</LangVersion>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup />
+  <ItemGroup />
+  <ItemGroup>
+    <Reference Include="TaleWorlds.MountAndBlade">
+      <HintPath>../../../home/ubuntu/.nuget/packages/bannerlord.referenceassemblies.core/1.3.15.110062/ref/net472/TaleWorlds.MountAndBlade.dll</HintPath>
+    </Reference>
+    <Reference Include="TaleWorlds.InputSystem">
+      <HintPath>../../../home/ubuntu/.nuget/packages/bannerlord.referenceassemblies.core/1.3.15.110062/ref/net472/TaleWorlds.InputSystem.dll</HintPath>
+    </Reference>
+    <Reference Include="TaleWorlds.Library">
+      <HintPath>../../../home/ubuntu/.nuget/packages/bannerlord.referenceassemblies.core/1.3.15.110062/ref/net472/TaleWorlds.Library.dll</HintPath>
+    </Reference>
+    <Reference Include="TaleWorlds.Core.ViewModelCollection">
+      <HintPath>../../../home/ubuntu/.nuget/packages/bannerlord.referenceassemblies.core/1.3.15.110062/ref/net472/TaleWorlds.Core.ViewModelCollection.dll</HintPath>
+    </Reference>
+    <Reference Include="TaleWorlds.Engine">
+      <HintPath>../../../home/ubuntu/.nuget/packages/bannerlord.referenceassemblies.core/1.3.15.110062/ref/net472/TaleWorlds.Engine.dll</HintPath>
+    </Reference>
+    <Reference Include="TaleWorlds.Localization">
+      <HintPath>../../../home/ubuntu/.nuget/packages/bannerlord.referenceassemblies.core/1.3.15.110062/ref/net472/TaleWorlds.Localization.dll</HintPath>
+    </Reference>
+    <Reference Include="TaleWorlds.Core">
+      <HintPath>../../../home/ubuntu/.nuget/packages/bannerlord.referenceassemblies.core/1.3.15.110062/ref/net472/TaleWorlds.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="TaleWorlds.MountAndBlade.Diamond">
+      <HintPath>../../../home/ubuntu/.nuget/packages/bannerlord.referenceassemblies.core/1.3.15.110062/ref/net472/TaleWorlds.MountAndBlade.Diamond.dll</HintPath>
+    </Reference>
+    <Reference Include="TaleWorlds.ScreenSystem">
+      <HintPath>../../../home/ubuntu/.nuget/packages/bannerlord.referenceassemblies.core/1.3.15.110062/ref/net472/TaleWorlds.ScreenSystem.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

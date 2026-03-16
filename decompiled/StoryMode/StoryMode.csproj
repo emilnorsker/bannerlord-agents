@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>StoryMode</AssemblyName>
+    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup>
+    <LangVersion>12.0</LangVersion>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup />
+  <ItemGroup />
+  <ItemGroup>
+    <Reference Include="TaleWorlds.MountAndBlade" />
+    <Reference Include="SandBox" />
+    <Reference Include="TaleWorlds.Core" />
+    <Reference Include="TaleWorlds.CampaignSystem" />
+    <Reference Include="TaleWorlds.Engine" />
+    <Reference Include="TaleWorlds.ObjectSystem" />
+    <Reference Include="TaleWorlds.Localization" />
+    <Reference Include="TaleWorlds.SaveSystem" />
+    <Reference Include="TaleWorlds.Library" />
+  </ItemGroup>
+</Project>

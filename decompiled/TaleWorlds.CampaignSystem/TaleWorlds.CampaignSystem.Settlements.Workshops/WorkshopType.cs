@@ -1,0 +1,355 @@
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Xml;
+using TaleWorlds.Core;
+using TaleWorlds.Library;
+using TaleWorlds.Localization;
+using TaleWorlds.ObjectSystem;
+
+namespace TaleWorlds.CampaignSystem.Settlements.Workshops;
+
+public sealed class WorkshopType : MBObjectBase
+{
+	public struct Production
+	{
+		private MBList<(ItemCategory, int)> _inputs;
+
+		private MBList<(ItemCategory, int)> _outputs;
+
+		private float _conversionSpeed;
+
+		public MBReadOnlyList<(ItemCategory, int)> Inputs
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public MBReadOnlyList<(ItemCategory, int)> Outputs
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public float ConversionSpeed
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public Production(float conversionSpeed)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public void AddInput(ItemCategory item, int count = 1)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public void AddOutput(ItemCategory outputCategory, int outputCount)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public override string ToString()
+		{
+			throw null;
+		}
+	}
+
+	private MBList<Production> _productions;
+
+	public int EquipmentCost
+	{
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		[CompilerGenerated]
+		get
+		{
+			throw null;
+		}
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		[CompilerGenerated]
+		private set
+		{
+			throw null;
+		}
+	}
+
+	public int Frequency
+	{
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		[CompilerGenerated]
+		get
+		{
+			throw null;
+		}
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		[CompilerGenerated]
+		private set
+		{
+			throw null;
+		}
+	}
+
+	public TextObject Name
+	{
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		[CompilerGenerated]
+		get
+		{
+			throw null;
+		}
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		[CompilerGenerated]
+		private set
+		{
+			throw null;
+		}
+	}
+
+	public TextObject JobName
+	{
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		[CompilerGenerated]
+		get
+		{
+			throw null;
+		}
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		[CompilerGenerated]
+		private set
+		{
+			throw null;
+		}
+	}
+
+	public bool IsHidden
+	{
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		[CompilerGenerated]
+		get
+		{
+			throw null;
+		}
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		[CompilerGenerated]
+		private set
+		{
+			throw null;
+		}
+	}
+
+	public string SignMeshName
+	{
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		[CompilerGenerated]
+		get
+		{
+			throw null;
+		}
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		[CompilerGenerated]
+		private set
+		{
+			throw null;
+		}
+	}
+
+	public string PropMeshName1
+	{
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		[CompilerGenerated]
+		get
+		{
+			throw null;
+		}
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		[CompilerGenerated]
+		private set
+		{
+			throw null;
+		}
+	}
+
+	public string PropMeshName2
+	{
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		[CompilerGenerated]
+		get
+		{
+			throw null;
+		}
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		[CompilerGenerated]
+		private set
+		{
+			throw null;
+		}
+	}
+
+	public List<string> PropMeshName3List
+	{
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		[CompilerGenerated]
+		get
+		{
+			throw null;
+		}
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		[CompilerGenerated]
+		private set
+		{
+			throw null;
+		}
+	}
+
+	public string PropMeshName4
+	{
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		[CompilerGenerated]
+		get
+		{
+			throw null;
+		}
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		[CompilerGenerated]
+		private set
+		{
+			throw null;
+		}
+	}
+
+	public string PropMeshName5
+	{
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		[CompilerGenerated]
+		get
+		{
+			throw null;
+		}
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		[CompilerGenerated]
+		private set
+		{
+			throw null;
+		}
+	}
+
+	public string PropMeshName6
+	{
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		[CompilerGenerated]
+		get
+		{
+			throw null;
+		}
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		[CompilerGenerated]
+		private set
+		{
+			throw null;
+		}
+	}
+
+	public TextObject Description
+	{
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		[CompilerGenerated]
+		get
+		{
+			throw null;
+		}
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		[CompilerGenerated]
+		private set
+		{
+			throw null;
+		}
+	}
+
+	public MBReadOnlyList<Production> Productions
+	{
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		get
+		{
+			throw null;
+		}
+	}
+
+	public static MBReadOnlyList<WorkshopType> All
+	{
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		get
+		{
+			throw null;
+		}
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	internal static void AutoGeneratedStaticCollectObjectsWorkshopType(object o, List<object> collectedObjects)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	protected override void AutoGeneratedInstanceCollectObjects(List<object> collectedObjects)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public override TextObject GetName()
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public WorkshopType()
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public override string ToString()
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public override void Initialize()
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public override void Deserialize(MBObjectManager objectManager, XmlNode node)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public static WorkshopType Find(string idString)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public static WorkshopType FindFirst(Func<WorkshopType, bool> predicate)
+	{
+		throw null;
+	}
+}
