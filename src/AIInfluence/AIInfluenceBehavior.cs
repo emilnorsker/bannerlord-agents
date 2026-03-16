@@ -3262,6 +3262,15 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			}
 			aiResult.TechnicalAction = null;
 		}
+		if (aiResult.AllowsLettersFromNPC.HasValue && aiResult.AllowsLettersFromNPC.Value != context.AllowsLettersFromNPC)
+			context.AllowsLettersFromNPC = aiResult.AllowsLettersFromNPC.Value;
+		if (!string.IsNullOrEmpty(aiResult.RomanceIntent) && aiResult.RomanceIntent != "none")
+		{
+			context.LastRomanceInteractionDays = (int)CampaignTime.Now.ToDays;
+			context.RomanceLevel = Math.Min(100f, context.RomanceLevel + _random.Next(GlobalSettings<ModSettings>.Instance.MinRomanceChange, GlobalSettings<ModSettings>.Instance.MaxRomanceChange + 1) + (aiResult.RomanceIntent == "romance" ? 2 : 0));
+		}
+		if (!string.IsNullOrEmpty(aiResult.WorkshopAction) && aiResult.WorkshopAction.ToLower() == "sell")
+			ProcessWorkshopSale(npc, context, aiResult.WorkshopStringId, aiResult.WorkshopPrice);
 		if (aiResult.MoneyTransfer != null && aiResult.MoneyTransfer.Amount > 0)
 			ProcessMoneyTransfer(npc, context, aiResult.MoneyTransfer);
 		if (aiResult.ItemTransfers != null && aiResult.ItemTransfers.Count > 0)
