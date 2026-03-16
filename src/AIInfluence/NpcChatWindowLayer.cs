@@ -4,7 +4,6 @@ using AIInfluence.UI;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.ViewModelCollection;
 using TaleWorlds.Core.ImageIdentifiers;
-using TaleWorlds.Engine;
 using TaleWorlds.Engine.GauntletUI;
 using TaleWorlds.Library;
 using TaleWorlds.MountAndBlade;
@@ -16,10 +15,10 @@ public class NpcChatWindowLayer : GauntletLayer
 {
     private object _movie;
     private NpcChatWindowVM _viewModel;
-    private MatrixFrame? _savedCameraEntityFrame;
     /// <summary>
     /// Horizontal conversation-camera offset (scene units), tuned so the NPC
     /// appears centered inside the left chat panel in ChatInterface.xml.
+    /// Map conversations are handled by MapConversationCameraOffsetPatch instead.
     /// </summary>
     private const float ConversationCameraOffsetX = -18f;
 
@@ -42,7 +41,7 @@ public class NpcChatWindowLayer : GauntletLayer
         _viewModel = new NpcChatWindowVM(npc, context, onReturn);
         _movie = base.LoadMovie("ChatInterface", (ViewModel)(object)_viewModel);
         ((ScreenLayer)this).InputRestrictions.SetInputRestrictions(true, (InputUsageMask)7);
-        ApplyConversationCameraOffset(ConversationCameraOffsetX);
+        ApplyMissionCameraOffset(ConversationCameraOffsetX);
     }
 
     protected override void OnFinalize()
@@ -65,72 +64,21 @@ public class NpcChatWindowLayer : GauntletLayer
             _movie = null;
         }
         _viewModel = null;
-        ApplyConversationCameraOffset(0f);
+        ApplyMissionCameraOffset(0f);
         base.OnFinalize();
     }
 
-    private void ApplyConversationCameraOffset(float offsetX)
+    private static void ApplyMissionCameraOffset(float offsetX)
     {
         try
         {
-            if (Mission.Current != null)
-            {
-                Mission.Current.SetCustomCameraGlobalOffset(new Vec3(offsetX, 0f, 0f, -1f));
-                if (offsetX != 0f)
-                    InformationManager.DisplayMessage(new InformationMessage($"[NpcChatWindow] Mission camera offset: {offsetX}"));
-                return;
-            }
-
-            GameEntity cam = FindTableauCameraEntity();
-            if (cam == null)
-            {
-                if (offsetX != 0f)
-                    InformationManager.DisplayMessage(new InformationMessage("[NpcChatWindow] No Mission and no tableau camera entity found"));
-                return;
-            }
-
-            if (offsetX != 0f)
-            {
-                _savedCameraEntityFrame = cam.GetFrame();
-                MatrixFrame frame = _savedCameraEntityFrame.Value;
-                frame.origin.x += offsetX;
-                cam.SetFrame(ref frame);
-                InformationManager.DisplayMessage(new InformationMessage($"[NpcChatWindow] Tableau camera offset: {offsetX}"));
-            }
-            else if (_savedCameraEntityFrame.HasValue)
-            {
-                MatrixFrame frame = _savedCameraEntityFrame.Value;
-                cam.SetFrame(ref frame);
-                _savedCameraEntityFrame = null;
-            }
+            Mission mission = Mission.Current;
+            if (mission == null) return;
+            mission.SetCustomCameraGlobalOffset(new Vec3(offsetX, 0f, 0f, -1f));
         }
         catch (Exception ex)
         {
             InformationManager.DisplayMessage(new InformationMessage("[NpcChatWindow] Camera offset failed: " + ex.Message));
         }
-    }
-
-    private static GameEntity FindTableauCameraEntity()
-    {
-        try
-        {
-            object handler = Campaign.Current?.ConversationManager?.Handler;
-            if (handler == null) return null;
-
-            FieldInfo missionField = handler.GetType().GetField("ConversationMission",
-                BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy);
-            object convMission = missionField?.GetValue(handler);
-            if (convMission == null) return null;
-
-            PropertyInfo tableauProp = convMission.GetType().GetProperty("ConversationTableau",
-                BindingFlags.Instance | BindingFlags.Public);
-            object tableau = tableauProp?.GetValue(convMission);
-            if (tableau == null) return null;
-
-            FieldInfo camField = tableau.GetType().GetField("_cameraEntity",
-                BindingFlags.Instance | BindingFlags.NonPublic);
-            return camField?.GetValue(tableau) as GameEntity;
-        }
-        catch { return null; }
     }
 }
