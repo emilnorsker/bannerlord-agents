@@ -3144,12 +3144,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		context.LastDynamicResponse = reply;
 		context.AddMessage(npcName + ": " + reply);
 		SaveNPCContext(npcId, npc, context);
-		// Only run dialog-system side effects when a conversation is actually active
+		// Chat-window flow still needs decision handling for in-game actions;
+		// only the text variable update depends on an active conversation.
 		if (Campaign.Current?.ConversationManager != null)
-		{
-			try { MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", reply, false); } catch (Exception) { }
-			try { _decisionHandler.HandleAIDecision(context, npc, aiResult, playerMessage); } catch (Exception) { }
-		}
+			MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", reply, false);
+		_decisionHandler.HandleAIDecision(context, npc, aiResult, playerMessage);
 		return reply;
 	}
 
