@@ -6,6 +6,7 @@ using TaleWorlds.CampaignSystem.ViewModelCollection;
 using TaleWorlds.Core.ImageIdentifiers;
 using TaleWorlds.Engine.GauntletUI;
 using TaleWorlds.Library;
+using TaleWorlds.MountAndBlade;
 using TaleWorlds.ScreenSystem;
 
 namespace AIInfluence;
@@ -74,18 +75,40 @@ public class NpcChatWindowLayer : GauntletLayer
     {
         try
         {
-            if (screen == null) return;
-            foreach (string methodName in new[] { "SetConversationCameraOffsetX", "SetConversationCameraXOffset", "SetConversationSceneOffsetX" })
-            {
-                MethodInfo method = screen.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new[] { typeof(float) }, null);
-                if (method != null) { method.Invoke(screen, new object[] { offsetX }); return; }
-            }
+            string resolvedBy = null;
+            object[] targets = new object[] { screen, ScreenManager.TopScreen, Mission.Current, Campaign.Current?.ConversationManager };
+            foreach (object target in targets)
+                if (TryApplyOffsetOnTarget(target, offsetX, out resolvedBy, 2))
+                    return;
             if (offsetX != 0f)
-                InformationManager.DisplayMessage(new InformationMessage("[NpcChatWindow] Camera offset: no matching method found on " + screen.GetType().Name));
+                InformationManager.DisplayMessage(new InformationMessage("[NpcChatWindow] Camera offset: no matching method found on known targets"));
         }
         catch (Exception ex)
         {
             InformationManager.DisplayMessage(new InformationMessage("[NpcChatWindow] Camera offset failed: " + ex.Message));
         }
+    }
+
+    private static bool TryApplyOffsetOnTarget(object target, float offsetX, out string resolvedBy, int depth)
+    {
+        resolvedBy = null;
+        if (target == null || depth < 0) return false;
+        string[] methodNames = new[] { "SetConversationCameraOffsetX", "SetConversationCameraXOffset", "SetConversationSceneOffsetX", "SetConversationCameraOffset" };
+        foreach (string methodName in methodNames)
+        {
+            MethodInfo method = target.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new[] { typeof(float) }, null);
+            if (method != null)
+            {
+                method.Invoke(target, new object[] { offsetX });
+                resolvedBy = target.GetType().Name + "." + methodName;
+                if (offsetX != 0f)
+                    InformationManager.DisplayMessage(new InformationMessage("[NpcChatWindow] Camera offset applied via " + resolvedBy));
+                return true;
+            }
+        }
+        foreach (FieldInfo field in target.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+            if (!field.FieldType.IsPrimitive && field.FieldType != typeof(string) && TryApplyOffsetOnTarget(field.GetValue(target), offsetX, out resolvedBy, depth - 1))
+                return true;
+        return false;
     }
 }
