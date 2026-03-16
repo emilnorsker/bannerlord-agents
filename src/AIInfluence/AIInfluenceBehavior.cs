@@ -3151,6 +3151,15 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		if (Campaign.Current?.ConversationManager != null)
 			MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", reply, false);
 		_decisionHandler.HandleAIDecision(context, npc, aiResult, playerMessage);
+		if (!string.IsNullOrEmpty(aiResult.TechnicalAction) && !aiResult.TechnicalAction.Equals("none", StringComparison.OrdinalIgnoreCase))
+			foreach (string action in aiResult.TechnicalAction.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
+			{
+				string[] parts = action.Trim().Split(new[] { ':' }, 2);
+				string command = $"ACTION:{parts[0].Trim()}:{npcId}" + (parts.Length > 1 ? ":" + parts[1].Trim() : "");
+				AIActionManager.Instance?.ParseAndExecuteCommand(command);
+			}
+		if (string.Equals(aiResult.Decision, "attack", StringComparison.OrdinalIgnoreCase))
+			InitiateCombatLogic(npc, context);
 		return reply;
 	}
 
