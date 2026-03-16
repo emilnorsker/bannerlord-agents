@@ -20,6 +20,7 @@ public class NpcSpawnService
 		public Hero Hero { get; set; }
 		public MobileParty Party { get; set; }
 		public string Error { get; set; }
+		public string Warning { get; set; }
 		public bool Success => Error == null && (Hero != null || Party != null);
 	}
 
@@ -76,11 +77,15 @@ public class NpcSpawnService
 
 		MobileParty party = null;
 		bool wantsParty = !string.IsNullOrWhiteSpace(data.PartyName) || (data.PartySize.HasValue && data.PartySize.Value > 0);
+		string warning = null;
 		if (wantsParty)
 		{
 			party = SpawnLordParty(hero, data, settlement);
 			if (party == null)
-				_log("[NPC_SPAWN] Party creation failed; hero placed in settlement instead");
+			{
+				warning = "Party creation failed; hero placed in settlement instead";
+				_log("[NPC_SPAWN] " + warning);
+			}
 		}
 
 		if (party == null)
@@ -90,7 +95,7 @@ public class NpcSpawnService
 		}
 
 		InitializeNpcContext(hero, data);
-		return new SpawnResult { Hero = hero, Party = party };
+		return new SpawnResult { Hero = hero, Party = party, Warning = warning };
 	}
 
 	private SpawnResult SpawnSimpleParty(SpawnNpcData data)
