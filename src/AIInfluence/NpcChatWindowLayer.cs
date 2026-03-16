@@ -19,7 +19,7 @@ public class NpcChatWindowLayer : GauntletLayer
     /// Horizontal conversation-camera offset (scene units), tuned so the NPC
     /// appears centered inside the left chat panel in ChatInterface.xml.
     /// </summary>
-    private const float ConversationCameraOffsetX = -1.8f;
+    private const float ConversationCameraOffsetX = -18f;
 
     public NpcChatWindowLayer(Hero npc, NPCContext context, Action onReturn)
         : base("NpcChatWindowLayer", 300, false)
