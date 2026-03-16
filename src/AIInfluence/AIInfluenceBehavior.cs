@@ -3204,8 +3204,18 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] quest_action    = {(aiResult.QuestAction != null ? $"action={aiResult.QuestAction.Action}" : "null")}");
 		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] tone            = '{aiResult.Tone}'");
 		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] workshop_action = '{aiResult.WorkshopAction}'");
-		LogMessage("[DEBUG][CHAT_ACTION_AUDIT] NOTE: ProcessChatInput handles ONLY technical_action and decision=attack. All other fields are NEVER executed in the chat window path.");
-		LogMessage("[DEBUG][CHAT_ACTION_AUDIT] HandlePlayerInput (old dialog path) handles money_transfer, item_transfers, kingdom_action, tone, workshop, quest, etc. It is NOT called here.");
+		if (aiResult.Decision == "accept_marriage")
+		{
+			float delay = GlobalSettings<ModSettings>.Instance.DialogDelay;
+			GetDelayedTaskManager().AddTask(delay, delegate { try { MarriageSystem.AcceptMarriage(npc, Hero.MainHero, context); context.MarriageResponse = null; SaveNPCContext(npcId, npc, context); } catch (Exception ex4) { LogMessage("[ERROR] Marriage failed: " + ex4.Message); } });
+		}
+		else if (aiResult.Decision == "propose_marriage")
+			context.MarriageResponse = "pending_player_choice";
+		else if (aiResult.Decision == "reject_marriage")
+		{
+			context.RomanceLevel = Math.Max(0f, context.RomanceLevel - 10f);
+			InformationManager.DisplayMessage(new InformationMessage(((object)new TextObject("{=AIInfluence_MarriageRejected}{npcName} has rejected the marriage proposal.", new Dictionary<string, object> { { "npcName", npcName } })).ToString(), ExtraColors.RedAIInfluence));
+		}
 		if (!string.IsNullOrEmpty(aiResult.CharacterPersonality) && string.IsNullOrEmpty(context.AIGeneratedPersonality))
 			context.AIGeneratedPersonality = aiResult.CharacterPersonality.Trim();
 		if (!string.IsNullOrEmpty(aiResult.CharacterBackstory) && string.IsNullOrEmpty(context.AIGeneratedBackstory))
