@@ -35,11 +35,11 @@ public class NpcSpawnService
 		if (data == null)
 			return Fail("SpawnNpcData is null");
 
-		Settlement settlement = ResolveSettlement(data.SpawnNearSettlementId);
+		Settlement settlement = ResolveSettlement(data.Settlement);
 		if (settlement == null)
 			return Fail("Could not resolve a settlement for NPC spawn");
 
-		Clan clan = ResolveClan(data.ClanId, settlement);
+		Clan clan = ResolveClan(data.Faction, settlement);
 		if (clan == null)
 			return Fail("Could not resolve a clan for NPC spawn");
 
@@ -105,7 +105,7 @@ public class NpcSpawnService
 
 		int troopCount = Math.Max(0, Math.Min(data.PartySize ?? 0, 500));
 		if (troopCount > 0)
-			AddTroopsToParty(party, data.PartyTroopNames, troopCount, hero);
+			AddTroopsToParty(party, data.PartyTroops, troopCount, hero);
 
 		_log($"[NPC_SPAWN] Created party '{partyName}' (id:{party.StringId}) with {party.MemberRoster.TotalManCount} members");
 		return party;
@@ -162,15 +162,14 @@ public class NpcSpawnService
 			context.AIGeneratedPersonality = data.Personality;
 	}
 
-	private Settlement ResolveSettlement(string settlementId)
+	private Settlement ResolveSettlement(string settlementName)
 	{
-		if (!string.IsNullOrWhiteSpace(settlementId))
+		if (!string.IsNullOrWhiteSpace(settlementName))
 		{
-			Settlement match = Settlement.All?.FirstOrDefault(s =>
-				string.Equals(s.StringId, settlementId, StringComparison.OrdinalIgnoreCase));
+			Settlement match = FuzzyMatchSettlement(settlementName);
 			if (match != null)
 				return match;
-			_log($"[NPC_SPAWN] Settlement '{settlementId}' not found, falling back to nearest town");
+			_log($"[NPC_SPAWN] Settlement '{settlementName}' not found, falling back to nearest town");
 		}
 
 		Vec2 playerPos = MobileParty.MainParty?.GetPosition2D ?? default;
@@ -180,18 +179,63 @@ public class NpcSpawnService
 			.FirstOrDefault();
 	}
 
-	private Clan ResolveClan(string clanId, Settlement settlement)
+	private Settlement FuzzyMatchSettlement(string name)
 	{
-		if (!string.IsNullOrWhiteSpace(clanId))
+		string normalized = name.Trim().ToLowerInvariant();
+
+		Settlement exact = Settlement.All?.FirstOrDefault(s =>
+			s.Name != null && string.Equals(s.Name.ToString(), name, StringComparison.OrdinalIgnoreCase));
+		if (exact != null)
+			return exact;
+
+		Settlement contains = Settlement.All?.FirstOrDefault(s =>
+			s.Name != null && s.Name.ToString().ToLowerInvariant().Contains(normalized));
+		if (contains != null)
+			return contains;
+
+		Settlement idMatch = Settlement.All?.FirstOrDefault(s =>
+			s.StringId != null && s.StringId.ToLowerInvariant().Contains(normalized));
+		return idMatch;
+	}
+
+	private Clan ResolveClan(string factionName, Settlement settlement)
+	{
+		if (!string.IsNullOrWhiteSpace(factionName))
 		{
-			Clan match = Clan.All?.FirstOrDefault(c =>
-				string.Equals(c.StringId, clanId, StringComparison.OrdinalIgnoreCase));
+			Clan match = FuzzyMatchClan(factionName);
 			if (match != null)
 				return match;
-			_log($"[NPC_SPAWN] Clan '{clanId}' not found, falling back");
+			_log($"[NPC_SPAWN] Faction '{factionName}' not found, falling back to settlement owner");
 		}
 
 		return settlement.OwnerClan ?? Clan.PlayerClan;
+	}
+
+	private Clan FuzzyMatchClan(string name)
+	{
+		string normalized = name.Trim().ToLowerInvariant();
+
+		Clan exact = Clan.All?.FirstOrDefault(c =>
+			c.Name != null && string.Equals(c.Name.ToString(), name, StringComparison.OrdinalIgnoreCase));
+		if (exact != null)
+			return exact;
+
+		Kingdom kingdom = Kingdom.All?.FirstOrDefault(k =>
+			k.Name != null && string.Equals(k.Name.ToString(), name, StringComparison.OrdinalIgnoreCase));
+		if (kingdom != null)
+			return kingdom.RulingClan ?? kingdom.Clans?.FirstOrDefault();
+
+		Clan contains = Clan.All?.FirstOrDefault(c =>
+			c.Name != null && c.Name.ToString().ToLowerInvariant().Contains(normalized));
+		if (contains != null)
+			return contains;
+
+		Kingdom kingdomContains = Kingdom.All?.FirstOrDefault(k =>
+			k.Name != null && k.Name.ToString().ToLowerInvariant().Contains(normalized));
+		if (kingdomContains != null)
+			return kingdomContains.RulingClan ?? kingdomContains.Clans?.FirstOrDefault();
+
+		return null;
 	}
 
 	private CharacterObject ResolveTemplate(string cultureName, string occupationName, bool? isFemale, Settlement settlement)

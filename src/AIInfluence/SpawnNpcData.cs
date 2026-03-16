@@ -27,17 +27,17 @@ public class SpawnNpcData
 	[JsonProperty("personality")]
 	public string Personality { get; set; }
 
-	[JsonProperty("clan_id")]
-	public string ClanId { get; set; }
+	[JsonProperty("faction")]
+	public string Faction { get; set; }
 
-	[JsonProperty("spawn_near_settlement_id")]
-	public string SpawnNearSettlementId { get; set; }
+	[JsonProperty("settlement")]
+	public string Settlement { get; set; }
 
 	[JsonProperty("party_name")]
 	public string PartyName { get; set; }
 
-	[JsonProperty("party_troop_names")]
-	public List<string> PartyTroopNames { get; set; }
+	[JsonProperty("party_troops")]
+	public List<string> PartyTroops { get; set; }
 
 	[JsonProperty("party_size")]
 	public int? PartySize { get; set; }
