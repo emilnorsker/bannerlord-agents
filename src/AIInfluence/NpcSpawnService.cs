@@ -20,7 +20,7 @@ public class NpcSpawnService
 		public Hero Hero { get; set; }
 		public MobileParty Party { get; set; }
 		public string Error { get; set; }
-		public bool Success => Hero != null && Error == null;
+		public bool Success => Error == null && (Hero != null || Party != null);
 	}
 
 	private readonly Action<string> _log;
@@ -30,11 +30,25 @@ public class NpcSpawnService
 		_log = log ?? (_ => { });
 	}
 
-	public SpawnResult SpawnNpc(SpawnNpcData data)
+	public SpawnResult Spawn(SpawnNpcData data)
 	{
 		if (data == null)
 			return Fail("SpawnNpcData is null");
 
+		bool hasName = !string.IsNullOrWhiteSpace(data.Name);
+		bool wantsParty = !string.IsNullOrWhiteSpace(data.PartyName) || (data.PartySize.HasValue && data.PartySize.Value > 0);
+
+		if (!hasName && wantsParty)
+			return SpawnSimpleParty(data);
+
+		if (!hasName)
+			return Fail("NPC spawn requires a name, or party fields for a simple party");
+
+		return SpawnNpcHero(data);
+	}
+
+	private SpawnResult SpawnNpcHero(SpawnNpcData data)
+	{
 		Settlement settlement = ResolveSettlement(data.Settlement);
 		if (settlement == null)
 			return Fail("Could not resolve a settlement for NPC spawn");
@@ -52,11 +66,8 @@ public class NpcSpawnService
 		if (hero == null)
 			return Fail("HeroCreator.CreateSpecialHero returned null");
 
-		if (!string.IsNullOrWhiteSpace(data.Name))
-		{
-			TextObject nameText = new TextObject(data.Name, null);
-			hero.SetName(nameText, nameText);
-		}
+		TextObject nameText = new TextObject(data.Name, null);
+		hero.SetName(nameText, nameText);
 
 		if (data.IsFemale.HasValue)
 			hero.IsFemale = data.IsFemale.Value;
@@ -64,24 +75,52 @@ public class NpcSpawnService
 		_log($"[NPC_SPAWN] Created hero '{hero.Name}' (id:{hero.StringId}) clan:{clan.Name} settlement:{settlement.Name}");
 
 		MobileParty party = null;
-		if (!string.IsNullOrWhiteSpace(data.PartyName) || (data.PartySize.HasValue && data.PartySize.Value > 0))
+		bool wantsParty = !string.IsNullOrWhiteSpace(data.PartyName) || (data.PartySize.HasValue && data.PartySize.Value > 0);
+		if (wantsParty)
 		{
-			party = SpawnPartyForHero(hero, data, settlement);
+			party = SpawnLordParty(hero, data, settlement);
 			if (party == null)
-				_log("[NPC_SPAWN] Party creation failed; hero was created without a party");
+				_log("[NPC_SPAWN] Party creation failed; hero placed in settlement instead");
 		}
-		else
+
+		if (party == null)
 		{
 			EnterSettlementAction.ApplyForCharacterOnly(hero, settlement);
 			_log($"[NPC_SPAWN] Placed hero '{hero.Name}' in settlement '{settlement.Name}'");
 		}
 
 		InitializeNpcContext(hero, data);
-
 		return new SpawnResult { Hero = hero, Party = party };
 	}
 
-	private MobileParty SpawnPartyForHero(Hero hero, SpawnNpcData data, Settlement homeSettlement)
+	private SpawnResult SpawnSimpleParty(SpawnNpcData data)
+	{
+		Settlement settlement = ResolveSettlement(data.Settlement);
+		if (settlement == null)
+			return Fail("Could not resolve a settlement for simple party");
+
+		Clan clan = ResolveClan(data.Alignment, data.Faction, settlement);
+		if (clan == null)
+			return Fail("Could not resolve a clan for simple party");
+
+		int troopCount = Math.Max(5, Math.Min(data.PartySize ?? 10, 500));
+		string partyName = data.PartyName ?? clan.Name?.ToString() ?? "War Party";
+		Vec2 position = settlement.GetPosition2D;
+
+		MobileParty party;
+		if (clan.IsBanditFaction)
+			party = SpawnBanditParty(clan, position, partyName, data.PartyTroops, troopCount);
+		else
+			party = SpawnFactionParty(clan, settlement, position, partyName, data.PartyTroops, troopCount);
+
+		if (party == null)
+			return Fail("Failed to create simple party");
+
+		_log($"[NPC_SPAWN] Created simple {(clan.IsBanditFaction ? "bandit" : "faction")} party '{partyName}' (id:{party.StringId}) clan:{clan.Name} troops:{party.MemberRoster.TotalManCount}");
+		return new SpawnResult { Party = party };
+	}
+
+	private MobileParty SpawnLordParty(Hero hero, SpawnNpcData data, Settlement homeSettlement)
 	{
 		string partyName = data.PartyName ?? $"{hero.Name}'s Party";
 		Vec2 position = homeSettlement.GetPosition2D;
@@ -105,13 +144,72 @@ public class NpcSpawnService
 
 		int troopCount = Math.Max(0, Math.Min(data.PartySize ?? 0, 500));
 		if (troopCount > 0)
-			AddTroopsToParty(party, data.PartyTroops, troopCount, hero);
+			AddTroopsToParty(party, data.PartyTroops, troopCount, hero.Culture);
 
-		_log($"[NPC_SPAWN] Created party '{partyName}' (id:{party.StringId}) with {party.MemberRoster.TotalManCount} members");
 		return party;
 	}
 
-	private void AddTroopsToParty(MobileParty party, List<string> troopNames, int totalCount, Hero leader)
+	private MobileParty SpawnBanditParty(Clan banditClan, Vec2 position, string partyName, List<string> troopNames, int troopCount)
+	{
+		Hideout hideout = Settlement.All?
+			.Where(s => s.IsHideout && s.Hideout != null)
+			.OrderBy(s => s.GetPosition2D.Distance(position))
+			.Select(s => s.Hideout)
+			.FirstOrDefault();
+
+		if (hideout == null)
+		{
+			_log("[NPC_SPAWN] No hideout found on map for bandit party");
+			return null;
+		}
+
+		MobileParty party = BanditPartyComponent.CreateBanditParty(
+			"aiinfluence_bandit_" + MBRandom.RandomInt(100000),
+			banditClan,
+			hideout,
+			false,
+			null,
+			new CampaignVec2(position, true)
+		);
+
+		if (party == null)
+		{
+			_log("[NPC_SPAWN] BanditPartyComponent.CreateBanditParty returned null");
+			return null;
+		}
+
+		party.Party.SetCustomName(new TextObject(partyName, null));
+		AddTroopsToParty(party, troopNames, troopCount, banditClan.Culture);
+		return party;
+	}
+
+	private MobileParty SpawnFactionParty(Clan clan, Settlement homeSettlement, Vec2 position, string partyName, List<string> troopNames, int troopCount)
+	{
+		TroopRoster memberRoster = new TroopRoster((PartyBase)null);
+		TroopRoster prisonerRoster = new TroopRoster((PartyBase)null);
+
+		MobileParty party = CustomPartyComponent.CreateCustomPartyWithTroopRoster(
+			new CampaignVec2(position, true),
+			2f,
+			homeSettlement,
+			new TextObject(partyName, null),
+			clan,
+			memberRoster,
+			prisonerRoster,
+			clan.Leader ?? Hero.MainHero
+		);
+
+		if (party == null)
+		{
+			_log("[NPC_SPAWN] CustomPartyComponent.CreateCustomPartyWithTroopRoster returned null");
+			return null;
+		}
+
+		AddTroopsToParty(party, troopNames, troopCount, clan.Culture);
+		return party;
+	}
+
+	private void AddTroopsToParty(MobileParty party, List<string> troopNames, int totalCount, CultureObject fallbackCulture)
 	{
 		List<CharacterObject> resolved = new List<CharacterObject>();
 		if (troopNames != null)
@@ -126,12 +224,12 @@ public class NpcSpawnService
 			}
 		}
 
-		if (resolved.Count == 0 && leader.Culture?.BasicTroop != null)
-			resolved.Add(leader.Culture.BasicTroop);
+		if (resolved.Count == 0 && fallbackCulture?.BasicTroop != null)
+			resolved.Add(fallbackCulture.BasicTroop);
 
 		if (resolved.Count == 0)
 		{
-			_log("[NPC_SPAWN] No troop types resolved; party will have leader only");
+			_log("[NPC_SPAWN] No troop types resolved");
 			return;
 		}
 
