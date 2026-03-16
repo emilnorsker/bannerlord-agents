@@ -1,6 +1,7 @@
 using System;
 using System.Reflection;
 using HarmonyLib;
+using TaleWorlds.Core;
 using TaleWorlds.Engine;
 using TaleWorlds.Library;
 
@@ -44,6 +45,9 @@ public static class MapConversationCameraOffsetPatch
             frame.origin.x += OffsetX;
             cam.Frame = frame;
         }
-        catch { }
+        catch (Exception ex)
+        {
+            InformationManager.DisplayMessage(new InformationMessage("[NpcChatWindow] Tableau camera patch failed: " + ex.Message));
+        }
     }
 }
