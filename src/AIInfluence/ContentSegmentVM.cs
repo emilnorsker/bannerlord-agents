@@ -13,6 +13,7 @@ public class ContentSegmentVM : ViewModel
     [DataSourceProperty] public string BackColor { get; set; } = "#00000000";
     [DataSourceProperty] public bool IsPill      { get; set; } = false;
     [DataSourceProperty] public bool IsBody      => !IsPill;
+    // Note: IsPill/IsBody are set only in the constructor — do not mutate after construction.
 
     public ContentSegmentVM(string text, string textColor, string backColor, bool isPill = false)
     {
