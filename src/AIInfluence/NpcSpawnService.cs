@@ -409,10 +409,11 @@ public class NpcSpawnService
 		CharacterObject template = Campaign.Current?.Models?.HeroCreationModel
 			?.GetRandomTemplateByOccupation(occupation, settlement);
 
-		if (template != null && culture != null && template.Culture != culture)
+		bool needsCulturalMatch = culture != null && (template == null || template.Culture != culture);
+		if (needsCulturalMatch)
 		{
 			CharacterObject culturalMatch = CharacterObject.All?
-				.Where(c => c.Occupation == occupation && c.Culture == culture
+				.Where(c => !c.IsHero && c.Occupation == occupation && c.Culture == culture
 					&& (!isFemale.HasValue || c.IsFemale == isFemale.Value))
 				.OrderBy(_ => MBRandom.RandomFloat)
 				.FirstOrDefault();
