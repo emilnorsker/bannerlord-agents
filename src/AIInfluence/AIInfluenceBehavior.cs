@@ -3256,6 +3256,16 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			ProcessItemTransfers(npc, context, aiResult.ItemTransfers);
 		if (!string.IsNullOrEmpty(aiResult.KingdomAction) && !aiResult.KingdomAction.Equals("none", StringComparison.OrdinalIgnoreCase))
 			ProcessKingdomAction(npc, aiResult, context);
+		if (aiResult.Tone == "positive")
+		{
+			int rel = _random.Next(GlobalSettings<ModSettings>.Instance.MinPositiveRelationChange, GlobalSettings<ModSettings>.Instance.MaxPositiveRelationChange + 1);
+			ApplyRelationChangeWithDelay(npc, rel, ExtraColors.GreenAIInfluence, ((object)new TextObject("{=AIInfluence_RelationImproved}Your relations with {npcName} have improved due to your friendly tone.", new Dictionary<string, object> { { "npcName", npcName } })).ToString());
+		}
+		else if (aiResult.Tone == "negative")
+		{
+			int rel2 = _random.Next(GlobalSettings<ModSettings>.Instance.MinNegativeRelationChange, GlobalSettings<ModSettings>.Instance.MaxNegativeRelationChange + 1);
+			ApplyRelationChangeWithDelay(npc, -rel2, ExtraColors.RedAIInfluence, ((object)new TextObject("{=AIInfluence_RelationWorsened}Your relations with {npcName} have worsened due to your aggressive tone.", new Dictionary<string, object> { { "npcName", npcName } })).ToString());
+		}
 		if (context.PendingRelationChange != null)
 		{
 			ApplyRelationChangeWithDelay(npc, context.PendingRelationChange.RelationChange, context.PendingRelationChange.Color, context.PendingRelationChange.Message);
