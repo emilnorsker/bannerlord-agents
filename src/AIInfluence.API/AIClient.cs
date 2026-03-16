@@ -145,7 +145,12 @@ public static class AIClient
 			HttpResponseMessage response = await httpClient.PostAsync("https://openrouter.ai/api/v1/chat/completions", (HttpContent)(object)content);
 			response.EnsureSuccessStatusCode();
 			dynamic responseObject = JsonConvert.DeserializeObject<object>(await response.Content.ReadAsStringAsync());
-			return responseObject.choices[0].message.content.ToString();
+			string text = responseObject.choices[0].message.content.ToString();
+			if (!string.IsNullOrWhiteSpace(text) && !text.TrimStart().StartsWith("{", StringComparison.Ordinal))
+			{
+				LogWarning("OpenRouter returned non-JSON content while json_object format was requested.");
+			}
+			return text;
 		}
 		catch (Exception ex)
 		{

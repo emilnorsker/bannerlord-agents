@@ -247,21 +247,38 @@ public class NpcChatWindowVM : ViewModel
                 // Wrap to prevent a threading exception from leaking past the finally block.
                 try
                 {
-                    var npcItem = ParseLine($"{npcName}: {reply}", tone);
-                    string actionText = BuildActionText(pendingResponse);
-                    if (!string.IsNullOrEmpty(actionText))
-                        npcItem.ContentSegments.Add(new ContentSegmentVM(actionText, ActionColor, "#00000000"));
-                    MessageList.Add(npcItem);
+                    await RunOnMainThread(() =>
+                    {
+                        var npcItem = ParseLine($"{npcName}: {reply}", tone);
+                        string actionText = BuildActionText(pendingResponse);
+                        if (!string.IsNullOrEmpty(actionText))
+                            npcItem.ContentSegments.Add(new ContentSegmentVM(actionText, ActionColor, "#00000000"));
+                        MessageList.Add(npcItem);
+                    });
                 }
                 catch (Exception) { }
             }
         }
         finally
         {
-            _isSending = false;
-            ((ViewModel)this).OnPropertyChangedWithValue(true, "IsSendEnabled");
+            await RunOnMainThread(() =>
+            {
+                _isSending = false;
+                ((ViewModel)this).OnPropertyChangedWithValue(true, "IsSendEnabled");
+            });
         }
     }
 
     public void ExecuteReturn() => _onReturn?.Invoke();
+
+    private static Task RunOnMainThread(Action action)
+    {
+        TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
+        AIInfluence.Services.TtsLipSyncService.MainThreadQueue.Enqueue(delegate
+        {
+            try { action(); tcs.TrySetResult(true); }
+            catch (Exception ex) { tcs.TrySetException(ex); }
+        });
+        return tcs.Task;
+    }
 }

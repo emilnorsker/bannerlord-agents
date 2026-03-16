@@ -477,7 +477,7 @@ public static class JsonCleaner
 		if (match.Success)
 		{
 			string value = match.Groups[1].Value;
-			return value.Replace("\\\"", "\"");
+			return DecodeJsonStringValue(value);
 		}
 		if (!string.IsNullOrEmpty(npcName) && input.Contains(npcName + ":"))
 		{
@@ -494,6 +494,18 @@ public static class JsonCleaner
 			return input;
 		}
 		return "I have nothing to say right now.";
+	}
+
+	private static string DecodeJsonStringValue(string value)
+	{
+		try
+		{
+			return JsonConvert.DeserializeObject<string>("\"" + value + "\"") ?? value;
+		}
+		catch
+		{
+			return value.Replace("\\\"", "\"");
+		}
 	}
 
 	public static bool IsValidJson(string json)
