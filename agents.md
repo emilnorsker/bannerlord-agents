@@ -198,9 +198,25 @@ Bannerlord can run on Linux via Steam's Proton compatibility layer. This require
 - Builds the mod in Release mode
 - Copies DLL + assets into `~/.local/share/Steam/steamapps/common/Mount & Blade II Bannerlord/Modules/AIInfluence/`
 
-**Launch** (`~/launch_bannerlord.sh`):
-- Sets `STEAM_COMPAT_DATA_PATH`, `SteamAppId=261550`
-- Runs `Bannerlord.exe` through `proton run`
+**Launch**:
+```bash
+STEAM_DIR="$HOME/.local/share/Steam"
+GAME_DIR="$STEAM_DIR/steamapps/common/Mount & Blade II Bannerlord"
+PROTON_DIR="$STEAM_DIR/steamapps/common/Proton - Experimental"
+COMPAT_DIR="$STEAM_DIR/steamapps/compatdata/261550"
+
+export STEAM_COMPAT_CLIENT_INSTALL_PATH="$STEAM_DIR"
+export STEAM_COMPAT_DATA_PATH="$COMPAT_DIR"
+export SteamAppId=261550 SteamGameId=261550
+export PROTON_USE_WINED3D=1 PROTON_NO_D3D12=1
+export MESA_GL_VERSION_OVERRIDE=4.6
+export VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/lvp_icd.json
+
+cd "$GAME_DIR/bin/Win64_Shipping_Client"
+"$PROTON_DIR/proton" run ./Bannerlord.exe
+```
+
+**Important**: Use `PROTON_USE_WINED3D=1` (OpenGL path) instead of DXVK (Vulkan). The Cloud Agent VM has no GPU and no DRM devices (`/dev/dri/`), so Vulkan X11 surfaces don't work. WineD3D uses OpenGL via llvmpipe (software), which lets the game initialize and load modules. The game will crash in `TaleWorlds.Native.dll` during graphics init — that's expected on a VM without GPU. It is NOT a mod issue.
 
 Steam Guard / 2FA may require interactive login the first time. Use the Desktop pane to complete that step if needed.
 
@@ -210,5 +226,5 @@ Steam Guard / 2FA may require interactive login the first time. Use the Desktop 
 - `DOTNET_ROOT` and `PATH` must include `$HOME/.dotnet` — the update script exports these, and they are also persisted in `~/.bashrc`.
 - The project targets `net472` but the Bannerlord SDK cross-compiles to `netstandard2.0` on Linux. Both `Debug` and `Release` configs produce `src/bin/{config}/netstandard2.0/AIInfluence.dll`.
 - steamcmd and i386 libraries are installed system-wide. The update script does NOT re-install these (they persist in the VM snapshot).
-- Bannerlord download is ~30GB. First install takes significant time.
-- The game runs headless on Xvfb (:1) — use the Desktop pane to interact with the GUI.
+- Bannerlord download is ~96GB. First install takes significant time. steamcmd may report error `0x204/0x212` but files download correctly — may need to manually copy from `steamapps/downloading/261550/` to `steamapps/common/Mount & Blade II Bannerlord/`.
+- The VM display is Xorg :1 with llvmpipe (software OpenGL). No hardware GPU, no Vulkan surfaces, no DRI3. Steam client UI doesn't render (needs Vulkan). Use steamcmd for game management.
