@@ -3106,15 +3106,15 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			return "";
 		}
 		string value = match.Groups["text"].Value;
+		string text = "\"" + value + "\"";
 		try
 		{
-			return Regex.Unescape(value).Replace("\\/", "/");
+			return JsonConvert.DeserializeObject<string>(text) ?? "";
 		}
 		catch (Exception ex)
 		{
-			Instance?.LogMessage("[ChatWindow] Failed to unescape streaming text: " + ex.Message);
-			return value.Replace("\\n", "\n").Replace("\\r", "\r").Replace("\\t", "\t").Replace("\\\"", "\"").Replace("\\\\", "\\")
-				.Replace("\\/", "/");
+			Instance?.LogMessage("[ChatWindow] JSON unescape failed for partial stream chunk: " + ex.Message);
+			return value.Replace("\\/", "/").Replace("\\n", "\n").Replace("\\r", "\r").Replace("\\t", "\t").Replace("\\\"", "\"");
 		}
 	}
 
@@ -3154,6 +3154,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			try
 			{
+				if (attempt > 1)
+					onPartialResponse?.Invoke("");
 				aiResponse = await AIClient.GetAIResponse(npcName, faction, prompt + "\nPlayer: " + playerMessage, streamCallback);
 				if (!string.IsNullOrEmpty(aiResponse) && !aiResponse.StartsWith("Error:"))
 					break;

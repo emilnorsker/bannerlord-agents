@@ -186,7 +186,12 @@ public static class AIClient
 						onOpenRouterStreamUpdate(stringBuilder.ToString());
 					}
 				}
-				return stringBuilder.ToString();
+				string text5 = stringBuilder.ToString();
+				if (!text5.TrimStart(Array.Empty<char>()).StartsWith("{", StringComparison.Ordinal))
+				{
+					LogWarning("OpenRouter streaming completed without JSON object output. Model may not support response_format=json_object with streaming.");
+				}
+				return text5;
 			}
 			dynamic responseObject = JsonConvert.DeserializeObject<object>(await response.Content.ReadAsStringAsync());
 			return responseObject.choices[0].message.content.ToString();

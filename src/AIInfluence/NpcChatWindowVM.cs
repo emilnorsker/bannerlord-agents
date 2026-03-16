@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AIInfluence.DynamicEvents;
+using AIInfluence.Services;
 using MCM.Abstractions.Base.Global;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.Library;
@@ -257,7 +258,11 @@ public class NpcChatWindowVM : ViewModel
                 streamingItem.ContentSegments.Add(streamingSegment);
                 MessageList.Add(streamingItem);
             }
-            string reply = await AIInfluenceBehavior.Instance.ProcessChatInput(_npc, message, partial => { if (streamingSegment != null && !string.IsNullOrEmpty(partial)) streamingSegment.Text = partial; });
+            string reply = await AIInfluenceBehavior.Instance.ProcessChatInput(_npc, message, partial =>
+            {
+                if (streamingSegment != null)
+                    TtsLipSyncService.MainThreadQueue.Enqueue(() => streamingSegment.Text = partial ?? "");
+            });
             if (!string.IsNullOrEmpty(reply))
             {
                 // Call GetOrCreateNPCContext once — avoids two off-thread calls and a
