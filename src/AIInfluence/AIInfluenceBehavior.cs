@@ -1354,6 +1354,14 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				CleanupSpawnedQuestNotable(questInfo, "party faction mid-settlement invalid");
 				return;
 			}
+			if (party.ActualClan == null || ((MBObjectBase)party.ActualClan).StringId != ((MBObjectBase)aiPartyClan).StringId)
+			{
+				LogMessage($"[QUEST] Spawned hostile party '{((MBObjectBase)party).StringId}' has mismatched actual clan; destroying to avoid unstable AI state");
+				DestroyPartyAction.Apply((PartyBase)null, party);
+				questInfo.SpawnedPartyId = null;
+				CleanupSpawnedQuestNotable(questInfo, "party actual clan invalid");
+				return;
+			}
 			bool partySetupOk = false;
 			try
 			{
@@ -1533,24 +1541,28 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		Clan preconfiguredClan = Clan.All?.FirstOrDefault((Clan c) => c != null && string.Equals(((MBObjectBase)c).StringId, preconfiguredQuestDriverClanId, StringComparison.OrdinalIgnoreCase));
 		if (preconfiguredClan != null)
 		{
-			if (!preconfiguredClan.IsBanditFaction && preconfiguredClan.MapFaction != null && preconfiguredClan.FactionMidSettlement != null)
+			if (IsValidQuestAiDriverClan(preconfiguredClan, out var preconfiguredInvalidReason))
 			{
 				return preconfiguredClan;
 			}
-			LogMessage($"[QUEST] Preconfigured AI driver clan '{preconfiguredQuestDriverClanId}' is invalid (bandit/mapfaction/midsettlement)");
+			LogMessage($"[QUEST] Preconfigured AI driver clan '{preconfiguredQuestDriverClanId}' is invalid: {preconfiguredInvalidReason}");
 			return null;
 		}
 		Clan ownerClan = preferredBanditClan?.FactionMidSettlement?.OwnerClan;
 		IFaction playerFaction = Hero.MainHero?.MapFaction;
-		if (ownerClan != null && ownerClan.MapFaction != null && ownerClan.FactionMidSettlement != null && !ownerClan.IsBanditFaction)
+		if (ownerClan != null && IsValidQuestAiDriverClan(ownerClan, out var ownerClanInvalidReason))
 		{
 			if (playerFaction != null && ownerClan.MapFaction.IsAtWarWith(playerFaction))
 			{
 				return ownerClan;
 			}
 		}
+		else if (ownerClan != null)
+		{
+			LogQuestScenarioVerbose($"ResolveQuestPartyAiDriverClan rejected owner clan '{((MBObjectBase)ownerClan).StringId}' reason={ownerClanInvalidReason}");
+		}
 		List<Clan> candidates = Clan.All?
-			.Where((Clan c) => c != null && !c.IsBanditFaction && !c.IsEliminated && c.MapFaction != null && c.FactionMidSettlement != null)
+			.Where((Clan c) => c != null && !c.IsBanditFaction && !c.IsEliminated && c.MapFaction != null && c.FactionMidSettlement != null && c.MapFaction.FactionMidSettlement != null && c.Leader != null && c.Leader.IsAlive)
 			.ToList() ?? new List<Clan>();
 		Clan warCandidate = candidates
 			.Where((Clan c) => playerFaction != null && c.MapFaction.IsAtWarWith(playerFaction))
@@ -1561,6 +1573,47 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			return warCandidate;
 		}
 		return null;
+	}
+
+	private bool IsValidQuestAiDriverClan(Clan clan, out string reason)
+	{
+		if (clan == null)
+		{
+			reason = "null_clan";
+			return false;
+		}
+		if (clan.IsBanditFaction)
+		{
+			reason = "bandit_clan";
+			return false;
+		}
+		if (clan.IsEliminated)
+		{
+			reason = "eliminated_clan";
+			return false;
+		}
+		if (clan.MapFaction == null)
+		{
+			reason = "null_map_faction";
+			return false;
+		}
+		if (clan.FactionMidSettlement == null)
+		{
+			reason = "null_clan_mid_settlement";
+			return false;
+		}
+		if (clan.MapFaction.FactionMidSettlement == null)
+		{
+			reason = "null_map_faction_mid_settlement";
+			return false;
+		}
+		if (clan.Leader == null || !clan.Leader.IsAlive)
+		{
+			reason = "invalid_clan_leader";
+			return false;
+		}
+		reason = "ok";
+		return true;
 	}
 
 	private Clan ResolveHostileBanditClan(QuestActionData questAction, List<CharacterObject> compositionTroops, List<Clan> banditClans)
