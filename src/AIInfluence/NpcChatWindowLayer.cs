@@ -18,13 +18,15 @@ public class NpcChatWindowLayer : GauntletLayer
     /// <summary>
     /// Horizontal conversation-camera offset (scene units), tuned so the NPC
     /// appears centered inside the left chat panel in ChatInterface.xml.
-    /// Map conversations are handled by MapConversationCameraOffsetPatch instead.
+    /// Only applies to in-mission conversations; map conversations use a
+    /// separate tableau camera and require a per-frame Harmony postfix.
     /// </summary>
     private const float ConversationCameraOffsetX = -18f;
 
     public NpcChatWindowLayer(Hero npc, NPCContext context, Action onReturn)
         : base("NpcChatWindowLayer", 300, false)
     {
+        // Must be set before LoadMovie so AIInfluencePortraitWidget reads it on activation
         try
         {
             if (npc?.CharacterObject != null)

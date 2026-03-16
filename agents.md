@@ -6,6 +6,12 @@ This mod targets **Bannerlord v1.3.x**. Do not reference or worry about v1.0–v
 
 ---
 
+## Code Change Discipline
+
+Always consider the consequences of a given code change even if it is just a single line. Removing a comment, reordering a statement, or deleting a field can break non-obvious invariants (e.g. ordering dependencies, cleanup symmetry). Read the surrounding context before touching anything.
+
+---
+
 ## Bannerlord API Verification Protocol
 
 **Every Bannerlord API call in new code MUST be verified against the official v1.3.4 docs before committing.**
