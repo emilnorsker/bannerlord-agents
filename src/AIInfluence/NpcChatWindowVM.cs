@@ -55,6 +55,8 @@ public class NpcChatWindowVM : ViewModel
     // ── Right panel – flat list, section headers included as items ────────
     [DataSourceProperty] public MBBindingList<TextItemVM> RightPanelItems { get; } = new MBBindingList<TextItemVM>();
 
+    private void AddNewestMessage(ChatMessageItemVM item) => MessageList.Insert(0, item);
+
     public NpcChatWindowVM(Hero npc, NPCContext context, Action onReturn)
     {
         _npc = npc;
@@ -91,7 +93,7 @@ public class NpcChatWindowVM : ViewModel
         var history = context.ConversationHistory;
         int skip = Math.Max(0, history.Count - 10);
         foreach (string line in history.Skip(skip))
-            MessageList.Add(ParseLine(line));
+            AddNewestMessage(ParseLine(line));
     }
 
     private void PopulateRightPanel(Hero npc, NPCContext context)
@@ -256,7 +258,7 @@ public class NpcChatWindowVM : ViewModel
 
         try
         {
-            MessageList.Add(ParseLine($"{playerName}: {message}"));
+            AddNewestMessage(ParseLine($"{playerName}: {message}"));
 
             if (AIInfluenceBehavior.Instance == null) return;
             string npcName = ((object)_npc?.Name)?.ToString() ?? "NPC";
@@ -271,7 +273,7 @@ public class NpcChatWindowVM : ViewModel
             {
                 streamingItem = ParseLine($"{npcName}: ", "");
                 streamingItem.ContentSegments.Add(new ContentSegmentVM("", SpeechTextColor, NpcBubbleColor));
-                MessageList.Add(streamingItem);
+                AddNewestMessage(streamingItem);
                 streamPumpStep = () =>
                 {
                     if (streamingRetired || streamingItem == null)
@@ -340,7 +342,7 @@ public class NpcChatWindowVM : ViewModel
                     string actionText = BuildActionText(pendingResponse);
                     if (!string.IsNullOrEmpty(actionText))
                         npcItem.ContentSegments.Add(new ContentSegmentVM(actionText, ActionColor, ActionBubbleColor, true));
-                    MessageList.Add(npcItem);
+                    AddNewestMessage(npcItem);
                 }
                 catch (Exception) { }
             }
