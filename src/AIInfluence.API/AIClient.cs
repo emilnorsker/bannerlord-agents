@@ -199,7 +199,7 @@ public static class AIClient
 								TtsLipSyncService.MainThreadQueue.Enqueue(() => InformationManager.DisplayMessage(new InformationMessage("[LLM STREAM] " + batchedChunk)));
 							}
 						}
-						onOpenRouterStreamUpdate(stringBuilder.ToString());
+						onOpenRouterStreamUpdate(text4);
 					}
 				}
 				if (debugStreamBuffer != null && debugStreamBuffer.Length > 0)

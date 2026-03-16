@@ -212,6 +212,18 @@ public class NpcChatWindowVM : ViewModel
         return item;
     }
 
+    private void ReplaceStreamingSegments(ChatMessageItemVM targetItem, string npcName, string partialText)
+    {
+        if (targetItem == null) return;
+        var parsed = ParseLine($"{npcName}: {partialText ?? ""}", "");
+        while (targetItem.ContentSegments.Count > 0)
+            targetItem.ContentSegments.RemoveAt(targetItem.ContentSegments.Count - 1);
+        foreach (var segment in parsed.ContentSegments)
+            targetItem.ContentSegments.Add(segment);
+        if (targetItem.ContentSegments.Count == 0)
+            targetItem.ContentSegments.Add(new ContentSegmentVM("", SpeechTextColor, NpcBubbleColor));
+    }
+
     private static string BuildActionText(AIResponse r)
     {
         if (r == null) return "";
@@ -250,21 +262,19 @@ public class NpcChatWindowVM : ViewModel
             string npcName = ((object)_npc?.Name)?.ToString() ?? "NPC";
             bool useOpenRouterStreaming = string.Equals(GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue, "OpenRouter", StringComparison.Ordinal);
             ChatMessageItemVM streamingItem = null;
-            ContentSegmentVM streamingSegment = null;
             bool streamingRetired = false;
             if (useOpenRouterStreaming)
             {
                 streamingItem = ParseLine($"{npcName}: ", "");
-                streamingSegment = new ContentSegmentVM("", SpeechTextColor, NpcBubbleColor);
-                streamingItem.ContentSegments.Add(streamingSegment);
+                streamingItem.ContentSegments.Add(new ContentSegmentVM("", SpeechTextColor, NpcBubbleColor));
                 MessageList.Add(streamingItem);
             }
             string reply = await AIInfluenceBehavior.Instance.ProcessChatInput(_npc, message, partial =>
             {
                 TtsLipSyncService.MainThreadQueue.Enqueue(() =>
                 {
-                    if (!streamingRetired && streamingSegment != null)
-                        streamingSegment.Text = partial ?? "";
+                    if (!streamingRetired && streamingItem != null)
+                        ReplaceStreamingSegments(streamingItem, npcName, partial ?? "");
                 });
             });
             if (!string.IsNullOrEmpty(reply))
@@ -282,7 +292,6 @@ public class NpcChatWindowVM : ViewModel
                 try
                 {
                     streamingRetired = true;
-                    streamingSegment = null;
                     if (streamingItem != null)
                         MessageList.Remove(streamingItem);
                     var npcItem = ParseLine($"{npcName}: {reply}", tone);
@@ -296,7 +305,6 @@ public class NpcChatWindowVM : ViewModel
             else if (streamingItem != null)
             {
                 streamingRetired = true;
-                streamingSegment = null;
                 MessageList.Remove(streamingItem);
             }
         }

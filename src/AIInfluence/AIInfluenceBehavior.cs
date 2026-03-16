@@ -3143,11 +3143,15 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		context.PendingRelationChange = null;
 		context.PendingLiePenalty = null;
 		string prompt = PromptGenerator.GeneratePrompt(npc, context);
-		Action<string> streamCallback = (onPartialResponse == null) ? null : (Action<string>)delegate(string partialJson)
+		StringBuilder streamJsonBuilder = (onPartialResponse == null) ? null : new StringBuilder();
+		string lastStreamPreview = "";
+		Action<string> streamCallback = (onPartialResponse == null) ? null : (Action<string>)delegate(string streamDelta)
 		{
-			string text = TryExtractStreamingResponseText(partialJson);
-			if (!string.IsNullOrEmpty(text))
+			streamJsonBuilder.Append(streamDelta ?? "");
+			string text = TryExtractStreamingResponseText(streamJsonBuilder.ToString());
+			if (!string.IsNullOrEmpty(text) && !string.Equals(text, lastStreamPreview, StringComparison.Ordinal))
 			{
+				lastStreamPreview = text;
 				try
 				{
 					onPartialResponse(text);
@@ -3164,7 +3168,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			try
 			{
 				if (attempt > 1)
+				{
+					streamJsonBuilder?.Clear();
+					lastStreamPreview = "";
 					onPartialResponse?.Invoke("");
+				}
 				aiResponse = await AIClient.GetAIResponse(npcName, faction, prompt + "\nPlayer: " + playerMessage, streamCallback);
 				if (!string.IsNullOrEmpty(aiResponse) && !aiResponse.StartsWith("Error:"))
 					break;
