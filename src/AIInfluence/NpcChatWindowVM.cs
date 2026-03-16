@@ -263,18 +263,60 @@ public class NpcChatWindowVM : ViewModel
             bool useOpenRouterStreaming = string.Equals(GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue, "OpenRouter", StringComparison.Ordinal);
             ChatMessageItemVM streamingItem = null;
             bool streamingRetired = false;
+            string streamingTargetText = "";
+            string streamingVisibleText = "";
+            bool streamPumpActive = false;
+            Action streamPumpStep = null;
             if (useOpenRouterStreaming)
             {
                 streamingItem = ParseLine($"{npcName}: ", "");
                 streamingItem.ContentSegments.Add(new ContentSegmentVM("", SpeechTextColor, NpcBubbleColor));
                 MessageList.Add(streamingItem);
+                streamPumpStep = () =>
+                {
+                    if (streamingRetired || streamingItem == null)
+                    {
+                        streamPumpActive = false;
+                        return;
+                    }
+                    if (streamingVisibleText.Length < streamingTargetText.Length)
+                    {
+                        streamingVisibleText = streamingTargetText.Substring(0, streamingVisibleText.Length + 1);
+                        ReplaceStreamingSegments(streamingItem, npcName, streamingVisibleText);
+                        DelayedTaskManager taskManager = AIInfluenceBehavior.Instance?.GetDelayedTaskManager();
+                        if (taskManager != null)
+                            taskManager.AddTask(0.01, streamPumpStep);
+                        else
+                        {
+                            streamingVisibleText = streamingTargetText;
+                            ReplaceStreamingSegments(streamingItem, npcName, streamingVisibleText);
+                            streamPumpActive = false;
+                        }
+                    }
+                    else if (streamingVisibleText.Length > streamingTargetText.Length)
+                    {
+                        streamingVisibleText = streamingTargetText;
+                        ReplaceStreamingSegments(streamingItem, npcName, streamingVisibleText);
+                    }
+                    else
+                    {
+                        streamPumpActive = false;
+                    }
+                };
             }
             string reply = await AIInfluenceBehavior.Instance.ProcessChatInput(_npc, message, partial =>
             {
                 TtsLipSyncService.MainThreadQueue.Enqueue(() =>
                 {
                     if (!streamingRetired && streamingItem != null)
-                        ReplaceStreamingSegments(streamingItem, npcName, partial ?? "");
+                    {
+                        streamingTargetText = partial ?? "";
+                        if (!streamPumpActive && streamPumpStep != null)
+                        {
+                            streamPumpActive = true;
+                            streamPumpStep();
+                        }
+                    }
                 });
             });
             if (!string.IsNullOrEmpty(reply))
