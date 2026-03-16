@@ -3224,31 +3224,29 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 		if (decisionHandled && !string.IsNullOrEmpty(aiResult.TechnicalAction) && !aiResult.TechnicalAction.Equals("none", StringComparison.OrdinalIgnoreCase))
 		{
-			LogMessage($"[DEBUG][CHAT_TECHNICAL_ACTION] Raw TechnicalAction from AI: '{aiResult.TechnicalAction}'");
-			LogMessage($"[DEBUG][CHAT_TECHNICAL_ACTION] npcId (StringId) = '{npcId}', npcName (display name) = '{npcName}'");
-			LogMessage($"[DEBUG][CHAT_TECHNICAL_ACTION] NOTE: npcId is the hero StringId, NOT the display name. ParseAndExecuteCommand uses FindHeroByNameOrId which searches by NAME only.");
-			foreach (string action in aiResult.TechnicalAction.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
+		LogMessage($"[TECHNICAL_ACTION] Processing technical_action for {npcName}: '{aiResult.TechnicalAction}'");
+		foreach (string action in aiResult.TechnicalAction.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
 			{
 				string[] parts = action.Trim().Split(new[] { ':' }, 2);
 				string actionName = parts[0].Trim();
 				string payload = parts.Length > 1 ? parts[1].Trim() : "";
-				bool isStop = payload.Equals("STOP", StringComparison.OrdinalIgnoreCase);
-				LogMessage($"[DEBUG][CHAT_TECHNICAL_ACTION] Parsed action='{actionName}', payload='{payload}', isStop={isStop}");
-				if (npc.IsPrisoner && !isStop)
-				{
-					LogMessage($"[TECHNICAL_ACTION] Skipping action '{actionName}' for prisoner {npc.Name}");
-					continue;
-				}
-				if (!isStop)
-				{
-					LogMessage($"[DEBUG][CHAT_TECHNICAL_ACTION] Calling StopAction(npc, '{actionName}') directly on hero object - this part uses the Hero reference directly");
-					AIActionManager.Instance?.StopAction(npc, actionName);
-				}
-				string command = $"ACTION:{actionName}:{npcId}" + (parts.Length > 1 ? ":" + payload : "");
-				LogMessage($"[DEBUG][CHAT_TECHNICAL_ACTION] Built command: '{command}'");
-				LogMessage($"[DEBUG][CHAT_TECHNICAL_ACTION] PROBLEM: command[2]='{npcId}' is the StringId. ParseAndExecuteCommand calls FindHeroByNameOrId which ONLY searches by display name, NOT StringId.");
-				LogMessage($"[DEBUG][CHAT_TECHNICAL_ACTION] Expected display name would be '{npcName}'. A hero named '{npcId}' almost certainly does not exist.");
-				AIActionManager.Instance?.ParseAndExecuteCommand(command);
+			bool isStop = payload.Equals("STOP", StringComparison.OrdinalIgnoreCase);
+			if (npc.IsPrisoner && !isStop)
+			{
+				LogMessage($"[TECHNICAL_ACTION] Skipping action '{actionName}' for prisoner {npc.Name}");
+				continue;
+			}
+			if (isStop)
+			{
+				AIActionManager.Instance?.StopAction(npc, actionName, showMessage: true);
+				LogMessage($"[TECHNICAL_ACTION] Stopped '{actionName}' for {npc.Name}");
+			}
+			else
+			{
+				AIActionManager.Instance?.StopAction(npc, actionName);
+				if (AIActionIntegration.Instance.TryPrepareActionParameter(npc, actionName, payload))
+					AIActionManager.Instance?.StartAction(npc, actionName);
+			}
 			}
 			aiResult.TechnicalAction = null;
 		}
