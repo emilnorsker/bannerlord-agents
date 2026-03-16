@@ -3198,27 +3198,39 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		// only the text variable update depends on an active conversation.
 		if (Campaign.Current?.ConversationManager != null)
 			MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", reply, false);
+		bool decisionHandled = false;
 		try
 		{
 			_decisionHandler.HandleAIDecision(context, npc, aiResult, playerMessage);
+			decisionHandled = true;
 		}
 		catch (Exception ex3)
 		{
 			LogMessage("[ERROR] ProcessChatInput decision handling failed: " + ex3.Message);
 		}
-		if (!string.IsNullOrEmpty(aiResult.TechnicalAction) && !aiResult.TechnicalAction.Equals("none", StringComparison.OrdinalIgnoreCase))
+		if (decisionHandled && !string.IsNullOrEmpty(aiResult.TechnicalAction) && !aiResult.TechnicalAction.Equals("none", StringComparison.OrdinalIgnoreCase))
 		{
 			foreach (string action in aiResult.TechnicalAction.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
 			{
 				string[] parts = action.Trim().Split(new[] { ':' }, 2);
-				string command = $"ACTION:{parts[0].Trim()}:{npcId}" + (parts.Length > 1 ? ":" + parts[1].Trim() : "");
+				string actionName = parts[0].Trim();
+				string payload = parts.Length > 1 ? parts[1].Trim() : "";
+				bool isStop = payload.Equals("STOP", StringComparison.OrdinalIgnoreCase);
+				if (npc.IsPrisoner && !isStop)
+				{
+					LogMessage($"[TECHNICAL_ACTION] Skipping action '{actionName}' for prisoner {npc.Name}");
+					continue;
+				}
+				if (!isStop)
+					AIActionManager.Instance?.StopAction(npc, actionName);
+				string command = $"ACTION:{actionName}:{npcId}" + (parts.Length > 1 ? ":" + payload : "");
 				AIActionManager.Instance?.ParseAndExecuteCommand(command);
 			}
 			aiResult.TechnicalAction = null;
 			context.PendingAIResponse = aiResult;
 			SaveNPCContext(npcId, npc, context);
 		}
-		if (string.Equals(aiResult.Decision, "attack", StringComparison.OrdinalIgnoreCase))
+		if (decisionHandled && string.Equals(aiResult.Decision, "attack", StringComparison.OrdinalIgnoreCase))
 			InitiateCombatLogic(npc, context);
 		return reply;
 	}
