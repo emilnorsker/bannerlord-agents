@@ -199,8 +199,7 @@ public class NpcChatWindowVM : ViewModel
                 if (!string.IsNullOrEmpty(speech))
                     item.ContentSegments.Add(new ContentSegmentVM(speech, SpeechTextColor, bubbleColor));
             }
-            bool asPill = isPlayer;
-            item.ContentSegments.Add(new ContentSegmentVM(m.Value, asPill ? ActionColor : EmoteColor, asPill ? ActionBubbleColor : bubbleColor, asPill));
+            item.ContentSegments.Add(new ContentSegmentVM(m.Value, EmoteColor, bubbleColor));
             pos = m.Index + m.Length;
         }
         if (pos < content.Length)
