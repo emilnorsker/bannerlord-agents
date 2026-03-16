@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AIInfluence.DynamicEvents;
+using AIInfluence.Services;
+using MCM.Abstractions.Base.Global;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.Library;
 
@@ -245,11 +247,24 @@ public class NpcChatWindowVM : ViewModel
             MessageList.Add(ParseLine($"{playerName}: {message}"));
 
             if (AIInfluenceBehavior.Instance == null) return;
-            string reply = await AIInfluenceBehavior.Instance.ProcessChatInput(_npc, message);
+            string npcName = ((object)_npc?.Name)?.ToString() ?? "NPC";
+            bool useOpenRouterStreaming = string.Equals(GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue, "OpenRouter", StringComparison.Ordinal);
+            ChatMessageItemVM streamingItem = null;
+            ContentSegmentVM streamingSegment = null;
+            if (useOpenRouterStreaming)
+            {
+                streamingItem = ParseLine($"{npcName}: ", "");
+                streamingSegment = new ContentSegmentVM("", SpeechTextColor, NpcBubbleColor);
+                streamingItem.ContentSegments.Add(streamingSegment);
+                MessageList.Add(streamingItem);
+            }
+            string reply = await AIInfluenceBehavior.Instance.ProcessChatInput(_npc, message, partial =>
+            {
+                if (streamingSegment != null)
+                    TtsLipSyncService.MainThreadQueue.Enqueue(() => streamingSegment.Text = partial ?? "");
+            });
             if (!string.IsNullOrEmpty(reply))
             {
-                string npcName = ((object)_npc?.Name)?.ToString() ?? "NPC";
-
                 // Call GetOrCreateNPCContext once — avoids two off-thread calls and a
                 // race with the main game tick that could mutate the context dictionary.
                 AIResponse pendingResponse = null;
@@ -262,6 +277,8 @@ public class NpcChatWindowVM : ViewModel
                 // Wrap to prevent a threading exception from leaking past the finally block.
                 try
                 {
+                    if (streamingItem != null)
+                        MessageList.Remove(streamingItem);
                     var npcItem = ParseLine($"{npcName}: {reply}", tone);
                     string actionText = BuildActionText(pendingResponse);
                     if (!string.IsNullOrEmpty(actionText))
@@ -269,6 +286,10 @@ public class NpcChatWindowVM : ViewModel
                     MessageList.Add(npcItem);
                 }
                 catch (Exception) { }
+            }
+            else if (streamingItem != null)
+            {
+                MessageList.Remove(streamingItem);
             }
         }
         finally

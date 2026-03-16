@@ -8,7 +8,22 @@ namespace AIInfluence;
 /// </summary>
 public class ContentSegmentVM : ViewModel
 {
-    [DataSourceProperty] public string Text      { get; set; } = "";
+    private string _text = "";
+
+    [DataSourceProperty]
+    public string Text
+    {
+        get => _text;
+        set
+        {
+            if (value != _text)
+            {
+                _text = value;
+                ((ViewModel)this).OnPropertyChangedWithValue<string>(value, "Text");
+            }
+        }
+    }
+
     [DataSourceProperty] public string TextColor { get; set; } = "#E8DCC8FF";
     [DataSourceProperty] public string BackColor { get; set; } = "#00000000";
     [DataSourceProperty] public bool IsPill      { get; set; } = false;
