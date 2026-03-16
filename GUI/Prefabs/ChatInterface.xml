@@ -108,7 +108,7 @@
                     <!-- Middle panel layered background: dark base + soft texture + inner frame -->
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                             MarginLeft="4" MarginRight="4" MarginTop="4" MarginBottom="4"
-                            Sprite="StdAssets\Popup\canvas_gradient" Color="#130D09FF" AlphaFactor="0.86"
+                            Sprite="StdAssets\Popup\canvas" Color="#130D09FF" AlphaFactor="0.9"
                             DoNotAcceptEvents="true" />
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                             MarginLeft="6" MarginRight="6" MarginTop="6" MarginBottom="6"
@@ -145,12 +145,12 @@
                                 WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                 ClipContents="true">
                           <Children>
-                            <ListPanel Id="MsgList"
+                                      <ListPanel Id="MsgList"
                                        DataSource="{MessageList}"
                                        WidthSizePolicy="StretchToParent"
                                        HeightSizePolicy="CoverChildren"
                                        StackLayout.LayoutMethod="VerticalBottomToTop"
-                                       Spacing="1"
+                                       Spacing="3"
                                        MarginLeft="18" MarginRight="18"
                                        MarginTop="6" MarginBottom="6">
                               <ItemTemplate>
@@ -179,11 +179,11 @@
                                                 <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                                                Brush="Conversation.HeaderText"
                                                                Text="@SenderName" IsDisabled="true" />
-                                                <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                               VerticalAlignment="Bottom" MarginLeft="8" MarginBottom="3"
-                                                               Brush="SPScoreboard.Subtitle.Text"
-                                                               Brush.FontSize="13" Color="@TypeTagColor"
-                                                               Text="@TypeTag" />
+                                                <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                            VerticalAlignment="Bottom" MarginLeft="8" MarginBottom="3"
+                                                            Brush="SPScoreboard.Subtitle.Text"
+                                                            Brush.FontSize="13" Brush.FontColor="@TypeTagColor"
+                                                            Text="@TypeTag" />
                                               </Children>
                                             </ListPanel>
                                           </Children>
@@ -192,16 +192,26 @@
                                         <ListPanel DataSource="{ContentSegments}"
                                                    WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                    StackLayout.LayoutMethod="VerticalBottomToTop"
-                                                   Spacing="1">
+                                                   Spacing="4">
                                           <ItemTemplate>
                                             <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Bubble.W" HeightSizePolicy="CoverChildren"
-                                                    HorizontalAlignment="Left"
+                                                    HorizontalAlignment="Left" IsVisible="@IsBody"
                                                     Sprite="General\CharacterCreation\name_input_area" Color="@BackColor">
                                               <Children>
-                                                <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                               Margin="14,6,14,6"
-                                                               Brush="Conversation.ConversedPartyLine.Text" Color="@TextColor"
-                                                               Text="@Text" />
+                                                <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                            Margin="14,6,14,6"
+                                                            Brush="Conversation.ConversedPartyLine.Text" Brush.FontColor="@TextColor"
+                                                            Text="@Text" />
+                                              </Children>
+                                            </Widget>
+                                            <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                    HorizontalAlignment="Left" IsVisible="@IsPill"
+                                                    Sprite="name_shadow_9" Color="@BackColor">
+                                              <Children>
+                                                <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                            Margin="12,4,12,4"
+                                                            Brush="Conversation.ConversedPartyLine.Text" Brush.FontColor="@TextColor"
+                                                            Text="@Text" />
                                               </Children>
                                             </Widget>
                                           </ItemTemplate>
@@ -231,17 +241,28 @@
                                         <ListPanel DataSource="{ContentSegments}"
                                                    WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                    StackLayout.LayoutMethod="VerticalBottomToTop"
-                                                   Spacing="1">
+                                                   Spacing="4">
                                           <ItemTemplate>
                                             <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Bubble.W" HeightSizePolicy="CoverChildren"
-                                                    HorizontalAlignment="Right"
+                                                    HorizontalAlignment="Right" IsVisible="@IsBody"
                                                     Sprite="General\CharacterCreation\name_input_area" Color="@BackColor">
                                               <Children>
-                                                <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                               Margin="14,6,14,6"
-                                                               Brush="Conversation.ConversedPartyLine.Text" Color="@TextColor"
-                                                               Brush.TextHorizontalAlignment="Right"
-                                                               Text="@Text" />
+                                                <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                            Margin="14,6,14,6"
+                                                            Brush="Conversation.ConversedPartyLine.Text" Brush.FontColor="@TextColor"
+                                                            TextHorizontalAlignment="Right"
+                                                            Text="@Text" />
+                                              </Children>
+                                            </Widget>
+                                            <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                    HorizontalAlignment="Right" IsVisible="@IsPill"
+                                                    Sprite="name_shadow_9" Color="@BackColor">
+                                              <Children>
+                                                <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                            Margin="12,4,12,4"
+                                                            Brush="Conversation.ConversedPartyLine.Text" Brush.FontColor="@TextColor"
+                                                            TextHorizontalAlignment="Right"
+                                                            Text="@Text" />
                                               </Children>
                                             </Widget>
                                           </ItemTemplate>
