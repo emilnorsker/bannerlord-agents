@@ -164,9 +164,7 @@ public class NpcSpawnService
 		}
 
 		MobileParty party = BanditPartyComponent.CreateBanditParty(
-		MobileParty party = BanditPartyComponent.CreateBanditParty(
-			"aiinfluence_bandit_" + Guid.NewGuid().ToString("N"),
-			banditClan,
+			"aiinfluence_bandit_" + MBRandom.RandomInt(100000),
 			banditClan,
 			hideout,
 			false,
@@ -190,6 +188,12 @@ public class NpcSpawnService
 		TroopRoster memberRoster = new TroopRoster((PartyBase)null);
 		TroopRoster prisonerRoster = new TroopRoster((PartyBase)null);
 
+		if (clan.Leader == null)
+		{
+			_log($"[NPC_SPAWN] Clan '{clan.Name}' has no leader; cannot create faction party");
+			return null;
+		}
+
 		MobileParty party = CustomPartyComponent.CreateCustomPartyWithTroopRoster(
 			new CampaignVec2(position, true),
 			2f,
@@ -198,7 +202,7 @@ public class NpcSpawnService
 			clan,
 			memberRoster,
 			prisonerRoster,
-			clan.Leader ?? Hero.MainHero
+			clan.Leader
 		);
 
 		if (party == null)
@@ -325,11 +329,11 @@ public class NpcSpawnService
 	private Clan ResolveByAlignment(string alignment, IFaction playerFaction, Settlement settlement)
 	{
 		if (string.IsNullOrWhiteSpace(alignment) || alignment.Equals("neutral", StringComparison.OrdinalIgnoreCase))
-			return settlement.OwnerClan ?? Clan.PlayerClan;
+			return ValidClanOrFallback(settlement.OwnerClan) ?? Clan.PlayerClan;
 
 		if (alignment.Equals("friendly", StringComparison.OrdinalIgnoreCase))
 		{
-			if (playerFaction != null && settlement.OwnerClan?.MapFaction != null && !settlement.OwnerClan.MapFaction.IsAtWarWith(playerFaction))
+			if (playerFaction != null && IsValidOwnerClan(settlement.OwnerClan) && !settlement.OwnerClan.MapFaction.IsAtWarWith(playerFaction))
 				return settlement.OwnerClan;
 			return Clan.PlayerClan;
 		}
@@ -355,6 +359,16 @@ public class NpcSpawnService
 
 		_log($"[NPC_SPAWN] Unknown alignment '{alignment}', treating as neutral");
 		return settlement.OwnerClan ?? Clan.PlayerClan;
+	}
+
+	private static bool IsValidOwnerClan(Clan clan)
+	{
+		return clan != null && !clan.IsEliminated && clan.Leader != null && clan.Leader.IsAlive && clan.MapFaction != null;
+	}
+
+	private static Clan ValidClanOrFallback(Clan clan)
+	{
+		return IsValidOwnerClan(clan) ? clan : null;
 	}
 
 	private Clan FuzzyMatchClan(string name)
