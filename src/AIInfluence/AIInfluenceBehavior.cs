@@ -2177,6 +2177,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	public void ProcessMoneyTransfer(Hero npc, NPCContext context, MoneyTransferInfo moneyTransfer)
 	{
+		LogMessage($"[DEBUG][MONEY_TRANSFER_EXEC] ProcessMoneyTransfer called for {((object)npc?.Name ?? "null")} - amount={moneyTransfer?.Amount}, action={moneyTransfer?.Action}. If you never see this line after a chat-window transfer, the transfer was never executed.");
 		//IL_01a2: Unknown result type (might be due to invalid IL or missing references)
 		//IL_01ac: Expected O, but got Unknown
 		//IL_01ac: Unknown result type (might be due to invalid IL or missing references)
@@ -3192,11 +3193,20 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		if (aiResult == null)
 			return "";
 		string reply = aiResult.Response ?? "";
+		LogMessage("[DEBUG][CHAT_ACTION_AUDIT] ── AI response fields for chat window ──");
+		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] decision        = '{aiResult.Decision}'");
+		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] technical_action= '{aiResult.TechnicalAction}'");
+		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] money_transfer  = {(aiResult.MoneyTransfer != null ? $"action={aiResult.MoneyTransfer.Action} amount={aiResult.MoneyTransfer.Amount}" : "null")}");
+		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] item_transfers  = {(aiResult.ItemTransfers != null ? $"{aiResult.ItemTransfers.Count} item(s)" : "null")}");
+		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] kingdom_action  = '{aiResult.KingdomAction}'");
+		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] quest_action    = {(aiResult.QuestAction != null ? $"action={aiResult.QuestAction.Action}" : "null")}");
+		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] tone            = '{aiResult.Tone}'");
+		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] workshop_action = '{aiResult.WorkshopAction}'");
+		LogMessage("[DEBUG][CHAT_ACTION_AUDIT] NOTE: ProcessChatInput handles ONLY technical_action and decision=attack. All other fields are NEVER executed in the chat window path.");
+		LogMessage("[DEBUG][CHAT_ACTION_AUDIT] HandlePlayerInput (old dialog path) handles money_transfer, item_transfers, kingdom_action, tone, workshop, quest, etc. It is NOT called here.");
 		context.PendingAIResponse = aiResult;
 		context.LastDynamicResponse = reply;
 		context.AddMessage(npcName + ": " + reply);
-		// Chat-window flow still needs decision handling for in-game actions;
-		// only the text variable update depends on an active conversation.
 		if (Campaign.Current?.ConversationManager != null)
 		{
 			try { MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", reply, false); }
