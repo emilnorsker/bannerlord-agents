@@ -3196,7 +3196,10 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		// Chat-window flow still needs decision handling for in-game actions;
 		// only the text variable update depends on an active conversation.
 		if (Campaign.Current?.ConversationManager != null)
-			MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", reply, false);
+		{
+			try { MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", reply, false); }
+			catch (Exception ex) { LogMessage("[ChatWindow] SetTextVariable failed: " + ex.Message); }
+		}
 		bool decisionHandled = false;
 		try
 		{
@@ -3205,7 +3208,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 		catch (Exception ex3)
 		{
-			LogMessage("[ERROR] ProcessChatInput decision handling failed: " + ex3.Message);
+			LogMessage("[ChatWindow] HandleAIDecision failed: " + ex3.Message);
 		}
 		if (decisionHandled && !string.IsNullOrEmpty(aiResult.TechnicalAction) && !aiResult.TechnicalAction.Equals("none", StringComparison.OrdinalIgnoreCase))
 		{
