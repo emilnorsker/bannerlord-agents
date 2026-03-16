@@ -3204,6 +3204,37 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] quest_action    = {(aiResult.QuestAction != null ? $"action={aiResult.QuestAction.Action}" : "null")}");
 		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] tone            = '{aiResult.Tone}'");
 		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] workshop_action = '{aiResult.WorkshopAction}'");
+		if (aiResult.CharacterDeath != null && aiResult.CharacterDeath.ShouldDie && CanNPCBeKilledThroughRoleplay(npc))
+		{
+			context.DeathReason = aiResult.CharacterDeath.DeathReason ?? "unknown causes";
+			context.KillerStringId = aiResult.CharacterDeath.KillerStringId;
+			context.PendingDeath = "pending";
+			SaveNPCContext(npcId, npc, context);
+			GetDelayedTaskManager().AddTask(5.0, delegate
+			{
+				try
+				{
+					var conversationManager = Campaign.Current?.ConversationManager;
+					if (conversationManager?.IsConversationInProgress == true) conversationManager.EndConversation();
+					GetDelayedTaskManager().AddTask(1.0, delegate
+					{
+						try
+						{
+							if (npc != null && !npc.IsDead)
+							{
+								Hero killer = string.IsNullOrEmpty(context.KillerStringId) ? null : Hero.FindFirst((Func<Hero, bool>)((Hero h) => h != null && ((MBObjectBase)h).StringId == context.KillerStringId));
+								KillCharacterHeroPublic(npc, killer, killedInAction: false);
+							}
+							context.PendingDeath = null;
+							context.KillerStringId = null;
+							SaveNPCContext(npcId, npc, context);
+						}
+						catch (Exception ex5) { LogMessage("[ERROR] Chat death execution failed: " + ex5.Message); }
+					});
+				}
+				catch (Exception ex6) { LogMessage("[ERROR] Chat death schedule failed: " + ex6.Message); }
+			});
+		}
 		if (aiResult.Decision == "accept_marriage")
 		{
 			float delay = GlobalSettings<ModSettings>.Instance.DialogDelay;
