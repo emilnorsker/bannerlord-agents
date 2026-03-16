@@ -13,7 +13,7 @@ namespace AIInfluence.Patches;
 [HarmonyPatch]
 public static class MapConversationCameraOffsetPatch
 {
-    private const float OffsetX = -18f;
+    private const float OffsetX = -1.0f;
 
     [HarmonyPrepare]
     public static bool Prepare()
