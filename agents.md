@@ -10,6 +10,8 @@ This mod targets **Bannerlord v1.3.x**. Do not reference or worry about v1.0–v
 
 Always consider the consequences of a given code change even if it is just a single line. Removing a comment, reordering a statement, or deleting a field can break non-obvious invariants (e.g. ordering dependencies, cleanup symmetry). Read the surrounding context before touching anything.
 
+Never write `catch { }` or `catch (Exception) { }` — this masks errors and makes debugging impossible. Always surface the error.
+
 ---
 
 ## Bannerlord API Verification Protocol
