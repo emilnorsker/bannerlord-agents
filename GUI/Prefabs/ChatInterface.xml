@@ -108,7 +108,7 @@
                     <!-- Middle panel layered background: dark base + soft texture + inner frame -->
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                             MarginLeft="4" MarginRight="4" MarginTop="4" MarginBottom="4"
-                            Sprite="StdAssets\Popup\canvas_gradient" Color="#130D09FF" AlphaFactor="0.86"
+                            Sprite="StdAssets\Popup\canvas" Color="#130D09FF" AlphaFactor="0.9"
                             DoNotAcceptEvents="true" />
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                             MarginLeft="6" MarginRight="6" MarginTop="6" MarginBottom="6"
@@ -145,12 +145,12 @@
                                 WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                 ClipContents="true">
                           <Children>
-                            <ListPanel Id="MsgList"
+                                      <ListPanel Id="MsgList"
                                        DataSource="{MessageList}"
                                        WidthSizePolicy="StretchToParent"
                                        HeightSizePolicy="CoverChildren"
                                        StackLayout.LayoutMethod="VerticalBottomToTop"
-                                       Spacing="1"
+                                       Spacing="3"
                                        MarginLeft="18" MarginRight="18"
                                        MarginTop="6" MarginBottom="6">
                               <ItemTemplate>
@@ -192,7 +192,7 @@
                                         <ListPanel DataSource="{ContentSegments}"
                                                    WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                    StackLayout.LayoutMethod="VerticalBottomToTop"
-                                                   Spacing="1">
+                                                   Spacing="4">
                                           <ItemTemplate>
                                             <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Bubble.W" HeightSizePolicy="CoverChildren"
                                                     HorizontalAlignment="Left" IsVisible="@IsBody"
@@ -241,7 +241,7 @@
                                         <ListPanel DataSource="{ContentSegments}"
                                                    WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                    StackLayout.LayoutMethod="VerticalBottomToTop"
-                                                   Spacing="1">
+                                                   Spacing="4">
                                           <ItemTemplate>
                                             <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Bubble.W" HeightSizePolicy="CoverChildren"
                                                     HorizontalAlignment="Right" IsVisible="@IsBody"

@@ -35,15 +35,18 @@ public class EconomicEffectsManager : CampaignBehaviorBase
 	{
 		try
 		{
+			AIInfluenceBehavior.Instance?.LogMessage("[SYNC-TRACE] EconomicEffectsManager loading persisted effects.");
 			_activeEffects.Clear();
 			List<ActiveEconomicEffect> list = _storage.LoadEffects();
 			if (list != null && list.Count > 0)
 			{
 				_activeEffects.AddRange(list);
 			}
+			AIInfluenceBehavior.Instance?.LogMessage("[SYNC-TRACE] EconomicEffectsManager loaded effects count=" + _activeEffects.Count);
 		}
-		catch
+		catch (Exception ex)
 		{
+			AIInfluenceBehavior.Instance?.LogMessage("[ERROR] EconomicEffectsManager failed loading persisted effects: " + ex);
 		}
 	}
 
@@ -536,9 +539,11 @@ public class EconomicEffectsManager : CampaignBehaviorBase
 				_activeEffects.Remove(item);
 			}
 			_storage.SaveEffects(_activeEffects);
+			AIInfluenceBehavior.Instance?.LogMessage("[SYNC-TRACE] EconomicEffectsManager persisted effects count=" + _activeEffects.Count);
 		}
-		catch
+		catch (Exception ex)
 		{
+			AIInfluenceBehavior.Instance?.LogMessage("[ERROR] EconomicEffectsManager.OnDailyTick persistence failed: " + ex);
 		}
 	}
 
