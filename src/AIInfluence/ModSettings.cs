@@ -34,6 +34,8 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 
 	private bool _enableDebugLogging = true;
 
+	private bool _debugStreamToGameLog = false;
+
 	private Dropdown<string> _aiBackend = new Dropdown<string>((IEnumerable<string>)new List<string> { "OpenRouter", "DeepSeek", "Player2", "Ollama", "KoboldCpp" }, 2);
 
 	private string _aiModel = "gpt-3.5-turbo";
@@ -443,7 +445,25 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 	}
 
 	[SettingPropertyGroup("{=AIInfluence_Group_General}General Settings", GroupOrder = 0)]
-	[SettingPropertyButton("Open Logs Folder", 4, true, "Open Logs Folder", Content = "Open Logs Folder", RequireRestart = false, HintText = "Opens the mod's logs folder in Windows Explorer")]
+	[SettingPropertyBool("Debug: Stream LLM Output to In-Game Log", Order = 4, RequireRestart = false, HintText = "When enabled, streamed LLM chunks are echoed to the in-game message log.")]
+	public bool DebugStreamToGameLog
+	{
+		get
+		{
+			return _debugStreamToGameLog;
+		}
+		set
+		{
+			if (_debugStreamToGameLog != value)
+			{
+				_debugStreamToGameLog = value;
+				this.OnSettingChanged?.Invoke("DebugStreamToGameLog", value);
+			}
+		}
+	}
+
+	[SettingPropertyGroup("{=AIInfluence_Group_General}General Settings", GroupOrder = 0)]
+	[SettingPropertyButton("Open Logs Folder", 5, true, "Open Logs Folder", Content = "Open Logs Folder", RequireRestart = false, HintText = "Opens the mod's logs folder in Windows Explorer")]
 	public Action OpenLogsFolder { get; set; } = delegate
 	{
 		//IL_007c: Unknown result type (might be due to invalid IL or missing references)

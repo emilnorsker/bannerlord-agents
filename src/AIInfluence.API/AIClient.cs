@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using AIInfluence.Services;
 using AIInfluence.Util;
 using MCM.Abstractions.Base.Global;
 using Newtonsoft.Json;
@@ -187,6 +188,11 @@ public static class AIClient
 							continue;
 						}
 						stringBuilder.Append(text4);
+						if (GlobalSettings<ModSettings>.Instance?.DebugStreamToGameLog ?? false)
+						{
+							string streamChunk = text4.Replace("\n", "\\n");
+							TtsLipSyncService.MainThreadQueue.Enqueue(() => InformationManager.DisplayMessage(new InformationMessage("[LLM STREAM] " + streamChunk)));
+						}
 						onOpenRouterStreamUpdate(stringBuilder.ToString());
 					}
 				}
