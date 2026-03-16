@@ -1246,7 +1246,14 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage($"[QUEST] Resolved bandit clan '{banditClan.Name}' has null FactionMidSettlement; failing hostile party spawn");
 				return;
 			}
+			Clan aiPartyClan = ResolveQuestPartyAiDriverClan(spawnPos, banditClan);
+			if (aiPartyClan == null || aiPartyClan.MapFaction == null)
+			{
+				LogMessage("[QUEST] Could not resolve AI driver clan/map faction for hostile quest party");
+				return;
+			}
 			LogQuestScenarioVerbose($"SpawnQuestHostileParty selected clan id={((MBObjectBase)banditClan).StringId}");
+			LogQuestScenarioVerbose($"SpawnQuestHostileParty ai_driver_clan id={((MBObjectBase)aiPartyClan).StringId}");
 			if (compositionTroops.Count == 0 && !string.IsNullOrEmpty(questAction.HostileTroopName))
 			{
 				CharacterObject val2 = ItemMentionParser.FindBestTroopMatch(questAction.HostileTroopName);
@@ -1273,7 +1280,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				questInfo.SpawnedNotableId = null;
 				return;
 			}
-			notableHero.Clan = banditClan;
+			notableHero.Clan = aiPartyClan;
 			if (notableHero.MapFaction == null)
 			{
 				LogMessage($"[QUEST] Spawn notable '{((MBObjectBase)notableHero).StringId}' has null MapFaction after clan assignment; failing hostile party spawn");
@@ -1301,8 +1308,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					memberRoster.AddToCounts(compositionTroops[i], count, false, 0, 0, true, -1);
 				}
 			}
-			Settlement homeSettlement = Settlement.All?.OrderBy((Settlement s) => s.GetPosition2D().Distance(spawnPos)).FirstOrDefault() ?? banditClan.FactionMidSettlement;
-			MobileParty party = GameVersionCompatibility.CreateQuestParty(spawnPos, 0.1f, homeSettlement, new TextObject(partyLabel, (Dictionary<string, object>)null), banditClan, memberRoster, new TroopRoster((PartyBase)null), notableHero, "quest_party_" + questInfo.QuestId);
+			Settlement homeSettlement = Settlement.All?.OrderBy((Settlement s) => s.GetPosition2D().Distance(spawnPos)).FirstOrDefault() ?? aiPartyClan.FactionMidSettlement;
+			MobileParty party = GameVersionCompatibility.CreateQuestParty(spawnPos, 0.1f, homeSettlement, new TextObject(partyLabel, (Dictionary<string, object>)null), aiPartyClan, memberRoster, new TroopRoster((PartyBase)null), notableHero, "quest_party_" + questInfo.QuestId);
 			if (party == null)
 			{
 				LogMessage("[QUEST] GameVersionCompatibility.CreateQuestParty returned null");
@@ -1499,6 +1506,31 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			LogMessage("[QUEST] EnsureQuestPartyNotableWorldState error: " + ex.Message + "\n" + ex.StackTrace);
 			return false;
 		}
+	}
+
+	private Clan ResolveQuestPartyAiDriverClan(Vec2 spawnPos, Clan preferredBanditClan)
+	{
+		Clan ownerClan = preferredBanditClan?.FactionMidSettlement?.OwnerClan;
+		IFaction playerFaction = Hero.MainHero?.MapFaction;
+		if (ownerClan != null && ownerClan.MapFaction != null && ownerClan.FactionMidSettlement != null && !ownerClan.IsBanditFaction)
+		{
+			if (playerFaction == null || ownerClan.MapFaction.IsAtWarWith(playerFaction))
+			{
+				return ownerClan;
+			}
+		}
+		List<Clan> candidates = Clan.All?
+			.Where((Clan c) => c != null && !c.IsBanditFaction && !c.IsEliminated && c.MapFaction != null && c.FactionMidSettlement != null)
+			.ToList() ?? new List<Clan>();
+		Clan warCandidate = candidates
+			.Where((Clan c) => playerFaction != null && c.MapFaction.IsAtWarWith(playerFaction))
+			.OrderBy((Clan c) => c.FactionMidSettlement.GetPosition2D().Distance(spawnPos))
+			.FirstOrDefault();
+		if (warCandidate != null)
+		{
+			return warCandidate;
+		}
+		return ownerClan ?? preferredBanditClan;
 	}
 
 	private Clan ResolveHostileBanditClan(QuestActionData questAction, List<CharacterObject> compositionTroops, List<Clan> banditClans)

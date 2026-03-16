@@ -21,9 +21,13 @@ public static class QuestPartyAiPatrollingGuardPatch
 		{
 			return true;
 		}
+		if (!(mobileParty.MapFaction?.IsBanditFaction ?? false))
+		{
+			return true;
+		}
 		if (GlobalSettings<ModSettings>.Instance?.DebugQuestScenarioVerboseLogging ?? false)
 		{
-			instance.LogMessage($"[QuestDebugVerbose] Skipping AiPatrollingBehavior.AiHourlyTick for AIInfluence quest party '{((MBObjectBase)mobileParty).StringId}'");
+			instance.LogMessage($"[QuestDebugVerbose] Skipping AiPatrollingBehavior.AiHourlyTick for AIInfluence quest party '{((MBObjectBase)mobileParty).StringId}' (bandit map faction)");
 		}
 		return false;
 	}
