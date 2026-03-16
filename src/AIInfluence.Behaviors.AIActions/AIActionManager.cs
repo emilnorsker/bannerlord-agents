@@ -503,12 +503,17 @@ public class AIActionManager
 		}
 		string actionName = array[1].Trim();
 		string text = array[2].Trim();
+		LogMessage($"[DEBUG][ParseAndExecuteCommand] Full command: '{command}'");
+		LogMessage($"[DEBUG][ParseAndExecuteCommand] Parsed prefix='{array[0]}', actionName='{actionName}', heroIdentifier='{text}'");
+		LogMessage($"[DEBUG][ParseAndExecuteCommand] Calling FindHeroByNameOrId('{text}'). NOTE: This method ONLY searches by DISPLAY NAME, not by StringId.");
 		Hero val = FindHeroByNameOrId(text);
 		if (val == null)
 		{
+			LogMessage($"[DEBUG][ParseAndExecuteCommand] HERO NOT FOUND for identifier='{text}'. This is most likely a StringId, but FindHeroByNameOrId only does name matching.");
 			LogMessage("ERROR: Hero '" + text + "' not found");
 			return false;
 		}
+		LogMessage($"[DEBUG][ParseAndExecuteCommand] Hero found: '{val.Name}' (StringId='{((MBObjectBase)val).StringId}')");
 		string text2 = ((array.Length >= 4) ? string.Join(":", array.Skip(3)).Trim() : null);
 		if (!string.IsNullOrEmpty(text2) && text2.Equals("STOP", StringComparison.OrdinalIgnoreCase))
 		{
@@ -962,10 +967,21 @@ public class AIActionManager
 		{
 			return null;
 		}
+		LogMessage($"[DEBUG][FindHeroByNameOrId] Searching for identifier='{identifier}'");
+		LogMessage($"[DEBUG][FindHeroByNameOrId] SEARCH METHOD: exact display-name match (case-insensitive). StringIds like 'lord_empire_1' will NOT match any hero display name.");
 		Hero val = Hero.FindFirst((Func<Hero, bool>)((Hero h) => h.Name != (TextObject)null && ((object)h.Name).ToString().Equals(identifier, StringComparison.OrdinalIgnoreCase)));
 		if (val == null)
 		{
+			LogMessage($"[DEBUG][FindHeroByNameOrId] Exact name match: NOT FOUND for '{identifier}'. Trying substring match...");
 			val = Hero.FindFirst((Func<Hero, bool>)((Hero h) => h.Name != (TextObject)null && ((object)h.Name).ToString().IndexOf(identifier, StringComparison.OrdinalIgnoreCase) >= 0));
+			if (val == null)
+				LogMessage($"[DEBUG][FindHeroByNameOrId] Substring name match: NOT FOUND for '{identifier}'. Hero lookup FAILED. This confirms the identifier is a StringId, not a display name.");
+			else
+				LogMessage($"[DEBUG][FindHeroByNameOrId] Substring match found: '{val.Name}' (StringId='{((MBObjectBase)val).StringId}') - partial name match on '{identifier}'");
+		}
+		else
+		{
+			LogMessage($"[DEBUG][FindHeroByNameOrId] Exact match found: '{val.Name}' (StringId='{((MBObjectBase)val).StringId}')");
 		}
 		return val;
 	}
