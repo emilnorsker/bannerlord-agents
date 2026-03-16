@@ -84,7 +84,7 @@ public class NpcSpawnService
 	private MobileParty SpawnPartyForHero(Hero hero, SpawnNpcData data, Settlement homeSettlement)
 	{
 		string partyName = data.PartyName ?? $"{hero.Name}'s Party";
-		Vec2 position = homeSettlement.GetPosition2D();
+		Vec2 position = homeSettlement.GetPosition2D;
 
 		MobileParty party = LordPartyComponent.CreateLordParty(
 			"aiinfluence_spawned_" + hero.StringId,
@@ -173,10 +173,10 @@ public class NpcSpawnService
 			_log($"[NPC_SPAWN] Settlement '{settlementId}' not found, falling back to nearest town");
 		}
 
-		Vec2 playerPos = MobileParty.MainParty?.GetPosition2D() ?? default;
+		Vec2 playerPos = MobileParty.MainParty?.GetPosition2D ?? default;
 		return Settlement.All?
 			.Where(s => s.IsTown)
-			.OrderBy(s => s.GetPosition2D().Distance(playerPos))
+			.OrderBy(s => s.GetPosition2D.Distance(playerPos))
 			.FirstOrDefault();
 	}
 
@@ -224,8 +224,8 @@ public class NpcSpawnService
 			if (match != null)
 				return match;
 
-			match = CultureObject.All?.FirstOrDefault(c =>
-				c.Name != null && c.Name.ToString().IndexOf(cultureName, StringComparison.OrdinalIgnoreCase) >= 0);
+			match = Game.Current?.ObjectManager?.GetObjectTypeList<CultureObject>()
+				?.FirstOrDefault(c => c.Name != null && c.Name.ToString().IndexOf(cultureName, StringComparison.OrdinalIgnoreCase) >= 0);
 			if (match != null)
 				return match;
 		}
