@@ -1,0 +1,206 @@
+<Brushes>
+
+  <!-- ══════════════════════════════════════════════════
+       NPC / Player name badge
+       Dark semi-transparent pill behind the sender name
+  ══════════════════════════════════════════════════ -->
+  <Brush Name="Crownfall.Chat.NameBadge" Font="Galahad" FontSize="15"
+         TransitionDuration="0.05">
+    <Layers>
+      <BrushLayer Name="Default"
+                  Sprite="name_shadow_9"
+                  Color="#2A1E12FF"
+                  AlphaFactor="0.72"
+                  ExtendLeft="10" ExtendRight="10" ExtendTop="6" ExtendBottom="6" />
+    </Layers>
+    <Styles>
+      <Style Name="Default" FontColor="#D4A843FF" FontSize="15" />
+    </Styles>
+  </Brush>
+
+  <!-- ══════════════════════════════════════════════════
+       NPC message bubble
+  ══════════════════════════════════════════════════ -->
+  <Brush Name="Crownfall.Chat.Bubble.Npc" Font="Galahad" FontSize="16"
+         TransitionDuration="0.05">
+    <Layers>
+      <BrushLayer Name="BG"
+                  Sprite="General\CharacterCreation\name_input_area"
+                  Color="#2A1E12FF"
+                  AlphaFactor="0.88"
+                  ExtendLeft="12" ExtendRight="12" ExtendTop="8" ExtendBottom="8" />
+      <BrushLayer Name="Border"
+                  Sprite="frame_9"
+                  Color="#C8A040FF"
+                  AlphaFactor="0.18"
+                  ExtendLeft="4" ExtendRight="4" ExtendTop="4" ExtendBottom="4" />
+    </Layers>
+    <Styles>
+      <Style Name="Default" FontColor="#EDE0C8FF" FontSize="16" />
+    </Styles>
+  </Brush>
+
+  <!-- ══════════════════════════════════════════════════
+       Player message bubble
+  ══════════════════════════════════════════════════ -->
+  <Brush Name="Crownfall.Chat.Bubble.Player" Font="Galahad" FontSize="16"
+         TransitionDuration="0.05">
+    <Layers>
+      <BrushLayer Name="BG"
+                  Sprite="General\CharacterCreation\name_input_area"
+                  Color="#1E1A14FF"
+                  AlphaFactor="0.82"
+                  ExtendLeft="12" ExtendRight="12" ExtendTop="8" ExtendBottom="8" />
+      <BrushLayer Name="Border"
+                  Sprite="frame_9"
+                  Color="#8A7A6AFF"
+                  AlphaFactor="0.12"
+                  ExtendLeft="4" ExtendRight="4" ExtendTop="4" ExtendBottom="4" />
+    </Layers>
+    <Styles>
+      <Style Name="Default" FontColor="#EDE0C8FF" FontSize="16" />
+    </Styles>
+  </Brush>
+
+  <!-- ══════════════════════════════════════════════════
+       "Remembers:" memory pill — centred, golden tint
+  ══════════════════════════════════════════════════ -->
+  <Brush Name="Crownfall.Chat.Bubble.Memory" Font="Galahad" FontSize="14"
+         TransitionDuration="0.05">
+    <Layers>
+      <BrushLayer Name="BG"
+                  Sprite="name_shadow_9"
+                  Color="#251808FF"
+                  AlphaFactor="0.80"
+                  ExtendLeft="14" ExtendRight="14" ExtendTop="6" ExtendBottom="6" />
+      <BrushLayer Name="Border"
+                  Sprite="frame_9"
+                  Color="#D4A843FF"
+                  AlphaFactor="0.28"
+                  ExtendLeft="4" ExtendRight="4" ExtendTop="4" ExtendBottom="4" />
+    </Layers>
+    <Styles>
+      <Style Name="Default" FontColor="#D4A843FF" FontSize="14" />
+    </Styles>
+  </Brush>
+
+  <!-- ══════════════════════════════════════════════════
+       Input field background
+  ══════════════════════════════════════════════════ -->
+  <Brush Name="Crownfall.Chat.InputField" Font="Galahad" FontSize="16"
+         TransitionDuration="0.05">
+    <Layers>
+      <BrushLayer Name="BG"
+                  Sprite="General\CharacterCreation\name_input_area"
+                  Color="#120D07FF"
+                  AlphaFactor="0.95"
+                  ExtendLeft="8" ExtendRight="8" ExtendTop="6" ExtendBottom="6" />
+      <BrushLayer Name="Border"
+                  Sprite="frame_9"
+                  Color="#C8A040FF"
+                  AlphaFactor="0.22"
+                  ExtendLeft="4" ExtendRight="4" ExtendTop="4" ExtendBottom="4" />
+    </Layers>
+    <Styles>
+      <Style Name="Default" FontColor="#8A7A6AFF" FontSize="16" />
+      <Style Name="Active" FontColor="#EDE0C8FF" FontSize="16">
+        <StyleLayers>
+          <StyleLayer Name="Border" AlphaFactor="0.45" />
+        </StyleLayers>
+      </Style>
+    </Styles>
+  </Brush>
+
+  <!-- ══════════════════════════════════════════════════
+       Input text (editable text brush)
+  ══════════════════════════════════════════════════ -->
+  <Brush Name="Crownfall.Chat.InputText" Font="Galahad" FontSize="16">
+    <Styles>
+      <Style Name="Default" FontColor="#EDE0C8FF" FontSize="16" />
+    </Styles>
+  </Brush>
+
+  <!-- ══════════════════════════════════════════════════
+       Send button — dark with gold border, hover brightens
+  ══════════════════════════════════════════════════ -->
+  <Brush Name="Crownfall.Chat.SendButton" TransitionDuration="0.1">
+    <Layers>
+      <BrushLayer Name="BG"
+                  Sprite="General\CharacterCreation\name_input_area"
+                  Color="#1A1208FF"
+                  AlphaFactor="0.95"
+                  ExtendLeft="8" ExtendRight="8" ExtendTop="6" ExtendBottom="6" />
+      <BrushLayer Name="Border"
+                  Sprite="frame_9"
+                  Color="#D4A843FF"
+                  AlphaFactor="0.55"
+                  ExtendLeft="5" ExtendRight="5" ExtendTop="5" ExtendBottom="5" />
+    </Layers>
+    <Styles>
+      <Style Name="Default" />
+      <Style Name="Hovered">
+        <StyleLayers>
+          <StyleLayer Name="BG" ColorFactor="1.3" AlphaFactor="1.0" />
+          <StyleLayer Name="Border" AlphaFactor="0.85" />
+        </StyleLayers>
+      </Style>
+      <Style Name="Pressed">
+        <StyleLayers>
+          <StyleLayer Name="BG" ColorFactor="0.7" />
+          <StyleLayer Name="Border" AlphaFactor="0.40" />
+        </StyleLayers>
+      </Style>
+      <Style Name="Disabled">
+        <StyleLayers>
+          <StyleLayer Name="BG" AlphaFactor="0.35" />
+          <StyleLayer Name="Border" AlphaFactor="0.15" />
+        </StyleLayers>
+      </Style>
+    </Styles>
+  </Brush>
+
+  <!-- Send button label text -->
+  <Brush Name="Crownfall.Chat.SendButton.Text" Font="Galahad" FontSize="16">
+    <Styles>
+      <Style Name="Default"  FontColor="#D4A843FF" FontSize="16" />
+      <Style Name="Hovered"  FontColor="#F0C060FF" FontSize="16" />
+      <Style Name="Pressed"  FontColor="#A07830FF" FontSize="16" />
+      <Style Name="Disabled" FontColor="#5A4A3AFF" FontSize="16" />
+    </Styles>
+  </Brush>
+
+  <!-- ══════════════════════════════════════════════════
+       NPC name text (gold, in name badge row)
+  ══════════════════════════════════════════════════ -->
+  <Brush Name="Crownfall.Text.NpcName" Font="Galahad" FontSize="15">
+    <Styles>
+      <Style Name="Default" FontColor="#D4A843FF" FontSize="15"
+             TextGlowColor="#00000000" TextOutlineColor="#00000066"
+             TextOutlineAmount="0.06" />
+    </Styles>
+  </Brush>
+
+  <!-- Type tag beside NPC name (e.g. "speech", "action") -->
+  <Brush Name="Crownfall.Text.TypeTag" Font="Galahad" FontSize="13">
+    <Styles>
+      <Style Name="Default" FontColor="#8A7A6AFF" FontSize="13" />
+    </Styles>
+  </Brush>
+
+  <!-- ══════════════════════════════════════════════════
+       Body message text
+  ══════════════════════════════════════════════════ -->
+  <Brush Name="Crownfall.Text.Body" Font="Galahad" FontSize="16">
+    <Styles>
+      <Style Name="Default" FontColor="#EDE0C8FF" FontSize="16" />
+    </Styles>
+  </Brush>
+
+  <!-- "You" player label above player bubbles -->
+  <Brush Name="Crownfall.Text.YouLabel" Font="Galahad" FontSize="13">
+    <Styles>
+      <Style Name="Default" FontColor="#8A7A6AFF" FontSize="13" />
+    </Styles>
+  </Brush>
+
+</Brushes>

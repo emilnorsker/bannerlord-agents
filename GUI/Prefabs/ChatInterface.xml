@@ -1,141 +1,144 @@
 <Prefab>
   <!--
-    Layout — left-aligned, full height:
-      Left  (x=0..380)   : transparent — 3D conversation character shows through.
-                           Stat overlay (TopBanner) rendered on top of character.
-      Sep   (x=380..382) : thin separator
-      Frame (x=382..end) : dark backdrop + Encyclopedia.Frame wrapping center+right.
-        Center: fills frame minus right column.
-        Right : fixed 300px at right edge.
-
-    Sprites/brushes: confirmed from WorldEventsWindow.xml, AIInfluenceTextQueryPopup.xml,
-    SPConversation.xml, ConversationBrush.xml, NativeSpriteData.xml.
+    Crownfall layout — three columns, full screen:
+      Left  (0..Left.W)   : transparent — 3D portrait shows through.
+                            Stat overlay at very bottom of portrait area.
+      Sep   (Left.W)      : 2px gold separator
+      Frame (Left.W+2..end): Crownfall dark frame
+        Header (Header.H) : "Talking with [NpcName]" / subtitle + close button
+        Center (stretch)  : chat scroll + input bar
+        Right  (Right.W)  : character stats + world events
   -->
   <Constants>
-    <Constant Name="Header.H"      Value="80" />
-    <Constant Name="Left.W"        Value="460" />
-    <Constant Name="Right.W"       Value="300" />
-    <Constant Name="Sep.W"         Value="2" />
-    <Constant Name="Input.H"       Value="52" />
-    <Constant Name="Bubble.W"      Value="430" />
-    <Constant Name="Gold"          Value="#FFE6B685" />
-    <Constant Name="SubText"       Value="#9BA4B5FF" />
-    <Constant Name="SepColor"      Value="#FFFFFF22" />
-    <Constant Name="Frame.Start"   Value="462" />
-    <Constant Name="Frame.End"     Value="302" />
+    <Constant Name="Header.H"    Value="80" />
+    <Constant Name="Left.W"      Value="460" />
+    <Constant Name="Right.W"     Value="220" />
+    <Constant Name="Sep.W"       Value="2" />
+    <Constant Name="Input.H"     Value="65" />
+    <Constant Name="Bubble.W"    Value="420" />
+    <Constant Name="Frame.Start" Value="462" />
   </Constants>
 
   <Window Id="ChatInterfaceWindow" Layer="Overlay">
 
-    <!-- Outer container: transparent, full screen, holds left + framed block side by side -->
     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
             DoNotAcceptEvents="false">
       <Children>
 
-        <!-- ══ LEFT COLUMN — transparent, character scene shows through ══ -->
+        <!-- ══ LEFT — transparent portrait area ══ -->
         <Widget HorizontalAlignment="Left"
                 WidthSizePolicy="Fixed" SuggestedWidth="!Left.W"
                 HeightSizePolicy="StretchToParent">
           <Children>
-            <!-- Stat overlay at top — sits directly over the 3D character -->
+            <!-- Stat overlay at bottom of portrait: relation / trust / emotion -->
             <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
                          SuggestedHeight="52"
-                         VerticalAlignment="Top"
-                         Brush="Encyclopedia.TopBanner">
+                         VerticalAlignment="Bottom"
+                         Brush="Crownfall.Portrait.StatOverlay">
               <Children>
                 <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                HorizontalAlignment="Left" VerticalAlignment="Top"
                                PositionXOffset="10" PositionYOffset="8"
-                               Brush="Conversation.Relation.Text"
-                               Brush.FontSize="16" Color="@RelationColor"
+                               Brush="Crownfall.Portrait.StatText"
+                               Brush.FontSize="14" Color="@RelationColor"
                                Text="@RelationText" IsDisabled="true" />
                 <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                HorizontalAlignment="Right" VerticalAlignment="Top"
                                PositionXOffset="-10" PositionYOffset="8"
-                               Brush="Conversation.Relation.Text"
+                               Brush="Crownfall.Portrait.StatText"
                                Text="@TrustLabel" IsDisabled="true" />
                 <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                HorizontalAlignment="Left" VerticalAlignment="Bottom"
                                PositionXOffset="10" PositionYOffset="-8"
-                               Brush="Conversation.Relation.Text"
+                               Brush="Crownfall.Portrait.StatText"
                                Text="@EmotionLabel" IsDisabled="true" />
               </Children>
             </BrushWidget>
           </Children>
         </Widget>
 
-        <!-- Left separator -->
+        <!-- Vertical separator between portrait and frame -->
         <Widget HorizontalAlignment="Left"
                 WidthSizePolicy="Fixed" SuggestedWidth="!Sep.W"
                 HeightSizePolicy="StretchToParent"
                 PositionXOffset="!Left.W"
-                Sprite="BlankWhiteSquare_9" Color="!SepColor" />
+                Brush="Crownfall.Separator" />
 
-        <!-- ══ CENTER + RIGHT — dark backdrop + custom frame ════════════════ -->
-        <!-- MarginLeft=Frame.Start so the backdrop doesn't dim the character -->
-        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                MarginLeft="!Frame.Start"
-                Sprite="StdAssets\Popup\canvas_gradient" Color="#0A0A0AFF">
+        <!-- ══ FRAME — dark panel covering center + right ══ -->
+        <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                     MarginLeft="!Frame.Start"
+                     Brush="Crownfall.Frame">
           <Children>
-            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                    DoNotAcceptEvents="false">
+
+            <!-- ── HEADER — "Talking with [Name]" / subtitle + close ── -->
+            <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
+                         SuggestedHeight="!Header.H"
+                         VerticalAlignment="Top"
+                         Brush="Crownfall.Header.Background">
               <Children>
 
-                <!-- Header: NPC name + title (spans center+right) -->
-                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
-                        SuggestedHeight="!Header.H"
-                        VerticalAlignment="Top"
-                        Sprite="StdAssets\Popup\canvas_gradient" Color="#1A120DFF" AlphaFactor="0.72">
+                <!-- Title row: "Talking with " + NpcName, centred -->
+                <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                           HorizontalAlignment="Center" VerticalAlignment="Top"
+                           PositionYOffset="12"
+                           StackLayout.LayoutMethod="HorizontalLeftToRight">
                   <Children>
-                    <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                   HorizontalAlignment="Center" VerticalAlignment="Top"
-                                   PositionYOffset="10"
-                                   Brush="Conversation.HeaderText"
+                    <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                Brush="Crownfall.Header.TitlePrefix"
+                                Text="Talking with " IsDisabled="true" />
+                    <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                   Brush="Crownfall.Header.NpcName"
                                    Text="@NpcName" IsDisabled="true" />
-                    <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                   HorizontalAlignment="Center" VerticalAlignment="Bottom"
-                                   PositionYOffset="-10"
-                                   Brush="SPScoreboard.Subtitle.Text"
-                                   Brush.FontSize="15" Color="!SubText"
-                                   Text="@NpcTitle" IsDisabled="true" />
                   </Children>
-                </Widget>
+                </ListPanel>
 
-                <!-- ── CENTER COLUMN: fills frame minus right panel ── -->
-                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                        MarginTop="!Header.H" MarginRight="!Frame.End">
+                <!-- Subtitle: NPC title / role -->
+                <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                               HorizontalAlignment="Center" VerticalAlignment="Bottom"
+                               PositionYOffset="-10"
+                               Brush="Crownfall.Header.Subtitle"
+                               Text="@NpcTitle" IsDisabled="true" />
+
+                <!-- Close button — top right -->
+                <ButtonWidget WidthSizePolicy="Fixed" SuggestedWidth="36"
+                              HeightSizePolicy="Fixed" SuggestedHeight="36"
+                              HorizontalAlignment="Right" VerticalAlignment="Top"
+                              PositionXOffset="-8" PositionYOffset="8"
+                              Brush="Crownfall.CloseButton"
+                              UpdateChildrenStates="true"
+                              DoNotPassEventsToChildren="true"
+                              Command.Click="ExecuteReturn">
                   <Children>
-                    <!-- Middle panel layered background: dark base + soft texture + inner frame -->
-                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                            MarginLeft="4" MarginRight="4" MarginTop="4" MarginBottom="4"
-                            Sprite="StdAssets\Popup\canvas" Color="#130D09FF" AlphaFactor="0.9"
-                            DoNotAcceptEvents="true" />
-                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                            MarginLeft="6" MarginRight="6" MarginTop="6" MarginBottom="6"
-                            Sprite="General\CharacterCreation\character_creation_background_gradient"
-                            Color="#2B1C12FF" AlphaFactor="0.18"
-                            DoNotAcceptEvents="true" />
-                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                            MarginLeft="6" MarginRight="6" MarginTop="6" MarginBottom="6"
-                            Sprite="frame_9" ExtendLeft="5" ExtendTop="5" ExtendRight="5" ExtendBottom="5"
-                            AlphaFactor="0.36" IsEnabled="false" />
-                    <!-- Scroll region frame -->
-                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                            MarginTop="4" MarginBottom="!Input.H" MarginRight="24" MarginLeft="2"
-                            Sprite="StdAssets\Popup\canvas_gradient" Color="#120B08FF" AlphaFactor="0.66"
-                            DoNotAcceptEvents="true">
-                      <Children>
-                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                                Sprite="frame_9" ExtendLeft="4" ExtendTop="4" ExtendRight="4" ExtendBottom="4"
-                                AlphaFactor="0.3" IsEnabled="false" />
-                      </Children>
-                    </Widget>
+                    <TextWidget Text="✕"
+                                WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                                HorizontalAlignment="Center" VerticalAlignment="Center"
+                                Brush="Crownfall.CloseButton" />
+                  </Children>
+                </ButtonWidget>
+
+              </Children>
+            </BrushWidget>
+
+            <!-- ── BODY — below header, center + right side by side ── -->
+            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                    MarginTop="!Header.H">
+              <Children>
+
+                <!-- ── CENTER COLUMN — chat messages + input ── -->
+                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                        MarginRight="!Right.W">
+                  <Children>
+
+                    <!-- Chat scroll background -->
+                    <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                                 MarginBottom="!Input.H"
+                                 Brush="Crownfall.Chat.Background" />
 
                     <!-- Message scroll area -->
                     <ScrollablePanel Id="MsgScroll"
                                      WidthSizePolicy="StretchToParent"
                                      HeightSizePolicy="StretchToParent"
-                                     MarginTop="4" MarginBottom="!Input.H" MarginRight="24"
+                                     MarginBottom="!Input.H" MarginRight="24"
                                      AutoHideScrollBars="true"
                                      ClipRect="MsgClip"
                                      InnerPanel="MsgClip\MsgList"
@@ -145,130 +148,151 @@
                                 WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                 ClipContents="true">
                           <Children>
-                                      <ListPanel Id="MsgList"
+                            <ListPanel Id="MsgList"
                                        DataSource="{MessageList}"
                                        WidthSizePolicy="StretchToParent"
                                        HeightSizePolicy="CoverChildren"
                                        StackLayout.LayoutMethod="VerticalBottomToTop"
-                                       Spacing="10"
-                                       MarginLeft="18" MarginRight="18"
-                                       MarginTop="6" MarginBottom="6">
+                                       Spacing="12"
+                                       MarginLeft="16" MarginRight="16"
+                                       MarginTop="8" MarginBottom="8">
                               <ItemTemplate>
                                 <!--
-                                  Messenger layout: NPC left, player right.
-                                  IsVisible collapse confirmed: SPConversation.xml @IsPersuading.
-                                  ContentSegments preserves speech/emote/action order.
+                                  Each message: NPC messages left, player messages right.
+                                  Each ContentSegment is either a body bubble (IsBody)
+                                  or an action/emote pill (IsPill).
                                 -->
                                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                        MarginTop="2" MarginBottom="1">
+                                        MarginTop="2" MarginBottom="2">
                                   <Children>
 
-                                    <!-- NPC side: left-aligned, constrained right -->
+                                    <!-- NPC message group -->
                                     <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                StackLayout.LayoutMethod="VerticalBottomToTop"
-                                               MarginLeft="12" MarginRight="160"
+                                               MarginLeft="8" MarginRight="140"
                                                IsVisible="@IsNpc">
                                       <Children>
+                                        <!-- Name badge row -->
                                         <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                Sprite="name_shadow_9" AlphaFactor="0.7">
+                                                MarginBottom="3">
                                           <Children>
-                                            <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                       StackLayout.LayoutMethod="HorizontalLeftToRight"
-                                                       MarginLeft="10" MarginTop="4" MarginBottom="4">
+                                            <BrushWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                         Brush="Crownfall.Chat.NameBadge">
                                               <Children>
-                                                <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                               Brush="Conversation.HeaderText"
-                                                               Text="@SenderName" IsDisabled="true" />
-                                                <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                            VerticalAlignment="Bottom" MarginLeft="8" MarginBottom="3"
-                                                            Brush="SPScoreboard.Subtitle.Text"
-                                                            Brush.FontSize="13" Brush.FontColor="@TypeTagColor"
-                                                            Text="@TypeTag" />
+                                                <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                           StackLayout.LayoutMethod="HorizontalLeftToRight"
+                                                           MarginLeft="10" MarginRight="10"
+                                                           MarginTop="5" MarginBottom="5">
+                                                  <Children>
+                                                    <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                                   Brush="Crownfall.Text.NpcName"
+                                                                   Text="@SenderName" IsDisabled="true" />
+                                                    <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                                VerticalAlignment="Bottom"
+                                                                MarginLeft="8" MarginBottom="2"
+                                                                Brush="Crownfall.Text.TypeTag"
+                                                                Brush.FontColor="@TypeTagColor"
+                                                                Text="@TypeTag" />
+                                                  </Children>
+                                                </ListPanel>
                                               </Children>
-                                            </ListPanel>
+                                            </BrushWidget>
                                           </Children>
                                         </Widget>
-                                        <!-- Ordered content segments -->
+
+                                        <!-- Content segments (bubbles / pills) -->
                                         <ListPanel DataSource="{ContentSegments}"
                                                    WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                    StackLayout.LayoutMethod="VerticalBottomToTop"
-                                                   Spacing="10">
+                                                   Spacing="6">
                                           <ItemTemplate>
-                                            <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Bubble.W" HeightSizePolicy="CoverChildren"
-                                                    HorizontalAlignment="Left" IsVisible="@IsBody"
-                                                    MarginTop="2" MarginBottom="2"
-                                                    Sprite="General\CharacterCreation\name_input_area" Color="@BackColor">
+                                            <!-- Body bubble -->
+                                            <BrushWidget WidthSizePolicy="Fixed" SuggestedWidth="!Bubble.W"
+                                                         HeightSizePolicy="CoverChildren"
+                                                         HorizontalAlignment="Left"
+                                                         IsVisible="@IsBody"
+                                                         MarginTop="2" MarginBottom="2"
+                                                         Brush="Crownfall.Chat.Bubble.Npc">
                                               <Children>
                                                 <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                            Margin="14,6,14,6"
-                                                            Brush="Conversation.ConversedPartyLine.Text" Brush.FontColor="@TextColor"
+                                                            Margin="14,8,14,8"
+                                                            Brush="Crownfall.Text.Body"
+                                                            Brush.FontColor="@TextColor"
                                                             Text="@Text" />
                                               </Children>
-                                            </Widget>
-                                            <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                    HorizontalAlignment="Left" IsVisible="@IsPill"
-                                                    MarginTop="2" MarginBottom="2"
-                                                    Sprite="name_shadow_9" Color="@BackColor">
+                                            </BrushWidget>
+                                            <!-- Action/emote pill -->
+                                            <BrushWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                         HorizontalAlignment="Left"
+                                                         IsVisible="@IsPill"
+                                                         MarginTop="2" MarginBottom="2"
+                                                         Brush="Crownfall.Chat.Bubble.Memory">
                                               <Children>
                                                 <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                            Margin="12,4,12,4"
-                                                            Brush="Conversation.ConversedPartyLine.Text" Brush.FontColor="@TextColor"
+                                                            Margin="14,5,14,5"
+                                                            Brush="Crownfall.Text.Body"
+                                                            Brush.FontColor="@TextColor"
                                                             Text="@Text" />
                                               </Children>
-                                            </Widget>
+                                            </BrushWidget>
                                           </ItemTemplate>
                                         </ListPanel>
                                       </Children>
                                     </ListPanel>
 
-                                    <!-- Player side: right-aligned, constrained left -->
+                                    <!-- Player message group -->
                                     <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                StackLayout.LayoutMethod="VerticalBottomToTop"
-                                               MarginLeft="160" MarginRight="12"
+                                               MarginLeft="140" MarginRight="8"
                                                HorizontalAlignment="Right"
                                                IsVisible="@IsPlayer">
                                       <Children>
+                                        <!-- "You" label -->
                                         <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                HorizontalAlignment="Right"
-                                                Sprite="name_shadow_9" AlphaFactor="0.7">
+                                                HorizontalAlignment="Right" MarginBottom="3">
                                           <Children>
-                                            <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                           HorizontalAlignment="Right"
-                                                           MarginRight="10" MarginTop="4" MarginBottom="4"
-                                                           Brush="Conversation.HeaderText"
-                                                           Text="@SenderName" IsDisabled="true" />
+                                            <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                        MarginRight="4"
+                                                        Brush="Crownfall.Text.YouLabel"
+                                                        Text="You" IsDisabled="true" />
                                           </Children>
                                         </Widget>
-                                        <!-- Ordered content segments (right-aligned text) -->
+
+                                        <!-- Content segments (right-aligned) -->
                                         <ListPanel DataSource="{ContentSegments}"
                                                    WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                    StackLayout.LayoutMethod="VerticalBottomToTop"
-                                                   Spacing="10">
+                                                   Spacing="6">
                                           <ItemTemplate>
-                                            <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Bubble.W" HeightSizePolicy="CoverChildren"
-                                                    HorizontalAlignment="Right" IsVisible="@IsBody"
-                                                    MarginTop="2" MarginBottom="2"
-                                                    Sprite="General\CharacterCreation\name_input_area" Color="@BackColor">
+                                            <BrushWidget WidthSizePolicy="Fixed" SuggestedWidth="!Bubble.W"
+                                                         HeightSizePolicy="CoverChildren"
+                                                         HorizontalAlignment="Right"
+                                                         IsVisible="@IsBody"
+                                                         MarginTop="2" MarginBottom="2"
+                                                         Brush="Crownfall.Chat.Bubble.Player">
                                               <Children>
                                                 <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                            Margin="14,6,14,6"
-                                                            Brush="Conversation.ConversedPartyLine.Text" Brush.FontColor="@TextColor"
+                                                            Margin="14,8,14,8"
+                                                            Brush="Crownfall.Text.Body"
+                                                            Brush.FontColor="@TextColor"
                                                             TextHorizontalAlignment="Right"
                                                             Text="@Text" />
                                               </Children>
-                                            </Widget>
-                                            <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                    HorizontalAlignment="Right" IsVisible="@IsPill"
-                                                    MarginTop="2" MarginBottom="2"
-                                                    Sprite="name_shadow_9" Color="@BackColor">
+                                            </BrushWidget>
+                                            <BrushWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                         HorizontalAlignment="Right"
+                                                         IsVisible="@IsPill"
+                                                         MarginTop="2" MarginBottom="2"
+                                                         Brush="Crownfall.Chat.Bubble.Memory">
                                               <Children>
                                                 <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                            Margin="12,4,12,4"
-                                                            Brush="Conversation.ConversedPartyLine.Text" Brush.FontColor="@TextColor"
+                                                            Margin="14,5,14,5"
+                                                            Brush="Crownfall.Text.Body"
+                                                            Brush.FontColor="@TextColor"
                                                             TextHorizontalAlignment="Right"
                                                             Text="@Text" />
                                               </Children>
-                                            </Widget>
+                                            </BrushWidget>
                                           </ItemTemplate>
                                         </ListPanel>
                                       </Children>
@@ -283,168 +307,223 @@
                       </Children>
                     </ScrollablePanel>
 
+                    <!-- Scrollbar -->
                     <Standard.VerticalScrollbar Id="MsgScrollbar"
-                                                WidthSizePolicy="Fixed" SuggestedWidth="22"
+                                                WidthSizePolicy="Fixed" SuggestedWidth="20"
                                                 HeightSizePolicy="StretchToParent"
                                                 HorizontalAlignment="Right"
-                                                MarginTop="4" MarginBottom="!Input.H"
-                                                MarginRight="2" />
+                                                MarginBottom="!Input.H" MarginRight="2" />
 
-                    <!-- Separator above input -->
-                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
-                            SuggestedHeight="2"
-                            VerticalAlignment="Bottom" PositionYOffset="-52"
-                            Sprite="BlankWhiteSquare_9" Color="!SepColor" />
-
-                    <!-- Input bar -->
-                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
-                            SuggestedHeight="!Input.H"
-                            VerticalAlignment="Bottom"
-                            Sprite="BlankWhite" Color="#1A110CFF" AlphaFactor="0.9">
+                    <!-- ── INPUT BAR ── -->
+                    <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
+                                 SuggestedHeight="!Input.H"
+                                 VerticalAlignment="Bottom"
+                                 Brush="Crownfall.InputBar.Background">
                       <Children>
-                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                                Sprite="frame_9" ExtendLeft="4" ExtendTop="4" ExtendRight="4" ExtendBottom="4"
-                                AlphaFactor="0.34" IsEnabled="false" />
-                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                                Sprite="General\CharacterCreation\character_creation_background_gradient"
-                                Color="#2A1A11FF" AlphaFactor="0.2" IsEnabled="false" />
-                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
-                                SuggestedHeight="38"
-                                HorizontalAlignment="Left" VerticalAlignment="Center"
-                                MarginLeft="8" MarginRight="106"
-                                Sprite="General\CharacterCreation\name_input_area">
+
+                        <!-- Input field -->
+                        <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
+                                     SuggestedHeight="42"
+                                     HorizontalAlignment="Left" VerticalAlignment="Center"
+                                     MarginLeft="10" MarginRight="60"
+                                     Brush="Crownfall.Chat.InputField">
                           <Children>
-                            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                                    Sprite="frame_9" ExtendLeft="3" ExtendTop="3" ExtendRight="3" ExtendBottom="3"
-                                    AlphaFactor="0.16" IsEnabled="false" />
                             <EditableTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                                HorizontalAlignment="Center" VerticalAlignment="Center"
-                                               Margin="10,4,10,4"
-                                               Brush="Review.NameInput.Text"
+                                               Margin="14,6,14,6"
+                                               Brush="Crownfall.Chat.InputText"
                                                Text="@InputText"
                                                Command.TextChanged="OnTextChanged" />
                           </Children>
-                        </Widget>
-                        <ButtonWidget WidthSizePolicy="Fixed" SuggestedWidth="90"
-                                      HeightSizePolicy="Fixed" SuggestedHeight="38"
+                        </BrushWidget>
+
+                        <!-- Send button -->
+                        <ButtonWidget WidthSizePolicy="Fixed" SuggestedWidth="48"
+                                      HeightSizePolicy="Fixed" SuggestedHeight="42"
                                       HorizontalAlignment="Right" VerticalAlignment="Center"
                                       MarginRight="8"
                                       IsEnabled="@IsSendEnabled"
-                                      Brush="Popup.Done.Button"
+                                      Brush="Crownfall.Chat.SendButton"
                                       UpdateChildrenStates="true"
                                       DoNotPassEventsToChildren="true"
                                       Command.Click="ExecuteSendMessage">
                           <Children>
-                            <TextWidget Text="Send"
-                                        WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
-                                        SuggestedHeight="22" VerticalAlignment="Center"
-                                        MarginLeft="20" MarginRight="20"
-                                        Brush="Popup.Button.Text" />
+                            <TextWidget Text="→"
+                                        WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                                        HorizontalAlignment="Center" VerticalAlignment="Center"
+                                        Brush="Crownfall.Chat.SendButton.Text"
+                                        Brush.FontSize="22" />
                           </Children>
                         </ButtonWidget>
+
+                      </Children>
+                    </BrushWidget>
+
+                  </Children>
+                </Widget>
+
+                <!-- Vertical separator between center and right panel -->
+                <Widget HorizontalAlignment="Right"
+                        WidthSizePolicy="Fixed" SuggestedWidth="!Sep.W"
+                        HeightSizePolicy="StretchToParent"
+                        PositionXOffset="-!Right.W"
+                        Brush="Crownfall.Separator" />
+
+                <!-- ── RIGHT COLUMN — character stats + events ── -->
+                <BrushWidget HorizontalAlignment="Right"
+                             WidthSizePolicy="Fixed" SuggestedWidth="!Right.W"
+                             HeightSizePolicy="StretchToParent"
+                             Brush="Crownfall.RightPanel.Background">
+                  <Children>
+
+                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                            MarginLeft="10" MarginRight="10" MarginTop="10" MarginBottom="10">
+                      <Children>
+
+                        <!-- "Character" section header -->
+                        <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                    VerticalAlignment="Top"
+                                    Brush="Crownfall.RightPanel.SectionHeader"
+                                    Text="Character" IsDisabled="true" />
+
+                        <!-- ── Relation + stats scrollable area ── -->
+                        <ScrollablePanel Id="RightScroll"
+                                         WidthSizePolicy="StretchToParent"
+                                         HeightSizePolicy="StretchToParent"
+                                         MarginTop="30" MarginRight="20"
+                                         AutoHideScrollBars="true"
+                                         ClipRect="RightClip"
+                                         InnerPanel="RightClip\RightList"
+                                         VerticalScrollbar="..\RightScrollbar\Scrollbar">
+                          <Children>
+                            <Widget Id="RightClip"
+                                    WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                                    ClipContents="true">
+                              <Children>
+                                <ListPanel Id="RightList"
+                                           WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                           StackLayout.LayoutMethod="VerticalTopToBottom"
+                                           Spacing="2">
+                                  <Children>
+
+                                    <!-- Gold separator -->
+                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
+                                            SuggestedHeight="1" MarginTop="2" MarginBottom="6"
+                                            Brush="Crownfall.Separator" />
+
+                                    <!-- Relation section header -->
+                                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                Brush="Crownfall.RightPanel.SectionHeader"
+                                                Brush.FontSize="14"
+                                                Text="Relation" IsDisabled="true" />
+
+                                    <!-- Relation range labels: Cold … Friendly -->
+                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                            MarginTop="4">
+                                      <Children>
+                                        <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                    HorizontalAlignment="Left"
+                                                    Brush="Crownfall.Relation.RangeLabel"
+                                                    Text="Cold" IsDisabled="true" />
+                                        <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                    HorizontalAlignment="Right"
+                                                    Brush="Crownfall.Relation.RangeLabel"
+                                                    Text="Friendly" IsDisabled="true" />
+                                      </Children>
+                                    </Widget>
+
+                                    <!-- Relation bar track + fill -->
+                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
+                                            SuggestedHeight="10"
+                                            MarginTop="2" MarginBottom="2">
+                                      <Children>
+                                        <!-- track -->
+                                        <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                                                     Brush="Crownfall.Relation.BarTrack" />
+                                        <!-- fill — width driven by @RelationFill (0..1) via PositionXOffset hack) -->
+                                        <BrushWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent"
+                                                     SuggestedWidth="@RelationBarWidth"
+                                                     Brush="Crownfall.Relation.BarFill" />
+                                      </Children>
+                                    </Widget>
+
+                                    <!-- Relation delta + label -->
+                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                            MarginBottom="4">
+                                      <Children>
+                                        <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                       HorizontalAlignment="Center"
+                                                       Brush="Crownfall.Relation.Delta"
+                                                       Text="@RelationText" IsDisabled="true" />
+                                      </Children>
+                                    </Widget>
+
+                                    <!-- Relation label ("Cautious" etc.) in gold -->
+                                    <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                   HorizontalAlignment="Center"
+                                                   MarginBottom="8"
+                                                   Brush="Crownfall.RightPanel.GoldValue"
+                                                   Text="@TrustLabel" IsDisabled="true" />
+
+                                    <!-- Separator -->
+                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
+                                            SuggestedHeight="1" MarginTop="2" MarginBottom="6"
+                                            Brush="Crownfall.Separator" />
+
+                                    <!-- Generic stat/info list (times met, known for, etc.) -->
+                                    <ListPanel DataSource="{RightPanelItems}"
+                                               WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                               StackLayout.LayoutMethod="VerticalTopToBottom"
+                                               Spacing="4">
+                                      <ItemTemplate>
+                                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                MarginTop="1" MarginBottom="1">
+                                          <Children>
+                                            <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                           Brush="Crownfall.RightPanel.StatLabel"
+                                                           Brush.FontSize="13"
+                                                           Brush.FontColor="@Color"
+                                                           Text="@Text" IsDisabled="true" />
+                                          </Children>
+                                        </Widget>
+                                      </ItemTemplate>
+                                    </ListPanel>
+
+                                    <!-- Separator before events -->
+                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
+                                            SuggestedHeight="1" MarginTop="8" MarginBottom="6"
+                                            Brush="Crownfall.Separator" />
+
+                                    <!-- "Recent World Events" section header -->
+                                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                MarginBottom="6"
+                                                Brush="Crownfall.RightPanel.SectionHeader"
+                                                Text="Recent World Events" IsDisabled="true" />
+
+                                  </Children>
+                                </ListPanel>
+                              </Children>
+                            </Widget>
+                          </Children>
+                        </ScrollablePanel>
+
+                        <Standard.VerticalScrollbar Id="RightScrollbar"
+                                                    WidthSizePolicy="Fixed" SuggestedWidth="18"
+                                                    HeightSizePolicy="StretchToParent"
+                                                    HorizontalAlignment="Right"
+                                                    MarginTop="30" MarginRight="0" />
+
                       </Children>
                     </Widget>
 
                   </Children>
-                </Widget>
-
-                <!-- Right separator — PositionXOffset = -Right.W (fixed: was -280, now -300) -->
-                <Widget HorizontalAlignment="Right"
-                        WidthSizePolicy="Fixed" SuggestedWidth="!Sep.W"
-                        HeightSizePolicy="StretchToParent"
-                        PositionXOffset="-300"
-                        MarginTop="!Header.H"
-                        Sprite="BlankWhiteSquare_9" Color="!SepColor" />
-
-                <!-- ── RIGHT COLUMN ── -->
-                <Widget HorizontalAlignment="Right"
-                        WidthSizePolicy="Fixed" SuggestedWidth="!Right.W"
-                        HeightSizePolicy="StretchToParent"
-                        MarginTop="!Header.H">
-                  <Children>
-
-                    <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
-                                   SuggestedHeight="36"
-                                   VerticalAlignment="Top" HorizontalAlignment="Center"
-                                   PositionYOffset="8"
-                                   Brush="SPScoreboard.Subtitle.Text"
-                                   Brush.FontSize="18" Color="!Gold"
-                                   Text="Diplomacy &amp; Relation" IsDisabled="true" />
-
-                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
-                            SuggestedHeight="2"
-                            VerticalAlignment="Top" PositionYOffset="48"
-                            MarginLeft="8" MarginRight="8"
-                            Sprite="BlankWhiteSquare_9" Color="!SepColor" />
-
-                    <ScrollablePanel Id="RightScroll"
-                                     WidthSizePolicy="StretchToParent"
-                                     HeightSizePolicy="StretchToParent"
-                                     MarginTop="54" MarginBottom="50" MarginRight="24"
-                                     AutoHideScrollBars="true"
-                                     ClipRect="RightClip"
-                                     InnerPanel="RightClip\RightList"
-                                     VerticalScrollbar="..\RightScrollbar\Scrollbar">
-                      <Children>
-                        <Widget Id="RightClip"
-                                WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                                ClipContents="true">
-                          <Children>
-                            <NavigatableListPanel Id="RightList"
-                                                 DataSource="{RightPanelItems}"
-                                                 WidthSizePolicy="StretchToParent"
-                                                 HeightSizePolicy="CoverChildren"
-                                                 StackLayout.LayoutMethod="VerticalTopToBottom"
-                                                 Spacing="3"
-                                                 MarginLeft="8" MarginRight="8"
-                                                 MarginTop="4" MarginBottom="4">
-                              <ItemTemplate>
-                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren">
-                                  <Children>
-                                    <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                   Brush="SPScoreboard.Subtitle.Text"
-                                                   Brush.FontSize="13" Color="@Color"
-                                                   Text="@Text" IsDisabled="true" />
-                                  </Children>
-                                </Widget>
-                              </ItemTemplate>
-                            </NavigatableListPanel>
-                          </Children>
-                        </Widget>
-                      </Children>
-                    </ScrollablePanel>
-
-                    <Standard.VerticalScrollbar Id="RightScrollbar"
-                                                WidthSizePolicy="Fixed" SuggestedWidth="22"
-                                                HeightSizePolicy="StretchToParent"
-                                                HorizontalAlignment="Right"
-                                                MarginTop="54" MarginBottom="50"
-                                                MarginRight="2" />
-
-                    <ButtonWidget WidthSizePolicy="Fixed" SuggestedWidth="130"
-                                  HeightSizePolicy="Fixed" SuggestedHeight="38"
-                                  HorizontalAlignment="Center" VerticalAlignment="Bottom"
-                                  MarginBottom="8"
-                                  Brush="Popup.Cancel.Button"
-                                  UpdateChildrenStates="true"
-                                  DoNotPassEventsToChildren="true"
-                                  Command.Click="ExecuteReturn">
-                      <Children>
-                        <TextWidget Text="Close"
-                                    WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
-                                    SuggestedHeight="22" VerticalAlignment="Center"
-                                    MarginLeft="30" MarginRight="25"
-                                    Brush="Popup.Button.Text" />
-                      </Children>
-                    </ButtonWidget>
-
-                  </Children>
-                </Widget>
+                </BrushWidget>
 
               </Children>
             </Widget>
+
           </Children>
-        </Widget>
+        </BrushWidget>
 
       </Children>
     </Widget>
