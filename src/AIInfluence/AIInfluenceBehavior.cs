@@ -1346,6 +1346,14 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				CleanupSpawnedQuestNotable(questInfo, "party faction invalid");
 				return;
 			}
+			if (party.MapFaction.FactionMidSettlement == null)
+			{
+				LogMessage($"[QUEST] Spawned hostile party '{((MBObjectBase)party).StringId}' has MapFaction with null FactionMidSettlement; destroying to avoid AiPatrollingBehavior crashes");
+				DestroyPartyAction.Apply((PartyBase)null, party);
+				questInfo.SpawnedPartyId = null;
+				CleanupSpawnedQuestNotable(questInfo, "party faction mid-settlement invalid");
+				return;
+			}
 			bool partySetupOk = false;
 			try
 			{

@@ -21,13 +21,19 @@ public static class QuestPartyAiPatrollingGuardPatch
 		{
 			return true;
 		}
-		if (!(mobileParty.MapFaction?.IsBanditFaction ?? false))
+		string stringId = ((MBObjectBase)mobileParty).StringId;
+		if (mobileParty.MapFaction == null || mobileParty.MapFaction.FactionMidSettlement == null)
+		{
+			instance.LogMessage($"[ERROR] [QUEST] Skipping AiPatrollingBehavior.AiHourlyTick for AIInfluence quest party '{stringId}' due to invalid map faction state");
+			return false;
+		}
+		if (!mobileParty.MapFaction.IsBanditFaction)
 		{
 			return true;
 		}
 		if (GlobalSettings<ModSettings>.Instance?.DebugQuestScenarioVerboseLogging ?? false)
 		{
-			instance.LogMessage($"[QuestDebugVerbose] Skipping AiPatrollingBehavior.AiHourlyTick for AIInfluence quest party '{((MBObjectBase)mobileParty).StringId}' (bandit map faction)");
+			instance.LogMessage($"[QuestDebugVerbose] Skipping AiPatrollingBehavior.AiHourlyTick for AIInfluence quest party '{stringId}' (bandit map faction)");
 		}
 		return false;
 	}
