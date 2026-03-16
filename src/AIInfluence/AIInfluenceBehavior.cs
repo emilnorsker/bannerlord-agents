@@ -1256,7 +1256,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			Clan aiPartyClan = ResolveQuestPartyAiDriverClan(spawnPos, banditClan);
 			if (aiPartyClan == null || aiPartyClan.IsBanditFaction || aiPartyClan.MapFaction == null || aiPartyClan.FactionMidSettlement == null)
 			{
-				LogMessage("[QUEST] Could not resolve a safe AI driver clan (non-bandit with valid map faction + mid settlement) for hostile quest party");
+				LogMessage("[QUEST] Could not resolve a safe WAR-side AI driver clan (non-bandit with valid map faction + mid settlement) for hostile quest party");
 				return;
 			}
 			LogQuestScenarioVerbose($"SpawnQuestHostileParty selected clan id={((MBObjectBase)banditClan).StringId}");
@@ -1544,11 +1544,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		if (warCandidate != null)
 		{
 			return warCandidate;
-		}
-		Clan nearestSafeCandidate = candidates.OrderBy((Clan c) => c.FactionMidSettlement.GetPosition2D().Distance(spawnPos)).FirstOrDefault();
-		if (nearestSafeCandidate != null)
-		{
-			return nearestSafeCandidate;
 		}
 		return null;
 	}
