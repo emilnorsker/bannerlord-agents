@@ -2543,7 +2543,7 @@ public class DynamicEventsGenerator
 				dynamicEvent.ParticipatingKingdoms = list;
 				dynamicEvent.RequiresDiplomaticAnalysis = true;
 				DiplomacyLogger.Instance?.Log("Event " + dynamicEvent.Id + " created diplomatic situation involving " + string.Join(", ", list));
-				_ = ProcessDiplomaticEventAsync(dynamicEvent);
+				StartBackgroundTask(ProcessDiplomaticEventAsync(dynamicEvent), "ProcessDiplomaticEventAsync");
 			}
 		}
 	}
@@ -3810,7 +3810,7 @@ public class DynamicEventsGenerator
 			DynamicEventsLogger.Instance.Log($"[KINGDOM_DESTRUCTION] Kingdom '{destroyedKingdom.Name}' (string_id: {((MBObjectBase)destroyedKingdom).StringId}) has been destroyed");
 			KingdomDestructionInfo kingdomDestructionInfo = DetermineKingdomDestroyer(destroyedKingdom);
 			_kingdomDestructionTracker[((MBObjectBase)destroyedKingdom).StringId] = kingdomDestructionInfo;
-			_ = CreateKingdomDestructionEvent(destroyedKingdom, kingdomDestructionInfo);
+			StartBackgroundTask(CreateKingdomDestructionEvent(destroyedKingdom, kingdomDestructionInfo), "CreateKingdomDestructionEvent");
 		}
 	}
 
@@ -4405,5 +4405,18 @@ public class DynamicEventsGenerator
 		stringBuilder.AppendLine("Consider power vacuums, alliances, territorial claims, and diplomatic realignments.");
 		stringBuilder.AppendLine("Generate the kingdom destruction event NOW (JSON only):");
 		return stringBuilder.ToString();
+	}
+
+	private void StartBackgroundTask(Task task, string operation)
+	{
+		if (task == null)
+		{
+			return;
+		}
+		task.ContinueWith(delegate(Task t)
+		{
+			Exception ex = t.Exception?.GetBaseException() ?? t.Exception;
+			DiplomacyLogger.Instance?.LogError("DynamicEventsGenerator." + operation, "Background task failed", ex);
+		}, TaskContinuationOptions.OnlyOnFaulted);
 	}
 }

@@ -826,7 +826,7 @@ public class NPCInitiativeSystem
 
 	private void ShowMessengerRequest(NPCInitiativeRequest request)
 	{
-		_ = GenerateAndShowMessengerMessage(request);
+		StartBackgroundTask(GenerateAndShowMessengerMessage(request), "GenerateAndShowMessengerMessage");
 	}
 
 	public void InitiateMessengerFlow(Hero npc)
@@ -1132,7 +1132,7 @@ public class NPCInitiativeSystem
 			request.NPC.SetHasMet();
 			LogMessage($"[NPC_INITIATIVE] Made {request.NPC.Name} known to player (SetHasMet) before processing request");
 		}
-		_ = GenerateAndStartPartyConversation(request);
+		StartBackgroundTask(GenerateAndStartPartyConversation(request), "GenerateAndStartPartyConversation");
 	}
 
 	public async Task StartConversationAfterReturn(NPCInitiativeRequest request)
@@ -1502,7 +1502,7 @@ public class NPCInitiativeSystem
 			return;
 		}
 		LogMessage($"[NPC_MESSENGER] Delivering player's letter to {val.Name}");
-		_ = GenerateNPCResponseToPlayerLetter(val, letter);
+		StartBackgroundTask(GenerateNPCResponseToPlayerLetter(val, letter), "GenerateNPCResponseToPlayerLetter");
 	}
 
 	private async Task GenerateNPCResponseToPlayerLetter(Hero npc, PendingPlayerLetter letter)
@@ -2465,6 +2465,19 @@ public class NPCInitiativeSystem
 				LogMessage($"[NPC_MAP_INITIATIVE] Hostile {heroObject.Name} caught player, but cooldown active ({num3:F1} < {GlobalSettings<ModSettings>.Instance.HostileInitiativeCooldown}). Using vanilla logic.");
 			}
 		}
+	}
+
+	private void StartBackgroundTask(Task task, string operation)
+	{
+		if (task == null)
+		{
+			return;
+		}
+		task.ContinueWith(delegate(Task t)
+		{
+			Exception ex = t.Exception?.GetBaseException() ?? t.Exception;
+			LogMessage("[ERROR] NPCInitiativeSystem background task '" + operation + "' failed: " + ex.Message);
+		}, TaskContinuationOptions.OnlyOnFaulted);
 	}
 
 	private void ProcessConversationStart(Hero npc, bool isHostile)
