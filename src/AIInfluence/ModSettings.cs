@@ -376,6 +376,8 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 
 	private float _dialogDelay = 15f;
 
+	private float _chatStreamCharacterInterval = 0.05f;
+
 	private bool _enableResponseReadySound = true;
 
 	private bool _enableNPCLastMessageHistory = true;
@@ -4159,6 +4161,24 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 			{
 				_enableNPCLastMessageHistory = value;
 				this.OnSettingChanged?.Invoke("EnableNPCLastMessageHistory", value);
+			}
+		}
+	}
+
+	[SettingPropertyGroup("{=AIInfluence_Group_Technical}Technical Settings", GroupOrder = 11)]
+	[SettingPropertyFloatingInteger("Chat Stream Character Interval (seconds)", 0.005f, 0.2f, "0.000", Order = 103, RequireRestart = false, HintText = "Delay between each revealed character in streamed chat. Lower = faster writing effect. Default: 0.05")]
+	public float ChatStreamCharacterInterval
+	{
+		get
+		{
+			return _chatStreamCharacterInterval;
+		}
+		set
+		{
+			if (Math.Abs(_chatStreamCharacterInterval - value) > 0.0005f)
+			{
+				_chatStreamCharacterInterval = value;
+				this.OnSettingChanged?.Invoke("ChatStreamCharacterInterval", value);
 			}
 		}
 	}

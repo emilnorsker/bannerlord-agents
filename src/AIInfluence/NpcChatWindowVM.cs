@@ -287,7 +287,10 @@ public class NpcChatWindowVM : ViewModel
                         ReplaceStreamingSegments(streamingItem, npcName, streamingVisibleText);
                         DelayedTaskManager taskManager = AIInfluenceBehavior.Instance?.GetDelayedTaskManager();
                         if (taskManager != null)
-                            taskManager.AddTask(0.01, streamPumpStep);
+                        {
+                            double revealInterval = Math.Max(0.005f, GlobalSettings<ModSettings>.Instance?.ChatStreamCharacterInterval ?? 0.05f);
+                            taskManager.AddTask(revealInterval, streamPumpStep);
+                        }
                         else
                         {
                             streamingVisibleText = streamingTargetText;
