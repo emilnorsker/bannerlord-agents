@@ -288,16 +288,19 @@ public class NpcSpawnService
 		string normalized = name.Trim().ToLowerInvariant();
 
 		Settlement exact = Settlement.All?.FirstOrDefault(s =>
+			(s.IsTown || s.IsCastle) &&
 			s.Name != null && string.Equals(s.Name.ToString(), name, StringComparison.OrdinalIgnoreCase));
 		if (exact != null)
 			return exact;
 
 		Settlement contains = Settlement.All?.FirstOrDefault(s =>
+			(s.IsTown || s.IsCastle) &&
 			s.Name != null && s.Name.ToString().ToLowerInvariant().Contains(normalized));
 		if (contains != null)
 			return contains;
 
 		Settlement idMatch = Settlement.All?.FirstOrDefault(s =>
+			(s.IsTown || s.IsCastle) &&
 			s.StringId != null && s.StringId.ToLowerInvariant().Contains(normalized));
 		return idMatch;
 	}
