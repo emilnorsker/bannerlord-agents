@@ -169,3 +169,28 @@ Hostile parties are destroyed in `CleanupSpawnedQuestParty` via `DestroyPartyAct
 - Exact normalized match = 100
 - Prefix match = 80
 - Approximate token match = 50
+
+---
+
+## Cursor Cloud specific instructions
+
+This is a C# game mod (Mount & Blade II: Bannerlord). There are **no unit tests** and **no lint tool** configured in the repository. The only meaningful CI check is compilation.
+
+### Build
+
+```bash
+dotnet restore src/AIInfluence.csproj
+dotnet build src/AIInfluence.csproj -c Release --no-restore -p:GameFolder="$PWD/_game_folder"
+```
+
+The `-p:GameFolder` override points to a dummy path so the SDK doesn't try to copy into a real game install. 122 warnings (unused fields, etc.) are expected; 0 errors is the success criteria.
+
+### No runtime testing
+
+The mod is a DLL loaded by the Bannerlord game engine (Windows-only desktop app). It cannot be executed or integration-tested on Linux. Compilation is the only verifiable quality gate in this environment.
+
+### Key caveats
+
+- .NET 8.0 SDK is required (installed to `$HOME/.dotnet`). The update script handles installation if missing.
+- `DOTNET_ROOT` and `PATH` must include `$HOME/.dotnet` — the update script exports these, and they are also persisted in `~/.bashrc`.
+- The project targets `net472` but the Bannerlord SDK cross-compiles to `netstandard2.0` on Linux. Both `Debug` and `Release` configs produce `src/bin/{config}/netstandard2.0/AIInfluence.dll`.
