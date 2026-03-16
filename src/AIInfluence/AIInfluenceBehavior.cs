@@ -1525,6 +1525,17 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	private Clan ResolveQuestPartyAiDriverClan(Vec2 spawnPos, Clan preferredBanditClan)
 	{
+		const string preconfiguredQuestDriverClanId = "aiinfluence_hidden_ai_driver_clan";
+		Clan preconfiguredClan = Clan.All?.FirstOrDefault((Clan c) => c != null && string.Equals(((MBObjectBase)c).StringId, preconfiguredQuestDriverClanId, StringComparison.OrdinalIgnoreCase));
+		if (preconfiguredClan != null)
+		{
+			if (!preconfiguredClan.IsBanditFaction && preconfiguredClan.MapFaction != null && preconfiguredClan.FactionMidSettlement != null)
+			{
+				return preconfiguredClan;
+			}
+			LogMessage($"[QUEST] Preconfigured AI driver clan '{preconfiguredQuestDriverClanId}' is invalid (bandit/mapfaction/midsettlement)");
+			return null;
+		}
 		Clan ownerClan = preferredBanditClan?.FactionMidSettlement?.OwnerClan;
 		IFaction playerFaction = Hero.MainHero?.MapFaction;
 		if (ownerClan != null && ownerClan.MapFaction != null && ownerClan.FactionMidSettlement != null && !ownerClan.IsBanditFaction)
