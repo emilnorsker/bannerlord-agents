@@ -516,6 +516,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	private async void OnTick(float dt)
 	{
+		await Task.CompletedTask;
 		_delayedTaskManager.Tick(dt);
 		_worldInfoManager?.Tick(dt);
 		_saveQueueManager?.Tick(dt);
@@ -1550,7 +1551,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 		Clan ownerClan = preferredBanditClan?.FactionMidSettlement?.OwnerClan;
 		IFaction playerFaction = Hero.MainHero?.MapFaction;
-		if (ownerClan != null && IsValidQuestAiDriverClan(ownerClan, out var ownerClanInvalidReason))
+		string ownerClanInvalidReason = "unknown";
+		if (ownerClan != null && IsValidQuestAiDriverClan(ownerClan, out ownerClanInvalidReason))
 		{
 			if (playerFaction != null && ownerClan.MapFaction.IsAtWarWith(playerFaction))
 			{

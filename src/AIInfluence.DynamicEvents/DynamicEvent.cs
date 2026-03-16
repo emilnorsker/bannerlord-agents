@@ -75,10 +75,6 @@ public class DynamicEvent
 			//IL_0010: Unknown result type (might be due to invalid IL or missing references)
 			//IL_0015: Unknown result type (might be due to invalid IL or missing references)
 			_ = CampaignTime.Now;
-			if (false)
-			{
-				return 0;
-			}
 			CampaignTime now = CampaignTime.Now;
 			float num = (float)(now).ToDays;
 			float num2 = num - CreationCampaignDays;
@@ -139,10 +135,6 @@ public class DynamicEvent
 		//IL_0011: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0016: Unknown result type (might be due to invalid IL or missing references)
 		_ = CampaignTime.Now;
-		if (false)
-		{
-			return false;
-		}
 		CampaignTime now = CampaignTime.Now;
 		float num = (float)(now).ToDays;
 		int num2 = GlobalSettings<ModSettings>.Instance?.DynamicEventsLifespan ?? 100;
@@ -242,10 +234,6 @@ public class DynamicEvent
 		//IL_0010: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0015: Unknown result type (might be due to invalid IL or missing references)
 		_ = CampaignTime.Now;
-		if (false)
-		{
-			return true;
-		}
 		CampaignTime now = CampaignTime.Now;
 		float num = (float)(now).ToDays;
 		return num >= NextAnalysisAttemptDays;
@@ -271,10 +259,6 @@ public class DynamicEvent
 		//IL_0023: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0028: Unknown result type (might be due to invalid IL or missing references)
 		_ = CampaignTime.Now;
-		if (false)
-		{
-			return true;
-		}
 		if (NextStatementAttemptDays.TryGetValue(kingdomId, out var value))
 		{
 			CampaignTime now = CampaignTime.Now;

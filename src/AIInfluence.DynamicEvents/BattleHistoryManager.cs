@@ -168,7 +168,7 @@ public class BattleHistoryManager
 			{
 				IMapScene mapSceneWrapper = Campaign.Current.MapSceneWrapper;
 				CampaignVec2 position = mapEvent.Position;
-				TerrainType terrainTypeAtPosition = mapSceneWrapper.GetTerrainTypeAtPosition(ref position);
+				TerrainType terrainTypeAtPosition = mapSceneWrapper.GetTerrainTypeAtPosition(in position);
 				if ((int)terrainTypeAtPosition == 10 || (int)terrainTypeAtPosition == 8 || (int)terrainTypeAtPosition == 19 || (int)terrainTypeAtPosition == 18 || (int)terrainTypeAtPosition == 11)
 				{
 					battleType = "Naval battle";

@@ -37,7 +37,6 @@ public class WarStatsSnapshot
 		}
 		set
 		{
-			bool flag = true;
 			TimestampDays = (float)(value).ToDays;
 		}
 	}

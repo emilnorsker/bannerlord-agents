@@ -253,7 +253,6 @@ public class PlayerStatementAnalyzer
 		}
 		stringBuilder.AppendLine("- 'demand_tribute' - Player demands daily tribute (requires daily_amount and duration_days)");
 		stringBuilder.AppendLine("- 'demand_reparations' - Player demands one-time war reparations (requires reparations_amount)");
-		bool flag8 = false;
 		ModSettings instance2 = GlobalSettings<ModSettings>.Instance;
 		if (instance2 != null && instance2.EnableDiseaseSystem)
 		{
@@ -284,7 +283,6 @@ public class PlayerStatementAnalyzer
 				List<Settlement> list2 = source.Where((Settlement s) => diseaseManager.SettlementHasDisease(s)).ToList();
 				if (list2.Any())
 				{
-					flag8 = true;
 					stringBuilder.AppendLine("- 'quarantine_settlement' - Close a settlement for quarantine due to disease (requires settlement_id + quarantine_duration_days)");
 					stringBuilder.AppendLine("  Available settlements with disease:");
 					foreach (Settlement item6 in list2)

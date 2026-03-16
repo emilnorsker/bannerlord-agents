@@ -1129,10 +1129,6 @@ public class DiseaseManager
 			return;
 		}
 		_ = CampaignTime.Now;
-		if (1 == 0)
-		{
-			return;
-		}
 		CampaignTime now = CampaignTime.Now;
 		float num = (float)(now).ToDays;
 		List<string> list = new List<string>();

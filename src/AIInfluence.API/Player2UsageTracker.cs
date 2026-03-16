@@ -47,8 +47,6 @@ public class Player2UsageTracker
 
 	private string _lastCanSwitchLogMessage;
 
-	private int _updateCallCount = 0;
-
 	private DateTime _lastSuccessfulUpdateTime = DateTime.MinValue;
 
 	private Func<bool> _validationDelegate;

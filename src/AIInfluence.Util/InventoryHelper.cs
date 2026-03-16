@@ -294,7 +294,6 @@ public static class InventoryHelper
 		}
 		ItemRosterElement? val = null;
 		ItemObject itemObject = null;
-		bool flag = false;
 		if (heroItemRoster != null)
 		{
 			foreach (ItemRosterElement item2 in heroItemRoster)
@@ -315,7 +314,6 @@ public static class InventoryHelper
 		{
 			if (FindAndUnequipItem(fromHero, itemId, amount, out itemObject, out errorReason))
 			{
-				flag = true;
 				if (heroItemRoster == null)
 				{
 					errorReason = $"{fromHero.Name} has no inventory to transfer equipped items to.";
@@ -370,7 +368,6 @@ public static class InventoryHelper
 					errorReason = "Item mismatch: found " + ((MBObjectBase)itemObject2).StringId + " instead of " + itemId + ".";
 					return false;
 				}
-				flag = true;
 				heroItemRoster.AddToCounts(itemObject, num);
 			}
 		}

@@ -23,8 +23,6 @@ public class QuarantineMenuBehavior : CampaignBehaviorBase
 		public static OnConditionDelegate _003C0_003E__ManageQuarantineCondition;
 
 		public static OnConsequenceDelegate _003C1_003E__ManageQuarantineConsequence;
-
-		public static Action<List<InquiryElement>> _003C2_003E__OnQuarantineOptionSelected;
 	}
 
 	public override void RegisterEvents()

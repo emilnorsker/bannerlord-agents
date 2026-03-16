@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using AIInfluence.Behaviors.AIActions;
 using AIInfluence.Services;
 using AIInfluence.SettlementCombat;
@@ -71,8 +72,6 @@ public class DialogManager
 		public static OnConditionDelegate _003C_003E9__6_39;
 
 		public static OnConditionDelegate _003C_003E9__6_40;
-
-		public static Func<AIActionBase, bool> _003C_003E9__8_0;
 
 		internal bool _003CRegisterDialogs_003Eb__6_0()
 		{
@@ -340,7 +339,7 @@ public class DialogManager
 				Hero oneToOneConversationHero = Hero.OneToOneConversationHero;
 				if (oneToOneConversationHero != null)
 				{
-					_behavior.GetNPCInitiativeSystem().GenerateNeutralInitiativeResponse(oneToOneConversationHero);
+					StartBackgroundTask(_behavior.GetNPCInitiativeSystem().GenerateNeutralInitiativeResponse(oneToOneConversationHero), "GenerateNeutralInitiativeResponse");
 				}
 			}, 2000000);
 			object obj2 = _003C_003Ec._003C_003E9__6_3;
@@ -365,7 +364,7 @@ public class DialogManager
 				Hero oneToOneConversationHero = Hero.OneToOneConversationHero;
 				if (oneToOneConversationHero != null)
 				{
-					_behavior.GetNPCInitiativeSystem().GenerateHostileInitiativeResponse(oneToOneConversationHero);
+					StartBackgroundTask(_behavior.GetNPCInitiativeSystem().GenerateHostileInitiativeResponse(oneToOneConversationHero), "GenerateHostileInitiativeResponse");
 				}
 			}, 2000000);
 			object obj3 = _003C_003Ec._003C_003E9__6_7;
@@ -394,7 +393,7 @@ public class DialogManager
 			}
 			SafeAddPlayerLine(starter, "aiinfluence_diplomatic_input", "aiinfluence_diplomatic_input", "aiinfluence_diplomatic_processing", "{=AIInfluence_DiplomaticSpeak}Speak", (OnConditionDelegate)obj5, (OnConsequenceDelegate)delegate
 			{
-				_behavior.HandlePlayerDiplomaticInput();
+				StartBackgroundTask(_behavior.HandlePlayerDiplomaticInput(), "HandlePlayerDiplomaticInput");
 			});
 			SafeAddDialogLine(starter, "aiinfluence_diplomatic_processing", "aiinfluence_diplomatic_processing", "end_conversation", "{=AIInfluence_DiplomaticProcessed}We will publish your statement as soon as possible.", null, null);
 			object obj6 = _003C_003Ec._003C_003E9__6_11;
@@ -424,7 +423,7 @@ public class DialogManager
 			});
 			SafeAddPlayerLine(starter, "aiinfluence_input", "aiinfluence_input", "aiinfluence_processing", "{=AIInfluence_PlayerThink}Speak", (OnConditionDelegate)(() => Hero.OneToOneConversationHero != null && IsNonCombatConversation(Hero.OneToOneConversationHero)), (OnConsequenceDelegate)delegate
 			{
-				_behavior.HandlePlayerInput();
+				StartBackgroundTask(_behavior.HandlePlayerInput(), "HandlePlayerInput");
 			});
 			SafeAddPlayerLine(starter, "aiinfluence_exit", "aiinfluence_input", "end_conversation", "{=AIInfluence_PlayerExit}Return", (OnConditionDelegate)(() => Hero.OneToOneConversationHero != null && IsNonCombatConversation(Hero.OneToOneConversationHero) && !IsHostileNPCInitiatedConversation(Hero.OneToOneConversationHero)), (OnConsequenceDelegate)delegate
 			{
@@ -1472,7 +1471,7 @@ public class DialogManager
 			}
 			SafeAddPlayerLine(starter, "aiinfluence_surrender_input", "aiinfluence_surrender_input", "aiinfluence_surrender_processing", "{=AIInfluence_PlayerThink}Speak", (OnConditionDelegate)obj15, (OnConsequenceDelegate)delegate
 			{
-				_behavior.HandlePlayerInput();
+				StartBackgroundTask(_behavior.HandlePlayerInput(), "HandlePlayerInput");
 			});
 			object obj16 = _003C_003Ec._003C_003E9__6_37;
 			if (obj16 == null)
@@ -1996,6 +1995,19 @@ public class DialogManager
 		{
 			_behavior.LogMessage("[ERROR] WieldBestMeleeWeaponForAgent failed: " + ex.Message);
 		}
+	}
+
+	private void StartBackgroundTask(Task task, string operation)
+	{
+		if (task == null)
+		{
+			return;
+		}
+		task.ContinueWith(delegate(Task t)
+		{
+			Exception ex = t.Exception?.GetBaseException() ?? t.Exception;
+			_behavior.LogMessage("[ERROR] DialogManager background task '" + operation + "' failed: " + ex.Message);
+		}, TaskContinuationOptions.OnlyOnFaulted);
 	}
 
 	private static bool IsPlayerKingdomGovernor()

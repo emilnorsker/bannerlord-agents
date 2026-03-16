@@ -391,12 +391,14 @@ public static class Player2Client
 
 	public static async Task<List<string>> GetAvailableVoicesAsync()
 	{
+		await Task.CompletedTask;
 		InitializeStaticVoices();
 		return new List<string>(_availableVoices.Keys);
 	}
 
 	public static async Task<VoiceInfo> GetVoiceInfoAsync(string voiceId)
 	{
+		await Task.CompletedTask;
 		InitializeStaticVoices();
 		if (string.IsNullOrEmpty(voiceId))
 		{
@@ -418,6 +420,7 @@ public static class Player2Client
 
 	public static async Task<bool> VoiceExistsAsync(string voiceId)
 	{
+		await Task.CompletedTask;
 		if (string.IsNullOrEmpty(voiceId))
 		{
 			return false;
@@ -428,6 +431,7 @@ public static class Player2Client
 
 	public static async Task<string> GetRandomVoiceAsync(string gender)
 	{
+		await Task.CompletedTask;
 		InitializeStaticVoices();
 		if (_availableVoices == null || _availableVoices.Count == 0)
 		{

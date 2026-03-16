@@ -94,10 +94,6 @@ public static class SeasonalDiseaseSystem
 		//IL_000d: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0020: Unknown result type (might be due to invalid IL or missing references)
 		_ = CampaignTime.Now;
-		if (false)
-		{
-			return (Seasons)1;
-		}
 		CampaignTime now = CampaignTime.Now;
 		return (now).GetSeasonOfYear;
 	}
@@ -147,7 +143,6 @@ public static class SeasonalDiseaseSystem
 				return num;
 			}
 			Vec2 position2D = val.GetPosition2D();
-			bool flag = false;
 			Campaign current = Campaign.Current;
 			object obj;
 			if (current == null)
@@ -256,7 +251,6 @@ public static class SeasonalDiseaseSystem
 				return num;
 			}
 			Vec2 position2D = party.GetPosition2D();
-			bool flag = false;
 			Campaign current = Campaign.Current;
 			object obj;
 			if (current == null)

@@ -48,7 +48,6 @@ public class TradeAgreementInfo
 		}
 		set
 		{
-			bool flag = true;
 			StartTimeDays = (float)(value).ToDays;
 		}
 	}
@@ -81,7 +80,6 @@ public class TradeAgreementInfo
 		}
 		set
 		{
-			bool flag = true;
 			EndTimeDays = (float)(value).ToDays;
 		}
 	}

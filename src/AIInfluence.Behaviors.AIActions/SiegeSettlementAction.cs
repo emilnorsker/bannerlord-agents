@@ -465,12 +465,10 @@ public sealed class SiegeSettlementAction : AIActionBase
 			return;
 		}
 		Clan clan = base.TargetHero.Clan;
-		bool flag = false;
 		if (clan != null)
 		{
 			if (_targetSettlement.OwnerClan == clan)
 			{
-				flag = true;
 				LogAction($"Siege successful: {_targetSettlement.Name} now belongs to {clan.Name}");
 			}
 			else
@@ -478,7 +476,6 @@ public sealed class SiegeSettlementAction : AIActionBase
 				MapEvent siegeMapEvent = GetSiegeMapEvent();
 				if (siegeMapEvent != null && WasSiegeSuccessful(siegeMapEvent))
 				{
-					flag = true;
 					LogAction($"Siege successful: battle won at {_targetSettlement.Name}");
 				}
 			}

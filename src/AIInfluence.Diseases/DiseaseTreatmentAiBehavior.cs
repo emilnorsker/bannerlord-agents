@@ -96,14 +96,14 @@ public class DiseaseTreatmentAiBehavior : CampaignBehaviorBase
 		AIBehaviorData item = default(AIBehaviorData);
 		item = new AIBehaviorData((IMapPoint)(object)settlement, (AiBehavior)2, val2, false, flag3, flag4);
 		float num5 = default(float);
-		if (p.TryGetBehaviorScore(ref item, out num5))
+		if (p.TryGetBehaviorScore(in item, out num5))
 		{
-			p.SetBehaviorScore(ref item, num5 + val4);
+			p.SetBehaviorScore(in item, num5 + val4);
 		}
 		else
 		{
 			(AIBehaviorData, float) tuple = (item, val4);
-			p.AddBehaviorScore(ref tuple);
+			p.AddBehaviorScore(in tuple);
 		}
 		instance2.MarkPartyGoingForTreatment(mobileParty, settlement);
 	}

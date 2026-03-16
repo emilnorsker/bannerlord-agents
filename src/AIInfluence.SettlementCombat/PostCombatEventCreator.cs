@@ -190,7 +190,7 @@ public class PostCombatEventCreator
 				else
 				{
 					DiplomacyLogger.Instance?.Log("Event " + dynamicEvent.Id + " created diplomatic situation involving " + string.Join(", ", list));
-					ProcessDiplomaticEventAsync(dynamicEvent);
+					StartBackgroundTask(ProcessDiplomaticEventAsync(dynamicEvent), "ProcessDiplomaticEventAsync");
 				}
 			}
 		}
@@ -224,5 +224,18 @@ public class PostCombatEventCreator
 			Exception ex2 = ex;
 			DiplomacyLogger.Instance?.LogError("PostCombatEventCreator.ProcessDiplomaticEventAsync", "Failed to process diplomatic event " + diplomaticEvent.Id, ex2);
 		}
+	}
+
+	private void StartBackgroundTask(Task task, string operation)
+	{
+		if (task == null)
+		{
+			return;
+		}
+		task.ContinueWith(delegate(Task t)
+		{
+			Exception ex = t.Exception?.GetBaseException() ?? t.Exception;
+			DiplomacyLogger.Instance?.LogError("PostCombatEventCreator." + operation, "Background task failed", ex);
+		}, TaskContinuationOptions.OnlyOnFaulted);
 	}
 }

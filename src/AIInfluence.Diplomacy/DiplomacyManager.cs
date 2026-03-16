@@ -293,6 +293,7 @@ public class DiplomacyManager
 
 	public async Task ProcessDiplomaticEvent(DynamicEvent diplomaticEvent)
 	{
+		await Task.CompletedTask;
 		DiplomacyLogger.Instance.Log("[DIPLOMACY_MGR] ProcessDiplomaticEvent called for event: " + (diplomaticEvent?.Id ?? "null"));
 		if (diplomaticEvent == null)
 		{
@@ -1643,7 +1644,7 @@ public class DiplomacyManager
 				if (!_pendingStatements.ContainsKey(eventId))
 				{
 					DiplomacyLogger.Instance.Log("[DIPLOMACY_MGR] Generating statements for all kingdoms in event");
-					GenerateStatementsForEvent(diplomaticEvent);
+					StartBackgroundTask(GenerateStatementsForEvent(diplomaticEvent), "GenerateStatementsForEvent");
 					break;
 				}
 				Kingdom val2 = _pendingStatements[eventId];
@@ -1651,7 +1652,7 @@ public class DiplomacyManager
 				if (val2 != null && !val2.IsEliminated)
 				{
 					DiplomacyLogger.Instance.Log($"[DIPLOMACY_MGR] Generating single statement for {val2.Name}");
-					GenerateSingleStatementForEvent(diplomaticEvent, val2);
+					StartBackgroundTask(GenerateSingleStatementForEvent(diplomaticEvent, val2), "GenerateSingleStatementForEvent");
 					if (_statementQueue.ContainsKey(eventId) && _statementQueue[eventId].Count > 0)
 					{
 						_statementQueue[eventId].Dequeue();
@@ -2034,7 +2035,7 @@ public class DiplomacyManager
 				}
 				_eventAnalysisSchedule.Remove(eventId);
 				List<KingdomStatement> statements = diplomaticEvent.KingdomStatements.ToList();
-				AnalyzeAndExecuteDiplomaticActions(diplomaticEvent, statements);
+				StartBackgroundTask(AnalyzeAndExecuteDiplomaticActions(diplomaticEvent, statements), "AnalyzeAndExecuteDiplomaticActions");
 			}
 		}
 	}
@@ -2429,7 +2430,7 @@ public class DiplomacyManager
 				DiplomacyLogger.Instance.Log($"DIPLOMATIC EVENT CONTINUES: {diplomaticEvent.Id} - Round {diplomaticEvent.DiplomaticRounds}");
 				diplomaticEvent.StatementsAtRoundStart = diplomaticEvent.KingdomStatements.Count;
 				DiplomacyLogger.Instance.Log($"[DIPLOMACY_MGR] Statements at round start: {diplomaticEvent.StatementsAtRoundStart}");
-				ContinueDiplomaticNegotiations(diplomaticEvent, newlyAddedKingdoms);
+				StartBackgroundTask(ContinueDiplomaticNegotiations(diplomaticEvent, newlyAddedKingdoms), "ContinueDiplomaticNegotiations");
 			}
 			List<DynamicEvent> allStoredEvents = _storage.LoadDiplomaticEvents() ?? new List<DynamicEvent>();
 			HashSet<string> activeEventIds = new HashSet<string>(from e in _activeDiplomaticEvents
@@ -2489,12 +2490,13 @@ public class DiplomacyManager
 		{
 			DynamicEvent dynamicEvent = _queuedDiplomaticEvents.Dequeue();
 			DiplomacyLogger.Instance.Log($"[DIPLOMACY_MGR] Starting queued diplomatic event {dynamicEvent.Id}. Remaining queued events: {_queuedDiplomaticEvents.Count}");
-			ProcessDiplomaticEvent(dynamicEvent);
+			StartBackgroundTask(ProcessDiplomaticEvent(dynamicEvent), "ProcessDiplomaticEvent");
 		}
 	}
 
 	private async Task ContinueDiplomaticNegotiations(DynamicEvent diplomaticEvent, List<string> priorityKingdoms = null)
 	{
+		await Task.CompletedTask;
 		try
 		{
 			DiplomacyLogger.Instance.Log($"[DIPLOMACY_MGR] Scheduling next round of negotiations for event {diplomaticEvent.Id}, round {diplomaticEvent.DiplomaticRounds}");
@@ -2839,7 +2841,7 @@ public class DiplomacyManager
 		foreach (DelayedPlayerStatement item in list)
 		{
 			_pendingPlayerStatements.Remove(item);
-			PublishPlayerStatement(item);
+			StartBackgroundTask(PublishPlayerStatement(item), "PublishPlayerStatement");
 		}
 		if (list.Any())
 		{
@@ -3357,5 +3359,18 @@ public class DiplomacyManager
 	private void LogMessage(string message)
 	{
 		DiplomacyLogger.Instance.Log(message);
+	}
+
+	private void StartBackgroundTask(Task task, string operation)
+	{
+		if (task == null)
+		{
+			return;
+		}
+		task.ContinueWith(delegate(Task t)
+		{
+			Exception ex = t.Exception?.GetBaseException() ?? t.Exception;
+			DiplomacyLogger.Instance.LogError("DiplomacyManager." + operation, "Background task failed", ex);
+		}, TaskContinuationOptions.OnlyOnFaulted);
 	}
 }

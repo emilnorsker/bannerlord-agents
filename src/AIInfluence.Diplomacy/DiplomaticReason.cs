@@ -46,7 +46,6 @@ public class DiplomaticReason
 		}
 		set
 		{
-			bool flag = true;
 			TimestampDays = (float)(value).ToDays;
 		}
 	}

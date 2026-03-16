@@ -545,8 +545,6 @@ public class WorldInfoManager
 
 	private DateTime _eventsGeneratorRulesLastModified;
 
-	private readonly string player = "(player involved)";
-
 	private readonly Dictionary<MapEvent, BattleInitialData> _battleInitialData = new Dictionary<MapEvent, BattleInitialData>();
 
 	private readonly Dictionary<string, (HashSet<string> participantIds, CampaignTime battleEndTime)> _recentBattleParticipantsByCapturer = new Dictionary<string, (HashSet<string>, CampaignTime)>();
