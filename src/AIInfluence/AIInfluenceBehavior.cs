@@ -3254,6 +3254,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			ProcessMoneyTransfer(npc, context, aiResult.MoneyTransfer);
 		if (aiResult.ItemTransfers != null && aiResult.ItemTransfers.Count > 0)
 			ProcessItemTransfers(npc, context, aiResult.ItemTransfers);
+		if (!string.IsNullOrEmpty(aiResult.KingdomAction) && !aiResult.KingdomAction.Equals("none", StringComparison.OrdinalIgnoreCase))
+			ProcessKingdomAction(npc, aiResult, context);
 		SaveNPCContext(npcId, npc, context);
 		if (decisionHandled && string.Equals(aiResult.Decision, "attack", StringComparison.OrdinalIgnoreCase))
 			InitiateCombatLogic(npc, context);
