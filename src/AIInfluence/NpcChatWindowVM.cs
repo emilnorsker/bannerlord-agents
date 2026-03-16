@@ -251,6 +251,7 @@ public class NpcChatWindowVM : ViewModel
             bool useOpenRouterStreaming = string.Equals(GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue, "OpenRouter", StringComparison.Ordinal);
             ChatMessageItemVM streamingItem = null;
             ContentSegmentVM streamingSegment = null;
+            bool streamingRetired = false;
             if (useOpenRouterStreaming)
             {
                 streamingItem = ParseLine($"{npcName}: ", "");
@@ -262,7 +263,7 @@ public class NpcChatWindowVM : ViewModel
             {
                 TtsLipSyncService.MainThreadQueue.Enqueue(() =>
                 {
-                    if (streamingSegment != null)
+                    if (!streamingRetired && streamingSegment != null)
                         streamingSegment.Text = partial ?? "";
                 });
             });
@@ -280,6 +281,7 @@ public class NpcChatWindowVM : ViewModel
                 // Wrap to prevent a threading exception from leaking past the finally block.
                 try
                 {
+                    streamingRetired = true;
                     streamingSegment = null;
                     if (streamingItem != null)
                         MessageList.Remove(streamingItem);
@@ -293,6 +295,7 @@ public class NpcChatWindowVM : ViewModel
             }
             else if (streamingItem != null)
             {
+                streamingRetired = true;
                 streamingSegment = null;
                 MessageList.Remove(streamingItem);
             }
