@@ -3271,6 +3271,14 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			ApplyRelationChangeWithDelay(npc, context.PendingRelationChange.RelationChange, context.PendingRelationChange.Color, context.PendingRelationChange.Message);
 			context.PendingRelationChange = null;
 		}
+		if (aiResult.SuspectedLie)
+		{
+			float trustPenalty = (float)(_random.NextDouble() * (double)(GlobalSettings<ModSettings>.Instance.MaxLieTrustPenalty - GlobalSettings<ModSettings>.Instance.MinLieTrustPenalty) + (double)GlobalSettings<ModSettings>.Instance.MinLieTrustPenalty);
+			int relPenalty = _random.Next(GlobalSettings<ModSettings>.Instance.MinLieRelationPenalty, GlobalSettings<ModSettings>.Instance.MaxLieRelationPenalty + 1);
+			context.LiePenaltySum += trustPenalty;
+			UpdateTrustLevel(context, npc);
+			ApplyRelationChangeWithDelay(npc, -relPenalty, Colors.Yellow, ((object)new TextObject("{=AIInfluence_RelationReduced}Your relations with {npcName} have worsened due to suspicions of lying.", new Dictionary<string, object> { { "npcName", npcName } })).ToString());
+		}
 		if (context.PendingLiePenalty != null)
 		{
 			ApplyRelationChangeWithDelay(npc, context.PendingLiePenalty.RelationChange, context.PendingLiePenalty.Color, context.PendingLiePenalty.Message);
