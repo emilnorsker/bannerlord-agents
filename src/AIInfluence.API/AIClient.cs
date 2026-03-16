@@ -151,18 +151,18 @@ public static class AIClient
 		{
 			HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "https://openrouter.ai/api/v1/chat/completions");
 			request.Content = (HttpContent)(object)content;
-			HttpResponseMessage response = ((onOpenRouterStreamUpdate != null) ? (await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead)) : (await httpClient.SendAsync(request)));
+			HttpResponseMessage response = ((onOpenRouterStreamUpdate != null) ? (await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false)) : (await httpClient.SendAsync(request).ConfigureAwait(false)));
 			response.EnsureSuccessStatusCode();
 			if (onOpenRouterStreamUpdate != null)
 			{
 				StringBuilder stringBuilder = new StringBuilder();
 				StringBuilder debugStreamBuffer = (GlobalSettings<ModSettings>.Instance?.DebugStreamToGameLog ?? false) ? new StringBuilder() : null;
-				using (Stream stream = await response.Content.ReadAsStreamAsync())
+				using (Stream stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
 				{
 					using StreamReader streamReader = new StreamReader(stream);
 					while (!streamReader.EndOfStream)
 					{
-						string text = await streamReader.ReadLineAsync();
+						string text = await streamReader.ReadLineAsync().ConfigureAwait(false);
 						if (string.IsNullOrWhiteSpace(text) || !text.StartsWith("data:", StringComparison.Ordinal))
 						{
 							continue;
