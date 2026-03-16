@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using AIInfluence.Behaviors.AIActions;
 using Newtonsoft.Json;
 using TaleWorlds.CampaignSystem;
@@ -63,6 +66,34 @@ public class NonCombatantPartyProtector : CampaignBehaviorBase
 		_instance = this;
 	}
 
+	private static string CompressPayload(string payload)
+	{
+		if (string.IsNullOrEmpty(payload))
+		{
+			return payload;
+		}
+		byte[] bytes = Encoding.UTF8.GetBytes(payload);
+		using MemoryStream memoryStream = new MemoryStream();
+		using (GZipStream gZipStream = new GZipStream(memoryStream, CompressionLevel.Optimal, leaveOpen: true))
+		{
+			gZipStream.Write(bytes, 0, bytes.Length);
+		}
+		return "gz:" + Convert.ToBase64String(memoryStream.ToArray());
+	}
+
+	private static string DecompressPayload(string payload)
+	{
+		if (string.IsNullOrEmpty(payload) || !payload.StartsWith("gz:"))
+		{
+			return payload;
+		}
+		byte[] buffer = Convert.FromBase64String(payload.Substring(3));
+		using MemoryStream stream = new MemoryStream(buffer);
+		using GZipStream stream2 = new GZipStream(stream, CompressionMode.Decompress);
+		using StreamReader streamReader = new StreamReader(stream2, Encoding.UTF8);
+		return streamReader.ReadToEnd();
+	}
+
 	public override void RegisterEvents()
 	{
 		CampaignEvents.OnPartyDisbandStartedEvent.AddNonSerializedListener((object)this, (Action<MobileParty>)OnPartyDisbandStarted);
@@ -74,29 +105,41 @@ public class NonCombatantPartyProtector : CampaignBehaviorBase
 
 	public override void SyncData(IDataStore dataStore)
 	{
-		bool binarySyncCompatibilityMode = true;
-		if (binarySyncCompatibilityMode)
-		{
-			return;
-		}
+		string syncStage = "sync-start";
 		try
 		{
+			LogDebug($"[SYNC-TRACE] NonCombatantPartyProtector.SyncData enter. isSaving={dataStore.IsSaving}, isLoading={dataStore.IsLoading}");
 			string serializedState = null;
 			if (dataStore.IsSaving)
 			{
-				serializedState = SerializeState();
+				syncStage = "save-serialize-state";
+				serializedState = CompressPayload(SerializeState());
 			}
+			syncStage = "sync-state-json";
 			dataStore.SyncData<string>("AIInfluence_nonCombatantPartyProtectorStateJson", ref serializedState);
 			if (dataStore.IsLoading)
 			{
 				_protectedParties = new Dictionary<MobileParty, ProtectionInfo>();
 				_lastWarningTime = new Dictionary<Hero, CampaignTime>();
-				DeserializeState(serializedState);
+				LogDebug("[SYNC-TRACE] NonCombatantPartyProtector.SyncData payloadLength=" + (serializedState?.Length ?? 0));
+				if (!string.IsNullOrEmpty(serializedState))
+				{
+					syncStage = "load-deserialize-state";
+					DeserializeState(DecompressPayload(serializedState));
+				}
 			}
+			LogDebug("[SYNC-TRACE] NonCombatantPartyProtector.SyncData exit success.");
 		}
 		catch (Exception ex)
 		{
-			LogError("Error in SyncData: " + ex);
+			LogError("SyncData failed at stage=" + syncStage + ". protectedCount=" + (_protectedParties?.Count ?? 0) + ", warningCount=" + (_lastWarningTime?.Count ?? 0) + ". " + ex);
+			if (dataStore.IsLoading)
+			{
+				_protectedParties = new Dictionary<MobileParty, ProtectionInfo>();
+				_lastWarningTime = new Dictionary<Hero, CampaignTime>();
+				LogError("Recovering NonCombatantPartyProtector load failure with empty state.");
+				return;
+			}
 			throw;
 		}
 	}
@@ -139,11 +182,7 @@ public class NonCombatantPartyProtector : CampaignBehaviorBase
 		{
 			return;
 		}
-		NonCombatantPartyProtectorState nonCombatantPartyProtectorState = JsonConvert.DeserializeObject<NonCombatantPartyProtectorState>(serializedState);
-		if (nonCombatantPartyProtectorState == null)
-		{
-			return;
-		}
+		NonCombatantPartyProtectorState nonCombatantPartyProtectorState = JsonConvert.DeserializeObject<NonCombatantPartyProtectorState>(serializedState) ?? throw new InvalidOperationException("NonCombatantPartyProtector state payload deserialized to null.");
 		foreach (ProtectionInfoState protectedParty in nonCombatantPartyProtectorState.ProtectedParties ?? new List<ProtectionInfoState>())
 		{
 			if (protectedParty == null || string.IsNullOrEmpty(protectedParty.PartyId) || string.IsNullOrEmpty(protectedParty.OriginalLeaderId))
@@ -175,6 +214,7 @@ public class NonCombatantPartyProtector : CampaignBehaviorBase
 			}
 		}
 	}
+
 
 	public void RegisterPartyForProtection(MobileParty party, Hero leader, string actionName)
 	{

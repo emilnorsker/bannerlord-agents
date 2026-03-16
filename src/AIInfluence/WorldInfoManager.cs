@@ -3168,7 +3168,7 @@ public class WorldInfoManager
 						{
 							EventProcessingTask task = new EventProcessingTask("Tournament", ev, ((SettlementComponent)town).Settlement, heroObject2, new List<string> { item3 }, defer: false, tournamentData);
 							ProcessSingleNpcForEvent(val3, value, task);
-							instance.SaveNPCContextImmediate(item3, val3, value);
+							instance.SaveNPCContext(item3, val3, value);
 							hashSet2.Add(item3);
 						}
 					}
@@ -5919,7 +5919,7 @@ public class WorldInfoManager
 			}
 			EventProcessingTask task = new EventProcessingTask(eventType, ev, loc, part, new List<string> { directParticipantId }, defer: false, extraData);
 			ProcessSingleNpcForEvent(val, nPCContext, task);
-			instance.SaveNPCContextImmediate(directParticipantId, val, nPCContext);
+			instance.SaveNPCContext(directParticipantId, val, nPCContext);
 			hashSet.Add(directParticipantId);
 		}
 		if (eventType == "Battle" && flag)

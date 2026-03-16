@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Text;
 using Newtonsoft.Json;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Party;
@@ -94,6 +97,34 @@ public class TaskManager : CampaignBehaviorBase
 		_completedTasks = new Dictionary<string, List<HeroTask>>();
 	}
 
+	private static string CompressPayload(string payload)
+	{
+		if (string.IsNullOrEmpty(payload))
+		{
+			return payload;
+		}
+		byte[] bytes = Encoding.UTF8.GetBytes(payload);
+		using MemoryStream memoryStream = new MemoryStream();
+		using (GZipStream gZipStream = new GZipStream(memoryStream, CompressionLevel.Optimal, leaveOpen: true))
+		{
+			gZipStream.Write(bytes, 0, bytes.Length);
+		}
+		return "gz:" + Convert.ToBase64String(memoryStream.ToArray());
+	}
+
+	private static string DecompressPayload(string payload)
+	{
+		if (string.IsNullOrEmpty(payload) || !payload.StartsWith("gz:"))
+		{
+			return payload;
+		}
+		byte[] buffer = Convert.FromBase64String(payload.Substring(3));
+		using MemoryStream stream = new MemoryStream(buffer);
+		using GZipStream stream2 = new GZipStream(stream, CompressionMode.Decompress);
+		using StreamReader streamReader = new StreamReader(stream2, Encoding.UTF8);
+		return streamReader.ReadToEnd();
+	}
+
 	public override void RegisterEvents()
 	{
 		CampaignEvents.HourlyTickEvent.AddNonSerializedListener((object)this, (Action)OnHourlyTick);
@@ -102,25 +133,49 @@ public class TaskManager : CampaignBehaviorBase
 
 	public override void SyncData(IDataStore dataStore)
 	{
-		bool binarySyncCompatibilityMode = true;
-		_activeTasks ??= new Dictionary<string, HeroTask>();
-		_completedTasks ??= new Dictionary<string, List<HeroTask>>();
-		if (!binarySyncCompatibilityMode)
+		string syncStage = "sync-start";
+		try
 		{
+			AIInfluenceBehavior.Instance?.LogMessage($"[SYNC-TRACE] TaskManager.SyncData enter. isSaving={dataStore.IsSaving}, isLoading={dataStore.IsLoading}");
+			_activeTasks ??= new Dictionary<string, HeroTask>();
+			_completedTasks ??= new Dictionary<string, List<HeroTask>>();
 			string serializedTaskState = null;
 			if (dataStore.IsSaving)
 			{
-				serializedTaskState = SerializeTaskState();
+				syncStage = "save-serialize-task-state";
+				serializedTaskState = CompressPayload(SerializeTaskState());
 			}
+			syncStage = "sync-taskManagerStateJson";
 			dataStore.SyncData<string>("AIInfluence_taskManagerStateJson", ref serializedTaskState);
-			if (dataStore.IsLoading && !string.IsNullOrEmpty(serializedTaskState))
+			if (dataStore.IsLoading)
 			{
-				DeserializeTaskState(serializedTaskState);
+				AIInfluenceBehavior.Instance?.LogMessage("[SYNC-TRACE] TaskManager.SyncData payloadLength=" + (serializedTaskState?.Length ?? 0));
+				syncStage = "load-deserialize-task-state";
+				if (!string.IsNullOrEmpty(serializedTaskState))
+				{
+					DeserializeTaskState(DecompressPayload(serializedTaskState));
+				}
+				else
+				{
+					_activeTasks = new Dictionary<string, HeroTask>();
+					_completedTasks = new Dictionary<string, List<HeroTask>>();
+				}
+				syncStage = "load-restore-tasks";
+				RestoreTasksAfterLoad();
 			}
+			AIInfluenceBehavior.Instance?.LogMessage("[SYNC-TRACE] TaskManager.SyncData exit success.");
 		}
-		if (dataStore.IsLoading)
+		catch (Exception ex)
 		{
-			RestoreTasksAfterLoad();
+			AIInfluenceBehavior.Instance?.LogMessage("[ERROR] TaskManager.SyncData failed at stage=" + syncStage + ". activeCount=" + (_activeTasks?.Count ?? 0) + ", completedCount=" + (_completedTasks?.Count ?? 0) + ". " + ex);
+			if (dataStore.IsLoading)
+			{
+				_activeTasks = new Dictionary<string, HeroTask>();
+				_completedTasks = new Dictionary<string, List<HeroTask>>();
+				AIInfluenceBehavior.Instance?.LogMessage("[ERROR] Recovering TaskManager load failure with empty task state.");
+				return;
+			}
+			throw;
 		}
 	}
 
@@ -136,7 +191,7 @@ public class TaskManager : CampaignBehaviorBase
 
 	private void DeserializeTaskState(string serializedTaskState)
 	{
-		TaskManagerSaveState taskManagerSaveState = JsonConvert.DeserializeObject<TaskManagerSaveState>(serializedTaskState) ?? new TaskManagerSaveState();
+		TaskManagerSaveState taskManagerSaveState = JsonConvert.DeserializeObject<TaskManagerSaveState>(serializedTaskState) ?? throw new InvalidOperationException("TaskManager state payload deserialized to null.");
 		_activeTasks = (taskManagerSaveState.ActiveTasks ?? new Dictionary<string, HeroTaskState>()).Where((KeyValuePair<string, HeroTaskState> kvp) => kvp.Value != null).ToDictionary((KeyValuePair<string, HeroTaskState> kvp) => kvp.Key, (KeyValuePair<string, HeroTaskState> kvp) => FromHeroTaskState(kvp.Value));
 		_completedTasks = (taskManagerSaveState.CompletedTasks ?? new Dictionary<string, List<HeroTaskState>>()).ToDictionary((KeyValuePair<string, List<HeroTaskState>> kvp) => kvp.Key, (KeyValuePair<string, List<HeroTaskState>> kvp) => (kvp.Value ?? new List<HeroTaskState>()).Where((HeroTaskState state) => state != null).Select(FromHeroTaskState).ToList());
 	}
@@ -176,6 +231,7 @@ public class TaskManager : CampaignBehaviorBase
 		};
 		if (heroTask.CurrentStepIndex > heroTask.Steps.Count)
 		{
+			// Steps.Count is a valid sentinel for completed tasks.
 			heroTask.CurrentStepIndex = heroTask.Steps.Count;
 		}
 		return heroTask;
