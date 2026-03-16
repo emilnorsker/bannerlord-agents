@@ -37,9 +37,8 @@ public class NpcSpawnService
 			return Fail("SpawnNpcData is null");
 
 		bool hasName = !string.IsNullOrWhiteSpace(data.Name);
-		bool wantsParty = !string.IsNullOrWhiteSpace(data.PartyName) || (data.PartySize.HasValue && data.PartySize.Value > 0);
 
-		if (!hasName && wantsParty)
+		if (!hasName && WantsParty(data))
 			return SpawnSimpleParty(data);
 
 		if (!hasName)
@@ -76,9 +75,8 @@ public class NpcSpawnService
 		_log($"[NPC_SPAWN] Created hero '{hero.Name}' (id:{hero.StringId}) clan:{clan.Name} settlement:{settlement.Name}");
 
 		MobileParty party = null;
-		bool wantsParty = !string.IsNullOrWhiteSpace(data.PartyName) || (data.PartySize.HasValue && data.PartySize.Value > 0);
 		string warning = null;
-		if (wantsParty)
+		if (WantsParty(data))
 		{
 			party = SpawnLordParty(hero, data, settlement);
 			if (party == null)
@@ -349,7 +347,7 @@ public class NpcSpawnService
 		if (alignment.Equals("hostile", StringComparison.OrdinalIgnoreCase))
 		{
 			if (playerFaction == null)
-				return Clan.BanditFactions?.FirstOrDefault() ?? settlement.OwnerClan;
+				return Clan.BanditFactions?.FirstOrDefault();
 
 			Clan warClan = Clan.All?
 				.Where(c => c != null && !c.IsEliminated && !c.IsBanditFaction
@@ -366,7 +364,7 @@ public class NpcSpawnService
 		}
 
 		_log($"[NPC_SPAWN] Unknown alignment '{alignment}', treating as neutral");
-		return settlement.OwnerClan ?? Clan.PlayerClan;
+		return ValidClanOrFallback(settlement.OwnerClan) ?? Clan.PlayerClan;
 	}
 
 	private static bool IsValidOwnerClan(Clan clan)
@@ -384,24 +382,28 @@ public class NpcSpawnService
 		string normalized = name.Trim().ToLowerInvariant();
 
 		Clan exact = Clan.All?.FirstOrDefault(c =>
+			!c.IsEliminated &&
 			c.Name != null && string.Equals(c.Name.ToString(), name, StringComparison.OrdinalIgnoreCase));
 		if (exact != null)
 			return exact;
 
 		Kingdom kingdom = Kingdom.All?.FirstOrDefault(k =>
+			!k.IsEliminated &&
 			k.Name != null && string.Equals(k.Name.ToString(), name, StringComparison.OrdinalIgnoreCase));
-		if (kingdom != null)
-			return kingdom.RulingClan ?? kingdom.Clans?.FirstOrDefault();
+		if (kingdom?.RulingClan != null)
+			return kingdom.RulingClan;
 
 		Clan contains = Clan.All?.FirstOrDefault(c =>
+			!c.IsEliminated &&
 			c.Name != null && c.Name.ToString().ToLowerInvariant().Contains(normalized));
 		if (contains != null)
 			return contains;
 
 		Kingdom kingdomContains = Kingdom.All?.FirstOrDefault(k =>
+			!k.IsEliminated &&
 			k.Name != null && k.Name.ToString().ToLowerInvariant().Contains(normalized));
-		if (kingdomContains != null)
-			return kingdomContains.RulingClan ?? kingdomContains.Clans?.FirstOrDefault();
+		if (kingdomContains?.RulingClan != null)
+			return kingdomContains.RulingClan;
 
 		return null;
 	}
@@ -455,6 +457,11 @@ public class NpcSpawnService
 			return parsed;
 
 		return Occupation.Wanderer;
+	}
+
+	private static bool WantsParty(SpawnNpcData data)
+	{
+		return !string.IsNullOrWhiteSpace(data.PartyName) || (data.PartySize.HasValue && data.PartySize.Value > 0);
 	}
 
 	private SpawnResult Fail(string error)
