@@ -2177,6 +2177,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	public void ProcessMoneyTransfer(Hero npc, NPCContext context, MoneyTransferInfo moneyTransfer)
 	{
+		LogMessage($"[DEBUG][MONEY_TRANSFER_EXEC] ProcessMoneyTransfer called for {((object)npc?.Name ?? "null")} - amount={moneyTransfer?.Amount}, action={moneyTransfer?.Action}. If you never see this line after a chat-window transfer, the transfer was never executed.");
 		//IL_01a2: Unknown result type (might be due to invalid IL or missing references)
 		//IL_01ac: Expected O, but got Unknown
 		//IL_01ac: Unknown result type (might be due to invalid IL or missing references)
@@ -3139,6 +3140,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		SaveNPCContext(npcId, npc, context);
 		WorldInfoManager.Instance.UpdateTimeContext(context);
 		WorldInfoManager.Instance.UpdateWarStatus(context);
+		context.PendingRelationChange = null;
+		context.PendingLiePenalty = null;
 		string prompt = PromptGenerator.GeneratePrompt(npc, context);
 		Action<string> streamCallback = (onPartialResponse == null) ? null : (Action<string>)delegate(string partialJson)
 		{
@@ -3192,11 +3195,96 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		if (aiResult == null)
 			return "";
 		string reply = aiResult.Response ?? "";
+		context.LastInteractionTime = CampaignTime.Now;
+		context.InteractionCount++;
+		LogMessage("[DEBUG][CHAT_ACTION_AUDIT] ── AI response fields for chat window ──");
+		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] decision        = '{aiResult.Decision}'");
+		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] technical_action= '{aiResult.TechnicalAction}'");
+		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] money_transfer  = {(aiResult.MoneyTransfer != null ? $"action={aiResult.MoneyTransfer.Action} amount={aiResult.MoneyTransfer.Amount}" : "null")}");
+		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] item_transfers  = {(aiResult.ItemTransfers != null ? $"{aiResult.ItemTransfers.Count} item(s)" : "null")}");
+		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] kingdom_action  = '{aiResult.KingdomAction}'");
+		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] quest_action    = {(aiResult.QuestAction != null ? $"action={aiResult.QuestAction.Action}" : "null")}");
+		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] tone            = '{aiResult.Tone}'");
+		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] workshop_action = '{aiResult.WorkshopAction}'");
+		if (aiResult.CharacterDeath != null && aiResult.CharacterDeath.ShouldDie && CanNPCBeKilledThroughRoleplay(npc))
+		{
+			context.DeathReason = aiResult.CharacterDeath.DeathReason ?? "unknown causes";
+			context.KillerStringId = aiResult.CharacterDeath.KillerStringId;
+			context.PendingDeath = "pending";
+			bool isSettlementCombat = Settlement.CurrentSettlement != null && Mission.Current != null;
+			if (isSettlementCombat)
+			{
+				context.PendingSettlementCombat = "roleplay_death";
+				context.SettlementCombatResponse = reply;
+			}
+			SaveNPCContext(npcId, npc, context);
+			GetDelayedTaskManager().AddTask(5.0, delegate
+			{
+				try
+				{
+					if (isSettlementCombat)
+					{
+						SettlementCombatManager settlementCombatManager = GetSettlementCombatManager();
+						if (settlementCombatManager != null)
+						{
+							settlementCombatManager.InitiateCombat(npc, context, CombatTriggerType.RoleplayDeath, context.SettlementCombatResponse);
+							context.PendingSettlementCombat = null;
+							context.SettlementCombatResponse = null;
+							SaveNPCContext(npcId, npc, context);
+						}
+					}
+					else
+					{
+						var cm = Campaign.Current?.ConversationManager;
+						if (cm?.IsConversationInProgress == true) cm.EndConversation();
+						GetDelayedTaskManager().AddTask(1.0, delegate
+						{
+							try
+							{
+								if (npc != null && !npc.IsDead)
+								{
+									Hero killer = string.IsNullOrEmpty(context.KillerStringId) ? null : Hero.FindFirst((Func<Hero, bool>)((Hero h) => h != null && ((MBObjectBase)h).StringId == context.KillerStringId));
+									KillCharacterHeroPublic(npc, killer, killedInAction: false);
+								}
+								context.PendingDeath = null;
+								context.KillerStringId = null;
+								SaveNPCContext(npcId, npc, context);
+							}
+							catch (Exception ex5) { LogMessage("[ERROR] Chat death execution failed: " + ex5.Message); }
+						});
+					}
+				}
+				catch (Exception ex6) { LogMessage("[ERROR] Chat death schedule failed: " + ex6.Message); }
+			});
+		}
+		if (aiResult.Decision == "accept_marriage")
+		{
+			float delay = GlobalSettings<ModSettings>.Instance.DialogDelay;
+			GetDelayedTaskManager().AddTask(delay, delegate { try { MarriageSystem.AcceptMarriage(npc, Hero.MainHero, context); context.MarriageResponse = null; SaveNPCContext(npcId, npc, context); } catch (Exception ex4) { LogMessage("[ERROR] Marriage failed: " + ex4.Message); } });
+		}
+		else if (aiResult.Decision == "propose_marriage")
+			context.MarriageResponse = "pending_player_choice";
+		else if (aiResult.Decision == "reject_marriage")
+		{
+			context.RomanceLevel = Math.Max(0f, context.RomanceLevel - 10f);
+			InformationManager.DisplayMessage(new InformationMessage(((object)new TextObject("{=AIInfluence_MarriageRejected}{npcName} has rejected the marriage proposal.", new Dictionary<string, object> { { "npcName", npcName } })).ToString(), ExtraColors.RedAIInfluence));
+		}
+		if (!string.IsNullOrEmpty(aiResult.CharacterPersonality) && string.IsNullOrEmpty(context.AIGeneratedPersonality))
+			context.AIGeneratedPersonality = aiResult.CharacterPersonality.Trim();
+		if (!string.IsNullOrEmpty(aiResult.CharacterBackstory) && string.IsNullOrEmpty(context.AIGeneratedBackstory))
+			context.AIGeneratedBackstory = aiResult.CharacterBackstory.Trim();
+		if (!string.IsNullOrEmpty(aiResult.CharacterSpeechQuirks) && string.IsNullOrEmpty(context.AIGeneratedSpeechQuirks))
+			context.AIGeneratedSpeechQuirks = aiResult.CharacterSpeechQuirks.Trim();
+		CharacterInfo.UpdateEncyclopediaDescription(npc, context.AIGeneratedBackstory, context.AIGeneratedPersonality);
+		context.PlayerInfo.SuspectedLie = aiResult.SuspectedLie;
+		if (!string.IsNullOrEmpty(aiResult.ClaimedName)) context.PlayerInfo.ClaimedName = aiResult.ClaimedName;
+		if (!string.IsNullOrEmpty(aiResult.ClaimedClan)) context.PlayerInfo.ClaimedClan = aiResult.ClaimedClan;
+		if (aiResult.ClaimedAge.HasValue) context.PlayerInfo.ClaimedAge = aiResult.ClaimedAge.Value;
+		if (aiResult.ClaimedGold > 0) context.PlayerInfo.ClaimedGold = aiResult.ClaimedGold;
 		context.PendingAIResponse = aiResult;
+		context.LastAIResponseJson = cleaned;
 		context.LastDynamicResponse = reply;
 		context.AddMessage(npcName + ": " + reply);
-		// Chat-window flow still needs decision handling for in-game actions;
-		// only the text variable update depends on an active conversation.
 		if (Campaign.Current?.ConversationManager != null)
 		{
 			try { MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", reply, false); }
@@ -3212,25 +3300,71 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			LogMessage("[ChatWindow] HandleAIDecision failed: " + ex3.Message);
 		}
-		if (decisionHandled && !string.IsNullOrEmpty(aiResult.TechnicalAction) && !aiResult.TechnicalAction.Equals("none", StringComparison.OrdinalIgnoreCase))
+		if (!string.IsNullOrEmpty(aiResult.TechnicalAction) && !aiResult.TechnicalAction.Equals("none", StringComparison.OrdinalIgnoreCase))
 		{
+			LogMessage($"[TECHNICAL_ACTION] Processing technical_action for {npcName}: '{aiResult.TechnicalAction}'");
 			foreach (string action in aiResult.TechnicalAction.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
 			{
 				string[] parts = action.Trim().Split(new[] { ':' }, 2);
 				string actionName = parts[0].Trim();
 				string payload = parts.Length > 1 ? parts[1].Trim() : "";
-				bool isStop = payload.Equals("STOP", StringComparison.OrdinalIgnoreCase);
-				if (npc.IsPrisoner && !isStop)
-				{
-					LogMessage($"[TECHNICAL_ACTION] Skipping action '{actionName}' for prisoner {npc.Name}");
-					continue;
-				}
-				if (!isStop)
-					AIActionManager.Instance?.StopAction(npc, actionName);
-				string command = $"ACTION:{actionName}:{npcId}" + (parts.Length > 1 ? ":" + payload : "");
-				AIActionManager.Instance?.ParseAndExecuteCommand(command);
+			bool isStop = payload.Equals("STOP", StringComparison.OrdinalIgnoreCase);
+			if (npc.IsPrisoner && !isStop)
+			{
+				LogMessage($"[TECHNICAL_ACTION] Skipping action '{actionName}' for prisoner {npc.Name}");
+				continue;
+			}
+			if (isStop)
+			{
+				AIActionManager.Instance?.StopAction(npc, actionName, showMessage: true);
+				LogMessage($"[TECHNICAL_ACTION] Stopped '{actionName}' for {npc.Name}");
+			}
+			else
+			{
+				AIActionManager.Instance?.StopAction(npc, actionName);
+			if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, actionName, payload) == true)
+				AIActionManager.Instance?.StartAction(npc, actionName);
+			}
 			}
 			aiResult.TechnicalAction = null;
+		}
+		if (aiResult.AllowsLettersFromNPC.HasValue && aiResult.AllowsLettersFromNPC.Value != context.AllowsLettersFromNPC)
+			context.AllowsLettersFromNPC = aiResult.AllowsLettersFromNPC.Value;
+		if (!string.IsNullOrEmpty(aiResult.RomanceIntent) && aiResult.RomanceIntent != "none")
+		{
+			context.LastRomanceInteractionDays = (int)CampaignTime.Now.ToDays;
+			context.RomanceLevel = Math.Min(100f, context.RomanceLevel + _random.Next(GlobalSettings<ModSettings>.Instance.MinRomanceChange, GlobalSettings<ModSettings>.Instance.MaxRomanceChange + 1) + (aiResult.RomanceIntent == "romance" ? 2 : 0));
+		}
+		if (!string.IsNullOrEmpty(aiResult.WorkshopAction) && aiResult.WorkshopAction.Equals("sell", StringComparison.OrdinalIgnoreCase))
+			ProcessWorkshopSale(npc, context, aiResult.WorkshopStringId, aiResult.WorkshopPrice);
+		if (aiResult.MoneyTransfer != null && aiResult.MoneyTransfer.Amount > 0)
+			ProcessMoneyTransfer(npc, context, aiResult.MoneyTransfer);
+		if (aiResult.ItemTransfers != null && aiResult.ItemTransfers.Count > 0)
+			ProcessItemTransfers(npc, context, aiResult.ItemTransfers);
+		if (!string.IsNullOrEmpty(aiResult.KingdomAction) && !aiResult.KingdomAction.Equals("none", StringComparison.OrdinalIgnoreCase))
+			ProcessKingdomAction(npc, aiResult, context);
+		if (aiResult.QuestAction != null && !string.IsNullOrEmpty(aiResult.QuestAction.Action))
+		{
+			QuestActionData capturedQuestAction = aiResult.QuestAction;
+			GetDelayedTaskManager().AddTask(5.0, delegate { try { ProcessQuestAction(npc, GetOrCreateNPCContext(npc), capturedQuestAction); } catch (Exception ex7) { LogMessage("[ERROR] Chat quest action failed: " + ex7.Message); } });
+		}
+		if (aiResult.Tone == "positive")
+		{
+			int rel = _random.Next(GlobalSettings<ModSettings>.Instance.MinPositiveRelationChange, GlobalSettings<ModSettings>.Instance.MaxPositiveRelationChange + 1);
+			ApplyRelationChangeWithDelay(npc, rel, ExtraColors.GreenAIInfluence, ((object)new TextObject("{=AIInfluence_RelationImproved}Your relations with {npcName} have improved due to your friendly tone.", new Dictionary<string, object> { { "npcName", npcName } })).ToString());
+		}
+		else if (aiResult.Tone == "negative")
+		{
+			int rel2 = _random.Next(GlobalSettings<ModSettings>.Instance.MinNegativeRelationChange, GlobalSettings<ModSettings>.Instance.MaxNegativeRelationChange + 1);
+			ApplyRelationChangeWithDelay(npc, -rel2, ExtraColors.RedAIInfluence, ((object)new TextObject("{=AIInfluence_RelationWorsened}Your relations with {npcName} have worsened due to your aggressive tone.", new Dictionary<string, object> { { "npcName", npcName } })).ToString());
+		}
+		if (aiResult.SuspectedLie)
+		{
+			float trustPenalty = (float)(_random.NextDouble() * (double)(GlobalSettings<ModSettings>.Instance.MaxLieTrustPenalty - GlobalSettings<ModSettings>.Instance.MinLieTrustPenalty) + (double)GlobalSettings<ModSettings>.Instance.MinLieTrustPenalty);
+			int relPenalty = _random.Next(GlobalSettings<ModSettings>.Instance.MinLieRelationPenalty, GlobalSettings<ModSettings>.Instance.MaxLieRelationPenalty + 1);
+			context.LiePenaltySum += trustPenalty;
+			UpdateTrustLevel(context, npc);
+			ApplyRelationChangeWithDelay(npc, -relPenalty, Colors.Yellow, ((object)new TextObject("{=AIInfluence_RelationReduced}Your relations with {npcName} have worsened due to suspicions of lying.", new Dictionary<string, object> { { "npcName", npcName } })).ToString());
 		}
 		SaveNPCContext(npcId, npc, context);
 		if (decisionHandled && string.Equals(aiResult.Decision, "attack", StringComparison.OrdinalIgnoreCase))
