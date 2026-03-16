@@ -3209,28 +3209,48 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			context.DeathReason = aiResult.CharacterDeath.DeathReason ?? "unknown causes";
 			context.KillerStringId = aiResult.CharacterDeath.KillerStringId;
 			context.PendingDeath = "pending";
+			bool isSettlementCombat = Settlement.CurrentSettlement != null && Mission.Current != null;
+			if (isSettlementCombat)
+			{
+				context.PendingSettlementCombat = "roleplay_death";
+				context.SettlementCombatResponse = reply;
+			}
 			SaveNPCContext(npcId, npc, context);
 			GetDelayedTaskManager().AddTask(5.0, delegate
 			{
 				try
 				{
-					var conversationManager = Campaign.Current?.ConversationManager;
-					if (conversationManager?.IsConversationInProgress == true) conversationManager.EndConversation();
-					GetDelayedTaskManager().AddTask(1.0, delegate
+					if (isSettlementCombat)
 					{
-						try
+						SettlementCombatManager settlementCombatManager = GetSettlementCombatManager();
+						if (settlementCombatManager != null)
 						{
-							if (npc != null && !npc.IsDead)
-							{
-								Hero killer = string.IsNullOrEmpty(context.KillerStringId) ? null : Hero.FindFirst((Func<Hero, bool>)((Hero h) => h != null && ((MBObjectBase)h).StringId == context.KillerStringId));
-								KillCharacterHeroPublic(npc, killer, killedInAction: false);
-							}
-							context.PendingDeath = null;
-							context.KillerStringId = null;
+							settlementCombatManager.InitiateCombat(npc, context, CombatTriggerType.RoleplayDeath, context.SettlementCombatResponse);
+							context.PendingSettlementCombat = null;
+							context.SettlementCombatResponse = null;
 							SaveNPCContext(npcId, npc, context);
 						}
-						catch (Exception ex5) { LogMessage("[ERROR] Chat death execution failed: " + ex5.Message); }
-					});
+					}
+					else
+					{
+						var cm = Campaign.Current?.ConversationManager;
+						if (cm?.IsConversationInProgress == true) cm.EndConversation();
+						GetDelayedTaskManager().AddTask(1.0, delegate
+						{
+							try
+							{
+								if (npc != null && !npc.IsDead)
+								{
+									Hero killer = string.IsNullOrEmpty(context.KillerStringId) ? null : Hero.FindFirst((Func<Hero, bool>)((Hero h) => h != null && ((MBObjectBase)h).StringId == context.KillerStringId));
+									KillCharacterHeroPublic(npc, killer, killedInAction: false);
+								}
+								context.PendingDeath = null;
+								context.KillerStringId = null;
+								SaveNPCContext(npcId, npc, context);
+							}
+							catch (Exception ex5) { LogMessage("[ERROR] Chat death execution failed: " + ex5.Message); }
+						});
+					}
 				}
 				catch (Exception ex6) { LogMessage("[ERROR] Chat death schedule failed: " + ex6.Message); }
 			});
