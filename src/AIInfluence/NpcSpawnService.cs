@@ -164,7 +164,7 @@ public class NpcSpawnService
 		}
 
 		MobileParty party = BanditPartyComponent.CreateBanditParty(
-			"aiinfluence_bandit_" + MBRandom.RandomInt(100000),
+			"aiinfluence_bandit_" + Guid.NewGuid().ToString("N"),
 			banditClan,
 			hideout,
 			false,
