@@ -39,7 +39,7 @@ public class NpcSpawnService
 		if (settlement == null)
 			return Fail("Could not resolve a settlement for NPC spawn");
 
-		Clan clan = ResolveClan(data.Faction, settlement);
+		Clan clan = ResolveClan(data.Alignment, data.Faction, settlement);
 		if (clan == null)
 			return Fail("Could not resolve a clan for NPC spawn");
 
@@ -198,16 +198,62 @@ public class NpcSpawnService
 		return idMatch;
 	}
 
-	private Clan ResolveClan(string factionName, Settlement settlement)
+	private Clan ResolveClan(string alignment, string factionName, Settlement settlement)
 	{
+		IFaction playerFaction = Hero.MainHero?.MapFaction;
+
 		if (!string.IsNullOrWhiteSpace(factionName))
 		{
 			Clan match = FuzzyMatchClan(factionName);
 			if (match != null)
+			{
+				if (!string.IsNullOrWhiteSpace(alignment) && playerFaction != null)
+				{
+					bool wantsFriendly = alignment.Equals("friendly", StringComparison.OrdinalIgnoreCase);
+					bool isFriendly = !match.MapFaction.IsAtWarWith(playerFaction);
+					if (wantsFriendly != isFriendly)
+						_log($"[NPC_SPAWN] Warning: faction '{factionName}' resolved to '{match.Name}' but alignment is '{alignment}' and faction is {(isFriendly ? "friendly" : "hostile")} to player");
+				}
 				return match;
-			_log($"[NPC_SPAWN] Faction '{factionName}' not found, falling back to settlement owner");
+			}
+			_log($"[NPC_SPAWN] Faction '{factionName}' not found, falling back to alignment-based resolution");
 		}
 
+		return ResolveByAlignment(alignment, playerFaction, settlement);
+	}
+
+	private Clan ResolveByAlignment(string alignment, IFaction playerFaction, Settlement settlement)
+	{
+		if (string.IsNullOrWhiteSpace(alignment) || alignment.Equals("neutral", StringComparison.OrdinalIgnoreCase))
+			return settlement.OwnerClan ?? Clan.PlayerClan;
+
+		if (alignment.Equals("friendly", StringComparison.OrdinalIgnoreCase))
+		{
+			if (playerFaction != null && settlement.OwnerClan?.MapFaction != null && !settlement.OwnerClan.MapFaction.IsAtWarWith(playerFaction))
+				return settlement.OwnerClan;
+			return Clan.PlayerClan;
+		}
+
+		if (alignment.Equals("hostile", StringComparison.OrdinalIgnoreCase))
+		{
+			if (playerFaction == null)
+				return Clan.BanditFactions?.FirstOrDefault() ?? settlement.OwnerClan;
+
+			Clan warClan = Clan.All?
+				.Where(c => c != null && !c.IsEliminated && !c.IsBanditFaction
+					&& c.MapFaction != null && c.MapFaction.IsAtWarWith(playerFaction)
+					&& c.Leader != null && c.Leader.IsAlive)
+				.OrderBy(c => c.FactionMidSettlement != null
+					? c.FactionMidSettlement.GetPosition2D.Distance(settlement.GetPosition2D)
+					: float.MaxValue)
+				.FirstOrDefault();
+			if (warClan != null)
+				return warClan;
+
+			return Clan.BanditFactions?.FirstOrDefault();
+		}
+
+		_log($"[NPC_SPAWN] Unknown alignment '{alignment}', treating as neutral");
 		return settlement.OwnerClan ?? Clan.PlayerClan;
 	}
 

@@ -27,6 +27,9 @@ public class SpawnNpcData
 	[JsonProperty("personality")]
 	public string Personality { get; set; }
 
+	[JsonProperty("alignment")]
+	public string Alignment { get; set; }
+
 	[JsonProperty("faction")]
 	public string Faction { get; set; }
 
