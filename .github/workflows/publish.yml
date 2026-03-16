@@ -26,7 +26,7 @@ jobs:
 
       - name: Restore & build
         run: |
-          mkdir -p _game_folder
+          mkdir -p _game_folder src/_Module
           export BANNERLORD_GAME_DIR="$PWD/_game_folder"
           export BANNERLORD_STABLE_DIR="$PWD/_game_folder"
           export BANNERLORD_BETA_DIR="$PWD/_game_folder"
