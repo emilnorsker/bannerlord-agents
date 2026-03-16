@@ -3204,6 +3204,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] workshop_action = '{aiResult.WorkshopAction}'");
 		LogMessage("[DEBUG][CHAT_ACTION_AUDIT] NOTE: ProcessChatInput handles ONLY technical_action and decision=attack. All other fields are NEVER executed in the chat window path.");
 		LogMessage("[DEBUG][CHAT_ACTION_AUDIT] HandlePlayerInput (old dialog path) handles money_transfer, item_transfers, kingdom_action, tone, workshop, quest, etc. It is NOT called here.");
+		context.PlayerInfo.SuspectedLie = aiResult.SuspectedLie;
+		if (!string.IsNullOrEmpty(aiResult.ClaimedName)) context.PlayerInfo.ClaimedName = aiResult.ClaimedName;
+		if (!string.IsNullOrEmpty(aiResult.ClaimedClan)) context.PlayerInfo.ClaimedClan = aiResult.ClaimedClan;
+		if (aiResult.ClaimedAge.HasValue) context.PlayerInfo.ClaimedAge = aiResult.ClaimedAge.Value;
+		if (aiResult.ClaimedGold > 0) context.PlayerInfo.ClaimedGold = aiResult.ClaimedGold;
 		context.PendingAIResponse = aiResult;
 		context.LastDynamicResponse = reply;
 		context.AddMessage(npcName + ": " + reply);
