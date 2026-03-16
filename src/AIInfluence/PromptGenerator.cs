@@ -919,11 +919,11 @@ public static class PromptGenerator
 			stringBuilder.Append(GetAvailableActionsPrompt(npc));
 		}
 		stringBuilder.Append("### JSON Output Format ###\nOutput ONLY valid JSON. No text outside.\n**IMPORTANT: Only include fields that are relevant. Omit optional fields if they don't apply (e.g., no money_transfer if not exchanging money, no kingdom_action if not a kingdom leader, etc.).**\n\n**REQUIRED fields (always include):**\n");
+		stringBuilder.Append(string.Format("- `response`: (string) In-character speech/actions. Min {0} chars, max {1} chars.{2}\n", GlobalSettings<ModSettings>.Instance.PromptMinResponseLength, GlobalSettings<ModSettings>.Instance.PromptMaxResponseLength, (text12 != null && !string.IsNullOrEmpty(text12) && text12 != "to be determined by you") ? " **CRITICAL**: Use cultural phrases and speech patterns from Speech Quirks NATURALLY and authentically. Cultural greetings should appear ONLY at the very start of a conversation, not in every response. Cultural interjections, exclamations, or expressions should be used sparingly (1-2 times per response maximum) and varied - don't repeat the same phrase. Let your personality-based mannerisms flow naturally throughout your speech. The goal is to make your speech feel authentic and culturally grounded, not forced or repetitive." : ""));
 		if (!isMessengerMode && GlobalSettings<ModSettings>.Instance.PromptEnableInternalThoughts)
 		{
 			stringBuilder.Append("- `internal_thoughts`: (string) **REQUIRED** - 500-1500 chars. Your PRIVATE reasoning process from the thought steps above. Summarize your character's internal perspective, motivations, conflicts, and strategy. The player will NEVER see this - be honest and introspective.\n");
 		}
-		stringBuilder.Append(string.Format("- `response`: (string) In-character speech/actions. Min {0} chars, max {1} chars.{2}\n", GlobalSettings<ModSettings>.Instance.PromptMinResponseLength, GlobalSettings<ModSettings>.Instance.PromptMaxResponseLength, (text12 != null && !string.IsNullOrEmpty(text12) && text12 != "to be determined by you") ? " **CRITICAL**: Use cultural phrases and speech patterns from Speech Quirks NATURALLY and authentically. Cultural greetings should appear ONLY at the very start of a conversation, not in every response. Cultural interjections, exclamations, or expressions should be used sparingly (1-2 times per response maximum) and varied - don't repeat the same phrase. Let your personality-based mannerisms flow naturally throughout your speech. The goal is to make your speech feel authentic and culturally grounded, not forced or repetitive." : ""));
 		if (context.IsRomanceEligible)
 		{
 			stringBuilder.Append("- `romance_intent`: (string) 'none'|'flirt'|'romance'|'proposal'. See Romance Rules.\n");
@@ -3035,11 +3035,11 @@ public static class PromptGenerator
 		bool flag7 = GlobalSettings<ModSettings>.Instance?.EnableTTS ?? false;
 		bool flag8 = GlobalSettings<ModSettings>.Instance?.PromptEnableInternalThoughts ?? false;
 		List<string> list = new List<string>();
+		list.Add("\"response\": \"...\"");
 		if (flag8)
 		{
 			list.Add("\"internal_thoughts\": \"...\"");
 		}
-		list.Add("\"response\": \"...\"");
 		if (isRomanceEligible)
 		{
 			list.Add("\"romance_intent\": \"none\"");

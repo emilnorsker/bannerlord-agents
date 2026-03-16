@@ -156,6 +156,7 @@ public static class AIClient
 			if (onOpenRouterStreamUpdate != null)
 			{
 				StringBuilder stringBuilder = new StringBuilder();
+				StringBuilder debugStreamBuffer = (GlobalSettings<ModSettings>.Instance?.DebugStreamToGameLog ?? false) ? new StringBuilder() : null;
 				using (Stream stream = await response.Content.ReadAsStreamAsync())
 				{
 					using StreamReader streamReader = new StreamReader(stream);
@@ -188,13 +189,23 @@ public static class AIClient
 							continue;
 						}
 						stringBuilder.Append(text4);
-						if (GlobalSettings<ModSettings>.Instance?.DebugStreamToGameLog ?? false)
+						if (debugStreamBuffer != null)
 						{
-							string streamChunk = text4.Replace("\n", "\\n");
-							TtsLipSyncService.MainThreadQueue.Enqueue(() => InformationManager.DisplayMessage(new InformationMessage("[LLM STREAM] " + streamChunk)));
+							debugStreamBuffer.Append(text4);
+							if (debugStreamBuffer.Length >= 120)
+							{
+								string batchedChunk = debugStreamBuffer.ToString().Replace("\n", "\\n");
+								debugStreamBuffer.Clear();
+								TtsLipSyncService.MainThreadQueue.Enqueue(() => InformationManager.DisplayMessage(new InformationMessage("[LLM STREAM] " + batchedChunk)));
+							}
 						}
 						onOpenRouterStreamUpdate(stringBuilder.ToString());
 					}
+				}
+				if (debugStreamBuffer != null && debugStreamBuffer.Length > 0)
+				{
+					string remainingChunk = debugStreamBuffer.ToString().Replace("\n", "\\n");
+					TtsLipSyncService.MainThreadQueue.Enqueue(() => InformationManager.DisplayMessage(new InformationMessage("[LLM STREAM] " + remainingChunk)));
 				}
 				string text5 = stringBuilder.ToString();
 				if (!text5.TrimStart(Array.Empty<char>()).StartsWith("{", StringComparison.Ordinal))
