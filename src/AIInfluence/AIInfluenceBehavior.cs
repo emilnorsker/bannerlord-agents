@@ -3193,7 +3193,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		context.PendingAIResponse = aiResult;
 		context.LastDynamicResponse = reply;
 		context.AddMessage(npcName + ": " + reply);
-		SaveNPCContext(npcId, npc, context);
 		// Chat-window flow still needs decision handling for in-game actions;
 		// only the text variable update depends on an active conversation.
 		if (Campaign.Current?.ConversationManager != null)
@@ -3227,9 +3226,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				AIActionManager.Instance?.ParseAndExecuteCommand(command);
 			}
 			aiResult.TechnicalAction = null;
-			context.PendingAIResponse = aiResult;
-			SaveNPCContext(npcId, npc, context);
 		}
+		SaveNPCContext(npcId, npc, context);
 		if (decisionHandled && string.Equals(aiResult.Decision, "attack", StringComparison.OrdinalIgnoreCase))
 			InitiateCombatLogic(npc, context);
 		return reply;
