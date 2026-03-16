@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -18,14 +19,14 @@ public static class AIClient
 
 	private const string GAME_KEY = "0199bcdd-3f9f-7a67-947e-ca10021b94ce";
 
-	public static async Task<string> GetAIResponse(string npcName, string faction, string prompt)
+	public static async Task<string> GetAIResponse(string npcName, string faction, string prompt, Action<string> onOpenRouterStreamUpdate = null)
 	{
 		string backend = GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue ?? "Player2";
 		try
 		{
 			return backend switch
 			{
-				"OpenRouter" => await GetOpenRouterResponse(npcName, faction, prompt), 
+				"OpenRouter" => await GetOpenRouterResponse(npcName, faction, prompt, onOpenRouterStreamUpdate), 
 				"DeepSeek" => await GetDeepSeekResponse(npcName, faction, prompt), 
 				"Player2" => await GetPlayer2Response(npcName, faction, prompt), 
 				"Ollama" => await GetOllamaResponse(npcName, faction, prompt), 
@@ -107,7 +108,7 @@ public static class AIClient
 		return (systemPrompt: item, userMessage: item2, extracted: false);
 	}
 
-	private static async Task<string> GetOpenRouterResponse(string npcName, string faction, string prompt)
+	private static async Task<string> GetOpenRouterResponse(string npcName, string faction, string prompt, Action<string> onOpenRouterStreamUpdate = null)
 	{
 		if (string.IsNullOrEmpty(GlobalSettings<ModSettings>.Instance?.ApiKey))
 		{
@@ -135,15 +136,65 @@ public static class AIClient
 			["content"] = (JToken)(userMessage)
 		});
 		val["messages"] = (JToken)val2;
-		val["response_format"] = (JToken)new JObject { ["type"] = (JToken)("json_object") };
+		bool isStreaming = onOpenRouterStreamUpdate != null;
+		if (!isStreaming)
+			val["response_format"] = (JToken)new JObject { ["type"] = (JToken)("json_object") };
+		val["stream"] = (JToken)isStreaming;
 		JObject requestBody = val;
 		string json = ((JToken)requestBody).ToString((Formatting)0, Array.Empty<JsonConverter>());
 		StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
 		httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GlobalSettings<ModSettings>.Instance.ApiKey);
 		try
 		{
-			HttpResponseMessage response = await httpClient.PostAsync("https://openrouter.ai/api/v1/chat/completions", (HttpContent)(object)content);
+			HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "https://openrouter.ai/api/v1/chat/completions");
+			request.Content = (HttpContent)(object)content;
+			HttpResponseMessage response = ((onOpenRouterStreamUpdate != null) ? (await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead)) : (await httpClient.SendAsync(request)));
 			response.EnsureSuccessStatusCode();
+			if (onOpenRouterStreamUpdate != null)
+			{
+				StringBuilder stringBuilder = new StringBuilder();
+				using (Stream stream = await response.Content.ReadAsStreamAsync())
+				{
+					using StreamReader streamReader = new StreamReader(stream);
+					while (!streamReader.EndOfStream)
+					{
+						string text = await streamReader.ReadLineAsync();
+						if (string.IsNullOrWhiteSpace(text) || !text.StartsWith("data:", StringComparison.Ordinal))
+						{
+							continue;
+						}
+						string text2 = text.Substring(5).Trim();
+						if (text2 == "[DONE]")
+						{
+							break;
+						}
+						JObject val3 = JObject.Parse(text2);
+						string text3 = val3?["error"]?["message"]?.ToString();
+						if (!string.IsNullOrEmpty(text3))
+						{
+							throw new InvalidOperationException("OpenRouter stream error: " + text3);
+						}
+						JToken val4 = val3?["choices"]?[0];
+						if (string.Equals(val4?["finish_reason"]?.ToString(), "error", StringComparison.OrdinalIgnoreCase))
+						{
+							throw new InvalidOperationException("OpenRouter stream terminated with finish_reason=error.");
+						}
+						string text4 = val4?["delta"]?["content"]?.ToString();
+						if (string.IsNullOrEmpty(text4))
+						{
+							continue;
+						}
+						stringBuilder.Append(text4);
+						onOpenRouterStreamUpdate(stringBuilder.ToString());
+					}
+				}
+				string text5 = stringBuilder.ToString();
+				if (!text5.TrimStart(Array.Empty<char>()).StartsWith("{", StringComparison.Ordinal))
+				{
+					LogWarning("OpenRouter streaming completed without JSON object output. Falling back to plain-text preview mode.");
+				}
+				return text5;
+			}
 			dynamic responseObject = JsonConvert.DeserializeObject<object>(await response.Content.ReadAsStringAsync());
 			return responseObject.choices[0].message.content.ToString();
 		}

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AIInfluence.API;
 using AIInfluence.Behaviors.AIActions;
@@ -99,6 +100,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	private bool _playerReinforcementAdded = false;
 
 	private const string WelcomeMarkerFileName = "welcome_popup_shown.txt";
+
+	private static readonly Regex StreamingResponseFieldRegex = new Regex("\"response\"\\s*:\\s*\"(?<text>(?:\\\\.|[^\"\\\\])*)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
 	private bool _welcomeCheckedThisSession = false;
 
@@ -2254,10 +2257,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		Hero obj = npc;
 		string text = ((obj == null) ? null : ((object)obj.Name)?.ToString()) ?? "Unknown";
 		LogMessage("[DEBUG] Initiating combat logic with " + text + ".");
-		if (Campaign.Current.ConversationManager.IsConversationInProgress)
+		var conversationManager = Campaign.Current?.ConversationManager;
+		if (conversationManager?.IsConversationInProgress == true)
 		{
 			LogMessage("[DEBUG] Ending conversation before starting battle with " + text + ".");
-			Campaign.Current.ConversationManager.EndConversation();
+			conversationManager.EndConversation();
 		}
 		if (!GlobalSettings<ModSettings>.Instance.EnableModification)
 		{
@@ -2413,10 +2417,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage("[ERROR] PlayerEncounter is null in Step 3. Cannot continue.");
 				return;
 			}
-			if (Campaign.Current.ConversationManager.IsConversationInProgress)
+			var conversationManager = Campaign.Current?.ConversationManager;
+			if (conversationManager?.IsConversationInProgress == true)
 			{
 				LogMessage("[DEBUG] Closing conversation before starting battle.");
-				Campaign.Current.ConversationManager.EndConversation();
+				conversationManager.EndConversation();
 			}
 			PlayerEncounter.SetMeetingDone();
 			if (PlayerEncounter.Battle == null)
@@ -2445,10 +2450,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		try
 		{
 			LogMessage("[DEBUG] Step 4: Activating encounter menu for " + npcName);
-			if (Campaign.Current.ConversationManager.IsConversationInProgress)
+			var conversationManager = Campaign.Current?.ConversationManager;
+			if (conversationManager?.IsConversationInProgress == true)
 			{
 				LogMessage("[DEBUG] Closing conversation before activating menu.");
-				Campaign.Current.ConversationManager.EndConversation();
+				conversationManager.EndConversation();
 			}
 			if (PlayerEncounter.Current != null && PlayerEncounter.Battle != null)
 			{
@@ -2523,10 +2529,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage("[WARNING] PlayerEncounter or Battle is null in Step 5. Cannot auto-start mission.");
 				return;
 			}
-			if (Campaign.Current.ConversationManager.IsConversationInProgress)
+			var conversationManager = Campaign.Current?.ConversationManager;
+			if (conversationManager?.IsConversationInProgress == true)
 			{
 				LogMessage("[DEBUG] Closing conversation before starting mission.");
-				Campaign.Current.ConversationManager.EndConversation();
+				conversationManager.EndConversation();
 			}
 			MapEvent battle = PlayerEncounter.Battle;
 			if (battle == null)
@@ -3091,7 +3098,33 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 	}
 
-	public async Task<string> ProcessChatInput(Hero npc, string playerMessage)
+	private static string TryExtractStreamingResponseText(string partialJson)
+	{
+		if (string.IsNullOrEmpty(partialJson))
+		{
+			return "";
+		}
+		Match match = StreamingResponseFieldRegex.Match(partialJson);
+		if (!match.Success)
+		{
+			if (!partialJson.TrimStart(Array.Empty<char>()).StartsWith("{", StringComparison.Ordinal))
+				return partialJson;
+			return "";
+		}
+		string value = match.Groups["text"].Value;
+		string text = "\"" + value + "\"";
+		try
+		{
+			return JsonConvert.DeserializeObject<string>(text) ?? "";
+		}
+		catch (Exception ex)
+		{
+			Instance?.LogMessage("[ChatWindow] JSON unescape failed for partial stream chunk: " + ex.Message);
+			return value.Replace("\\/", "/").Replace("\\n", "\n").Replace("\\r", "\r").Replace("\\t", "\t").Replace("\\\"", "\"");
+		}
+	}
+
+	public async Task<string> ProcessChatInput(Hero npc, string playerMessage, Action<string> onPartialResponse = null)
 	{
 		if (npc == null || string.IsNullOrEmpty(playerMessage))
 			return "";
@@ -3107,12 +3140,29 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		WorldInfoManager.Instance.UpdateTimeContext(context);
 		WorldInfoManager.Instance.UpdateWarStatus(context);
 		string prompt = PromptGenerator.GeneratePrompt(npc, context);
+		Action<string> streamCallback = (onPartialResponse == null) ? null : (Action<string>)delegate(string partialJson)
+		{
+			string text = TryExtractStreamingResponseText(partialJson);
+			if (!string.IsNullOrEmpty(text))
+			{
+				try
+				{
+					onPartialResponse(text);
+				}
+				catch (Exception ex2)
+				{
+					LogMessage("[ChatWindow] Stream update callback failed: " + ex2.Message);
+				}
+			}
+		};
 		string aiResponse = null;
 		for (int attempt = 1; attempt <= 3; attempt++)
 		{
 			try
 			{
-				aiResponse = await AIClient.GetAIResponse(npcName, faction, prompt + "\nPlayer: " + playerMessage);
+				if (attempt > 1)
+					onPartialResponse?.Invoke("");
+				aiResponse = await AIClient.GetAIResponse(npcName, faction, prompt + "\nPlayer: " + playerMessage, streamCallback);
 				if (!string.IsNullOrEmpty(aiResponse) && !aiResponse.StartsWith("Error:"))
 					break;
 				if (attempt < 3)
@@ -3145,13 +3195,46 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		context.PendingAIResponse = aiResult;
 		context.LastDynamicResponse = reply;
 		context.AddMessage(npcName + ": " + reply);
-		SaveNPCContext(npcId, npc, context);
-		// Only run dialog-system side effects when a conversation is actually active
+		// Chat-window flow still needs decision handling for in-game actions;
+		// only the text variable update depends on an active conversation.
 		if (Campaign.Current?.ConversationManager != null)
 		{
-			try { MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", reply, false); } catch (Exception) { }
-			try { _decisionHandler.HandleAIDecision(context, npc, aiResult, playerMessage); } catch (Exception) { }
+			try { MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", reply, false); }
+			catch (Exception ex) { LogMessage("[ChatWindow] SetTextVariable failed: " + ex.Message); }
 		}
+		bool decisionHandled = false;
+		try
+		{
+			_decisionHandler.HandleAIDecision(context, npc, aiResult, playerMessage);
+			decisionHandled = true;
+		}
+		catch (Exception ex3)
+		{
+			LogMessage("[ChatWindow] HandleAIDecision failed: " + ex3.Message);
+		}
+		if (decisionHandled && !string.IsNullOrEmpty(aiResult.TechnicalAction) && !aiResult.TechnicalAction.Equals("none", StringComparison.OrdinalIgnoreCase))
+		{
+			foreach (string action in aiResult.TechnicalAction.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
+			{
+				string[] parts = action.Trim().Split(new[] { ':' }, 2);
+				string actionName = parts[0].Trim();
+				string payload = parts.Length > 1 ? parts[1].Trim() : "";
+				bool isStop = payload.Equals("STOP", StringComparison.OrdinalIgnoreCase);
+				if (npc.IsPrisoner && !isStop)
+				{
+					LogMessage($"[TECHNICAL_ACTION] Skipping action '{actionName}' for prisoner {npc.Name}");
+					continue;
+				}
+				if (!isStop)
+					AIActionManager.Instance?.StopAction(npc, actionName);
+				string command = $"ACTION:{actionName}:{npcId}" + (parts.Length > 1 ? ":" + payload : "");
+				AIActionManager.Instance?.ParseAndExecuteCommand(command);
+			}
+			aiResult.TechnicalAction = null;
+		}
+		SaveNPCContext(npcId, npc, context);
+		if (decisionHandled && string.Equals(aiResult.Decision, "attack", StringComparison.OrdinalIgnoreCase))
+			InitiateCombatLogic(npc, context);
 		return reply;
 	}
 

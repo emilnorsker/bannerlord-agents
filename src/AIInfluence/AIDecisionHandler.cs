@@ -276,7 +276,8 @@ public class AIDecisionHandler
 		{
 			_behavior.LogMessage($"[DEBUG] Preparing combat with {npcName}. Player initiated: {isPlayerInitiated}. Response: {npcResponse}");
 			string text = npcResponse + " (Готовьтесь к бою...)";
-			MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", text, false);
+			if (Campaign.Current?.ConversationManager != null)
+				MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", text, false);
 			_behavior.LogMessage("[DEBUG] Set DYNAMIC_NPC_RESPONSE for combat: " + text);
 			context.AddMessage(npcName + ": " + npcResponse);
 			_behavior.SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);

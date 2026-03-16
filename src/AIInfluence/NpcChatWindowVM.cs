@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AIInfluence.DynamicEvents;
+using AIInfluence.Services;
+using MCM.Abstractions.Base.Global;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.Library;
 
@@ -141,6 +143,7 @@ public class NpcChatWindowVM : ViewModel
     private const string PlayerBubbleColor = "#000000D0"; // darker for player speech
     private const string EmoteColor       = "#CF4444FF";
     private const string ActionColor      = "#9B59B6FF";
+    private const string ActionBubbleColor = "#241433E8";
 
     private bool IsPlayerSender(string sender)
     {
@@ -149,6 +152,19 @@ public class NpcChatWindowVM : ViewModel
         return sender.Equals(playerName, StringComparison.OrdinalIgnoreCase)
             || sender.Equals("Player", StringComparison.OrdinalIgnoreCase)
             || sender.Equals("You", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string ResolveTypeTagColor(string typeTag)
+    {
+        string tone = (typeTag ?? "").Trim().ToLowerInvariant();
+        return tone switch
+        {
+            "friendly" => "#6FCF6FFF",
+            "hostile" or "angry" => "#CF6F6FFF",
+            "cautious" => "#D0A96BFF",
+            "neutral" => "#9BA4B5FF",
+            _ => "#B6BDD0FF"
+        };
     }
 
     /// <summary>
@@ -169,6 +185,7 @@ public class NpcChatWindowVM : ViewModel
             SenderName  = sender,
             SenderColor = NameColor,
             TypeTag     = isPlayer ? "" : typeTag,
+            TypeTagColor = isPlayer ? "#00000000" : ResolveTypeTagColor(typeTag),
             IsPlayer    = isPlayer
         };
 
@@ -182,7 +199,7 @@ public class NpcChatWindowVM : ViewModel
                 if (!string.IsNullOrEmpty(speech))
                     item.ContentSegments.Add(new ContentSegmentVM(speech, SpeechTextColor, bubbleColor));
             }
-            item.ContentSegments.Add(new ContentSegmentVM(m.Value, EmoteColor, "#00000000"));
+            item.ContentSegments.Add(new ContentSegmentVM(m.Value, EmoteColor, bubbleColor));
             pos = m.Index + m.Length;
         }
         if (pos < content.Length)
@@ -230,11 +247,28 @@ public class NpcChatWindowVM : ViewModel
             MessageList.Add(ParseLine($"{playerName}: {message}"));
 
             if (AIInfluenceBehavior.Instance == null) return;
-            string reply = await AIInfluenceBehavior.Instance.ProcessChatInput(_npc, message);
+            string npcName = ((object)_npc?.Name)?.ToString() ?? "NPC";
+            bool useOpenRouterStreaming = string.Equals(GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue, "OpenRouter", StringComparison.Ordinal);
+            ChatMessageItemVM streamingItem = null;
+            ContentSegmentVM streamingSegment = null;
+            bool streamingRetired = false;
+            if (useOpenRouterStreaming)
+            {
+                streamingItem = ParseLine($"{npcName}: ", "");
+                streamingSegment = new ContentSegmentVM("", SpeechTextColor, NpcBubbleColor);
+                streamingItem.ContentSegments.Add(streamingSegment);
+                MessageList.Add(streamingItem);
+            }
+            string reply = await AIInfluenceBehavior.Instance.ProcessChatInput(_npc, message, partial =>
+            {
+                TtsLipSyncService.MainThreadQueue.Enqueue(() =>
+                {
+                    if (!streamingRetired && streamingSegment != null)
+                        streamingSegment.Text = partial ?? "";
+                });
+            });
             if (!string.IsNullOrEmpty(reply))
             {
-                string npcName = ((object)_npc?.Name)?.ToString() ?? "NPC";
-
                 // Call GetOrCreateNPCContext once — avoids two off-thread calls and a
                 // race with the main game tick that could mutate the context dictionary.
                 AIResponse pendingResponse = null;
@@ -247,13 +281,23 @@ public class NpcChatWindowVM : ViewModel
                 // Wrap to prevent a threading exception from leaking past the finally block.
                 try
                 {
+                    streamingRetired = true;
+                    streamingSegment = null;
+                    if (streamingItem != null)
+                        MessageList.Remove(streamingItem);
                     var npcItem = ParseLine($"{npcName}: {reply}", tone);
                     string actionText = BuildActionText(pendingResponse);
                     if (!string.IsNullOrEmpty(actionText))
-                        npcItem.ContentSegments.Add(new ContentSegmentVM(actionText, ActionColor, "#00000000"));
+                        npcItem.ContentSegments.Add(new ContentSegmentVM(actionText, ActionColor, ActionBubbleColor, true));
                     MessageList.Add(npcItem);
                 }
                 catch (Exception) { }
+            }
+            else if (streamingItem != null)
+            {
+                streamingRetired = true;
+                streamingSegment = null;
+                MessageList.Remove(streamingItem);
             }
         }
         finally
