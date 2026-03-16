@@ -3300,7 +3300,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			LogMessage("[ChatWindow] HandleAIDecision failed: " + ex3.Message);
 		}
-		if (decisionHandled && !string.IsNullOrEmpty(aiResult.TechnicalAction) && !aiResult.TechnicalAction.Equals("none", StringComparison.OrdinalIgnoreCase))
+		if (!string.IsNullOrEmpty(aiResult.TechnicalAction) && !aiResult.TechnicalAction.Equals("none", StringComparison.OrdinalIgnoreCase))
 		{
 		LogMessage($"[TECHNICAL_ACTION] Processing technical_action for {npcName}: '{aiResult.TechnicalAction}'");
 		foreach (string action in aiResult.TechnicalAction.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
