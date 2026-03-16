@@ -3193,6 +3193,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		if (aiResult == null)
 			return "";
 		string reply = aiResult.Response ?? "";
+		context.LastInteractionTime = CampaignTime.Now;
+		context.InteractionCount++;
 		LogMessage("[DEBUG][CHAT_ACTION_AUDIT] ── AI response fields for chat window ──");
 		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] decision        = '{aiResult.Decision}'");
 		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] technical_action= '{aiResult.TechnicalAction}'");
@@ -3217,6 +3219,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		if (aiResult.ClaimedAge.HasValue) context.PlayerInfo.ClaimedAge = aiResult.ClaimedAge.Value;
 		if (aiResult.ClaimedGold > 0) context.PlayerInfo.ClaimedGold = aiResult.ClaimedGold;
 		context.PendingAIResponse = aiResult;
+		context.LastAIResponseJson = cleaned;
 		context.LastDynamicResponse = reply;
 		context.AddMessage(npcName + ": " + reply);
 		if (Campaign.Current?.ConversationManager != null)
