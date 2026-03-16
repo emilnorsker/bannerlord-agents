@@ -21,7 +21,7 @@ public class NpcChatWindowLayer : GauntletLayer
     /// Only applies to in-mission conversations; map conversations use a
     /// separate tableau camera and require a per-frame Harmony postfix.
     /// </summary>
-    private const float ConversationCameraOffsetX = -18f;
+    private const float ConversationCameraOffsetX = -18f; // mission world-space units; map-conversation equivalent is -0.18f (different coordinate space, see MapConversationCameraOffsetPatch)
 
     public NpcChatWindowLayer(Hero npc, NPCContext context, Action onReturn)
         : base("NpcChatWindowLayer", 300, false)
