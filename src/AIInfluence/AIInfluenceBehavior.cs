@@ -1362,6 +1362,10 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				{
 					throw new InvalidOperationException("Failed to add a notable character to spawned hostile party.");
 				}
+				if (party.LeaderHero == null || ((MBObjectBase)party.LeaderHero).StringId != ((MBObjectBase)notableHero).StringId)
+				{
+					throw new InvalidOperationException("Spawned hostile party leader is not the generated notable.");
+				}
 				if (homeSettlement != null)
 				{
 					GameVersionCompatibility.SetMoveGoToSettlement(party, homeSettlement);
@@ -1540,7 +1544,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		IFaction playerFaction = Hero.MainHero?.MapFaction;
 		if (ownerClan != null && ownerClan.MapFaction != null && ownerClan.FactionMidSettlement != null && !ownerClan.IsBanditFaction)
 		{
-			if (playerFaction == null || ownerClan.MapFaction.IsAtWarWith(playerFaction))
+			if (playerFaction != null && ownerClan.MapFaction.IsAtWarWith(playerFaction))
 			{
 				return ownerClan;
 			}
