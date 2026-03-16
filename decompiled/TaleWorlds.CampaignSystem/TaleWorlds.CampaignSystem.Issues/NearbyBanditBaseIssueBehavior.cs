@@ -1,0 +1,667 @@
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using TaleWorlds.CampaignSystem.Actions;
+using TaleWorlds.CampaignSystem.MapEvents;
+using TaleWorlds.CampaignSystem.Party;
+using TaleWorlds.CampaignSystem.Roster;
+using TaleWorlds.CampaignSystem.Settlements;
+using TaleWorlds.Core;
+using TaleWorlds.Localization;
+using TaleWorlds.SaveSystem;
+
+namespace TaleWorlds.CampaignSystem.Issues;
+
+public class NearbyBanditBaseIssueBehavior : CampaignBehaviorBase
+{
+	public class NearbyBanditBaseIssue : IssueBase
+	{
+		private const int QuestSolutionNeededMinimumHealthyMenCount = 25;
+
+		private const int AlternativeSolutionFinalMenCount = 10;
+
+		private const int AlternativeSolutionMinimumTroopTier = 2;
+
+		private const int AlternativeSolutionCompanionSkillThreshold = 120;
+
+		private const int AlternativeSolutionRelationRewardOnSuccess = 5;
+
+		private const int AlternativeSolutionRelationPenaltyOnFail = -5;
+
+		private const int IssueOwnerPowerBonusOnSuccess = 5;
+
+		private const int IssueOwnerPowerPenaltyOnFail = -5;
+
+		private const int SettlementProsperityBonusOnSuccess = 10;
+
+		private const int SettlementProsperityPenaltyOnFail = -10;
+
+		private const int IssueDuration = 15;
+
+		private const int QuestTimeLimit = 30;
+
+		[SaveableField(100)]
+		private readonly Settlement _targetHideout;
+
+		[SaveableField(101)]
+		private Settlement _issueSettlement;
+
+		public override AlternativeSolutionScaleFlag AlternativeSolutionScaleFlags
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public override int AlternativeSolutionBaseNeededMenCount
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		protected override int AlternativeSolutionBaseDurationInDaysInternal
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		protected override int RewardGold
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		internal Settlement TargetHideout
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public override TextObject IssueBriefByIssueGiver
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public override TextObject IssueAcceptByPlayer
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public override TextObject IssueQuestSolutionExplanationByIssueGiver
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public override TextObject IssueQuestSolutionAcceptByPlayer
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		protected override int CompanionSkillRewardXP
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public override TextObject IssueAlternativeSolutionAcceptByPlayer
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public override TextObject IssueDiscussAlternativeSolution
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public override TextObject IssueAlternativeSolutionResponseByIssueGiver
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public override TextObject IssueAlternativeSolutionExplanationByIssueGiver
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public override TextObject IssueAsRumorInSettlement
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public override bool IsThereAlternativeSolution
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		protected override TextObject AlternativeSolutionStartLog
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public override bool IsThereLordSolution
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public override TextObject Title
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public override TextObject Description
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public override TextObject IssueAlternativeSolutionSuccessLog
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public override TextObject IssueAlternativeSolutionFailLog
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		protected override bool IssueQuestCanBeDuplicated
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		internal static void AutoGeneratedStaticCollectObjectsNearbyBanditBaseIssue(object o, List<object> collectedObjects)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override void AutoGeneratedInstanceCollectObjects(List<object> collectedObjects)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		internal static object AutoGeneratedGetMemberValue_targetHideout(object o)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		internal static object AutoGeneratedGetMemberValue_issueSettlement(object o)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public override bool CanBeCompletedByAI()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public NearbyBanditBaseIssue(Hero issueOwner, Settlement targetHideout)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override float GetIssueEffectAmountInternal(IssueEffect issueEffect)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public override (SkillObject, int) GetAlternativeSolutionSkill(Hero hero)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override void AfterIssueCreation()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public override bool DoTroopsSatisfyAlternativeSolution(TroopRoster troopRoster, out TextObject explanation)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public override bool IsTroopTypeNeededByAlternativeSolution(CharacterObject character)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public override bool AlternativeSolutionCondition(out TextObject explanation)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override void AlternativeSolutionEndWithSuccessConsequence()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override void AlternativeSolutionEndWithFailureConsequence()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override void OnGameLoad()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override void HourlyTick()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override QuestBase GenerateIssueQuest(string questId)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public override IssueFrequency GetFrequency()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override bool CanPlayerTakeQuestConditions(Hero issueGiver, out PreconditionFlags flags, out Hero relationHero, out SkillObject skill)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public override bool IssueStayAliveConditions()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override void CompleteIssueWithTimedOutConsequences()
+		{
+			throw null;
+		}
+	}
+
+	public class NearbyBanditBaseIssueQuest : QuestBase
+	{
+		private const int QuestGiverRelationBonus = 5;
+
+		private const int QuestGiverRelationPenalty = -5;
+
+		private const int WarCausedByPlayerQuestGiverRelationPenalty = -5;
+
+		private const int QuestGiverPowerBonus = 5;
+
+		private const int QuestGiverPowerPenalty = -5;
+
+		private const int WarCausedByPlayerQuestGiverPowerPenalty = -10;
+
+		private const int TownProsperityBonus = 10;
+
+		private const int TownProsperityPenalty = -10;
+
+		private const int WarCausedByPlayerTownProsperityPenalty = -10;
+
+		private const int TownSecurityPenalty = -5;
+
+		private const int WarCausedByPlayerTownSecurityPenalty = -10;
+
+		private const int WarCausedByPlayerFailHonorPenalty = -50;
+
+		private const int QuestGuid = 1056731;
+
+		[SaveableField(100)]
+		private readonly Settlement _targetHideout;
+
+		[SaveableField(101)]
+		private readonly Settlement _questSettlement;
+
+		public override TextObject Title
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		public override bool IsRemainingTimeHidden
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		private TextObject OnQuestStartedLogText
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		private TextObject OnQuestSucceededLogText
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		private TextObject OnQuestFailedLogText
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		private TextObject OnQuestFailedFromWarCausedByPlayerLogText
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		private TextObject OnQuestCanceledLogText
+		{
+			[MethodImpl(MethodImplOptions.NoInlining)]
+			get
+			{
+				throw null;
+			}
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		internal static void AutoGeneratedStaticCollectObjectsNearbyBanditBaseIssueQuest(object o, List<object> collectedObjects)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override void AutoGeneratedInstanceCollectObjects(List<object> collectedObjects)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		internal static object AutoGeneratedGetMemberValue_targetHideout(object o)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		internal static object AutoGeneratedGetMemberValue_questSettlement(object o)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public NearbyBanditBaseIssueQuest(string questId, Hero questGiver, Settlement targetHideout, Settlement questSettlement, int rewardGold, CampaignTime duration)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override void InitializeQuestOnGameLoad()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override void HourlyTick()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override void SetDialogs()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private void OnQuestAccepted()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private void OnQuestSucceeded()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private void OnQuestFailed(bool isTimedOut)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private void OnQuestCanceled()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override void OnTimedOut()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override void RegisterEvents()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private void OnWarDeclared(IFaction faction1, IFaction faction2, DeclareWarAction.DeclareWarDetail detail)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private void WarCausedByPlayerFail()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private void OnMapEventStarted(MapEvent mapEvent, PartyBase attackerParty, PartyBase defenderParty)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private void OnHideoutCleared(Settlement hideout)
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		private void OnMapEventEnded(MapEvent mapEvent)
+		{
+			throw null;
+		}
+	}
+
+	public class NearbyBanditBaseIssueTypeDefiner : SaveableTypeDefiner
+	{
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		public NearbyBanditBaseIssueTypeDefiner()
+		{
+			throw null;
+		}
+
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		protected override void DefineClassTypes()
+		{
+			throw null;
+		}
+	}
+
+	private const IssueBase.IssueFrequency NearbyHideoutIssueFrequency = IssueBase.IssueFrequency.VeryCommon;
+
+	private float NearbyHideoutMaxRange
+	{
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		get
+		{
+			throw null;
+		}
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	private Settlement FindSuitableHideout(Hero issueOwner)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	private void OnCheckForIssue(Hero hero)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	private IssueBase OnIssueSelected(in PotentialIssueData pid, Hero issueOwner)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	private bool ConditionsHold(Hero issueGiver)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	private void OnIssueUpdated(IssueBase issue, IssueBase.IssueUpdateDetails details, Hero issueSolver = null)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public override void RegisterEvents()
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public override void SyncData(IDataStore dataStore)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public NearbyBanditBaseIssueBehavior()
+	{
+		throw null;
+	}
+}

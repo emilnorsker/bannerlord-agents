@@ -1,0 +1,268 @@
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.Actions;
+using TaleWorlds.CampaignSystem.Party;
+using TaleWorlds.Localization;
+using TaleWorlds.SaveSystem;
+
+namespace StoryMode.Quests.FirstPhase;
+
+public class BannerInvestigationQuest : StoryModeQuestBase
+{
+	private const int NotablesToTalkAmount = 10;
+
+	private const string MonchugStringId = "lord_6_1";
+
+	private const string MesuiStringId = "lord_6_4";
+
+	private const string HurunagStringId = "lord_6_16";
+
+	private const string CaladogStringId = "lord_5_1";
+
+	private const string ErgeonStringId = "lord_5_3";
+
+	private const string MelidirStringId = "lord_5_5";
+
+	private const string DerthertStringId = "lord_4_1";
+
+	private const string UntheryStringId = "lord_4_5";
+
+	private const string IngaltherStringId = "lord_4_16";
+
+	private const string UnqidStringId = "lord_3_1";
+
+	private const string AdramStringId = "lord_3_3";
+
+	private const string TaisStringId = "lord_3_5";
+
+	private const string RaganvadStringId = "lord_2_1";
+
+	private const string OlekStringId = "lord_2_3";
+
+	private const string GodunStringId = "lord_2_5";
+
+	private const string LuconStringId = "lord_1_1";
+
+	private const string PentonStringId = "lord_1_5";
+
+	private const string GariosStringId = "lord_1_7";
+
+	private const string RhagaeaStringId = "lord_1_14";
+
+	[SaveableField(1)]
+	private Dictionary<Hero, bool> _noblesToTalk;
+
+	[SaveableField(2)]
+	private bool _allNoblesDead;
+
+	[SaveableField(3)]
+	private bool _battleSummarized;
+
+	[SaveableField(4)]
+	private JournalLog _talkedNotablesQuestLog;
+
+	private TextObject _startQuestLog
+	{
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		get
+		{
+			throw null;
+		}
+	}
+
+	private TextObject _endQuestLog
+	{
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		get
+		{
+			throw null;
+		}
+	}
+
+	public override TextObject Title
+	{
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		get
+		{
+			throw null;
+		}
+	}
+
+	public override bool IsRemainingTimeHidden
+	{
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		get
+		{
+			throw null;
+		}
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public BannerInvestigationQuest()
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	protected override void InitializeQuestOnGameLoad()
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	protected override void HourlyTick()
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	protected override void RegisterEvents()
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	private void OnPartyLeaderChanged(MobileParty mobileParty, Hero oldLeader)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	private void InitializeNotablesToTalkList()
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	protected override void OnStartQuest()
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	private void OnHeroKilled(Hero victim, Hero killer, KillCharacterActionDetail detail, bool showNotification = true)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	private void UpdateAllNoblesDead()
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	protected override void SetDialogs()
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	private bool talk_with_any_noble_condition()
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	private bool talk_with_any_noble_continue_condition()
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	private void BattleSummarized()
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	private void talk_with_any_noble_consequence()
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	private void SetNobleDialogs()
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	private void CreateNobleDialog(Hero noble, TextObject answer1, TextObject answer2, TextObject answer3, TextObject answer4)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	private bool talk_about_mentors_condition()
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	private bool talk_with_quest_noble_condition()
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	private void talk_with_quest_noble_consequence()
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	private void OnPartyRemoved(PartyBase party)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	private void OnPartySpawned(MobileParty spawnedParty)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	protected override void OnCompleteWithSuccess()
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	internal static void AutoGeneratedStaticCollectObjectsBannerInvestigationQuest(object o, List<object> collectedObjects)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	protected override void AutoGeneratedInstanceCollectObjects(List<object> collectedObjects)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	internal static object AutoGeneratedGetMemberValue_noblesToTalk(object o)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	internal static object AutoGeneratedGetMemberValue_allNoblesDead(object o)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	internal static object AutoGeneratedGetMemberValue_battleSummarized(object o)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	internal static object AutoGeneratedGetMemberValue_talkedNotablesQuestLog(object o)
+	{
+		throw null;
+	}
+}

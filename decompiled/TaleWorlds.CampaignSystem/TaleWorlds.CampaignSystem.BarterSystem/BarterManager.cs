@@ -1,0 +1,219 @@
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using TaleWorlds.CampaignSystem.BarterSystem.Barterables;
+using TaleWorlds.CampaignSystem.Party;
+using TaleWorlds.SaveSystem;
+
+namespace TaleWorlds.CampaignSystem.BarterSystem;
+
+public class BarterManager
+{
+	public delegate bool BarterContextInitializer(Barterable barterable, BarterData args, object obj = null);
+
+	public delegate void BarterCloseEventDelegate();
+
+	public delegate void BarterBeginEventDelegate(BarterData args);
+
+	public BarterCloseEventDelegate Closed;
+
+	public BarterBeginEventDelegate BarterBegin;
+
+	[SaveableField(2)]
+	private readonly Dictionary<Hero, CampaignTime> _barteredHeroes;
+
+	private float _overpayAmount;
+
+	public static BarterManager Instance
+	{
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		get
+		{
+			throw null;
+		}
+	}
+
+	[SaveableProperty(1)]
+	public bool LastBarterIsAccepted
+	{
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		[CompilerGenerated]
+		get
+		{
+			throw null;
+		}
+		[MethodImpl(MethodImplOptions.NoInlining)]
+		[CompilerGenerated]
+		internal set
+		{
+			throw null;
+		}
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public BarterManager()
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public void BeginPlayerBarter(BarterData args)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	private void AddBaseBarterables(BarterData args, IEnumerable<Barterable> defaultBarterables)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public void StartBarterOffer(Hero offerer, Hero other, PartyBase offererParty, PartyBase otherParty, Hero beneficiaryOfOtherHero = null, BarterContextInitializer InitContext = null, int persuasionCostReduction = 0, bool isAIBarter = false, IEnumerable<Barterable> defaultBarterables = null)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public void ExecuteAiBarter(IFaction faction1, IFaction faction2, Hero faction1Hero, Hero faction2Hero, Barterable barterable)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public void ExecuteAiBarter(IFaction faction1, IFaction faction2, Hero faction1Hero, Hero faction2Hero, IEnumerable<Barterable> baseBarterables)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public void ExecuteAIBarter(BarterData barterData, IFaction faction1, IFaction faction2, Hero faction1Hero, Hero faction2Hero)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	private void MakeBalanced(BarterData args, IFaction faction1, IFaction faction2, Hero faction2Hero, float fulfillRatio)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public void Close()
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public bool IsOfferAcceptable(BarterData args, Hero hero, PartyBase party)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public float GetOfferValueForFaction(BarterData barterData, IFaction faction)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public float GetOfferValue(Hero selfHero, PartyBase selfParty, PartyBase offererParty, IEnumerable<Barterable> offeredBarters)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public void ApplyAndFinalizePlayerBarter(Hero offererHero, Hero otherHero, BarterData barterData)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public void CancelAndFinalizePlayerBarter(Hero offererHero, Hero otherHero, BarterData barterData)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	private void ApplyBarterOffer(Hero offererHero, Hero otherHero, List<Barterable> barters)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	private void CancelBarter(Hero offererHero, Hero otherHero, List<Barterable> offeredBarters)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	private void ApplyOverpayBonus(Hero otherHero)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public bool CanPlayerBarterWithHero(Hero hero)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	private void HandleHeroCooldown(Hero hero)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	private void ClearHeroCooldowns()
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public bool InitializeMarriageBarterContext(Barterable barterable, BarterData args, object obj)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public bool InitializeJoinFactionBarterContext(Barterable barterable, BarterData args, object obj)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public bool InitializeMakePeaceBarterContext(Barterable barterable, BarterData args, object obj)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	public bool InitializeSafePassageBarterContext(Barterable barterable, BarterData args, object obj)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	internal static void AutoGeneratedStaticCollectObjectsBarterManager(object o, List<object> collectedObjects)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	protected virtual void AutoGeneratedInstanceCollectObjects(List<object> collectedObjects)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	internal static object AutoGeneratedGetMemberValueLastBarterIsAccepted(object o)
+	{
+		throw null;
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	internal static object AutoGeneratedGetMemberValue_barteredHeroes(object o)
+	{
+		throw null;
+	}
+}
