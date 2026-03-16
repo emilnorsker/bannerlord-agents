@@ -185,12 +185,30 @@ dotnet build src/AIInfluence.csproj -c Release --no-restore -p:GameFolder="$PWD/
 
 The `-p:GameFolder` override points to a dummy path so the SDK doesn't try to copy into a real game install. 122 warnings (unused fields, etc.) are expected; 0 errors is the success criteria.
 
-### No runtime testing
+### Runtime testing with Steam + Proton
 
-The mod is a DLL loaded by the Bannerlord game engine (Windows-only desktop app). It cannot be executed or integration-tested on Linux. Compilation is the only verifiable quality gate in this environment.
+Bannerlord can run on Linux via Steam's Proton compatibility layer. This requires:
+
+1. **Secrets**: `STEAM_USER` and `STEAM_PASSWORD` must be set (the account must own Bannerlord, AppID 261550).
+2. **steamcmd** (installed via `apt`): downloads the game and Proton Experimental (AppID 1493710).
+3. **Proton Experimental**: runs the Windows game binaries under Wine/DXVK.
+
+**Install & deploy mod** (`~/install_bannerlord.sh`):
+- Downloads Bannerlord + Proton via steamcmd
+- Builds the mod in Release mode
+- Copies DLL + assets into `~/.local/share/Steam/steamapps/common/Mount & Blade II Bannerlord/Modules/AIInfluence/`
+
+**Launch** (`~/launch_bannerlord.sh`):
+- Sets `STEAM_COMPAT_DATA_PATH`, `SteamAppId=261550`
+- Runs `Bannerlord.exe` through `proton run`
+
+Steam Guard / 2FA may require interactive login the first time. Use the Desktop pane to complete that step if needed.
 
 ### Key caveats
 
 - .NET 8.0 SDK is required (installed to `$HOME/.dotnet`). The update script handles installation if missing.
 - `DOTNET_ROOT` and `PATH` must include `$HOME/.dotnet` — the update script exports these, and they are also persisted in `~/.bashrc`.
 - The project targets `net472` but the Bannerlord SDK cross-compiles to `netstandard2.0` on Linux. Both `Debug` and `Release` configs produce `src/bin/{config}/netstandard2.0/AIInfluence.dll`.
+- steamcmd and i386 libraries are installed system-wide. The update script does NOT re-install these (they persist in the VM snapshot).
+- Bannerlord download is ~30GB. First install takes significant time.
+- The game runs headless on Xvfb (:1) — use the Desktop pane to interact with the GUI.
