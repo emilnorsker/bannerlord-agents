@@ -3256,6 +3256,16 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			ProcessItemTransfers(npc, context, aiResult.ItemTransfers);
 		if (!string.IsNullOrEmpty(aiResult.KingdomAction) && !aiResult.KingdomAction.Equals("none", StringComparison.OrdinalIgnoreCase))
 			ProcessKingdomAction(npc, aiResult, context);
+		if (context.PendingRelationChange != null)
+		{
+			ApplyRelationChangeWithDelay(npc, context.PendingRelationChange.RelationChange, context.PendingRelationChange.Color, context.PendingRelationChange.Message);
+			context.PendingRelationChange = null;
+		}
+		if (context.PendingLiePenalty != null)
+		{
+			ApplyRelationChangeWithDelay(npc, context.PendingLiePenalty.RelationChange, context.PendingLiePenalty.Color, context.PendingLiePenalty.Message);
+			context.PendingLiePenalty = null;
+		}
 		SaveNPCContext(npcId, npc, context);
 		if (decisionHandled && string.Equals(aiResult.Decision, "attack", StringComparison.OrdinalIgnoreCase))
 			InitiateCombatLogic(npc, context);
