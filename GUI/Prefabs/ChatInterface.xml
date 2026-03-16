@@ -194,26 +194,30 @@
                                                    StackLayout.LayoutMethod="VerticalBottomToTop"
                                                    Spacing="10">
                                           <ItemTemplate>
-                                            <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Bubble.W" HeightSizePolicy="CoverChildren"
-                                                    HorizontalAlignment="Left" IsVisible="@IsBody"
-                                                    MarginTop="2" MarginBottom="2"
-                                                    Sprite="General\CharacterCreation\name_input_area" Color="@BackColor">
+                                            <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren">
                                               <Children>
-                                                <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                            Margin="14,6,14,6"
-                                                            Brush="Conversation.ConversedPartyLine.Text" Brush.FontColor="@TextColor"
-                                                            Text="@Text" />
-                                              </Children>
-                                            </Widget>
-                                            <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                    HorizontalAlignment="Left" IsVisible="@IsPill"
-                                                    MarginTop="2" MarginBottom="2"
-                                                    Sprite="name_shadow_9" Color="@BackColor">
-                                              <Children>
-                                                <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                            Margin="12,4,12,4"
-                                                            Brush="Conversation.ConversedPartyLine.Text" Brush.FontColor="@TextColor"
-                                                            Text="@Text" />
+                                                <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Bubble.W" HeightSizePolicy="CoverChildren"
+                                                        HorizontalAlignment="Left" IsVisible="@IsBody"
+                                                        MarginTop="2" MarginBottom="2"
+                                                        Sprite="General\CharacterCreation\name_input_area" Color="@BackColor">
+                                                  <Children>
+                                                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                                Margin="14,6,14,6"
+                                                                Brush="Conversation.ConversedPartyLine.Text" Brush.FontColor="@TextColor"
+                                                                Text="@Text" />
+                                                  </Children>
+                                                </Widget>
+                                                <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                        HorizontalAlignment="Left" IsVisible="@IsPill"
+                                                        MarginTop="2" MarginBottom="2"
+                                                        Sprite="name_shadow_9" Color="@BackColor">
+                                                  <Children>
+                                                    <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                                Margin="12,4,12,4"
+                                                                Brush="Conversation.ConversedPartyLine.Text" Brush.FontColor="@TextColor"
+                                                                Text="@Text" />
+                                                  </Children>
+                                                </Widget>
                                               </Children>
                                             </Widget>
                                           </ItemTemplate>
@@ -245,28 +249,32 @@
                                                    StackLayout.LayoutMethod="VerticalBottomToTop"
                                                    Spacing="10">
                                           <ItemTemplate>
-                                            <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Bubble.W" HeightSizePolicy="CoverChildren"
-                                                    HorizontalAlignment="Right" IsVisible="@IsBody"
-                                                    MarginTop="2" MarginBottom="2"
-                                                    Sprite="General\CharacterCreation\name_input_area" Color="@BackColor">
+                                            <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren">
                                               <Children>
-                                                <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                            Margin="14,6,14,6"
-                                                            Brush="Conversation.ConversedPartyLine.Text" Brush.FontColor="@TextColor"
-                                                            TextHorizontalAlignment="Right"
-                                                            Text="@Text" />
-                                              </Children>
-                                            </Widget>
-                                            <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                    HorizontalAlignment="Right" IsVisible="@IsPill"
-                                                    MarginTop="2" MarginBottom="2"
-                                                    Sprite="name_shadow_9" Color="@BackColor">
-                                              <Children>
-                                                <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                            Margin="12,4,12,4"
-                                                            Brush="Conversation.ConversedPartyLine.Text" Brush.FontColor="@TextColor"
-                                                            TextHorizontalAlignment="Right"
-                                                            Text="@Text" />
+                                                <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Bubble.W" HeightSizePolicy="CoverChildren"
+                                                        HorizontalAlignment="Right" IsVisible="@IsBody"
+                                                        MarginTop="2" MarginBottom="2"
+                                                        Sprite="General\CharacterCreation\name_input_area" Color="@BackColor">
+                                                  <Children>
+                                                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                                Margin="14,6,14,6"
+                                                                Brush="Conversation.ConversedPartyLine.Text" Brush.FontColor="@TextColor"
+                                                                TextHorizontalAlignment="Right"
+                                                                Text="@Text" />
+                                                  </Children>
+                                                </Widget>
+                                                <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                        HorizontalAlignment="Right" IsVisible="@IsPill"
+                                                        MarginTop="2" MarginBottom="2"
+                                                        Sprite="name_shadow_9" Color="@BackColor">
+                                                  <Children>
+                                                    <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                                Margin="12,4,12,4"
+                                                                Brush="Conversation.ConversedPartyLine.Text" Brush.FontColor="@TextColor"
+                                                                TextHorizontalAlignment="Right"
+                                                                Text="@Text" />
+                                                  </Children>
+                                                </Widget>
                                               </Children>
                                             </Widget>
                                           </ItemTemplate>

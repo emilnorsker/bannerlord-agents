@@ -141,9 +141,9 @@ public class NpcChatWindowVM : ViewModel
     private const string SpeechTextColor  = "#E8DCC8FF";
     private const string NpcBubbleColor   = "#0D1118D0"; // dark blue-grey for NPC speech
     private const string PlayerBubbleColor = "#000000D0"; // darker for player speech
-    private const string EmoteColor       = "#CF4444FF";
-    private const string ActionColor      = "#9B59B6FF";
-    private const string ActionBubbleColor = "#241433E8";
+    private const string EmoteColor       = "#9B59B6FF";  // purple
+    private const string ActionColor      = "#FFE6B6FF";  // gold
+    private const string ActionBubbleColor = "#3D2E1AE8";  // dark gold tint
 
     private bool IsPlayerSender(string sender)
     {
@@ -199,7 +199,7 @@ public class NpcChatWindowVM : ViewModel
                 if (!string.IsNullOrEmpty(speech))
                     item.ContentSegments.Add(new ContentSegmentVM(speech, SpeechTextColor, bubbleColor));
             }
-            item.ContentSegments.Add(new ContentSegmentVM(m.Value, EmoteColor, bubbleColor));
+            item.ContentSegments.Add(new ContentSegmentVM(m.Value, EmoteColor, bubbleColor, isPill: true));
             pos = m.Index + m.Length;
         }
         if (pos < content.Length)

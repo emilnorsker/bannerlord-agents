@@ -36,5 +36,7 @@ public class ContentSegmentVM : ViewModel
         TextColor = textColor;
         BackColor = backColor;
         IsPill    = isPill;
+        ((ViewModel)this).OnPropertyChangedWithValue(isPill, "IsPill");
+        ((ViewModel)this).OnPropertyChangedWithValue(!isPill, "IsBody");
     }
 }
