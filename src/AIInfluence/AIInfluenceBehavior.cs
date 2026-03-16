@@ -181,12 +181,17 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	public void LogMessage(string message)
 	{
 		bool isAlwaysLog = !string.IsNullOrEmpty(message) && (message.StartsWith("[ERROR]") || message.StartsWith("[SYNC-TRACE]"));
+		bool mirrorToEngineLog = !string.IsNullOrEmpty(message) && (isAlwaysLog || message.StartsWith("[QUEST]") || message.StartsWith("[QuestDebugVerbose]"));
 		if (!isAlwaysLog && (!_isInitialized || !(GlobalSettings<ModSettings>.Instance?.EnableDebugLogging ?? false)))
 		{
 			return;
 		}
 		try
 		{
+			if (mirrorToEngineLog)
+			{
+				TaleWorlds.Library.Debug.Print("[AIInfluence] " + message, 0, TaleWorlds.Library.Debug.DebugColor.Cyan, 17592186044416uL);
+			}
 			string directoryName = Path.GetDirectoryName(_logFilePath);
 			if (!Directory.Exists(directoryName))
 			{
@@ -194,8 +199,9 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			}
 			File.AppendAllText(_logFilePath, $"[{DateTime.Now:HH:mm:ss.fff}] {message}{Environment.NewLine}");
 		}
-		catch (Exception)
+		catch (Exception ex)
 		{
+			TaleWorlds.Library.Debug.Print("[AIInfluence] LogMessage write failure: " + ex.Message, 0, TaleWorlds.Library.Debug.DebugColor.Red, 17592186044416uL);
 		}
 	}
 
