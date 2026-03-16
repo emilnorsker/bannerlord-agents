@@ -3140,6 +3140,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		SaveNPCContext(npcId, npc, context);
 		WorldInfoManager.Instance.UpdateTimeContext(context);
 		WorldInfoManager.Instance.UpdateWarStatus(context);
+		context.PendingRelationChange = null;
+		context.PendingLiePenalty = null;
 		string prompt = PromptGenerator.GeneratePrompt(npc, context);
 		Action<string> streamCallback = (onPartialResponse == null) ? null : (Action<string>)delegate(string partialJson)
 		{
@@ -3351,11 +3353,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			int rel2 = _random.Next(GlobalSettings<ModSettings>.Instance.MinNegativeRelationChange, GlobalSettings<ModSettings>.Instance.MaxNegativeRelationChange + 1);
 			ApplyRelationChangeWithDelay(npc, -rel2, ExtraColors.RedAIInfluence, ((object)new TextObject("{=AIInfluence_RelationWorsened}Your relations with {npcName} have worsened due to your aggressive tone.", new Dictionary<string, object> { { "npcName", npcName } })).ToString());
 		}
-		if (context.PendingRelationChange != null)
-		{
-			ApplyRelationChangeWithDelay(npc, context.PendingRelationChange.RelationChange, context.PendingRelationChange.Color, context.PendingRelationChange.Message);
-			context.PendingRelationChange = null;
-		}
 		if (aiResult.SuspectedLie)
 		{
 			float trustPenalty = (float)(_random.NextDouble() * (double)(GlobalSettings<ModSettings>.Instance.MaxLieTrustPenalty - GlobalSettings<ModSettings>.Instance.MinLieTrustPenalty) + (double)GlobalSettings<ModSettings>.Instance.MinLieTrustPenalty);
@@ -3363,11 +3360,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			context.LiePenaltySum += trustPenalty;
 			UpdateTrustLevel(context, npc);
 			ApplyRelationChangeWithDelay(npc, -relPenalty, Colors.Yellow, ((object)new TextObject("{=AIInfluence_RelationReduced}Your relations with {npcName} have worsened due to suspicions of lying.", new Dictionary<string, object> { { "npcName", npcName } })).ToString());
-		}
-		if (context.PendingLiePenalty != null)
-		{
-			ApplyRelationChangeWithDelay(npc, context.PendingLiePenalty.RelationChange, context.PendingLiePenalty.Color, context.PendingLiePenalty.Message);
-			context.PendingLiePenalty = null;
 		}
 		SaveNPCContext(npcId, npc, context);
 		if (decisionHandled && string.Equals(aiResult.Decision, "attack", StringComparison.OrdinalIgnoreCase))
