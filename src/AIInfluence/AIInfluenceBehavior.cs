@@ -2257,10 +2257,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		Hero obj = npc;
 		string text = ((obj == null) ? null : ((object)obj.Name)?.ToString()) ?? "Unknown";
 		LogMessage("[DEBUG] Initiating combat logic with " + text + ".");
-		if (Campaign.Current.ConversationManager.IsConversationInProgress)
+		var conversationManager = Campaign.Current?.ConversationManager;
+		if (conversationManager?.IsConversationInProgress == true)
 		{
 			LogMessage("[DEBUG] Ending conversation before starting battle with " + text + ".");
-			Campaign.Current.ConversationManager.EndConversation();
+			conversationManager.EndConversation();
 		}
 		if (!GlobalSettings<ModSettings>.Instance.EnableModification)
 		{
@@ -2416,10 +2417,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage("[ERROR] PlayerEncounter is null in Step 3. Cannot continue.");
 				return;
 			}
-			if (Campaign.Current.ConversationManager.IsConversationInProgress)
+			var conversationManager = Campaign.Current?.ConversationManager;
+			if (conversationManager?.IsConversationInProgress == true)
 			{
 				LogMessage("[DEBUG] Closing conversation before starting battle.");
-				Campaign.Current.ConversationManager.EndConversation();
+				conversationManager.EndConversation();
 			}
 			PlayerEncounter.SetMeetingDone();
 			if (PlayerEncounter.Battle == null)
@@ -2448,10 +2450,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		try
 		{
 			LogMessage("[DEBUG] Step 4: Activating encounter menu for " + npcName);
-			if (Campaign.Current.ConversationManager.IsConversationInProgress)
+			var conversationManager = Campaign.Current?.ConversationManager;
+			if (conversationManager?.IsConversationInProgress == true)
 			{
 				LogMessage("[DEBUG] Closing conversation before activating menu.");
-				Campaign.Current.ConversationManager.EndConversation();
+				conversationManager.EndConversation();
 			}
 			if (PlayerEncounter.Current != null && PlayerEncounter.Battle != null)
 			{
@@ -2526,10 +2529,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage("[WARNING] PlayerEncounter or Battle is null in Step 5. Cannot auto-start mission.");
 				return;
 			}
-			if (Campaign.Current.ConversationManager.IsConversationInProgress)
+			var conversationManager = Campaign.Current?.ConversationManager;
+			if (conversationManager?.IsConversationInProgress == true)
 			{
 				LogMessage("[DEBUG] Closing conversation before starting mission.");
-				Campaign.Current.ConversationManager.EndConversation();
+				conversationManager.EndConversation();
 			}
 			MapEvent battle = PlayerEncounter.Battle;
 			if (battle == null)
@@ -3194,14 +3198,26 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		// only the text variable update depends on an active conversation.
 		if (Campaign.Current?.ConversationManager != null)
 			MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", reply, false);
-		_decisionHandler.HandleAIDecision(context, npc, aiResult, playerMessage);
+		try
+		{
+			_decisionHandler.HandleAIDecision(context, npc, aiResult, playerMessage);
+		}
+		catch (Exception ex3)
+		{
+			LogMessage("[ERROR] ProcessChatInput decision handling failed: " + ex3.Message);
+		}
 		if (!string.IsNullOrEmpty(aiResult.TechnicalAction) && !aiResult.TechnicalAction.Equals("none", StringComparison.OrdinalIgnoreCase))
+		{
 			foreach (string action in aiResult.TechnicalAction.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
 			{
 				string[] parts = action.Trim().Split(new[] { ':' }, 2);
 				string command = $"ACTION:{parts[0].Trim()}:{npcId}" + (parts.Length > 1 ? ":" + parts[1].Trim() : "");
 				AIActionManager.Instance?.ParseAndExecuteCommand(command);
 			}
+			aiResult.TechnicalAction = null;
+			context.PendingAIResponse = aiResult;
+			SaveNPCContext(npcId, npc, context);
+		}
 		if (string.Equals(aiResult.Decision, "attack", StringComparison.OrdinalIgnoreCase))
 			InitiateCombatLogic(npc, context);
 		return reply;
