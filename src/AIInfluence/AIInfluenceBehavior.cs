@@ -3172,7 +3172,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					streamJsonBuilder?.Clear();
 					lastStreamPreview = "";
 					onPartialResponse?.Invoke("");
-				}
+				} #
 				aiResponse = await AIClient.GetAIResponse(npcName, faction, prompt + "\nPlayer: " + playerMessage, streamCallback);
 				if (!string.IsNullOrEmpty(aiResponse) && !aiResponse.StartsWith("Error:"))
 					break;
