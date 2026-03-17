@@ -2487,6 +2487,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage("[WARNING] Main hero is wounded. Cannot lead attack. Skipping auto-start.");
 				return;
 			}
+			if (Mission.Current != null)
+			{
+				LogMessage("[WARNING] Mission already active (" + Mission.Current.SceneName + "). Skipping EncounterAttackConsequence to avoid stuck loading screen.");
+				return;
+			}
 			LogMessage("[DEBUG] Calling MenuHelper.EncounterAttackConsequence to start mission...");
 			MenuHelper.EncounterAttackConsequence((MenuCallbackArgs)null);
 			LogMessage("[DEBUG] MenuHelper.EncounterAttackConsequence called. Battle mission should be starting...");
