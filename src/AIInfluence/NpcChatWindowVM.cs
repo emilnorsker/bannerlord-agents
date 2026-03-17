@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using AIInfluence.Diplomacy;
 using AIInfluence.DynamicEvents;
 using AIInfluence.Services;
 using MCM.Abstractions.Base.Global;
@@ -116,9 +117,7 @@ public class NpcChatWindowVM : ViewModel
         RightPanelItems.Add(new TextItemVM("WORLD EVENTS", Header));
         try
         {
-            var events = DynamicEventsManager.Instance?.GetActiveEvents()
-                             ?.OrderByDescending(e => e.CreationCampaignDays)
-                             .Take(5) ?? Enumerable.Empty<DynamicEvent>();
+            var events = GetMergedEvents().OrderByDescending(e => e.CreationCampaignDays).Take(5);
             foreach (var e in events)
             {
                 string text = string.IsNullOrWhiteSpace(e.Title) ? e.Description : e.Title;
@@ -133,18 +132,77 @@ public class NpcChatWindowVM : ViewModel
 
         RightPanelItems.Add(new TextItemVM(" ", "#00000000"));
         RightPanelItems.Add(new TextItemVM("WHAT WE KNOW", Header));
+        bool hasWhatWeKnow = false;
         if (!string.IsNullOrWhiteSpace(context?.AIGeneratedPersonality))
+        {
             RightPanelItems.Add(new TextItemVM("• " + context.AIGeneratedPersonality));
+            hasWhatWeKnow = true;
+        }
         foreach (string q in context?.Quirks ?? new List<string>())
+        {
             if (!string.IsNullOrWhiteSpace(q))
+            {
                 RightPanelItems.Add(new TextItemVM("• " + q));
-        foreach (string info in context?.KnownInfo ?? new List<string>())
-            if (!string.IsNullOrWhiteSpace(info))
-                RightPanelItems.Add(new TextItemVM("• " + info));
+                hasWhatWeKnow = true;
+            }
+        }
+        if (!string.IsNullOrWhiteSpace(context?.AIGeneratedSpeechQuirks))
+        {
+            RightPanelItems.Add(new TextItemVM("• " + context.AIGeneratedSpeechQuirks));
+            hasWhatWeKnow = true;
+        }
+        foreach (var info in ResolveKnownInfo(context, npc))
+        {
+            RightPanelItems.Add(new TextItemVM("• " + info));
+            hasWhatWeKnow = true;
+        }
+        if (!hasWhatWeKnow)
+            RightPanelItems.Add(new TextItemVM("• Personality not yet discovered", "#888888FF"));
 
         RightPanelItems.Add(new TextItemVM(" ", "#00000000"));
         _characterSectionStartIndex = RightPanelItems.Count;
         AddCharacterSectionItems(npc, context);
+    }
+
+    private static IEnumerable<string> ResolveKnownInfo(NPCContext context, Hero npc)
+    {
+        if (context?.KnownInfo == null || !context.KnownInfo.Any()) yield break;
+        var infos = WorldInfoManager.InformationManager.Instance?.GetInfo();
+        if (infos == null) yield break;
+        string npcName = ((object)npc?.Name)?.ToString() ?? "";
+        foreach (var i in infos.Where(i => context.KnownInfo.Contains(i.Id)))
+        {
+            if (string.IsNullOrWhiteSpace(i.Description)) continue;
+            yield return i.Description.Replace("{character}", npcName).Trim();
+        }
+    }
+
+    private static List<DynamicEvent> GetMergedEvents()
+    {
+        var list = DynamicEventsManager.Instance?.GetActiveEvents() ?? new List<DynamicEvent>();
+        List<DynamicEvent> diplomatic = new List<DynamicEvent>();
+        try
+        {
+            var storage = new DiplomacyStorage();
+            diplomatic = storage.LoadDiplomaticEvents() ?? new List<DynamicEvent>();
+        }
+        catch (Exception) { }
+        var merged = new List<DynamicEvent>();
+        var seen = new HashSet<string>();
+        foreach (var e in list)
+        {
+            merged.Add(e);
+            if (!string.IsNullOrEmpty(e.Id)) seen.Add(e.Id);
+        }
+        foreach (var e in diplomatic)
+        {
+            if (e != null && !string.IsNullOrEmpty(e.Id) && !seen.Contains(e.Id))
+            {
+                merged.Add(e);
+                seen.Add(e.Id);
+            }
+        }
+        return merged;
     }
 
     private void AddCharacterSectionItems(Hero npc, NPCContext context)
@@ -390,10 +448,9 @@ public class NpcChatWindowVM : ViewModel
 
         try
         {
+            if (AIInfluenceBehavior.Instance == null) return;
             var playerMessageItem = ParseLine($"{playerName}: {message}");
             AddNewestMessage(playerMessageItem);
-
-            if (AIInfluenceBehavior.Instance == null) return;
             string npcName = ((object)_npc?.Name)?.ToString() ?? "NPC";
 
             // Capture the slot index where ProcessChatInput will append the player message.
