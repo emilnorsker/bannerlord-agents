@@ -134,7 +134,8 @@ public class NpcSpawnService
 		CampaignVec2 spawnPosition = homeSettlement.GatePosition;
 
 		MobileParty party = LordPartyComponent.CreateLordParty(
-			"aiinfluence_spawned_" + hero.StringId,
+		MobileParty party = LordPartyComponent.CreateLordParty(
+			"aiinfluence_spawned_" + Guid.NewGuid().ToString("N"),
 			hero,
 			spawnPosition,
 			0f,
