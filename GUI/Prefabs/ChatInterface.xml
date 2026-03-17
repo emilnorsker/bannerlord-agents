@@ -1,10 +1,10 @@
 <Prefab>
   <!--
     Layout — left-aligned, full height:
-      Left  (x=0..460)   : transparent — 3D conversation character shows through.
+      Left  (x=0..460)   : opaque dark backdrop (#141414).
                            Stat overlay (TopBanner) rendered on top of character.
       Sep   (x=460..462) : thin separator
-      Frame (x=462..end) : dark backdrop + Encyclopedia.Frame wrapping center+right.
+      Frame (x=462..end) : opaque dark backdrop (#141414) wrapping center+right.
         Center: fills frame minus right column.
         Right : fixed 300px at right edge.
 
@@ -27,15 +27,16 @@
 
   <Window Id="ChatInterfaceWindow" Layer="Overlay">
 
-    <!-- Outer container: transparent, full screen, holds left + framed block side by side -->
+    <!-- Outer container: full screen, holds left + framed block side by side -->
     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
             DoNotAcceptEvents="false">
       <Children>
 
-        <!-- ══ LEFT COLUMN — transparent, character scene shows through ══ -->
+        <!-- ══ LEFT COLUMN — opaque backdrop ══ -->
         <Widget HorizontalAlignment="Left"
                 WidthSizePolicy="Fixed" SuggestedWidth="!Left.W"
-                HeightSizePolicy="StretchToParent">
+                HeightSizePolicy="StretchToParent"
+                Sprite="BlankWhite" Color="#141414FF">
           <Children>
             <!-- Stat overlay at top — sits directly over the 3D character -->
             <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
@@ -71,11 +72,11 @@
                 PositionXOffset="!Left.W"
                 Sprite="BlankWhiteSquare_9" Color="!SepColor" />
 
-        <!-- ══ CENTER + RIGHT — dark backdrop (Figma: #141414 at 80%) ════════════════ -->
+        <!-- ══ CENTER + RIGHT — opaque dark backdrop (#141414) ════════════════ -->
         <!-- MarginLeft=Frame.Start so the backdrop doesn't dim the character -->
         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                 MarginLeft="!Frame.Start"
-                Sprite="BlankWhite" Color="#141414CC">
+                Sprite="BlankWhite" Color="#141414FF">
           <!-- BlankWhite sprite required: Color alone has no effect on a bare Widget in Gauntlet -->
           <Children>
             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
@@ -86,7 +87,7 @@
                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
                         SuggestedHeight="!Header.H"
                         VerticalAlignment="Top"
-                        Sprite="BlankWhite" Color="#141414CC">
+                        Sprite="BlankWhite" Color="#141414FF">
                   <!-- BlankWhite sprite required: Color alone has no effect on a bare Widget in Gauntlet -->
                   <Children>
                     <!-- "Conversation Log" static label -->
@@ -108,10 +109,10 @@
                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                         MarginTop="!Header.H" MarginRight="!Frame.End">
                   <Children>
-                    <!-- Middle panel background: dark texture (Figma: image fill 20% on #141414 base) -->
+                    <!-- Middle panel background: dark texture -->
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                             Sprite="chat_panel_bg"
-                            AlphaFactor="0.2"
+                            AlphaFactor="1.0"
                             DoNotAcceptEvents="true" />
 
                     <!-- Message scroll area -->
@@ -302,7 +303,7 @@
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
                             SuggestedHeight="!Input.H"
                             VerticalAlignment="Bottom"
-                            Sprite="BlankWhite" Color="#1A110CFF" AlphaFactor="0.9">
+                            Sprite="BlankWhite" Color="#1A110CFF">
                       <Children>
                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                 Sprite="frame_9" ExtendLeft="4" ExtendTop="4" ExtendRight="4" ExtendBottom="4"
