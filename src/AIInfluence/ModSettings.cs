@@ -4622,7 +4622,7 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 		return GetEnabledEventTypes().Any();
 	}
 
-	private string _debugQuestPrompt = "Create a quest where I must defeat a legendary Sturgian warlord named Norsker. He is a tier 6 elite combatant wearing heavy lamellar armor, a wolf cape, and wielding a two-handed long axe. He leads a horde of 500 Sturgian veterans camped near Omor. He should be hostile and have a detailed backstory about conquering northern villages.";
+	private string _debugQuestPrompt = "Create a quest where I must defeat a Nord warlord named Norsker. He is a tier 6 elite combatant wearing heavy lamellar armor, a wolf cape, and wielding a two-handed long axe. He leads a horde of 500 berserkers camped near Omor. He should be hostile and have a detailed backstory about conquering northern villages.";
 
 	[SettingPropertyGroup("Quest Debug", GroupOrder = 20)]
 	[SettingPropertyText("Quest Generation Prompt", -1, false, "", RequireRestart = false, HintText = "Enter a quest idea. Use 'Generate Quest From Prompt' to create it via the AI.")]
