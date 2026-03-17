@@ -57,6 +57,8 @@ public class NpcChatWindowVM : ViewModel
     // ── Right panel – flat list, section headers included as items ────────
     [DataSourceProperty] public MBBindingList<TextItemVM> RightPanelItems { get; } = new MBBindingList<TextItemVM>();
 
+    private int _characterSectionStartIndex;
+
     private void AddNewestMessage(ChatMessageItemVM item) => MessageList.Add(item);
 
     public NpcChatWindowVM(Hero npc, NPCContext context, Action onReturn)
@@ -133,12 +135,27 @@ public class NpcChatWindowVM : ViewModel
 
         int rel = (int)npc.GetRelation(Hero.MainHero);
         RightPanelItems.Add(new TextItemVM(" ", "#00000000"));
+        _characterSectionStartIndex = RightPanelItems.Count;
+        AddCharacterSectionItems(npc, context);
+    }
+
+    private void AddCharacterSectionItems(Hero npc, NPCContext context)
+    {
+        const string Header = "#888888FF";
         RightPanelItems.Add(new TextItemVM("CHARACTER", Header));
+        int rel = (int)npc.GetRelation(Hero.MainHero);
         RightPanelItems.Add(new TextItemVM($"Relation: {rel:+#;-#;0}", rel >= 0 ? "#6FCF6FFF" : "#CF6F6FFF"));
         RightPanelItems.Add(new TextItemVM($"Trust: {context?.TrustLevel:F0}"));
         RightPanelItems.Add(new TextItemVM($"Interactions: {context?.InteractionCount ?? 0}"));
         if (!string.IsNullOrWhiteSpace(context?.EmotionalState?.Mood))
             RightPanelItems.Add(new TextItemVM($"Mood: {context.EmotionalState.Mood}"));
+    }
+
+    private void RefreshCharacterSection(Hero npc, NPCContext context)
+    {
+        while (RightPanelItems.Count > _characterSectionStartIndex)
+            RightPanelItems.RemoveAt(RightPanelItems.Count - 1);
+        AddCharacterSectionItems(npc, context);
     }
 
     // ── Segment parser ────────────────────────────────────────────────────
@@ -507,6 +524,8 @@ public class NpcChatWindowVM : ViewModel
                             try { AIInfluenceBehavior.Instance?.SaveNPCContext(((MBObjectBase)_npc).StringId, _npc, ctx); }
                             catch (Exception ex) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] SaveNPCContext after pill persist failed: " + ex.Message); }
                         }
+                        if (ctx != null)
+                            RefreshCharacterSection(_npc, ctx);
                     }
                     catch (Exception ex)
                     {
