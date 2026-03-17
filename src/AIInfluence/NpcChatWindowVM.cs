@@ -439,7 +439,7 @@ public class NpcChatWindowVM : ViewModel
 
                     if (!string.IsNullOrEmpty(playerActionText) && MessageList.Count > 0)
                     {
-                        var playerItem = MessageList[MessageList.Count - 1];
+                        var playerItem = MessageList[0];
                         if (playerItem.IsPlayer)
                             playerItem.ContentSegments.Add(new ContentSegmentVM(playerActionText, ActionColor, ActionBubbleColor, true));
                     }
