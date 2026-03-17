@@ -9,11 +9,11 @@ using TaleWorlds.Library;
 namespace AIInfluence.Patches;
 
 /// <summary>
-/// Shifts the map-conversation tableau camera each render frame so the NPC
-/// appears centered in the left chat panel when the NPC chat window is open.
-/// Uses a prefix/postfix pair to prevent per-frame offset accumulation:
-/// the prefix undoes the prior frame's offset so the original function sees
-/// clean camera state, then the postfix re-applies the offset.
+/// Shifts the map-conversation tableau camera so the NPC appears centered in
+/// the left chat panel when the NPC chat window is open.
+/// Prefix-only: the offset is baked into Camera.Frame BEFORE the function
+/// reads it and calls SetCamera, so the render uses the shifted position.
+/// Each frame the previous offset is undone first to prevent accumulation.
 /// </summary>
 [HarmonyPatch]
 public static class MapConversationCameraOffsetPatch
@@ -21,7 +21,7 @@ public static class MapConversationCameraOffsetPatch
     private static float _appliedOffset;
     private static FieldInfo _camFieldCache;
 
-    private static float OffsetX => GlobalSettings<ModSettings>.Instance?.ChatCameraOffsetX ?? -0.18f;
+    private static float OffsetX => GlobalSettings<ModSettings>.Instance?.ChatCameraOffsetX ?? 0.9f;
 
     [HarmonyPrepare]
     public static bool Prepare()
@@ -48,40 +48,30 @@ public static class MapConversationCameraOffsetPatch
     [HarmonyPrefix]
     public static void Prefix(object __instance)
     {
-        if (_appliedOffset == 0f) return;
         try
         {
             Camera cam = GetCamera(__instance);
             if (cam == null) return;
+
             MatrixFrame frame = cam.Frame;
             frame.origin.x -= _appliedOffset;
+
+            if (NpcChatWindowManager.IsOpen)
+            {
+                float offset = OffsetX;
+                frame.origin.x += offset;
+                _appliedOffset = offset;
+            }
+            else
+            {
+                _appliedOffset = 0f;
+            }
+
             cam.Frame = frame;
-            _appliedOffset = 0f;
         }
         catch (Exception ex)
         {
             InformationManager.DisplayMessage(new InformationMessage("[NpcChatWindow] Tableau camera prefix failed: " + ex.Message));
-        }
-    }
-
-    [HarmonyPostfix]
-    public static void Postfix(object __instance)
-    {
-        if (!NpcChatWindowManager.IsOpen) return;
-        try
-        {
-            float offset = OffsetX;
-            if (offset == 0f) return;
-            Camera cam = GetCamera(__instance);
-            if (cam == null) return;
-            MatrixFrame frame = cam.Frame;
-            frame.origin.x += offset;
-            cam.Frame = frame;
-            _appliedOffset = offset;
-        }
-        catch (Exception ex)
-        {
-            InformationManager.DisplayMessage(new InformationMessage("[NpcChatWindow] Tableau camera postfix failed: " + ex.Message));
         }
     }
 }

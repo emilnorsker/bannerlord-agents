@@ -36,9 +36,9 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 
 	private bool _debugStreamToGameLog = false;
 
-	private float _chatCameraOffsetX = -0.18f;
+	private float _chatCameraOffsetX = 0.9f;
 
-	private float _missionCameraOffsetX = -18f;
+	private float _missionCameraOffsetX = 0.9f;
 
 	private Dropdown<string> _aiBackend = new Dropdown<string>((IEnumerable<string>)new List<string> { "OpenRouter", "DeepSeek", "Player2", "Ollama", "KoboldCpp" }, 2);
 

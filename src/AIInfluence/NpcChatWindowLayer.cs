@@ -21,7 +21,7 @@ public class NpcChatWindowLayer : GauntletLayer
     /// use a separate tableau camera with its own MCM setting, applied via
     /// a per-frame Harmony postfix (MapConversationCameraOffsetPatch).
     /// </summary>
-    private static float MissionOffsetX => GlobalSettings<ModSettings>.Instance?.MissionCameraOffsetX ?? -18f;
+    private static float MissionOffsetX => GlobalSettings<ModSettings>.Instance?.MissionCameraOffsetX ?? 0.9f;
 
     public NpcChatWindowLayer(Hero npc, NPCContext context, Action onReturn)
         : base("NpcChatWindowLayer", 300, false)
