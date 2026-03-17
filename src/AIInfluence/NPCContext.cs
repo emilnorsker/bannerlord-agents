@@ -290,7 +290,7 @@ public class NPCContext
 				string item = ComputeMessageHash(item3);
 				if (!ProcessedMessageHashes.Contains(item))
 				{
-					list.Add(item3);
+					list.Add(StripPillSuffix(item3));
 				}
 			}
 		}
@@ -301,7 +301,7 @@ public class NPCContext
 				string item2 = ComputeMessageHash(item4);
 				if (!ProcessedMessageHashes.Contains(item2))
 				{
-					list.Add(item4);
+					list.Add(StripPillSuffix(item4));
 				}
 			}
 		}

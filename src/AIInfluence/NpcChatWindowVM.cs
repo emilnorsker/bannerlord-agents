@@ -347,6 +347,15 @@ public class NpcChatWindowVM : ViewModel
 
             if (AIInfluenceBehavior.Instance == null) return;
             string npcName = ((object)_npc?.Name)?.ToString() ?? "NPC";
+
+            // Capture the slot index where ProcessChatInput will append the player message.
+            int playerHistoryIdx = -1;
+            try
+            {
+                var preCtx = AIInfluenceBehavior.Instance.GetOrCreateNPCContext(_npc);
+                playerHistoryIdx = preCtx?.ConversationHistory?.Count ?? -1;
+            }
+            catch (Exception) { }
             bool useOpenRouterStreaming = string.Equals(GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue, "OpenRouter", StringComparison.Ordinal);
             ChatMessageItemVM streamingItem = null;
             bool streamingRetired = false;
@@ -448,13 +457,14 @@ public class NpcChatWindowVM : ViewModel
                         npcItem.ContentSegments.Add(new ContentSegmentVM(relMsg, RelationMessageColor, RelationBubbleColor, true));
                     AddNewestMessage(npcItem);
 
-                    if (ctx?.ConversationHistory != null && ctx.ConversationHistory.Count >= 2)
+                    if (ctx?.ConversationHistory != null)
                     {
-                        if (!string.IsNullOrEmpty(playerActionText))
-                            ctx.AppendActionToMessage(ctx.ConversationHistory.Count - 2, playerActionText);
+                        if (!string.IsNullOrEmpty(playerActionText) && playerHistoryIdx >= 0 && playerHistoryIdx < ctx.ConversationHistory.Count)
+                            ctx.AppendActionToMessage(playerHistoryIdx, playerActionText);
                         string npcPills = string.Join(" ", new[] { npcActionText, relMsg }.Where(s => !string.IsNullOrEmpty(s)));
-                        if (!string.IsNullOrEmpty(npcPills))
-                            ctx.AppendActionToMessage(ctx.ConversationHistory.Count - 1, npcPills);
+                        int npcHistoryIdx = ctx.ConversationHistory.Count - 1;
+                        if (!string.IsNullOrEmpty(npcPills) && npcHistoryIdx > playerHistoryIdx)
+                            ctx.AppendActionToMessage(npcHistoryIdx, npcPills);
                         try { AIInfluenceBehavior.Instance?.SaveNPCContext(((MBObjectBase)_npc).StringId, _npc, ctx); }
                         catch (Exception ex) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] SaveNPCContext after pill persist failed: " + ex.Message); }
                     }
