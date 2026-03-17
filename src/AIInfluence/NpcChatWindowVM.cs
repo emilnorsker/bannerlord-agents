@@ -9,6 +9,7 @@ using MCM.Abstractions.Base.Global;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.Core;
 using TaleWorlds.Library;
+using TaleWorlds.ObjectSystem;
 
 namespace AIInfluence;
 
