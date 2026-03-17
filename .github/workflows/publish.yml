@@ -46,8 +46,14 @@ jobs:
           cp "$DLL" staging/AIInfluence/bin/Win64_Shipping_Client/
           cp SubModule.xml staging/AIInfluence/
           cp -r GUI staging/AIInfluence/
-          for f in OggVorbisEncoder.dll System.Buffers.dll System.Memory.dll; do
-            [ -f "$BUILDDIR/$f" ] && cp "$BUILDDIR/$f" staging/AIInfluence/bin/Win64_Shipping_Client/
+          [ ! -f "$BUILDDIR/OggVorbisEncoder.dll" ] && { echo "ERROR: OggVorbisEncoder.dll not found in $BUILDDIR"; exit 1; }
+          cp "$BUILDDIR/OggVorbisEncoder.dll" staging/AIInfluence/bin/Win64_Shipping_Client/
+          for f in System.Buffers.dll System.Memory.dll; do
+            if [ ! -f "$BUILDDIR/$f" ]; then
+              echo "WARNING: expected $f not found in $BUILDDIR — skipping" >&2
+            else
+              cp "$BUILDDIR/$f" staging/AIInfluence/bin/Win64_Shipping_Client/
+            fi
           done
           [ -f bin/Win64_Shipping_Client/rhubarb.exe ] && cp bin/Win64_Shipping_Client/rhubarb.exe staging/AIInfluence/bin/Win64_Shipping_Client/
           cp -r bin/Win64_Shipping_Client/res staging/AIInfluence/bin/Win64_Shipping_Client/
