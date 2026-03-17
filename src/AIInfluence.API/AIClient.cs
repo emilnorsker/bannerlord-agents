@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using AIInfluence.Services;
 using AIInfluence.Util;
 using MCM.Abstractions.Base.Global;
 using Newtonsoft.Json;
@@ -137,6 +138,8 @@ public static class AIClient
 		});
 		val["messages"] = (JToken)val2;
 		bool isStreaming = onOpenRouterStreamUpdate != null;
+		// Do not force json_object while streaming: some providers buffer until
+		// the object is complete, which collapses visible token-by-token updates.
 		if (!isStreaming)
 			val["response_format"] = (JToken)new JObject { ["type"] = (JToken)("json_object") };
 		val["stream"] = (JToken)isStreaming;
@@ -148,17 +151,18 @@ public static class AIClient
 		{
 			HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "https://openrouter.ai/api/v1/chat/completions");
 			request.Content = (HttpContent)(object)content;
-			HttpResponseMessage response = ((onOpenRouterStreamUpdate != null) ? (await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead)) : (await httpClient.SendAsync(request)));
+			HttpResponseMessage response = ((onOpenRouterStreamUpdate != null) ? (await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false)) : (await httpClient.SendAsync(request).ConfigureAwait(false)));
 			response.EnsureSuccessStatusCode();
 			if (onOpenRouterStreamUpdate != null)
 			{
 				StringBuilder stringBuilder = new StringBuilder();
-				using (Stream stream = await response.Content.ReadAsStreamAsync())
+				StringBuilder debugStreamBuffer = (GlobalSettings<ModSettings>.Instance?.DebugStreamToGameLog ?? false) ? new StringBuilder() : null;
+				using (Stream stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
 				{
 					using StreamReader streamReader = new StreamReader(stream);
 					while (!streamReader.EndOfStream)
 					{
-						string text = await streamReader.ReadLineAsync();
+						string text = await streamReader.ReadLineAsync().ConfigureAwait(false);
 						if (string.IsNullOrWhiteSpace(text) || !text.StartsWith("data:", StringComparison.Ordinal))
 						{
 							continue;
@@ -185,8 +189,23 @@ public static class AIClient
 							continue;
 						}
 						stringBuilder.Append(text4);
-						onOpenRouterStreamUpdate(stringBuilder.ToString());
+						if (debugStreamBuffer != null)
+						{
+							debugStreamBuffer.Append(text4);
+							if (debugStreamBuffer.Length >= 120)
+							{
+								string batchedChunk = debugStreamBuffer.ToString().Replace("\n", "\\n");
+								debugStreamBuffer.Clear();
+								TtsLipSyncService.MainThreadQueue.Enqueue(() => InformationManager.DisplayMessage(new InformationMessage("[LLM STREAM] " + batchedChunk)));
+							}
+						}
+						onOpenRouterStreamUpdate(text4);
 					}
+				}
+				if (debugStreamBuffer != null && debugStreamBuffer.Length > 0)
+				{
+					string remainingChunk = debugStreamBuffer.ToString().Replace("\n", "\\n");
+					TtsLipSyncService.MainThreadQueue.Enqueue(() => InformationManager.DisplayMessage(new InformationMessage("[LLM STREAM] " + remainingChunk)));
 				}
 				string text5 = stringBuilder.ToString();
 				if (!text5.TrimStart(Array.Empty<char>()).StartsWith("{", StringComparison.Ordinal))

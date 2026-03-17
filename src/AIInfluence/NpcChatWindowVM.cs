@@ -55,6 +55,8 @@ public class NpcChatWindowVM : ViewModel
     // ── Right panel – flat list, section headers included as items ────────
     [DataSourceProperty] public MBBindingList<TextItemVM> RightPanelItems { get; } = new MBBindingList<TextItemVM>();
 
+    private void AddNewestMessage(ChatMessageItemVM item) => MessageList.Insert(0, item);
+
     public NpcChatWindowVM(Hero npc, NPCContext context, Action onReturn)
     {
         _npc = npc;
@@ -91,7 +93,7 @@ public class NpcChatWindowVM : ViewModel
         var history = context.ConversationHistory;
         int skip = Math.Max(0, history.Count - 10);
         foreach (string line in history.Skip(skip))
-            MessageList.Add(ParseLine(line));
+            AddNewestMessage(ParseLine(line));
     }
 
     private void PopulateRightPanel(Hero npc, NPCContext context)
@@ -212,6 +214,18 @@ public class NpcChatWindowVM : ViewModel
         return item;
     }
 
+    private void ReplaceStreamingSegments(ChatMessageItemVM targetItem, string npcName, string partialText)
+    {
+        if (targetItem == null) return;
+        var parsed = ParseLine($"{npcName}: {partialText ?? ""}", "");
+        while (targetItem.ContentSegments.Count > 0)
+            targetItem.ContentSegments.RemoveAt(targetItem.ContentSegments.Count - 1);
+        foreach (var segment in parsed.ContentSegments)
+            targetItem.ContentSegments.Add(segment);
+        if (targetItem.ContentSegments.Count == 0)
+            targetItem.ContentSegments.Add(new ContentSegmentVM("", SpeechTextColor, NpcBubbleColor));
+    }
+
     private static string BuildActionText(AIResponse r)
     {
         if (r == null) return "";
@@ -244,27 +258,70 @@ public class NpcChatWindowVM : ViewModel
 
         try
         {
-            MessageList.Add(ParseLine($"{playerName}: {message}"));
+            AddNewestMessage(ParseLine($"{playerName}: {message}"));
 
             if (AIInfluenceBehavior.Instance == null) return;
             string npcName = ((object)_npc?.Name)?.ToString() ?? "NPC";
             bool useOpenRouterStreaming = string.Equals(GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue, "OpenRouter", StringComparison.Ordinal);
             ChatMessageItemVM streamingItem = null;
-            ContentSegmentVM streamingSegment = null;
             bool streamingRetired = false;
+            string streamingTargetText = "";
+            string streamingVisibleText = "";
+            bool streamPumpActive = false;
+            Action streamPumpStep = null;
             if (useOpenRouterStreaming)
             {
                 streamingItem = ParseLine($"{npcName}: ", "");
-                streamingSegment = new ContentSegmentVM("", SpeechTextColor, NpcBubbleColor);
-                streamingItem.ContentSegments.Add(streamingSegment);
-                MessageList.Add(streamingItem);
+                streamingItem.ContentSegments.Add(new ContentSegmentVM("", SpeechTextColor, NpcBubbleColor));
+                AddNewestMessage(streamingItem);
+                streamPumpStep = () =>
+                {
+                    if (streamingRetired || streamingItem == null)
+                    {
+                        streamPumpActive = false;
+                        return;
+                    }
+                    if (streamingVisibleText.Length < streamingTargetText.Length)
+                    {
+                        streamingVisibleText = streamingTargetText.Substring(0, streamingVisibleText.Length + 1);
+                        ReplaceStreamingSegments(streamingItem, npcName, streamingVisibleText);
+                        DelayedTaskManager taskManager = AIInfluenceBehavior.Instance?.GetDelayedTaskManager();
+                        if (taskManager != null)
+                        {
+                            double revealInterval = Math.Max(0.005f, GlobalSettings<ModSettings>.Instance?.ChatStreamCharacterInterval ?? 0.05f);
+                            taskManager.AddTask(revealInterval, streamPumpStep);
+                        }
+                        else
+                        {
+                            streamingVisibleText = streamingTargetText;
+                            ReplaceStreamingSegments(streamingItem, npcName, streamingVisibleText);
+                            streamPumpActive = false;
+                        }
+                    }
+                    else if (streamingVisibleText.Length > streamingTargetText.Length)
+                    {
+                        streamingVisibleText = streamingTargetText;
+                        ReplaceStreamingSegments(streamingItem, npcName, streamingVisibleText);
+                    }
+                    else
+                    {
+                        streamPumpActive = false;
+                    }
+                };
             }
             string reply = await AIInfluenceBehavior.Instance.ProcessChatInput(_npc, message, partial =>
             {
                 TtsLipSyncService.MainThreadQueue.Enqueue(() =>
                 {
-                    if (!streamingRetired && streamingSegment != null)
-                        streamingSegment.Text = partial ?? "";
+                    if (!streamingRetired && streamingItem != null)
+                    {
+                        streamingTargetText = partial ?? "";
+                        if (!streamPumpActive && streamPumpStep != null)
+                        {
+                            streamPumpActive = true;
+                            streamPumpStep();
+                        }
+                    }
                 });
             });
             if (!string.IsNullOrEmpty(reply))
@@ -282,21 +339,19 @@ public class NpcChatWindowVM : ViewModel
                 try
                 {
                     streamingRetired = true;
-                    streamingSegment = null;
                     if (streamingItem != null)
                         MessageList.Remove(streamingItem);
                     var npcItem = ParseLine($"{npcName}: {reply}", tone);
                     string actionText = BuildActionText(pendingResponse);
                     if (!string.IsNullOrEmpty(actionText))
                         npcItem.ContentSegments.Add(new ContentSegmentVM(actionText, ActionColor, ActionBubbleColor, true));
-                    MessageList.Add(npcItem);
+                    AddNewestMessage(npcItem);
                 }
                 catch (Exception) { }
             }
             else if (streamingItem != null)
             {
                 streamingRetired = true;
-                streamingSegment = null;
                 MessageList.Remove(streamingItem);
             }
         }

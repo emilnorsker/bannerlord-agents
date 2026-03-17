@@ -34,6 +34,8 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 
 	private bool _enableDebugLogging = true;
 
+	private bool _debugStreamToGameLog = false;
+
 	private Dropdown<string> _aiBackend = new Dropdown<string>((IEnumerable<string>)new List<string> { "OpenRouter", "DeepSeek", "Player2", "Ollama", "KoboldCpp" }, 2);
 
 	private string _aiModel = "gpt-3.5-turbo";
@@ -374,6 +376,8 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 
 	private float _dialogDelay = 15f;
 
+	private float _chatStreamCharacterInterval = 0.05f;
+
 	private bool _enableResponseReadySound = true;
 
 	private bool _enableNPCLastMessageHistory = true;
@@ -443,7 +447,25 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 	}
 
 	[SettingPropertyGroup("{=AIInfluence_Group_General}General Settings", GroupOrder = 0)]
-	[SettingPropertyButton("Open Logs Folder", 4, true, "Open Logs Folder", Content = "Open Logs Folder", RequireRestart = false, HintText = "Opens the mod's logs folder in Windows Explorer")]
+	[SettingPropertyBool("Debug: Stream LLM Output to In-Game Log", Order = 4, RequireRestart = false, HintText = "When enabled, streamed LLM chunks are echoed to the in-game message log.")]
+	public bool DebugStreamToGameLog
+	{
+		get
+		{
+			return _debugStreamToGameLog;
+		}
+		set
+		{
+			if (_debugStreamToGameLog != value)
+			{
+				_debugStreamToGameLog = value;
+				this.OnSettingChanged?.Invoke("DebugStreamToGameLog", value);
+			}
+		}
+	}
+
+	[SettingPropertyGroup("{=AIInfluence_Group_General}General Settings", GroupOrder = 0)]
+	[SettingPropertyButton("Open Logs Folder", 5, true, "Open Logs Folder", Content = "Open Logs Folder", RequireRestart = false, HintText = "Opens the mod's logs folder in Windows Explorer")]
 	public Action OpenLogsFolder { get; set; } = delegate
 	{
 		//IL_007c: Unknown result type (might be due to invalid IL or missing references)
@@ -4139,6 +4161,24 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 			{
 				_enableNPCLastMessageHistory = value;
 				this.OnSettingChanged?.Invoke("EnableNPCLastMessageHistory", value);
+			}
+		}
+	}
+
+	[SettingPropertyGroup("{=AIInfluence_Group_Technical}Technical Settings", GroupOrder = 11)]
+	[SettingPropertyFloatingInteger("Chat Stream Character Interval (seconds)", 0.005f, 0.2f, "0.000", Order = 103, RequireRestart = false, HintText = "Delay between each revealed character in streamed chat. Lower = faster writing effect. Default: 0.05")]
+	public float ChatStreamCharacterInterval
+	{
+		get
+		{
+			return _chatStreamCharacterInterval;
+		}
+		set
+		{
+			if (Math.Abs(_chatStreamCharacterInterval - value) > 0.0005f)
+			{
+				_chatStreamCharacterInterval = value;
+				this.OnSettingChanged?.Invoke("ChatStreamCharacterInterval", value);
 			}
 		}
 	}
