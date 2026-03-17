@@ -1,10 +1,10 @@
 <Prefab>
   <!--
     Layout — left-aligned, full height:
-      Left  (x=0..380)   : transparent — 3D conversation character shows through.
+      Left  (x=0..460)   : transparent — 3D conversation character shows through.
                            Stat overlay (TopBanner) rendered on top of character.
-      Sep   (x=380..382) : thin separator
-      Frame (x=382..end) : dark backdrop + Encyclopedia.Frame wrapping center+right.
+      Sep   (x=460..462) : thin separator
+      Frame (x=462..end) : dark backdrop + Encyclopedia.Frame wrapping center+right.
         Center: fills frame minus right column.
         Right : fixed 300px at right edge.
 

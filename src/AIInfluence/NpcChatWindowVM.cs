@@ -87,17 +87,17 @@ public class NpcChatWindowVM : ViewModel
         string label = relation >= 20 ? "Friendly" : relation >= 0 ? "Neutral" : relation >= -20 ? "Cautious" : "Hostile";
         RelationText = $"{label} ({relation:+#;-#;0})";
         RelationColor = relation >= 0 ? "#6FCF6FFF" : "#CF6F6FFF";
-        TrustLabel = context.TrustLevel >= 60 ? "High Trust" : context.TrustLevel >= 30 ? "Moderate Trust" : "Low Trust";
+        TrustLabel = context.TrustLevel >= 0.6f ? "High Trust" : context.TrustLevel >= 0.3f ? "Moderate Trust" : "Low Trust";
         EmotionLabel = context.EmotionalState?.Mood ?? "";
     }
 
     private void RefreshTraitOverlay(Hero npc, NPCContext context)
     {
         PopulateTraitOverlay(npc, context);
-        ((ViewModel)this).OnPropertyChangedWithValue(RelationText, "RelationText");
-        ((ViewModel)this).OnPropertyChangedWithValue(RelationColor, "RelationColor");
-        ((ViewModel)this).OnPropertyChangedWithValue(TrustLabel, "TrustLabel");
-        ((ViewModel)this).OnPropertyChangedWithValue(EmotionLabel, "EmotionLabel");
+        ((ViewModel)this).OnPropertyChangedWithValue<string>(RelationText, "RelationText");
+        ((ViewModel)this).OnPropertyChangedWithValue<string>(RelationColor, "RelationColor");
+        ((ViewModel)this).OnPropertyChangedWithValue<string>(TrustLabel, "TrustLabel");
+        ((ViewModel)this).OnPropertyChangedWithValue<string>(EmotionLabel, "EmotionLabel");
     }
 
     private void PopulateHistory(NPCContext context)
@@ -142,7 +142,6 @@ public class NpcChatWindowVM : ViewModel
             if (!string.IsNullOrWhiteSpace(info))
                 RightPanelItems.Add(new TextItemVM("• " + info));
 
-        int rel = (int)npc.GetRelation(Hero.MainHero);
         RightPanelItems.Add(new TextItemVM(" ", "#00000000"));
         _characterSectionStartIndex = RightPanelItems.Count;
         AddCharacterSectionItems(npc, context);
@@ -154,7 +153,7 @@ public class NpcChatWindowVM : ViewModel
         RightPanelItems.Add(new TextItemVM("CHARACTER", Header));
         int rel = (int)npc.GetRelation(Hero.MainHero);
         RightPanelItems.Add(new TextItemVM($"Relation: {rel:+#;-#;0}", rel >= 0 ? "#6FCF6FFF" : "#CF6F6FFF"));
-        RightPanelItems.Add(new TextItemVM($"Trust: {context?.TrustLevel:F0}"));
+        RightPanelItems.Add(new TextItemVM($"Trust: {(context?.TrustLevel ?? 0f) * 100f:F0}%"));
         RightPanelItems.Add(new TextItemVM($"Interactions: {context?.InteractionCount ?? 0}"));
         if (!string.IsNullOrWhiteSpace(context?.EmotionalState?.Mood))
             RightPanelItems.Add(new TextItemVM($"Mood: {context.EmotionalState.Mood}"));
@@ -533,9 +532,15 @@ public class NpcChatWindowVM : ViewModel
                             try { AIInfluenceBehavior.Instance?.SaveNPCContext(((MBObjectBase)_npc).StringId, _npc, ctx); }
                             catch (Exception ex) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] SaveNPCContext after pill persist failed: " + ex.Message); }
                         }
-                        if (ctx != null)
+                        if (ctx != null && AIInfluenceBehavior.Instance != null)
                         {
-                            AIInfluenceBehavior.Instance?.UpdateContextData(ctx, _npc);
+                            try
+                            {
+                                AIInfluenceBehavior.Instance.UpdateContextData(ctx, _npc);
+                                try { AIInfluenceBehavior.Instance.SaveNPCContext(((MBObjectBase)_npc).StringId, _npc, ctx); }
+                                catch (Exception ex) { AIInfluenceBehavior.Instance.LogMessage("[NpcChatWindow] SaveNPCContext after UpdateContextData failed: " + ex.Message); }
+                            }
+                            catch (Exception ex) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] UpdateContextData failed: " + ex.Message); }
                             RefreshTraitOverlay(_npc, ctx);
                             RefreshCharacterSection(_npc, ctx);
                         }
