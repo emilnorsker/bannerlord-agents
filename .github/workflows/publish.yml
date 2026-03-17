@@ -42,12 +42,13 @@ jobs:
           mkdir -p staging/AIInfluence/bin/Win64_Shipping_Client
           DLL=$(find src/bin -name "AIInfluence.dll" | head -1)
           if [ -z "$DLL" ]; then echo "AIInfluence.dll not found after build"; exit 1; fi
+          BUILDDIR=$(dirname "$DLL")
           cp "$DLL" staging/AIInfluence/bin/Win64_Shipping_Client/
           cp SubModule.xml staging/AIInfluence/
           cp -r GUI staging/AIInfluence/
-          cp bin/Win64_Shipping_Client/OggVorbisEncoder.dll staging/AIInfluence/bin/Win64_Shipping_Client/
-          cp bin/Win64_Shipping_Client/System.Buffers.dll staging/AIInfluence/bin/Win64_Shipping_Client/
-          cp bin/Win64_Shipping_Client/System.Memory.dll staging/AIInfluence/bin/Win64_Shipping_Client/
+          for f in OggVorbisEncoder.dll System.Buffers.dll System.Memory.dll; do
+            [ -f "$BUILDDIR/$f" ] && cp "$BUILDDIR/$f" staging/AIInfluence/bin/Win64_Shipping_Client/
+          done
           [ -f bin/Win64_Shipping_Client/rhubarb.exe ] && cp bin/Win64_Shipping_Client/rhubarb.exe staging/AIInfluence/bin/Win64_Shipping_Client/
           cp -r bin/Win64_Shipping_Client/res staging/AIInfluence/bin/Win64_Shipping_Client/
           # world_secrets.json contains in-game lore (hidden NPC details), not credentials
