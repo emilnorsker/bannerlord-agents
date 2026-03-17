@@ -17,7 +17,10 @@ public static class NpcChatWindowManager
         Close();
         ScreenBase topScreen = ScreenManager.TopScreen;
         if (topScreen == null)
+        {
+            AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] No top screen, cannot show.");
             return;
+        }
         try
         {
             _ownerScreen = topScreen;
@@ -25,8 +28,9 @@ public static class NpcChatWindowManager
             topScreen.AddLayer((ScreenLayer)(object)_layer);
             ScreenManager.TrySetFocus((ScreenLayer)(object)_layer);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] Show failed: " + ex.Message);
             Close();
         }
     }

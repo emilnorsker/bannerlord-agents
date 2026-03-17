@@ -73,7 +73,7 @@
                 Sprite="BlankWhiteSquare_9" Color="!SepColor" />
 
         <!-- ══ CENTER + RIGHT — opaque dark backdrop (#141414) ════════════════ -->
-        <!-- MarginLeft=Frame.Start so the backdrop doesn't dim the character -->
+        <!-- MarginLeft=Frame.Start so the frame aligns after the left column -->
         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                 MarginLeft="!Frame.Start"
                 Sprite="BlankWhite" Color="#141414FF">
@@ -99,9 +99,15 @@
                     <!-- NPC name -->
                     <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                    HorizontalAlignment="Left" VerticalAlignment="Bottom"
-                                   PositionXOffset="16" PositionYOffset="-10"
+                                   PositionXOffset="16" PositionYOffset="-28"
                                    Brush="Chat.Sender.Name"
                                    Text="@NpcName" IsDisabled="true" />
+                    <!-- NPC title (e.g. Lord of X, Wanderer) -->
+                    <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                                PositionXOffset="16" PositionYOffset="-10"
+                                Brush="SPScoreboard.Subtitle.Text"
+                                Brush.FontSize="12" Text="@NpcTitle" IsDisabled="true" />
                   </Children>
                 </Widget>
 

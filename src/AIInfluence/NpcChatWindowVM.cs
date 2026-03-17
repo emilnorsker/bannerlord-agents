@@ -64,7 +64,7 @@ public class NpcChatWindowVM : ViewModel
 
     public NpcChatWindowVM(Hero npc, NPCContext context, Action onReturn)
     {
-        _npc = npc;
+        _npc = npc ?? throw new ArgumentNullException(nameof(npc));
         _onReturn = onReturn;
         PopulateHeader(npc);
         PopulateTraitOverlay(npc, context);
@@ -186,7 +186,10 @@ public class NpcChatWindowVM : ViewModel
             var storage = new DiplomacyStorage();
             diplomatic = storage.LoadDiplomaticEvents() ?? new List<DynamicEvent>();
         }
-        catch (Exception) { }
+        catch (Exception ex)
+        {
+            AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] LoadDiplomaticEvents failed: " + ex.Message);
+        }
         var merged = new List<DynamicEvent>();
         var seen = new HashSet<string>();
         foreach (var e in list)
@@ -433,7 +436,14 @@ public class NpcChatWindowVM : ViewModel
 
     // ── Commands ──────────────────────────────────────────────────────────
 
-    public void OnTextChanged(string newText) => _inputText = newText;
+    public void OnTextChanged(string newText)
+    {
+        if (newText != _inputText)
+        {
+            _inputText = newText ?? "";
+            ((ViewModel)this).OnPropertyChangedWithValue<string>(_inputText, "InputText");
+        }
+    }
 
     public async void ExecuteSendMessage()
     {
@@ -442,13 +452,14 @@ public class NpcChatWindowVM : ViewModel
 
         _isSending = true;
         ((ViewModel)this).OnPropertyChangedWithValue(false, "IsSendEnabled");
-        InputText = "";
 
         string playerName = ((object)Hero.MainHero?.Name)?.ToString() ?? "You";
 
         try
         {
-            if (AIInfluenceBehavior.Instance == null) return;
+            if (AIInfluenceBehavior.Instance == null)
+                return;
+            InputText = "";
             var playerMessageItem = ParseLine($"{playerName}: {message}");
             AddNewestMessage(playerMessageItem);
             string npcName = ((object)_npc?.Name)?.ToString() ?? "NPC";
