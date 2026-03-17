@@ -1,6 +1,7 @@
 using System;
 using System.Reflection;
 using HarmonyLib;
+using MCM.Abstractions.Base.Global;
 using TaleWorlds.Core;
 using TaleWorlds.Engine;
 using TaleWorlds.Library;
@@ -17,9 +18,10 @@ namespace AIInfluence.Patches;
 [HarmonyPatch]
 public static class MapConversationCameraOffsetPatch
 {
-    private const float OffsetX = -0.18f;
-    private static bool _isOffset;
+    private static float _appliedOffset;
     private static FieldInfo _camFieldCache;
+
+    private static float OffsetX => GlobalSettings<ModSettings>.Instance?.ChatCameraOffsetX ?? -0.18f;
 
     [HarmonyPrepare]
     public static bool Prepare()
@@ -46,15 +48,15 @@ public static class MapConversationCameraOffsetPatch
     [HarmonyPrefix]
     public static void Prefix(object __instance)
     {
-        if (!_isOffset) return;
+        if (_appliedOffset == 0f) return;
         try
         {
             Camera cam = GetCamera(__instance);
             if (cam == null) return;
             MatrixFrame frame = cam.Frame;
-            frame.origin.x -= OffsetX;
+            frame.origin.x -= _appliedOffset;
             cam.Frame = frame;
-            _isOffset = false;
+            _appliedOffset = 0f;
         }
         catch (Exception ex)
         {
@@ -68,12 +70,14 @@ public static class MapConversationCameraOffsetPatch
         if (!NpcChatWindowManager.IsOpen) return;
         try
         {
+            float offset = OffsetX;
+            if (offset == 0f) return;
             Camera cam = GetCamera(__instance);
             if (cam == null) return;
             MatrixFrame frame = cam.Frame;
-            frame.origin.x += OffsetX;
+            frame.origin.x += offset;
             cam.Frame = frame;
-            _isOffset = true;
+            _appliedOffset = offset;
         }
         catch (Exception ex)
         {
