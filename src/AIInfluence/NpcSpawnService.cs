@@ -194,6 +194,12 @@ public class NpcSpawnService
 
 		party.Party.SetCustomName(new TextObject(partyName, null));
 		AddTroopsToParty(party, troopNames, troopCount, banditClan.Culture);
+		if (party.MemberRoster.TotalManCount == 0)
+		{
+			_log("[NPC_SPAWN] No troops could be added; destroying empty bandit party");
+			DestroyPartyAction.Apply(null, party);
+			return null;
+		}
 		return party;
 	}
 
@@ -226,6 +232,12 @@ public class NpcSpawnService
 		}
 
 		AddTroopsToParty(party, troopNames, troopCount, clan.Culture);
+		if (party.MemberRoster.TotalManCount == 0)
+		{
+			_log("[NPC_SPAWN] No troops could be added; destroying empty faction party");
+			DestroyPartyAction.Apply(null, party);
+			return null;
+		}
 		return party;
 	}
 
