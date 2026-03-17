@@ -96,6 +96,9 @@ public class NPCContext
 
 	public AIResponse PendingAIResponse { get; set; }
 
+	/// <summary>Technical action string captured before processing (for chat UI pills).</summary>
+	public string LastTechnicalActionForDisplay { get; set; }
+
 	public PendingRelationChange PendingRelationChange { get; set; }
 
 	public PendingRelationChange PendingLiePenalty { get; set; }
@@ -227,6 +230,16 @@ public class NPCContext
 		ConversationHistory.Add(message);
 	}
 
+	/// <summary>Appends action pill text to a message for persistence. Format: "msg\n---\naction".</summary>
+	public void AppendActionToMessage(int index, string actionText)
+	{
+		if (ConversationHistory == null || index < 0 || index >= ConversationHistory.Count || string.IsNullOrEmpty(actionText))
+			return;
+		if (ConversationHistory[index].Contains("\n---\n"))
+			return; // already has a pill suffix; do not append again
+		ConversationHistory[index] = ConversationHistory[index] + "\n---\n" + actionText;
+	}
+
 	public string GetFormattedHistory()
 	{
 		return ConversationHistory.Any() ? string.Join("\n", ConversationHistory) : "No conversation history.";
@@ -295,14 +308,22 @@ public class NPCContext
 		return list;
 	}
 
+	private static string StripPillSuffix(string message)
+	{
+		if (string.IsNullOrEmpty(message)) return message;
+		int idx = message.IndexOf("\n---\n", StringComparison.Ordinal);
+		return idx >= 0 ? message.Substring(0, idx) : message;
+	}
+
 	private string ComputeMessageHash(string message)
 	{
 		if (string.IsNullOrEmpty(message))
 		{
 			return string.Empty;
 		}
+		string canonical = StripPillSuffix(message);
 		using SHA256 sHA = SHA256.Create();
-		byte[] inArray = sHA.ComputeHash(Encoding.UTF8.GetBytes(message));
+		byte[] inArray = sHA.ComputeHash(Encoding.UTF8.GetBytes(canonical));
 		return Convert.ToBase64String(inArray);
 	}
 
