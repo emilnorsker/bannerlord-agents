@@ -106,21 +106,18 @@ public class NpcChatWindowVM : ViewModel
         RightPanelItems.Add(new TextItemVM("WORLD EVENTS", Header));
         try
         {
-            var list1 = DynamicEventsManager.Instance?.GetActiveEvents() ?? new List<DynamicEvent>();
-            var list2 = new List<DynamicEvent>();
-            try { list2 = new DiplomacyStorage().LoadDiplomaticEvents() ?? new List<DynamicEvent>(); }
-            catch (Exception dex) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] LoadDiplomaticEvents failed: " + dex.Message); }
-            var seenIds = new HashSet<string>(list1.Where(e => e != null && !string.IsNullOrEmpty(e.Id)).Select(e => e.Id));
-            var merged = list1.ToList();
-            foreach (var e in list2)
+            List<DynamicEvent> LoadDiplomacy()
             {
-                if (e != null && !string.IsNullOrEmpty(e.Id) && !seenIds.Contains(e.Id))
-                {
-                    merged.Add(e);
-                    seenIds.Add(e.Id);
-                }
+                try { return new DiplomacyStorage().LoadDiplomaticEvents() ?? new List<DynamicEvent>(); }
+                catch (Exception ex) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] LoadDiplomaticEvents failed: " + ex.Message); return new List<DynamicEvent>(); }
             }
-            var events = merged.OrderByDescending(e => e.CreationCampaignDays).Take(5);
+            var events = (DynamicEventsManager.Instance?.GetActiveEvents() ?? Enumerable.Empty<DynamicEvent>())
+                .Concat(LoadDiplomacy())
+                .Where(e => e != null && !string.IsNullOrEmpty(e.Id))
+                .GroupBy(e => e.Id)
+                .Select(g => g.First())
+                .OrderByDescending(e => e.CreationCampaignDays)
+                .Take(5);
             foreach (var e in events)
             {
                 string text = string.IsNullOrWhiteSpace(e.Title) ? e.Description : e.Title;
