@@ -97,6 +97,8 @@ public class NPCContext
 	public AIResponse PendingAIResponse { get; set; }
 
 	/// <summary>Technical action string captured before processing (for chat UI pills).</summary>
+	/// <summary>Technical action string captured before processing (for chat UI pills).</summary>
+	[JsonIgnore]
 	public string LastTechnicalActionForDisplay { get; set; }
 
 	public PendingRelationChange PendingRelationChange { get; set; }
