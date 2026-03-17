@@ -72,6 +72,9 @@ public class NpcSpawnService
 		if (data.IsFemale.HasValue)
 			hero.IsFemale = data.IsFemale.Value;
 
+		if (data.Equipment != null)
+			ApplyEquipmentOverrides(hero, data.Equipment);
+
 		_log($"[NPC_SPAWN] Created hero '{hero.Name}' (id:{hero.StringId}) clan:{clan.Name} settlement:{settlement.Name}");
 
 		MobileParty party = null;
@@ -268,6 +271,74 @@ public class NpcSpawnService
 
 		if (!string.IsNullOrWhiteSpace(data.Personality))
 			context.AIGeneratedPersonality = data.Personality;
+	}
+
+	private void ApplyEquipmentOverrides(Hero hero, SpawnNpcEquipment eq)
+	{
+		int tier = Math.Max(0, Math.Min(eq.Tier ?? -1, 6));
+		TryEquipSlot(hero, EquipmentIndex.Weapon0, eq.Weapon, tier);
+		TryEquipSlot(hero, EquipmentIndex.Weapon1, eq.Shield, tier);
+		TryEquipSlot(hero, EquipmentIndex.Head, eq.Head, tier);
+		TryEquipSlot(hero, EquipmentIndex.Body, eq.Body, tier);
+		TryEquipSlot(hero, EquipmentIndex.Cape, eq.Cape, tier);
+		TryEquipSlot(hero, EquipmentIndex.Gloves, eq.Gloves, tier);
+		TryEquipSlot(hero, EquipmentIndex.Leg, eq.Legs, tier);
+		TryEquipSlot(hero, EquipmentIndex.Horse, eq.Horse, tier);
+	}
+
+	private void TryEquipSlot(Hero hero, EquipmentIndex slot, string itemName, int preferredTier)
+	{
+		if (string.IsNullOrWhiteSpace(itemName))
+			return;
+
+		ItemObject item = FindItemWithTier(itemName, preferredTier);
+		if (item == null)
+		{
+			_log($"[NPC_SPAWN] Could not resolve equipment '{itemName}' for slot {slot}");
+			return;
+		}
+
+		hero.BattleEquipment[slot] = new EquipmentElement(item);
+		_log($"[NPC_SPAWN] Equipped '{item.Name}' (tier {(int)item.Tier}) in {slot}");
+	}
+
+	private ItemObject FindItemWithTier(string itemName, int preferredTier)
+	{
+		ItemObject bestMatch = ItemMentionParser.FindBestItemMatch(itemName);
+		if (bestMatch == null || preferredTier < 0)
+			return bestMatch;
+
+		ItemObject.ItemTiers targetTier = (ItemObject.ItemTiers)Math.Min(preferredTier, 5);
+		if (bestMatch.Tier == targetTier)
+			return bestMatch;
+
+		ItemObject tieredMatch = Items.All?
+			.Where(i => i.Type == bestMatch.Type && i.Tier == targetTier
+				&& i.Culture == bestMatch.Culture)
+			.OrderBy(i => i.Name != null && bestMatch.Name != null
+				? LevenshteinLike(i.Name.ToString(), bestMatch.Name.ToString())
+				: int.MaxValue)
+			.FirstOrDefault();
+
+		if (tieredMatch != null)
+			return tieredMatch;
+
+		tieredMatch = Items.All?
+			.Where(i => i.Type == bestMatch.Type && i.Tier == targetTier)
+			.OrderBy(i => i.Name != null && bestMatch.Name != null
+				? LevenshteinLike(i.Name.ToString(), bestMatch.Name.ToString())
+				: int.MaxValue)
+			.FirstOrDefault();
+
+		return tieredMatch ?? bestMatch;
+	}
+
+	private static int LevenshteinLike(string a, string b)
+	{
+		string na = a.ToLowerInvariant();
+		string nb = b.ToLowerInvariant();
+		int shared = na.Split(' ').Count(w => nb.Contains(w));
+		return -shared;
 	}
 
 	private Settlement ResolveSettlement(string settlementName)

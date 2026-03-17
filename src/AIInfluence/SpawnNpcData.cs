@@ -4,6 +4,37 @@ using Newtonsoft.Json;
 namespace AIInfluence;
 
 [JsonSerializable]
+public class SpawnNpcEquipment
+{
+	[JsonProperty("weapon")]
+	public string Weapon { get; set; }
+
+	[JsonProperty("shield")]
+	public string Shield { get; set; }
+
+	[JsonProperty("head")]
+	public string Head { get; set; }
+
+	[JsonProperty("body")]
+	public string Body { get; set; }
+
+	[JsonProperty("cape")]
+	public string Cape { get; set; }
+
+	[JsonProperty("gloves")]
+	public string Gloves { get; set; }
+
+	[JsonProperty("legs")]
+	public string Legs { get; set; }
+
+	[JsonProperty("horse")]
+	public string Horse { get; set; }
+
+	[JsonProperty("tier")]
+	public int? Tier { get; set; }
+}
+
+[JsonSerializable]
 public class SpawnNpcData
 {
 	[JsonProperty("name")]
@@ -35,6 +66,9 @@ public class SpawnNpcData
 
 	[JsonProperty("settlement")]
 	public string Settlement { get; set; }
+
+	[JsonProperty("equipment")]
+	public SpawnNpcEquipment Equipment { get; set; }
 
 	[JsonProperty("party_name")]
 	public string PartyName { get; set; }
