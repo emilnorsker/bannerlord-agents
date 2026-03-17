@@ -47,7 +47,7 @@
                                HorizontalAlignment="Left" VerticalAlignment="Top"
                                PositionXOffset="10" PositionYOffset="8"
                                Brush="Conversation.Relation.Text"
-                               Brush.FontSize="16" Color="@RelationColor"
+                               Brush.FontSize="16" Color="@RelationColorValue"
                                Text="@RelationText" IsDisabled="true" />
                 <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                HorizontalAlignment="Right" VerticalAlignment="Top"

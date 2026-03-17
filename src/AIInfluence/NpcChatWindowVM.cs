@@ -24,7 +24,7 @@ public class NpcChatWindowVM : ViewModel
 
     // ── Left panel trait overlay ──────────────────────────────────────────
     [DataSourceProperty] public string RelationText { get; set; } = "";
-    [DataSourceProperty] public string RelationColor { get; set; } = "#FFFFFFFF";
+    [DataSourceProperty] public string RelationColorValue { get; set; } = "#FFFFFFFF";
     [DataSourceProperty] public string TrustLabel { get; set; } = "";
     [DataSourceProperty] public string EmotionLabel { get; set; } = "";
 
@@ -82,7 +82,7 @@ public class NpcChatWindowVM : ViewModel
         int relation = (int)npc.GetRelation(Hero.MainHero);
         string label = relation >= 20 ? "Friendly" : relation >= 0 ? "Neutral" : relation >= -20 ? "Cautious" : "Hostile";
         RelationText = $"{label} ({relation:+#;-#;0})";
-        RelationColor = relation >= 0 ? "#6FCF6FFF" : "#CF6F6FFF";
+        RelationColorValue = relation >= 0 ? "#6FCF6FFF" : "#CF6F6FFF";
         TrustLabel = context.TrustLevel >= 60 ? "High Trust" : context.TrustLevel >= 30 ? "Moderate Trust" : "Low Trust";
         EmotionLabel = context.EmotionalState?.Mood ?? "";
     }
