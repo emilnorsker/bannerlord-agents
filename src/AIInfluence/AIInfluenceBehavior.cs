@@ -1068,6 +1068,15 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				item.SpawnedPartyId = partyStringId;
 				item.SpawnedPartyDefeatMeansFailure = !string.Equals(spawnData.Alignment, "hostile", StringComparison.OrdinalIgnoreCase);
 				spawnResult.Party.SetPartyUsedByQuest(true);
+				if (string.Equals(spawnData.Alignment, "hostile", StringComparison.OrdinalIgnoreCase))
+				{
+					string partyName = spawnData.PartyName ?? (spawnResult.Party.Name?.ToString()) ?? "a party";
+					string spawnLocation = !string.IsNullOrEmpty(spawnData.Settlement)
+						? spawnData.Settlement
+						: (npc?.PartyBelongedTo != null ? ((npc.Name)?.ToString() ?? "the quest giver") : "the player");
+					string addNote = "A hostile party '" + partyName + "' (id:" + item.SpawnedPartyId + ") was spawned near " + spawnLocation + ". The quest is complete when this party is destroyed.";
+					item.AIVerificationNotes = string.IsNullOrEmpty(item.AIVerificationNotes) ? addNote : item.AIVerificationNotes + " " + addNote;
+				}
 				QuestBase questBase2 = Campaign.Current?.QuestManager?.Quests?.FirstOrDefault((Func<QuestBase, bool>)((QuestBase q) => ((MBObjectBase)q).StringId == item.QuestId && q.IsOngoing));
 				if (questBase2 is AIGeneratedQuest aiGenQuest)
 				{

@@ -4,4 +4,56 @@
       <Style Name="Default" FontColor="#C6AC8DFF" TextGlowColor="#000000FF" TextOutlineColor="#000000FF" TextOutlineAmount="0.1" TextGlowRadius="0" TextBlur="0.6" FontSize="42" />
     </Styles>
   </Brush>
+
+  <!-- "Conversation Log" header label — Figma: Font/Body/Body2 12px, #FFE38F -->
+  <Brush Name="Chat.Header.Label">
+    <Styles>
+      <Style Name="Default" FontColor="#FFE38FFF" FontSize="12" />
+    </Styles>
+  </Brush>
+
+  <!-- NPC name in header — Figma spec: #BBAE92 -->
+  <Brush Name="Chat.Sender.Name">
+    <Styles>
+      <Style Name="Default" FontColor="#BBAE92FF" FontSize="15" />
+    </Styles>
+  </Brush>
+
+  <!-- Message body text — Figma spec: #A1A1A1 -->
+  <Brush Name="Chat.Body.Text">
+    <Styles>
+      <Style Name="Default" FontColor="#A1A1A1FF" FontSize="14" />
+    </Styles>
+  </Brush>
+
+  <!-- Player action text — orange-red italic (Figma: #FF7451, filter2_d) -->
+  <Brush Name="Chat.Action.Text">
+    <Styles>
+      <Style Name="Default" FontColor="#FF7451FF" FontSize="14" IsItalic="true" />
+    </Styles>
+  </Brush>
+
+  <!-- Outcome text — warm gold (Figma: #E7C678, filter3_d — "John was attacked...") -->
+  <!-- TODO: wire up in ContentSegmentVM outcome pill once IsOutcome segment type is added -->
+  <Brush Name="Chat.Outcome.Text">
+    <Styles>
+      <Style Name="Default" FontColor="#E7C678FF" FontSize="14" />
+    </Styles>
+  </Brush>
+
+  <!-- System event line — dimmed, centered -->
+  <!-- TODO: wire up in ChatInterface.xml ItemTemplate once IsEvent segment type is added -->
+  <Brush Name="Chat.Event.Text">
+    <Styles>
+      <Style Name="Default" FontColor="#787880FF" FontSize="12" />
+    </Styles>
+  </Brush>
+
+  <!-- Item grant notification text — purple (Figma: #E1ACEE) -->
+  <!-- TODO: wire up in ChatInterface.xml ItemTemplate once IsItemGrant segment type is added -->
+  <Brush Name="Chat.ItemGrant.Text">
+    <Styles>
+      <Style Name="Default" FontColor="#E1ACEEEF" FontSize="13" />
+    </Styles>
+  </Brush>
 </Brushes>
