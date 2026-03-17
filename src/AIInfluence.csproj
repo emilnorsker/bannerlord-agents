@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="OggVorbisEncoder" Version="1.2.2" IncludeAssets="compile" PrivateAssets="all" />
+    <PackageReference Include="OggVorbisEncoder" Version="1.2.2" IncludeAssets="compile;runtime" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
