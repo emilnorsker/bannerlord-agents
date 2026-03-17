@@ -7,6 +7,7 @@ using AIInfluence.DynamicEvents;
 using AIInfluence.Services;
 using MCM.Abstractions.Base.Global;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.Core;
 using TaleWorlds.Library;
 
 namespace AIInfluence;
@@ -113,7 +114,10 @@ public class NpcChatWindowVM : ViewModel
                     RightPanelItems.Add(new TextItemVM("• " + text));
             }
         }
-        catch (Exception) { }
+        catch (Exception ex)
+        {
+            AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] PopulateRightPanel DynamicEvents failed: " + ex.Message);
+        }
 
         RightPanelItems.Add(new TextItemVM(" ", "#00000000"));
         RightPanelItems.Add(new TextItemVM("WHAT WE KNOW", Header));
@@ -143,9 +147,11 @@ public class NpcChatWindowVM : ViewModel
     private const string SpeechTextColor  = "#E8DCC8FF";
     private const string NpcBubbleColor   = "#0D1118D0"; // dark blue-grey for NPC speech
     private const string PlayerBubbleColor = "#000000D0"; // darker for player speech
-    private const string EmoteColor       = "#CF4444FF";
-    private const string ActionColor      = "#9B59B6FF";
-    private const string ActionBubbleColor = "#241433E8";
+    private const string EmoteColor        = "#9B59B6FF";  // purple
+    private const string ActionColor       = "#FFD700FF";  // golden
+    private const string ActionBubbleColor = "#3D2E1AE8";  // dark gold tint
+    private const string RelationColor     = "#5B9BD5FF";  // blue
+    private const string RelationBubbleColor = "#1A2D3DE8";  // dark blue tint
 
     private bool IsPlayerSender(string sender)
     {
@@ -172,9 +178,18 @@ public class NpcChatWindowVM : ViewModel
     /// <summary>
     /// Produces ONE ChatMessageItemVM per conversation turn.
     /// ContentSegments preserves the original speech/emote interleaving order.
+    /// Supports persisted action pills: "Sender: content\n---\naction" format.
     /// </summary>
     private ChatMessageItemVM ParseLine(string line, string typeTag = "")
     {
+        string actionSuffix = null;
+        int delimIdx = line.IndexOf(ActionDelim, StringComparison.Ordinal);
+        if (delimIdx >= 0)
+        {
+            actionSuffix = line.Substring(delimIdx + ActionDelim.Length).Trim();
+            line = line.Substring(0, delimIdx);
+        }
+
         int colonIdx = line.IndexOf(": ", StringComparison.Ordinal);
         string sender  = colonIdx > 0 ? line.Substring(0, colonIdx) : "";
         string content = colonIdx > 0 ? line.Substring(colonIdx + 2) : line;
@@ -201,7 +216,8 @@ public class NpcChatWindowVM : ViewModel
                 if (!string.IsNullOrEmpty(speech))
                     item.ContentSegments.Add(new ContentSegmentVM(speech, SpeechTextColor, bubbleColor));
             }
-            item.ContentSegments.Add(new ContentSegmentVM(m.Value, EmoteColor, bubbleColor));
+            string emoteText = m.Groups[1].Value;  // strip asterisks: *text* -> text
+            item.ContentSegments.Add(new ContentSegmentVM(emoteText, EmoteColor, bubbleColor, isPill: true));
             pos = m.Index + m.Length;
         }
         if (pos < content.Length)
@@ -210,6 +226,9 @@ public class NpcChatWindowVM : ViewModel
             if (!string.IsNullOrEmpty(remainder))
                 item.ContentSegments.Add(new ContentSegmentVM(remainder, SpeechTextColor, bubbleColor));
         }
+
+        if (!string.IsNullOrEmpty(actionSuffix))
+            item.ContentSegments.Add(new ContentSegmentVM(actionSuffix, ActionColor, ActionBubbleColor, isPill: true));
 
         return item;
     }
@@ -226,18 +245,82 @@ public class NpcChatWindowVM : ViewModel
             targetItem.ContentSegments.Add(new ContentSegmentVM("", SpeechTextColor, NpcBubbleColor));
     }
 
-    private static string BuildActionText(AIResponse r)
+    private static string GetRelationChangeMessage(AIResponse r, NPCContext ctx, string npcName)
+    {
+        var rel = ctx?.PendingRelationChange;
+        if (!string.IsNullOrEmpty(rel?.Message))
+            return rel.Message;
+        var lie = ctx?.PendingLiePenalty;
+        if (!string.IsNullOrEmpty(lie?.Message))
+            return lie.Message;
+        if (r?.SuspectedLie == true)
+            return ((object)new TaleWorlds.Localization.TextObject("{=AIInfluence_RelationReduced}Your relations with {npcName} have worsened due to suspicions of lying.", new Dictionary<string, object> { { "npcName", npcName } })).ToString();
+        string t = (r?.Tone ?? "").Trim().ToLowerInvariant();
+        if (t == "positive")
+            return ((object)new TaleWorlds.Localization.TextObject("{=AIInfluence_RelationImproved}Your relations with {npcName} have improved due to your friendly tone.", new Dictionary<string, object> { { "npcName", npcName } })).ToString();
+        if (t == "negative")
+            return ((object)new TaleWorlds.Localization.TextObject("{=AIInfluence_RelationWorsened}Your relations with {npcName} have worsened due to your aggressive tone.", new Dictionary<string, object> { { "npcName", npcName } })).ToString();
+        return "";
+    }
+
+    private const string ActionDelim = "\n---\n";
+
+    private static string BuildPlayerActionText(AIResponse r)
     {
         if (r == null) return "";
         var parts = new List<string>();
-        if (r.MoneyTransfer != null && r.MoneyTransfer.Amount != 0)
-            parts.Add($"[Transferred {Math.Abs(r.MoneyTransfer.Amount)} gold]");
-        if (r.ItemTransfers?.Count > 0)
-            parts.Add($"[Transferred {r.ItemTransfers.Count} item(s)]");
+        if (r.MoneyTransfer != null && r.MoneyTransfer.Amount != 0 && string.Equals(r.MoneyTransfer.Action, "receive", StringComparison.OrdinalIgnoreCase))
+            parts.Add($"Transferred {Math.Abs(r.MoneyTransfer.Amount)} gold");
+        if (r.ItemTransfers?.Count > 0 && r.ItemTransfers.Any(t => string.Equals(t.Action, "take", StringComparison.OrdinalIgnoreCase)))
+            parts.Add($"Transferred {r.ItemTransfers.Count(t => string.Equals(t.Action, "take", StringComparison.OrdinalIgnoreCase))} item(s)");
+        return string.Join(" ", parts);
+    }
+
+    private static string BuildNpcActionText(AIResponse r, NPCContext ctx)
+    {
+        if (r == null) return "";
+        var parts = new List<string>();
+        if (r.MoneyTransfer != null && r.MoneyTransfer.Amount != 0 && string.Equals(r.MoneyTransfer.Action, "give", StringComparison.OrdinalIgnoreCase))
+            parts.Add($"Transferred {Math.Abs(r.MoneyTransfer.Amount)} gold");
+        if (r.ItemTransfers?.Count > 0 && r.ItemTransfers.Any(t => string.Equals(t.Action, "give", StringComparison.OrdinalIgnoreCase)))
+            parts.Add($"Transferred {r.ItemTransfers.Count(t => string.Equals(t.Action, "give", StringComparison.OrdinalIgnoreCase))} item(s)");
         if (!string.IsNullOrEmpty(r.QuestAction?.Action))
-            parts.Add($"[Quest: {r.QuestAction.Action}]");
+            parts.Add($"Quest: {r.QuestAction.Action}");
         if (!string.IsNullOrEmpty(r.Decision) && r.Decision != "none" && r.Decision != "none\n")
-            parts.Add($"[{r.Decision}]");
+            parts.Add(r.Decision.Trim());
+        string techAction = ctx?.LastTechnicalActionForDisplay;
+        if (!string.IsNullOrEmpty(techAction) && !techAction.Equals("none", StringComparison.OrdinalIgnoreCase))
+        {
+            foreach (string action in techAction.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                string[] segs = action.Trim().Split(new[] { ':' }, 2);
+                string name = segs[0].Trim();
+                string payload = segs.Length > 1 ? segs[1].Trim() : "";
+                bool isStop = payload.Equals("STOP", StringComparison.OrdinalIgnoreCase);
+                if (isStop)
+                    parts.Add($"Stopped {name}");
+                else if (name.Equals("follow_player", StringComparison.OrdinalIgnoreCase))
+                    parts.Add("Now following you");
+                else if (name.Equals("return_to_player", StringComparison.OrdinalIgnoreCase))
+                    parts.Add("Returning to you");
+                else if (name.Equals("go_to_settlement", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(payload))
+                    parts.Add($"Traveling to {payload.Split(':')[0]}");
+                else if (!string.IsNullOrEmpty(name))
+                    parts.Add(name);
+            }
+        }
+        if (!string.IsNullOrEmpty(r.RomanceIntent) && !r.RomanceIntent.Equals("none", StringComparison.OrdinalIgnoreCase))
+        {
+            string ri = r.RomanceIntent.Trim().ToLowerInvariant();
+            if (ri == "flirt") parts.Add("Accepted your flirtation");
+            else if (ri == "romance") parts.Add("Accepted your courtship");
+            else if (ri == "proposal") parts.Add("Marriage proposal");
+            else parts.Add($"Romance: {r.RomanceIntent}");
+        }
+        if (!string.IsNullOrEmpty(r.WorkshopAction) && r.WorkshopAction.Equals("sell", StringComparison.OrdinalIgnoreCase))
+            parts.Add("Sold workshop to you");
+        if (!string.IsNullOrEmpty(r.KingdomAction) && !r.KingdomAction.Equals("none", StringComparison.OrdinalIgnoreCase))
+            parts.Add($"Kingdom: {r.KingdomAction}");
         return string.Join(" ", parts);
     }
 
@@ -328,9 +411,17 @@ public class NpcChatWindowVM : ViewModel
             {
                 // Call GetOrCreateNPCContext once — avoids two off-thread calls and a
                 // race with the main game tick that could mutate the context dictionary.
+                NPCContext ctx = null;
                 AIResponse pendingResponse = null;
-                try { pendingResponse = AIInfluenceBehavior.Instance?.GetOrCreateNPCContext(_npc)?.PendingAIResponse; }
-                catch (Exception) { }
+                try
+                {
+                    ctx = AIInfluenceBehavior.Instance?.GetOrCreateNPCContext(_npc);
+                    pendingResponse = ctx?.PendingAIResponse;
+                }
+                catch (Exception ex)
+                {
+                    AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] GetOrCreateNPCContext failed: " + ex.Message);
+                }
 
                 string tone = pendingResponse?.Tone ?? "";
 
@@ -341,13 +432,39 @@ public class NpcChatWindowVM : ViewModel
                     streamingRetired = true;
                     if (streamingItem != null)
                         MessageList.Remove(streamingItem);
+                    string playerActionText = BuildPlayerActionText(pendingResponse);
+                    string npcActionText = BuildNpcActionText(pendingResponse, ctx);
+                    string relMsg = GetRelationChangeMessage(pendingResponse, ctx, npcName);
+
+                    if (!string.IsNullOrEmpty(playerActionText) && MessageList.Count > 0)
+                    {
+                        var playerItem = MessageList[MessageList.Count - 1];
+                        if (playerItem.IsPlayer)
+                            playerItem.ContentSegments.Add(new ContentSegmentVM(playerActionText, ActionColor, ActionBubbleColor, true));
+                    }
+
                     var npcItem = ParseLine($"{npcName}: {reply}", tone);
-                    string actionText = BuildActionText(pendingResponse);
-                    if (!string.IsNullOrEmpty(actionText))
-                        npcItem.ContentSegments.Add(new ContentSegmentVM(actionText, ActionColor, ActionBubbleColor, true));
+                    if (!string.IsNullOrEmpty(npcActionText))
+                        npcItem.ContentSegments.Add(new ContentSegmentVM(npcActionText, ActionColor, ActionBubbleColor, true));
+                    if (!string.IsNullOrEmpty(relMsg))
+                        npcItem.ContentSegments.Add(new ContentSegmentVM(relMsg, RelationColor, RelationBubbleColor, true));
                     AddNewestMessage(npcItem);
+
+                    if (ctx?.ConversationHistory != null && ctx.ConversationHistory.Count >= 2)
+                    {
+                        if (!string.IsNullOrEmpty(playerActionText))
+                            ctx.AppendActionToMessage(ctx.ConversationHistory.Count - 2, playerActionText);
+                        string npcPills = string.Join(" ", new[] { npcActionText, relMsg }.Where(s => !string.IsNullOrEmpty(s)));
+                        if (!string.IsNullOrEmpty(npcPills))
+                            ctx.AppendActionToMessage(ctx.ConversationHistory.Count - 1, npcPills);
+                        try { AIInfluenceBehavior.Instance?.SaveNPCContext(((MBObjectBase)_npc).StringId, _npc, ctx); }
+                        catch (Exception ex) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] SaveNPCContext after pill persist failed: " + ex.Message); }
+                    }
                 }
-                catch (Exception) { }
+                catch (Exception ex)
+                {
+                    AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] UI mutation after reply failed: " + ex.Message);
+                }
             }
             else if (streamingItem != null)
             {

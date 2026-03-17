@@ -747,6 +747,9 @@ public static class PromptGenerator
 				{
 					return msg;
 				}
+				int pillIdx = msg.IndexOf("\n---\n", StringComparison.Ordinal);
+				if (pillIdx >= 0)
+					msg = msg.Substring(0, pillIdx);
 				double? num12 = null;
 				int num13 = msg.IndexOf("[sent_at_days=", StringComparison.OrdinalIgnoreCase);
 				if (num13 >= 0)

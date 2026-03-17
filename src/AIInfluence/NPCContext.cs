@@ -96,6 +96,9 @@ public class NPCContext
 
 	public AIResponse PendingAIResponse { get; set; }
 
+	/// <summary>Technical action string captured before processing (for chat UI pills).</summary>
+	public string LastTechnicalActionForDisplay { get; set; }
+
 	public PendingRelationChange PendingRelationChange { get; set; }
 
 	public PendingRelationChange PendingLiePenalty { get; set; }
@@ -225,6 +228,14 @@ public class NPCContext
 	public void AddMessage(string message)
 	{
 		ConversationHistory.Add(message);
+	}
+
+	/// <summary>Appends action pill text to a message for persistence. Format: "msg\n---\naction".</summary>
+	public void AppendActionToMessage(int index, string actionText)
+	{
+		if (ConversationHistory == null || index < 0 || index >= ConversationHistory.Count || string.IsNullOrEmpty(actionText))
+			return;
+		ConversationHistory[index] = ConversationHistory[index] + "\n---\n" + actionText;
 	}
 
 	public string GetFormattedHistory()
