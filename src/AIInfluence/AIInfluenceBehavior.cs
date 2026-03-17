@@ -363,7 +363,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		CampaignEvents.OnMissionEndedEvent.AddNonSerializedListener((object)this, (Action<IMission>)OnMissionEnded);
 		CampaignEvents.MapEventStarted.AddNonSerializedListener((object)this, (Action<MapEvent, PartyBase, PartyBase>)OnMapEventStartedForDisease);
 		CampaignEvents.MapEventEnded.AddNonSerializedListener((object)this, (Action<MapEvent>)OnMapEventEndedForDisease);
-		CampaignEvents.MapEventEnded.AddNonSerializedListener((object)this, (Action<MapEvent>)OnMapEventEndedForSpawnedPartyDefeat);
 		CampaignEvents.HeroPrisonerTaken.AddNonSerializedListener((object)this, (Action<PartyBase, Hero>)OnHeroPrisonerTaken);
 		CampaignEvents.HeroPrisonerReleased.AddNonSerializedListener((object)this, (Action<Hero, PartyBase, IFaction, EndCaptivityDetail, bool>)OnHeroPrisonerReleased);
 		CampaignEvents.MobilePartyDestroyed.AddNonSerializedListener((object)this, (Action<MobileParty, PartyBase>)OnMobilePartyDestroyed);
@@ -739,14 +738,13 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			{
 				return;
 			}
-			foreach (QuestBase q in quests)
+			foreach (QuestBase q in quests.ToList())
 			{
 				if (q is AIGeneratedQuest aiQuest && q.IsOngoing && !string.IsNullOrEmpty(aiQuest.SpawnedPartyId))
 				{
 					if (MobileParty.All?.Any((MobileParty p) => ((MBObjectBase)p).StringId == aiQuest.SpawnedPartyId) != true)
 					{
 						HandleSpawnedQuestPartyDefeated(aiQuest.SpawnedPartyId);
-						return;
 					}
 				}
 			}
@@ -1311,7 +1309,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			LogMessage("[QUEST] Cannot handle spawned party defeat: NPC " + npcId + " not found");
 			return;
 		}
-		string updateLog = "The spawned quest party was defeated.";
+		string updateLog = "The spawned quest party was destroyed.";
 		questInfo.SpawnedPartyId = null;
 		int newProgress = Math.Min(questInfo.ProgressCurrent + 1, questInfo.ProgressTarget);
 		questInfo.ProgressCurrent = newProgress;
@@ -8244,40 +8242,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		catch (Exception ex)
 		{
 			LogMessage("[ERROR] OnMapEventEndedForDisease: " + ex.Message);
-		}
-	}
-
-	private void OnMapEventEndedForSpawnedPartyDefeat(MapEvent mapEvent)
-	{
-		try
-		{
-			if (mapEvent == null || (int)mapEvent.DefeatedSide < 0)
-			{
-				return;
-			}
-			MapEventSide defeatedSide = mapEvent.GetMapEventSide(mapEvent.DefeatedSide);
-			if (defeatedSide?.Parties == null)
-			{
-				return;
-			}
-			foreach (MapEventParty mapEventParty in (List<MapEventParty>)(object)defeatedSide.Parties)
-			{
-				MobileParty mobileParty = mapEventParty?.Party?.MobileParty;
-				if (mobileParty == null)
-				{
-					continue;
-				}
-				string partyId = ((MBObjectBase)mobileParty).StringId;
-				if (!string.IsNullOrEmpty(partyId) && FindQuestBySpawnedPartyId(partyId) != null)
-				{
-					HandleSpawnedQuestPartyDefeated(partyId);
-					break;
-				}
-			}
-		}
-		catch (Exception ex)
-		{
-			LogMessage("[ERROR] OnMapEventEndedForSpawnedPartyDefeat: " + ex.Message);
 		}
 	}
 
