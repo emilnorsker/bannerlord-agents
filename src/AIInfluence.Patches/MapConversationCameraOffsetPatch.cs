@@ -27,7 +27,10 @@ public static class MapConversationCameraOffsetPatch
     public static bool Prepare()
     {
         Type type = AccessTools.TypeByName("SandBox.View.Map.MapConversationTableau");
-        return type != null && AccessTools.Method(type, "CharacterTableauContinuousRenderFunction") != null;
+        if (type == null || AccessTools.Method(type, "CharacterTableauContinuousRenderFunction") == null)
+            return false;
+        _camFieldCache = type.GetField("_continuousRenderCamera", BindingFlags.Instance | BindingFlags.NonPublic);
+        return _camFieldCache != null;
     }
 
     [HarmonyTargetMethod]
@@ -40,9 +43,7 @@ public static class MapConversationCameraOffsetPatch
 
     private static Camera GetCamera(object instance)
     {
-        _camFieldCache ??= instance.GetType().GetField("_continuousRenderCamera",
-            BindingFlags.Instance | BindingFlags.NonPublic);
-        return _camFieldCache?.GetValue(instance) as Camera;
+        return _camFieldCache.GetValue(instance) as Camera;
     }
 
     [HarmonyPrefix]
