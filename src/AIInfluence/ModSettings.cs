@@ -36,6 +36,10 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 
 	private bool _debugStreamToGameLog = false;
 
+	private float _chatCameraOffsetX = -0.9f;
+
+	private float _missionCameraOffsetX = -0.9f;
+
 	private Dropdown<string> _aiBackend = new Dropdown<string>((IEnumerable<string>)new List<string> { "OpenRouter", "DeepSeek", "Player2", "Ollama", "KoboldCpp" }, 2);
 
 	private string _aiModel = "gpt-3.5-turbo";
@@ -4656,6 +4660,36 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 			if (value)
 			{
 				this.OnSettingChanged?.Invoke("DebugFailAllQuests", value);
+			}
+		}
+	}
+
+	[SettingPropertyGroup("{=AIInfluence_Group_Debug}Debug & Fixes", GroupOrder = 99)]
+	[SettingPropertyFloatingInteger("Map Chat Camera Offset X", -5f, 5f, "0.00", Order = 10, RequireRestart = false, HintText = "Horizontal camera offset for the NPC chat window during map conversations (tableau units). Negative moves NPC left.")]
+	public float ChatCameraOffsetX
+	{
+		get => _chatCameraOffsetX;
+		set
+		{
+			if (Math.Abs(_chatCameraOffsetX - value) > 0.001f)
+			{
+				_chatCameraOffsetX = value;
+				this.OnSettingChanged?.Invoke("ChatCameraOffsetX", value);
+			}
+		}
+	}
+
+	[SettingPropertyGroup("{=AIInfluence_Group_Debug}Debug & Fixes", GroupOrder = 99)]
+	[SettingPropertyFloatingInteger("Mission Chat Camera Offset X", -50f, 50f, "0.0", Order = 11, RequireRestart = false, HintText = "Horizontal camera offset for the NPC chat window during in-mission conversations (world units). Negative moves NPC left.")]
+	public float MissionCameraOffsetX
+	{
+		get => _missionCameraOffsetX;
+		set
+		{
+			if (Math.Abs(_missionCameraOffsetX - value) > 0.1f)
+			{
+				_missionCameraOffsetX = value;
+				this.OnSettingChanged?.Invoke("MissionCameraOffsetX", value);
 			}
 		}
 	}
