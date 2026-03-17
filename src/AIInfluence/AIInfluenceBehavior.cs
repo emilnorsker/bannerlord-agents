@@ -742,7 +742,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			{
 				if (q is AIGeneratedQuest aiQuest && q.IsOngoing && !string.IsNullOrEmpty(aiQuest.SpawnedPartyId))
 				{
-					if (MobileParty.All?.Any((MobileParty p) => ((MBObjectBase)p).StringId == aiQuest.SpawnedPartyId) != true)
+					var allParties = MobileParty.All;
+					if (allParties == null || !allParties.Any((MobileParty p) => ((MBObjectBase)p).StringId == aiQuest.SpawnedPartyId))
 					{
 						HandleSpawnedQuestPartyDefeated(aiQuest.SpawnedPartyId);
 					}
@@ -1236,6 +1237,12 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		if (npc == null)
 		{
 			LogMessage("[QUEST] Cannot handle spawned party defeat: NPC " + npcId + " not found");
+			questInfo.SpawnedPartyId = null;
+			AIGeneratedQuest orphanedQuest = Campaign.Current?.QuestManager?.Quests?.FirstOrDefault((Func<QuestBase, bool>)((QuestBase q) => ((MBObjectBase)q).StringId == questInfo.QuestId && q.IsOngoing)) as AIGeneratedQuest;
+			if (orphanedQuest != null)
+			{
+				orphanedQuest.SpawnedPartyId = "";
+			}
 			return;
 		}
 		string updateLog = "The spawned quest party was destroyed.";
