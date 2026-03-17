@@ -9,6 +9,7 @@ using MCM.Abstractions.Base.Global;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.Core;
 using TaleWorlds.Library;
+using TaleWorlds.ObjectSystem;
 
 namespace AIInfluence;
 
@@ -150,7 +151,7 @@ public class NpcChatWindowVM : ViewModel
     private const string EmoteColor        = "#9B59B6FF";  // purple
     private const string ActionColor       = "#FFD700FF";  // golden
     private const string ActionBubbleColor = "#3D2E1AE8";  // dark gold tint
-    private const string RelationColor     = "#5B9BD5FF";  // blue
+    private const string RelationMessageColor = "#5B9BD5FF";  // blue
     private const string RelationBubbleColor = "#1A2D3DE8";  // dark blue tint
 
     private bool IsPlayerSender(string sender)
@@ -447,7 +448,7 @@ public class NpcChatWindowVM : ViewModel
                     if (!string.IsNullOrEmpty(npcActionText))
                         npcItem.ContentSegments.Add(new ContentSegmentVM(npcActionText, ActionColor, ActionBubbleColor, true));
                     if (!string.IsNullOrEmpty(relMsg))
-                        npcItem.ContentSegments.Add(new ContentSegmentVM(relMsg, RelationColor, RelationBubbleColor, true));
+                        npcItem.ContentSegments.Add(new ContentSegmentVM(relMsg, RelationMessageColor, RelationBubbleColor, true));
                     AddNewestMessage(npcItem);
 
                     if (ctx?.ConversationHistory != null && ctx.ConversationHistory.Count >= 2)
