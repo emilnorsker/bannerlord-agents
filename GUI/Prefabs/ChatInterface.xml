@@ -207,12 +207,12 @@
                                                                 Text="@Text" />
                                                   </Children>
                                                 </Widget>
-                                                <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Bubble.W" HeightSizePolicy="CoverChildren"
+                                                <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                                         HorizontalAlignment="Left" IsVisible="@IsPill"
                                                         MarginTop="2" MarginBottom="2"
                                                         Sprite="name_shadow_9" Color="@BackColor">
                                                   <Children>
-                                                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                    <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                                                 Margin="12,4,12,4"
                                                                 Brush="Conversation.ConversedPartyLine.Text" Brush.FontColor="@TextColor"
                                                                 Text="@Text" />
@@ -249,7 +249,7 @@
                                                    StackLayout.LayoutMethod="VerticalBottomToTop"
                                                    Spacing="10">
                                           <ItemTemplate>
-                                            <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren">
+                                            <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" HorizontalAlignment="Right">
                                               <Children>
                                                 <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Bubble.W" HeightSizePolicy="CoverChildren"
                                                         HorizontalAlignment="Right" IsVisible="@IsBody"
@@ -263,12 +263,12 @@
                                                                 Text="@Text" />
                                                   </Children>
                                                 </Widget>
-                                                <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Bubble.W" HeightSizePolicy="CoverChildren"
+                                                <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                                         HorizontalAlignment="Right" IsVisible="@IsPill"
                                                         MarginTop="2" MarginBottom="2"
                                                         Sprite="name_shadow_9" Color="@BackColor">
                                                   <Children>
-                                                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                    <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                                                 Margin="12,4,12,4"
                                                                 Brush="Conversation.ConversedPartyLine.Text" Brush.FontColor="@TextColor"
                                                                 TextHorizontalAlignment="Right"
