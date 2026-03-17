@@ -235,3 +235,15 @@ Steam Guard / 2FA may require interactive login the first time. Use the Desktop 
 - Bannerlord download is ~96GB. First install takes significant time. steamcmd may report error `0x204/0x212` but files download correctly — may need to manually copy from `steamapps/downloading/261550/` to `steamapps/common/Mount & Blade II Bannerlord/` and then re-validate to fix empty SubModule.xml files.
 - The VM display is Xorg :1 with llvmpipe (software OpenGL). No hardware GPU, no Vulkan surfaces, no DRI3. Steam client UI doesn't render (needs Vulkan). Use steamcmd for game management.
 - `libvpx.so.6` symlink must exist at `/usr/lib/i386-linux-gnu/libvpx.so.6` pointing to Steam's bundled copy for `steamui.so` to load.
+- A symlink `~/.local/share/Steam/steamapps/Modules` → `common/Mount & Blade II Bannerlord/Modules` is needed for the SpriteSheetGenerator (it resolves paths relative to `steamapps/`).
+
+### Sprite packing
+
+Custom sprites go in `GUI/SpriteParts/ui_{category_name}/` as PNG files. To generate sprite sheets:
+
+```bash
+cd "$GAME_DIR"
+"$PROTON_DIR/proton" run bin/Win64_Shipping_wEditor/TaleWorlds.TwoDimension.SpriteSheetGenerator.exe
+```
+
+This produces `GUI/{ModuleName}SpriteData.xml` and atlas PNGs in `AssetSources/GauntletUI/`. The tool is from the Modding Kit (AppID 1393600, depot 1393601) installed to `bin/Win64_Shipping_wEditor/`. It runs via Proton with `PROTON_USE_WINED3D=1 LIBGL_ALWAYS_SOFTWARE=1`.
