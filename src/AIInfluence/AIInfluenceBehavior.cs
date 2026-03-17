@@ -3308,10 +3308,10 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			LogMessage("[ChatWindow] HandleAIDecision failed: " + ex3.Message);
 		}
+		context.LastTechnicalActionForDisplay = null;
 		if (!string.IsNullOrEmpty(aiResult.TechnicalAction) && !aiResult.TechnicalAction.Equals("none", StringComparison.OrdinalIgnoreCase))
 		{
 			context.LastTechnicalActionForDisplay = aiResult.TechnicalAction;
-			LogMessage($"[TECHNICAL_ACTION] Processing technical_action for {npcName}: '{aiResult.TechnicalAction}'");
 			foreach (string action in aiResult.TechnicalAction.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
 			{
 				string[] parts = action.Trim().Split(new[] { ':' }, 2);
