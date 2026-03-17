@@ -257,12 +257,12 @@ public class NpcChatWindowVM : ViewModel
         if (!string.IsNullOrEmpty(lie?.Message))
             return lie.Message;
         if (r?.SuspectedLie == true)
-            return ((object)new TaleWorlds.Localization.TextObject("{=AIInfluence_RelationReduced}Your relations with {npcName} have worsened due to suspicions of lying.", new Dictionary<string, object> { { "npcName", npcName } })).ToString();
+            return $"Your relations with {npcName} have worsened due to suspicions of lying.";
         string t = (r?.Tone ?? "").Trim().ToLowerInvariant();
         if (t == "positive")
-            return ((object)new TaleWorlds.Localization.TextObject("{=AIInfluence_RelationImproved}Your relations with {npcName} have improved due to your friendly tone.", new Dictionary<string, object> { { "npcName", npcName } })).ToString();
+            return $"Your relations with {npcName} have improved due to your friendly tone.";
         if (t == "negative")
-            return ((object)new TaleWorlds.Localization.TextObject("{=AIInfluence_RelationWorsened}Your relations with {npcName} have worsened due to your aggressive tone.", new Dictionary<string, object> { { "npcName", npcName } })).ToString();
+            return $"Your relations with {npcName} have worsened due to your aggressive tone.";
         return "";
     }
 
@@ -342,7 +342,8 @@ public class NpcChatWindowVM : ViewModel
 
         try
         {
-            AddNewestMessage(ParseLine($"{playerName}: {message}"));
+            var playerMessageItem = ParseLine($"{playerName}: {message}");
+            AddNewestMessage(playerMessageItem);
 
             if (AIInfluenceBehavior.Instance == null) return;
             string npcName = ((object)_npc?.Name)?.ToString() ?? "NPC";
@@ -437,12 +438,8 @@ public class NpcChatWindowVM : ViewModel
                     string npcActionText = BuildNpcActionText(pendingResponse, ctx);
                     string relMsg = GetRelationChangeMessage(pendingResponse, ctx, npcName);
 
-                    if (!string.IsNullOrEmpty(playerActionText) && MessageList.Count > 0)
-                    {
-                        var playerItem = MessageList[MessageList.Count - 1];
-                        if (playerItem.IsPlayer)
-                            playerItem.ContentSegments.Add(new ContentSegmentVM(playerActionText, ActionColor, ActionBubbleColor, true));
-                    }
+                    if (!string.IsNullOrEmpty(playerActionText) && playerMessageItem != null)
+                        playerMessageItem.ContentSegments.Add(new ContentSegmentVM(playerActionText, ActionColor, ActionBubbleColor, true));
 
                     var npcItem = ParseLine($"{npcName}: {reply}", tone);
                     if (!string.IsNullOrEmpty(npcActionText))
