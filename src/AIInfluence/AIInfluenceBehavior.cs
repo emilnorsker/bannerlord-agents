@@ -1042,6 +1042,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				questBase2?.AddTrackedObject((ITrackableCampaignObject)(object)spawnResult.Party);
 				InformationManager.DisplayMessage(new InformationMessage($"A party has appeared on the map!", ExtraColors.RedAIInfluence));
 			}
+			if (spawnResult.Success && spawnResult.Hero != null)
+			{
+				NPCContext spawnedContext = GetOrCreateNPCContext(spawnResult.Hero);
+				SaveNPCContext(((MBObjectBase)spawnResult.Hero).StringId, spawnResult.Hero, spawnedContext);
+			}
 			else if (spawnResult.Error != null)
 			{
 				LogMessage("[QUEST] spawn_npc failed: " + spawnResult.Error);
