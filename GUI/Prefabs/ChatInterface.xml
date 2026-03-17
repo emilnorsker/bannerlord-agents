@@ -76,6 +76,7 @@
         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                 MarginLeft="!Frame.Start"
                 Sprite="BlankWhite" Color="#141414CC">
+          <!-- BlankWhite sprite required: Color alone has no effect on a bare Widget in Gauntlet -->
           <Children>
             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                     DoNotAcceptEvents="false">
@@ -86,6 +87,7 @@
                         SuggestedHeight="!Header.H"
                         VerticalAlignment="Top"
                         Sprite="BlankWhite" Color="#141414CC">
+                  <!-- BlankWhite sprite required: Color alone has no effect on a bare Widget in Gauntlet -->
                   <Children>
                     <!-- "Conversation Log" static label -->
                     <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
