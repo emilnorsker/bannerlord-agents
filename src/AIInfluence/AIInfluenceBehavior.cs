@@ -4529,6 +4529,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			LogMessage($"[SETTINGS] AI Backend change detected. New value: {arg} (index: {num})");
 			return;
 		}
+		if (settingName == "DebugGenerateQuestFromPrompt" && (bool)value)
+		{
+			DebugGenerateQuestFromPrompt();
+			return;
+		}
 		if (settingName == "DebugSpawnTestQuest" && (bool)value)
 		{
 			DebugSpawnTestQuest();
@@ -4646,6 +4651,91 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			LogMessage("[QuestDebug] DebugSpawnTestQuest error: " + ex.Message);
 			InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Error — see mod_log.txt", ExtraColors.RedAIInfluence));
 		}
+	}
+
+	private void DebugGenerateQuestFromPrompt()
+	{
+		string rawPrompt = GlobalSettings<ModSettings>.Instance?.DebugQuestPrompt;
+		if (string.IsNullOrWhiteSpace(rawPrompt))
+		{
+			InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Quest Generation Prompt is empty.", ExtraColors.RedAIInfluence));
+			return;
+		}
+		string prompt = rawPrompt.Trim();
+		if (prompt.Length > 500)
+			prompt = prompt.Substring(0, 500);
+
+		Vec2 mainPos = MobileParty.MainParty?.GetPosition2D() ?? default;
+		Hero questGiver = Hero.FindAll((Hero h) => h != Hero.MainHero && h.IsAlive && h.IsActive && !h.IsWanderer)
+			?.OrderBy((Hero h) =>
+			{
+				Vec2 pos = h.PartyBelongedTo != null ? h.PartyBelongedTo.GetPosition2D() : (h.CurrentSettlement?.GetPosition2D ?? default);
+				return pos.Distance(mainPos);
+			})
+			?.FirstOrDefault();
+		if (questGiver == null)
+		{
+			InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] No suitable NPC found.", ExtraColors.RedAIInfluence));
+			return;
+		}
+
+		InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Generating quest from prompt...", ExtraColors.GreenAIInfluence));
+		LogMessage("[QuestDebug] Prompt: " + prompt);
+
+		string requestPrompt = "You are generating a Bannerlord quest action.\nReturn ONLY valid JSON in this exact wrapper:\n{\"quest_action\":{...}}\n" +
+			"Inside quest_action provide action=create_quest with fields: title, description, duration_days (7-60), reward_gold (0-5000), " +
+			"and optionally spawn_npc (object with: name, alignment, culture, backstory, personality, is_female, age, settlement, " +
+			"equipment {weapon, shield, head, body, cape, gloves, legs, horse, tier}, party_name, party_troops, party_size).\n" +
+			"alignment must be one of: friendly, hostile, neutral.\n" +
+			"All item/troop/settlement names are fuzzy-matched — use natural language names.\n" +
+			"Do not add explanations.\nPlayer quest request: " + prompt;
+
+		Task.Run(async () =>
+		{
+			try
+			{
+				Task<string> requestTask = SendAIRequestRaw(requestPrompt);
+				Task timeoutTask = Task.Delay(45000);
+				Task completedTask = await Task.WhenAny(requestTask, timeoutTask);
+				string rawResponse = (completedTask == timeoutTask) ? "Error: Timeout (45s)" : await requestTask;
+
+				TtsLipSyncService.MainThreadQueue.Enqueue(() =>
+				{
+					try
+					{
+						if (string.IsNullOrEmpty(rawResponse) || rawResponse.StartsWith("Error:"))
+						{
+							LogMessage("[QuestDebug] AI request failed: " + (rawResponse ?? "empty"));
+							InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Failed: " + (rawResponse ?? "empty"), ExtraColors.RedAIInfluence));
+							return;
+						}
+						string cleaned = JsonCleaner.CleanJsonGeneric(rawResponse) ?? rawResponse;
+						AIResponse aiResponse = JsonConvert.DeserializeObject<AIResponse>(cleaned);
+						QuestActionData questAction = aiResponse?.QuestAction;
+						if (questAction == null)
+							questAction = JsonConvert.DeserializeObject<QuestActionData>(cleaned);
+						if (questAction == null || !"create_quest".Equals(questAction.Action, StringComparison.OrdinalIgnoreCase))
+						{
+							LogMessage("[QuestDebug] Parse failed or wrong action. Raw: " + rawResponse);
+							InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Parse failed — see mod_log.txt", ExtraColors.RedAIInfluence));
+							return;
+						}
+						NPCContext context = GetOrCreateNPCContext(questGiver);
+						ProcessCreateQuest(questGiver, context, questAction);
+						InformationManager.DisplayMessage(new InformationMessage($"[QuestDebug] Quest created on {questGiver.Name}.", ExtraColors.GreenAIInfluence));
+					}
+					catch (Exception ex)
+					{
+						LogMessage("[QuestDebug] Main-thread error: " + ex.Message + "\n" + ex.StackTrace);
+						InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Error — see mod_log.txt", ExtraColors.RedAIInfluence));
+					}
+				});
+			}
+			catch (Exception ex)
+			{
+				LogMessage("[QuestDebug] Background error: " + ex.Message + "\n" + ex.StackTrace);
+			}
+		});
 	}
 
 	private void DebugViewActiveQuests()
