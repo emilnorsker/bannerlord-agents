@@ -742,13 +742,17 @@ public static class PromptGenerator
 			double nowDays = (val).ToDays;
 			IEnumerable<string> source = context.ConversationHistory.Skip(Math.Max(0, context.ConversationHistory.Count - GlobalSettings<ModSettings>.Instance.PromptMaxHistory)).Take(GlobalSettings<ModSettings>.Instance.PromptMaxHistory);
 			arg5 = string.Join("\n", source.Select(delegate(string msg)
+		{
+			if (string.IsNullOrEmpty(msg))
 			{
-				if (string.IsNullOrEmpty(msg))
-				{
-					return msg;
-				}
-				double? num12 = null;
-				int num13 = msg.IndexOf("[sent_at_days=", StringComparison.OrdinalIgnoreCase);
+				return msg;
+			}
+			int pillIdx = msg.IndexOf("\n---\n", StringComparison.Ordinal);
+			if (pillIdx < 0) pillIdx = msg.IndexOf("\n===\n", StringComparison.Ordinal);
+			if (pillIdx >= 0)
+				msg = msg.Substring(0, pillIdx);
+			double? num12 = null;
+			int num13 = msg.IndexOf("[sent_at_days=", StringComparison.OrdinalIgnoreCase);
 				if (num13 >= 0)
 				{
 					int num14 = num13 + "[sent_at_days=".Length;
@@ -783,10 +787,14 @@ public static class PromptGenerator
 		{
 			val = CampaignTime.Now;
 			double nowDays2 = (val).ToDays;
-			text46 = string.Join("\n", list10.Skip(Math.Max(0, list10.Count - 5)).Select(delegate(string msg)
-			{
-				double? num12 = null;
-				int num13 = msg.IndexOf("[sent_at_days=", StringComparison.OrdinalIgnoreCase);
+		text46 = string.Join("\n", list10.Skip(Math.Max(0, list10.Count - 5)).Select(delegate(string msg)
+		{
+			int pillIdx = msg.IndexOf("\n---\n", StringComparison.Ordinal);
+			if (pillIdx < 0) pillIdx = msg.IndexOf("\n===\n", StringComparison.Ordinal);
+			if (pillIdx >= 0)
+				msg = msg.Substring(0, pillIdx);
+			double? num12 = null;
+			int num13 = msg.IndexOf("[sent_at_days=", StringComparison.OrdinalIgnoreCase);
 				if (num13 >= 0)
 				{
 					int num14 = num13 + "[sent_at_days=".Length;
@@ -4612,11 +4620,28 @@ public static class PromptGenerator
 			"- `\"reward_skill_xp\"`: integer XP amount (50–2000) for the skill above.\n" +
 			"- `\"crime_rating_change\"`: integer (negative = reduce crime, positive = increase). Applied to the player's current kingdom.\n" +
 			"- `\"influence_change\"`: integer influence change for the player's clan (positive = gain, negative = lose).\n" +
-			"Hostile party (optional, for combat quests):\n" +
-			"- `\"spawn_hostile_party\": true`: spawns a bandit party on the map near the player when the quest is created. The player must defeat it.\n" +
-			"- `\"hostile_party_size\"`: number of troops (5–1500).\n" +
-			"- `\"hostile_party_label\"`: display name of the party (e.g. \"Bandits sent by Radagos\").\n" +
-			"- `\"hostile_troop_name\"`: troop type name (e.g. \"looter\", \"forest bandit\", \"sea raider\", \"mountain bandit\"). The system fuzzy-matches to the closest real troop. Omit to use default bandits.\n");
+			"Spawning NPCs and parties (optional):\n" +
+			"- `\"spawn_npc\"`: object — spawns an NPC or party on the world map or in a settlement. All names are fuzzy-matched.\n" +
+			"  - `\"name\"`: NPC name. If provided, creates a named hero the player can talk to and fight. If omitted with party fields, creates a leaderless faction party.\n" +
+			"  - `\"alignment\"`: REQUIRED — `\"friendly\"`, `\"hostile\"`, or `\"neutral\"`. Determines faction: friendly = allied to player, hostile = enemy faction or bandits, neutral = local settlement owner.\n" +
+			"  - `\"culture\"`: determines appearance and default equipment. Available cultures: " + GetAvailableCultures() + ".\n" +
+			"  - `\"backstory\"`: brief backstory (shapes how this NPC talks in conversation).\n" +
+			"  - `\"personality\"`: personality traits (affects speech patterns).\n" +
+			"  - `\"is_female\"`: true/false (optional).\n" +
+			"  - `\"age\"`: 18–70 (optional, default 30).\n" +
+			"  - `\"settlement\"`: town/village name to spawn near (e.g. \"Epicrotea\"). Defaults to nearest town.\n" +
+			"  - `\"faction\"`: kingdom/clan name. Usually omit — alignment handles it. Available kingdoms: " + GetAvailableKingdoms() + ".\n" +
+			"  - `\"equipment\"`: object — override default gear. All item names fuzzy-matched.\n" +
+			"    - `\"weapon\"`, `\"shield\"`, `\"head\"`, `\"body\"`, `\"cape\"`, `\"gloves\"`, `\"legs\"`, `\"horse\"`: item names.\n" +
+			"    - `\"tier\"`: 0–6 — prefer items of this quality level.\n" +
+			"  - `\"party_name\"`: if set, NPC leads a party on the world map (e.g. \"Kargas's Raiders\").\n" +
+			"  - `\"party_troops\"`: troop types (e.g. [\"forest bandit\", \"looter\"]). Fuzzy-matched.\n" +
+			"  - `\"party_size\"`: total troops (0–5000). 0 = NPC travels alone.\n" +
+			"  Examples:\n" +
+			"    Quest giver in town: {\"name\": \"Aldric\", \"alignment\": \"friendly\", \"culture\": \"Vlandian\", \"backstory\": \"A merchant who lost his caravan\", \"personality\": \"Nervous, grateful\", \"settlement\": \"Epicrotea\"}\n" +
+			"    Hostile warband: {\"name\": \"Kargas\", \"alignment\": \"hostile\", \"culture\": \"Sturgian\", \"backstory\": \"A bandit chief\", \"personality\": \"Cruel, mocking\", \"equipment\": {\"weapon\": \"two handed axe\", \"head\": \"wolf head\", \"tier\": 4}, \"party_name\": \"Kargas's Raiders\", \"party_troops\": [\"sturgian raider\"], \"party_size\": 30}\n" +
+			"    Simple bandit group: {\"alignment\": \"hostile\", \"party_name\": \"Roadside Bandits\", \"party_troops\": [\"looter\"], \"party_size\": 15}\n" +
+			"  IMPORTANT: When creating a quest that involves combat (kill bandits, defeat a warlord, clear a road, etc.), you MUST use spawn_npc to spawn the enemies on the map. Without spawn_npc, there will be nothing for the player to fight. Use a named NPC leader for important foes, or a simple party (no name) for generic enemies.\n");
 		stringBuilder.Append("\n");
 		return stringBuilder.ToString();
 	}
@@ -4721,9 +4746,42 @@ public static class PromptGenerator
 		return "- `quest_action`: (object) Quest-related action. **Omit if no quest interaction.**\n" +
 		"  Create: {\"action\": \"create_quest\", \"title\": \"...\", \"description\": \"...\", \"duration_days\": N, \"target_npc_ids\": [\"id1\"], \"completer_npc_id\": \"id or null\", \"ai_verification_notes\": \"private notes\", \"progress_target\": N_or_null, \"progress_label\": \"label_or_null\", " +
 		"\"reward_gold\": N, \"reward_items\": [{\"item_name\": \"grain\", \"count\": 10}], \"reward_skill\": \"Charm\", \"reward_skill_xp\": 200, \"crime_rating_change\": -10, \"influence_change\": 5, " +
-		"\"spawn_hostile_party\": false, \"hostile_party_size\": 10, \"hostile_party_label\": \"Bandits\", \"hostile_troop_name\": \"looter\"}\n" +
+		"\"spawn_npc\": {\"name\": \"Kargas\", \"alignment\": \"hostile\", \"culture\": \"Sturgian\", \"backstory\": \"A bandit chief\", \"personality\": \"Cruel\", \"equipment\": {\"weapon\": \"two handed axe\", \"tier\": 4}, \"party_name\": \"Kargas's Raiders\", \"party_troops\": [\"sturgian raider\"], \"party_size\": 30}}\n" +
 		"  Update: {\"action\": \"update_quest\", \"quest_id\": \"...\", \"update_log\": \"your note\", \"set_progress\": N_or_null}\n" +
 		"  Complete: {\"action\": \"complete_quest\", \"quest_id\": \"...\", \"completion_reason\": \"why\", \"set_progress\": N_or_null} — all rewards applied automatically\n" +
 		"  Fail: {\"action\": \"fail_quest\", \"quest_id\": \"...\", \"completion_reason\": \"why failed\"}\n";
+	}
+
+	private static string GetAvailableCultures()
+	{
+		try
+		{
+			var cultures = Game.Current?.ObjectManager?.GetObjectTypeList<CultureObject>();
+			if (cultures == null)
+				return "unknown";
+			var names = cultures
+				.Where(c => c?.Name != null && !string.IsNullOrWhiteSpace(c.Name.ToString()) && c.StringId != "neutral_culture")
+				.Select(c => "\"" + c.Name.ToString() + "\"")
+				.Distinct();
+			string result = string.Join(", ", names);
+			return string.IsNullOrEmpty(result) ? "unknown" : result;
+		}
+		catch { return "unknown"; }
+	}
+
+	private static string GetAvailableKingdoms()
+	{
+		try
+		{
+			if (Kingdom.All == null)
+				return "unknown";
+			var names = ((IEnumerable<Kingdom>)Kingdom.All)
+				.Where(k => k != null && !k.IsEliminated && k.Name != null)
+				.Select(k => "\"" + k.Name.ToString() + "\"")
+				.Distinct();
+			string result = string.Join(", ", names);
+			return string.IsNullOrEmpty(result) ? "unknown" : result;
+		}
+		catch { return "unknown"; }
 	}
 }

@@ -183,28 +183,34 @@
                                                    StackLayout.LayoutMethod="VerticalBottomToTop"
                                                    Spacing="10">
                                           <ItemTemplate>
-                                                            <!-- NPC body segment (IsBody) -->
-                                                            <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Bubble.W" HeightSizePolicy="CoverChildren"
-                                                                    HorizontalAlignment="Left" IsVisible="@IsBody"
-                                                                    MarginTop="2" MarginBottom="2">
-                                                              <Children>
-                                                                <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                                            Margin="4,2,4,2"
-                                                                            Brush="Chat.Body.Text"
-                                                                            Text="@Text" />
-                                                              </Children>
-                                                            </Widget>
-                                                            <!-- NPC pill segment (action/emote — orange) -->
-                                                            <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                                    HorizontalAlignment="Left" IsVisible="@IsPill"
-                                                                    MarginTop="2" MarginBottom="2">
-                                                              <Children>
-                                                                <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                                            Margin="4,2,4,2"
-                                                                            Brush="Chat.Action.Text"
-                                                                            Text="@Text" />
-                                                              </Children>
-                                                            </Widget>
+                                            <!-- Single root required by Gauntlet ItemTemplate (fix from main).
+                                                 Body/pill visibility toggled via IsVisible; sprites removed in favour of Figma brushes. -->
+                                            <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren">
+                                              <Children>
+                                                <!-- NPC body segment -->
+                                                <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Bubble.W" HeightSizePolicy="CoverChildren"
+                                                        HorizontalAlignment="Left" IsVisible="@IsBody"
+                                                        MarginTop="2" MarginBottom="2">
+                                                  <Children>
+                                                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                                Margin="4,2,4,2"
+                                                                Brush="Chat.Body.Text"
+                                                                Text="@Text" />
+                                                  </Children>
+                                                </Widget>
+                                                <!-- NPC pill segment (action/emote — orange) -->
+                                                <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                        HorizontalAlignment="Left" IsVisible="@IsPill"
+                                                        MarginTop="2" MarginBottom="2">
+                                                  <Children>
+                                                    <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                                Margin="4,2,4,2"
+                                                                Brush="Chat.Action.Text"
+                                                                Text="@Text" />
+                                                  </Children>
+                                                </Widget>
+                                              </Children>
+                                            </Widget>
                                           </ItemTemplate>
                                         </ListPanel>
                                       </Children>
@@ -233,30 +239,36 @@
                                                    StackLayout.LayoutMethod="VerticalBottomToTop"
                                                    Spacing="10">
                                           <ItemTemplate>
-                                                            <!-- Player body segment (IsBody) -->
-                                                            <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Bubble.W" HeightSizePolicy="CoverChildren"
-                                                                    HorizontalAlignment="Right" IsVisible="@IsBody"
-                                                                    MarginTop="2" MarginBottom="2">
-                                                              <Children>
-                                                                <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                                            Margin="4,2,4,2"
-                                                                            Brush="Chat.Body.Text"
-                                                                            TextHorizontalAlignment="Right"
-                                                                            Text="@Text" />
-                                                              </Children>
-                                                            </Widget>
-                                                            <!-- Player pill segment (action — orange italic, outcome — gold) -->
-                                                            <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                                    HorizontalAlignment="Right" IsVisible="@IsPill"
-                                                                    MarginTop="2" MarginBottom="2">
-                                                              <Children>
-                                                                <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                                            Margin="4,2,4,2"
-                                                                            Brush="Chat.Action.Text"
-                                                                            TextHorizontalAlignment="Right"
-                                                                            Text="@Text" />
-                                                              </Children>
-                                                            </Widget>
+                                            <!-- Single root required by Gauntlet ItemTemplate (fix from main).
+                                                 Body/pill visibility toggled via IsVisible; sprites removed in favour of Figma brushes. -->
+                                            <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" HorizontalAlignment="Right">
+                                              <Children>
+                                                <!-- Player body segment -->
+                                                <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Bubble.W" HeightSizePolicy="CoverChildren"
+                                                        HorizontalAlignment="Right" IsVisible="@IsBody"
+                                                        MarginTop="2" MarginBottom="2">
+                                                  <Children>
+                                                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                                Margin="4,2,4,2"
+                                                                Brush="Chat.Body.Text"
+                                                                TextHorizontalAlignment="Right"
+                                                                Text="@Text" />
+                                                  </Children>
+                                                </Widget>
+                                                <!-- Player pill segment (action/outcome) -->
+                                                <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                        HorizontalAlignment="Right" IsVisible="@IsPill"
+                                                        MarginTop="2" MarginBottom="2">
+                                                  <Children>
+                                                    <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                                Margin="4,2,4,2"
+                                                                Brush="Chat.Action.Text"
+                                                                TextHorizontalAlignment="Right"
+                                                                Text="@Text" />
+                                                  </Children>
+                                                </Widget>
+                                              </Children>
+                                            </Widget>
                                           </ItemTemplate>
                                         </ListPanel>
                                       </Children>

@@ -96,6 +96,11 @@ public class NPCContext
 
 	public AIResponse PendingAIResponse { get; set; }
 
+	/// <summary>Technical action string captured before processing (for chat UI pills).</summary>
+	/// <summary>Technical action string captured before processing (for chat UI pills).</summary>
+	[JsonIgnore]
+	public string LastTechnicalActionForDisplay { get; set; }
+
 	public PendingRelationChange PendingRelationChange { get; set; }
 
 	public PendingRelationChange PendingLiePenalty { get; set; }
@@ -227,6 +232,26 @@ public class NPCContext
 		ConversationHistory.Add(message);
 	}
 
+	/// <summary>Appends action pill text to a message for persistence. Format: "msg\n---\naction".</summary>
+	public void AppendActionToMessage(int index, string actionText)
+	{
+		if (ConversationHistory == null || index < 0 || index >= ConversationHistory.Count || string.IsNullOrEmpty(actionText))
+			return;
+		if (ConversationHistory[index].Contains("\n---\n"))
+			return; // already has an action suffix; do not append again
+		ConversationHistory[index] = ConversationHistory[index] + "\n---\n" + actionText;
+	}
+
+	/// <summary>Appends relation pill text to a message for persistence. Format: "msg[\n---\naction]\n===\nrelation".</summary>
+	public void AppendRelationToMessage(int index, string relationText)
+	{
+		if (ConversationHistory == null || index < 0 || index >= ConversationHistory.Count || string.IsNullOrEmpty(relationText))
+			return;
+		if (ConversationHistory[index].Contains("\n===\n"))
+			return; // already has a relation suffix; do not append again
+		ConversationHistory[index] = ConversationHistory[index] + "\n===\n" + relationText;
+	}
+
 	public string GetFormattedHistory()
 	{
 		return ConversationHistory.Any() ? string.Join("\n", ConversationHistory) : "No conversation history.";
@@ -277,7 +302,7 @@ public class NPCContext
 				string item = ComputeMessageHash(item3);
 				if (!ProcessedMessageHashes.Contains(item))
 				{
-					list.Add(item3);
+					list.Add(StripPillSuffix(item3));
 				}
 			}
 		}
@@ -288,11 +313,19 @@ public class NPCContext
 				string item2 = ComputeMessageHash(item4);
 				if (!ProcessedMessageHashes.Contains(item2))
 				{
-					list.Add(item4);
+					list.Add(StripPillSuffix(item4));
 				}
 			}
 		}
 		return list;
+	}
+
+	private static string StripPillSuffix(string message)
+	{
+		if (string.IsNullOrEmpty(message)) return message;
+		int idx = message.IndexOf("\n---\n", StringComparison.Ordinal);
+		if (idx < 0) idx = message.IndexOf("\n===\n", StringComparison.Ordinal);
+		return idx >= 0 ? message.Substring(0, idx) : message;
 	}
 
 	private string ComputeMessageHash(string message)
@@ -301,8 +334,9 @@ public class NPCContext
 		{
 			return string.Empty;
 		}
+		string canonical = StripPillSuffix(message);
 		using SHA256 sHA = SHA256.Create();
-		byte[] inArray = sHA.ComputeHash(Encoding.UTF8.GetBytes(message));
+		byte[] inArray = sHA.ComputeHash(Encoding.UTF8.GetBytes(canonical));
 		return Convert.ToBase64String(inArray);
 	}
 
