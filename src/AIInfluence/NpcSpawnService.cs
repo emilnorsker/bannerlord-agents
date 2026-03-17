@@ -160,7 +160,7 @@ public class NpcSpawnService
 	private MobileParty SpawnBanditParty(Clan banditClan, Vec2 position, string partyName, List<string> troopNames, int troopCount)
 	{
 		Hideout hideout = Settlement.All?
-			.Where(s => s.IsHideout && s.Hideout != null)
+			.Where(s => s.IsHideout && s.Hideout != null && s.OwnerClan == banditClan)
 			.OrderBy(s => s.GetPosition2D.Distance(position))
 			.Select(s => s.Hideout)
 			.FirstOrDefault();
@@ -488,6 +488,9 @@ public class NpcSpawnService
 
 		CharacterObject template = Campaign.Current?.Models?.HeroCreationModel
 			?.GetRandomTemplateByOccupation(occupation, settlement);
+
+		if (template != null && isFemale.HasValue && template.IsFemale != isFemale.Value)
+			template = null;
 
 		bool needsCulturalMatch = culture != null && (template == null || template.Culture != culture);
 		if (needsCulturalMatch)
