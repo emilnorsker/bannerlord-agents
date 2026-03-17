@@ -276,7 +276,7 @@ public class NpcSpawnService
 
 	private void ApplyEquipmentOverrides(Hero hero, SpawnNpcEquipment eq)
 	{
-		int tier = Math.Max(0, Math.Min(eq.Tier ?? -1, 6));
+		int tier = eq.Tier.HasValue ? Math.Max(0, Math.Min(eq.Tier.Value, 6)) : -1;
 		TryEquipSlot(hero, EquipmentIndex.Weapon0, eq.Weapon, tier);
 		TryEquipSlot(hero, EquipmentIndex.Weapon1, eq.Shield, tier);
 		TryEquipSlot(hero, EquipmentIndex.Head, eq.Head, tier);
