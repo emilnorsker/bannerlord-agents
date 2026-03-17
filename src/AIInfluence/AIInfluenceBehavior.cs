@@ -363,6 +363,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		CampaignEvents.OnMissionEndedEvent.AddNonSerializedListener((object)this, (Action<IMission>)OnMissionEnded);
 		CampaignEvents.MapEventStarted.AddNonSerializedListener((object)this, (Action<MapEvent, PartyBase, PartyBase>)OnMapEventStartedForDisease);
 		CampaignEvents.MapEventEnded.AddNonSerializedListener((object)this, (Action<MapEvent>)OnMapEventEndedForDisease);
+		CampaignEvents.MapEventEnded.AddNonSerializedListener((object)this, (Action<MapEvent>)OnMapEventEndedForSpawnedPartyDefeat);
 		CampaignEvents.HeroPrisonerTaken.AddNonSerializedListener((object)this, (Action<PartyBase, Hero>)OnHeroPrisonerTaken);
 		CampaignEvents.HeroPrisonerReleased.AddNonSerializedListener((object)this, (Action<Hero, PartyBase, IFaction, EndCaptivityDetail, bool>)OnHeroPrisonerReleased);
 		CampaignEvents.MobilePartyDestroyed.AddNonSerializedListener((object)this, (Action<MobileParty, PartyBase>)OnMobilePartyDestroyed);
@@ -725,6 +726,37 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		catch (Exception ex)
 		{
 			LogMessage("[ERROR] DiseaseManager OnHourlyTick error: " + ex.Message);
+		}
+		CheckSpawnedQuestPartiesGone();
+	}
+
+	private void CheckSpawnedQuestPartiesGone()
+	{
+		try
+		{
+			foreach (KeyValuePair<string, NPCContext> kv in _npcContexts.ToList())
+			{
+				foreach (AIQuestInfo q in kv.Value?.ActiveAIQuests ?? Enumerable.Empty<AIQuestInfo>())
+				{
+					if (!string.IsNullOrEmpty(q.SpawnedPartyId) && (MobileParty.All?.Any((MobileParty p) => ((MBObjectBase)p).StringId == q.SpawnedPartyId) != true))
+					{
+						HandleSpawnedQuestPartyDefeated(q.SpawnedPartyId);
+						return;
+					}
+				}
+				foreach (AIQuestInfo q in kv.Value?.IncomingAIQuests ?? Enumerable.Empty<AIQuestInfo>())
+				{
+					if (!string.IsNullOrEmpty(q.SpawnedPartyId) && (MobileParty.All?.Any((MobileParty p) => ((MBObjectBase)p).StringId == q.SpawnedPartyId) != true))
+					{
+						HandleSpawnedQuestPartyDefeated(q.SpawnedPartyId);
+						return;
+					}
+				}
+			}
+		}
+		catch (Exception ex)
+		{
+			LogMessage("[ERROR] CheckSpawnedQuestPartiesGone: " + ex.Message);
 		}
 	}
 
@@ -1227,6 +1259,77 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		catch (Exception ex)
 		{
 			LogMessage("[QUEST] Error destroying spawned party: " + ex.Message);
+		}
+	}
+
+	private (AIQuestInfo questInfo, NPCContext context, string npcId)? FindQuestBySpawnedPartyId(string spawnedPartyId)
+	{
+		if (string.IsNullOrEmpty(spawnedPartyId))
+		{
+			return null;
+		}
+		foreach (KeyValuePair<string, NPCContext> kv in _npcContexts.ToList())
+		{
+			AIQuestInfo q = kv.Value?.ActiveAIQuests?.FirstOrDefault((AIQuestInfo x) => x.SpawnedPartyId == spawnedPartyId);
+			if (q != null)
+			{
+				return (q, kv.Value, kv.Key);
+			}
+			q = kv.Value?.IncomingAIQuests?.FirstOrDefault((AIQuestInfo x) => x.SpawnedPartyId == spawnedPartyId);
+			if (q != null)
+			{
+				return (q, kv.Value, kv.Key);
+			}
+		}
+		return null;
+	}
+
+	private void HandleSpawnedQuestPartyDefeated(string spawnedPartyId)
+	{
+		var found = FindQuestBySpawnedPartyId(spawnedPartyId);
+		if (found == null)
+		{
+			return;
+		}
+		AIQuestInfo questInfo = found.Value.questInfo;
+		NPCContext context = found.Value.context;
+		string npcId = found.Value.npcId;
+		Hero npc = Hero.FindFirst((Func<Hero, bool>)((Hero h) => ((MBObjectBase)h).StringId == npcId));
+		if (npc == null)
+		{
+			LogMessage("[QUEST] Cannot handle spawned party defeat: NPC " + npcId + " not found");
+			return;
+		}
+		string updateLog = "The spawned quest party was defeated.";
+		questInfo.SpawnedPartyId = null;
+		int newProgress = Math.Min(questInfo.ProgressCurrent + 1, questInfo.ProgressTarget);
+		questInfo.ProgressCurrent = newProgress;
+		if (questInfo.UpdateLogs == null)
+		{
+			questInfo.UpdateLogs = new List<AIQuestUpdateLog>();
+		}
+		questInfo.UpdateLogs.Add(new AIQuestUpdateLog
+		{
+			NpcId = "system",
+			NpcName = "World",
+			Message = updateLog,
+			Day = CampaignTime.Now.ToDays,
+			ProgressSetTo = newProgress
+		});
+		AIGeneratedQuest aiQuest = Campaign.Current?.QuestManager?.Quests?.FirstOrDefault((Func<QuestBase, bool>)((QuestBase q) => ((MBObjectBase)q).StringId == questInfo.QuestId && q.IsOngoing)) as AIGeneratedQuest;
+		aiQuest?.AddUpdateLog(updateLog);
+		aiQuest?.SetDiscreteProgress(newProgress);
+		SyncQuestInfoAcrossNpcs(questInfo);
+		if (newProgress >= questInfo.ProgressTarget && questInfo.ProgressTarget > 0)
+		{
+			QuestActionData completeAction = new QuestActionData { QuestId = questInfo.QuestId, CompletionReason = updateLog, SetProgress = newProgress };
+			ProcessCompleteQuest(npc, context, completeAction);
+		}
+		else
+		{
+			SaveNPCContext(npcId, npc, context);
+			LogMessage($"[QUEST] Spawned party defeat recorded for '{questInfo.Title}' (progress: {newProgress}/{questInfo.ProgressTarget})");
+			InformationManager.DisplayMessage(new InformationMessage("Quest updated: " + questInfo.Title + $" ({newProgress}/{questInfo.ProgressTarget})", ExtraColors.GreenAIInfluence));
 		}
 	}
 
@@ -8129,6 +8232,40 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 	}
 
+	private void OnMapEventEndedForSpawnedPartyDefeat(MapEvent mapEvent)
+	{
+		try
+		{
+			if (mapEvent == null || (int)mapEvent.DefeatedSide < 0)
+			{
+				return;
+			}
+			MapEventSide defeatedSide = mapEvent.GetMapEventSide(mapEvent.DefeatedSide);
+			if (defeatedSide?.Parties == null)
+			{
+				return;
+			}
+			foreach (MapEventParty mapEventParty in (List<MapEventParty>)(object)defeatedSide.Parties)
+			{
+				MobileParty mobileParty = mapEventParty?.Party?.MobileParty;
+				if (mobileParty == null)
+				{
+					continue;
+				}
+				string partyId = ((MBObjectBase)mobileParty).StringId;
+				if (!string.IsNullOrEmpty(partyId) && FindQuestBySpawnedPartyId(partyId) != null)
+				{
+					HandleSpawnedQuestPartyDefeated(partyId);
+					break;
+				}
+			}
+		}
+		catch (Exception ex)
+		{
+			LogMessage("[ERROR] OnMapEventEndedForSpawnedPartyDefeat: " + ex.Message);
+		}
+	}
+
 	private void OnHeroPrisonerTaken(PartyBase capturer, Hero prisoner)
 	{
 		//IL_0435: Unknown result type (might be due to invalid IL or missing references)
@@ -8597,7 +8734,17 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	{
 		try
 		{
-			if (destroyedParty == null || !destroyedParty.IsCaravan)
+			if (destroyedParty == null)
+			{
+				return;
+			}
+			string partyId = ((MBObjectBase)destroyedParty).StringId;
+			if (!string.IsNullOrEmpty(partyId) && FindQuestBySpawnedPartyId(partyId) != null)
+			{
+				HandleSpawnedQuestPartyDefeated(partyId);
+				return;
+			}
+			if (!destroyedParty.IsCaravan)
 			{
 				return;
 			}
