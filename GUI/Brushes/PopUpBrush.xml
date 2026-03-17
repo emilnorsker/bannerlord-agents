@@ -4,4 +4,46 @@
       <Style Name="Default" FontColor="#C6AC8DFF" TextGlowColor="#000000FF" TextOutlineColor="#000000FF" TextOutlineAmount="0.1" TextGlowRadius="0" TextBlur="0.6" FontSize="42" />
     </Styles>
   </Brush>
+
+  <!-- "Conversation Log" header label — Figma: Font/Body/Body2 12px, #FFE38F -->
+  <Brush Name="Chat.Header.Label">
+    <Styles>
+      <Style Name="Default" FontColor="#FFE38FFF" FontSize="12" />
+    </Styles>
+  </Brush>
+
+  <!-- NPC name in header — left-aligned, slightly larger -->
+  <Brush Name="Chat.Sender.Name">
+    <Styles>
+      <Style Name="Default" FontColor="#E8DCC8FF" FontSize="15" />
+    </Styles>
+  </Brush>
+
+  <!-- Message body text -->
+  <Brush Name="Chat.Body.Text">
+    <Styles>
+      <Style Name="Default" FontColor="#C8C0B0FF" FontSize="14" />
+    </Styles>
+  </Brush>
+
+  <!-- Player action text — orange italic (Figma: *action* segments) -->
+  <Brush Name="Chat.Action.Text">
+    <Styles>
+      <Style Name="Default" FontColor="#CF7A3AFF" FontSize="14" IsItalic="true" />
+    </Styles>
+  </Brush>
+
+  <!-- System event line — dimmed, centered -->
+  <Brush Name="Chat.Event.Text">
+    <Styles>
+      <Style Name="Default" FontColor="#787880FF" FontSize="12" />
+    </Styles>
+  </Brush>
+
+  <!-- Item grant notification text -->
+  <Brush Name="Chat.ItemGrant.Text">
+    <Styles>
+      <Style Name="Default" FontColor="#9BA4B5FF" FontSize="13" />
+    </Styles>
+  </Brush>
 </Brushes>
