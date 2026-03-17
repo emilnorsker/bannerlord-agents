@@ -1044,8 +1044,9 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			}
 			if (spawnResult.Success && spawnResult.Hero != null)
 			{
-				NPCContext spawnedContext = GetOrCreateNPCContext(spawnResult.Hero);
-				SaveNPCContext(((MBObjectBase)spawnResult.Hero).StringId, spawnResult.Hero, spawnedContext);
+            NPCContext spawnedContext = GetOrCreateNPCContext(spawnResult.Hero);
+            if (spawnedContext != null)
+                SaveNPCContext(((MBObjectBase)spawnResult.Hero).StringId, spawnResult.Hero, spawnedContext);
 			}
 			else if (spawnResult.Error != null)
 			{
