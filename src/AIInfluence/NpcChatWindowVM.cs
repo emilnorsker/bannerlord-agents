@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using AIInfluence.Diplomacy;
 using AIInfluence.DynamicEvents;
 using AIInfluence.Services;
 using MCM.Abstractions.Base.Global;
@@ -105,9 +106,21 @@ public class NpcChatWindowVM : ViewModel
         RightPanelItems.Add(new TextItemVM("WORLD EVENTS", Header));
         try
         {
-            var events = DynamicEventsManager.Instance?.GetActiveEvents()
-                             ?.OrderByDescending(e => e.CreationCampaignDays)
-                             .Take(5) ?? Enumerable.Empty<DynamicEvent>();
+            var list1 = DynamicEventsManager.Instance?.GetActiveEvents() ?? new List<DynamicEvent>();
+            var list2 = new List<DynamicEvent>();
+            try { list2 = new DiplomacyStorage().LoadDiplomaticEvents() ?? new List<DynamicEvent>(); }
+            catch (Exception dex) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] LoadDiplomaticEvents failed: " + dex.Message); }
+            var seenIds = new HashSet<string>(list1.Where(e => e != null && !string.IsNullOrEmpty(e.Id)).Select(e => e.Id));
+            var merged = list1.ToList();
+            foreach (var e in list2)
+            {
+                if (e != null && !string.IsNullOrEmpty(e.Id) && !seenIds.Contains(e.Id))
+                {
+                    merged.Add(e);
+                    seenIds.Add(e.Id);
+                }
+            }
+            var events = merged.OrderByDescending(e => e.CreationCampaignDays).Take(5);
             foreach (var e in events)
             {
                 string text = string.IsNullOrWhiteSpace(e.Title) ? e.Description : e.Title;
