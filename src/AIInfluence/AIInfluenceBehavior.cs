@@ -726,6 +726,34 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			LogMessage("[ERROR] DiseaseManager OnHourlyTick error: " + ex.Message);
 		}
+		CheckSpawnedQuestPartiesGone();
+	}
+
+	private void CheckSpawnedQuestPartiesGone()
+	{
+		try
+		{
+			IEnumerable<QuestBase> quests = Campaign.Current?.QuestManager?.Quests;
+			if (quests == null)
+			{
+				return;
+			}
+			foreach (QuestBase q in quests.ToList())
+			{
+				if (q is AIGeneratedQuest aiQuest && q.IsOngoing && !string.IsNullOrEmpty(aiQuest.SpawnedPartyId))
+				{
+					var allParties = MobileParty.All;
+					if (allParties == null || !allParties.Any((MobileParty p) => ((MBObjectBase)p).StringId == aiQuest.SpawnedPartyId))
+					{
+						HandleSpawnedQuestPartyDefeated(aiQuest.SpawnedPartyId);
+					}
+				}
+			}
+		}
+		catch (Exception ex)
+		{
+			LogMessage("[ERROR] CheckSpawnedQuestPartiesGone: " + ex.Message);
+		}
 	}
 
 	private void InitializeNearbyNPCs()
@@ -1036,7 +1064,9 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			var spawnResult = spawnService.Spawn(spawnData);
 			if (spawnResult.Success && spawnResult.Party != null)
 			{
-				item.SpawnedPartyId = ((MBObjectBase)spawnResult.Party).StringId;
+				string partyStringId = ((MBObjectBase)spawnResult.Party).StringId;
+				item.SpawnedPartyId = partyStringId;
+				item.SpawnedPartyDefeatMeansFailure = !string.Equals(spawnData.Alignment, "hostile", StringComparison.OrdinalIgnoreCase);
 				spawnResult.Party.SetPartyUsedByQuest(true);
 				if (string.Equals(spawnData.Alignment, "hostile", StringComparison.OrdinalIgnoreCase))
 				{
@@ -1048,6 +1078,10 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					item.AIVerificationNotes = string.IsNullOrEmpty(item.AIVerificationNotes) ? addNote : item.AIVerificationNotes + " " + addNote;
 				}
 				QuestBase questBase2 = Campaign.Current?.QuestManager?.Quests?.FirstOrDefault((Func<QuestBase, bool>)((QuestBase q) => ((MBObjectBase)q).StringId == item.QuestId && q.IsOngoing));
+				if (questBase2 is AIGeneratedQuest aiGenQuest)
+				{
+					aiGenQuest.SpawnedPartyId = partyStringId;
+				}
 				questBase2?.AddTrackedObject((ITrackableCampaignObject)(object)spawnResult.Party);
 				InformationManager.DisplayMessage(new InformationMessage($"A party has appeared on the map!", ExtraColors.RedAIInfluence));
 			}
@@ -1165,11 +1199,103 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				DestroyPartyAction.Apply((PartyBase)null, party);
 				LogMessage($"[QUEST] Destroyed spawned party '{questInfo.SpawnedPartyId}' on quest end");
 				questInfo.SpawnedPartyId = null;
+				if (questBase is AIGeneratedQuest aiQuest)
+				{
+					aiQuest.SpawnedPartyId = "";
+				}
 			}
 		}
 		catch (Exception ex)
 		{
 			LogMessage("[QUEST] Error destroying spawned party: " + ex.Message);
+		}
+	}
+
+	private (AIQuestInfo questInfo, NPCContext context, string npcId)? FindQuestBySpawnedPartyId(string spawnedPartyId)
+	{
+		if (string.IsNullOrEmpty(spawnedPartyId))
+		{
+			return null;
+		}
+		foreach (KeyValuePair<string, NPCContext> kv in _npcContexts.ToList())
+		{
+			AIQuestInfo q = kv.Value?.ActiveAIQuests?.FirstOrDefault((AIQuestInfo x) => x.SpawnedPartyId == spawnedPartyId);
+			if (q != null)
+			{
+				return (q, kv.Value, kv.Key);
+			}
+			q = kv.Value?.IncomingAIQuests?.FirstOrDefault((AIQuestInfo x) => x.SpawnedPartyId == spawnedPartyId);
+			if (q != null)
+			{
+				return (q, kv.Value, kv.Key);
+			}
+		}
+		return null;
+	}
+
+	private void HandleSpawnedQuestPartyDefeated(string spawnedPartyId)
+	{
+		var found = FindQuestBySpawnedPartyId(spawnedPartyId);
+		if (found == null)
+		{
+			return;
+		}
+		AIQuestInfo questInfo = found.Value.questInfo;
+		NPCContext context = found.Value.context;
+		string npcId = found.Value.npcId;
+		Hero npc = Hero.FindFirst((Func<Hero, bool>)((Hero h) => ((MBObjectBase)h).StringId == npcId));
+		if (npc == null)
+		{
+			LogMessage("[QUEST] Cannot handle spawned party defeat: NPC " + npcId + " not found");
+			questInfo.SpawnedPartyId = null;
+			AIGeneratedQuest orphanedQuest = Campaign.Current?.QuestManager?.Quests?.FirstOrDefault((Func<QuestBase, bool>)((QuestBase q) => ((MBObjectBase)q).StringId == questInfo.QuestId && q.IsOngoing)) as AIGeneratedQuest;
+			if (orphanedQuest != null)
+			{
+				orphanedQuest.SpawnedPartyId = "";
+			}
+			return;
+		}
+		string updateLog = "The spawned quest party was destroyed.";
+		questInfo.SpawnedPartyId = null;
+		int newProgress = Math.Min(questInfo.ProgressCurrent + 1, questInfo.ProgressTarget);
+		questInfo.ProgressCurrent = newProgress;
+		if (questInfo.UpdateLogs == null)
+		{
+			questInfo.UpdateLogs = new List<AIQuestUpdateLog>();
+		}
+		questInfo.UpdateLogs.Add(new AIQuestUpdateLog
+		{
+			NpcId = "system",
+			NpcName = "World",
+			Message = updateLog,
+			Day = CampaignTime.Now.ToDays,
+			ProgressSetTo = newProgress
+		});
+		AIGeneratedQuest aiQuest = Campaign.Current?.QuestManager?.Quests?.FirstOrDefault((Func<QuestBase, bool>)((QuestBase q) => ((MBObjectBase)q).StringId == questInfo.QuestId && q.IsOngoing)) as AIGeneratedQuest;
+		if (aiQuest != null)
+		{
+			aiQuest.SpawnedPartyId = "";
+			aiQuest.AddUpdateLog(updateLog);
+			aiQuest.SetDiscreteProgress(newProgress);
+		}
+		SyncQuestInfoAcrossNpcs(questInfo);
+		if (newProgress >= questInfo.ProgressTarget && questInfo.ProgressTarget > 0)
+		{
+			QuestActionData action = new QuestActionData { QuestId = questInfo.QuestId, CompletionReason = updateLog, SetProgress = newProgress };
+			if (questInfo.SpawnedPartyDefeatMeansFailure)
+			{
+				ProcessFailQuest(npc, context, action);
+			}
+			else
+			{
+				ProcessCompleteQuest(npc, context, action);
+			}
+		}
+		else
+		{
+			SaveNPCContext(npcId, npc, context);
+			LogMessage($"[QUEST] Spawned party defeat recorded for '{questInfo.Title}' (progress: {newProgress}/{questInfo.ProgressTarget})");
+			InformationManager.DisplayMessage(new InformationMessage("Quest updated: " + questInfo.Title + $" ({newProgress}/{questInfo.ProgressTarget})", ExtraColors.GreenAIInfluence));
 		}
 	}
 
@@ -1528,6 +1654,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				{
 					aIQuestInfo.UpdateLogs = updatedQuestInfo.UpdateLogs;
 					aIQuestInfo.ProgressCurrent = updatedQuestInfo.ProgressCurrent;
+					aIQuestInfo.SpawnedPartyId = updatedQuestInfo.SpawnedPartyId;
 					flag = true;
 				}
 				AIQuestInfo aIQuestInfo2 = nPCContext.IncomingAIQuests?.Find((AIQuestInfo q) => q.QuestId == questId);
@@ -1535,6 +1662,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				{
 					aIQuestInfo2.UpdateLogs = updatedQuestInfo.UpdateLogs;
 					aIQuestInfo2.ProgressCurrent = updatedQuestInfo.ProgressCurrent;
+					aIQuestInfo2.SpawnedPartyId = updatedQuestInfo.SpawnedPartyId;
 					flag = true;
 				}
 				if (flag)
@@ -8630,7 +8758,17 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	{
 		try
 		{
-			if (destroyedParty == null || !destroyedParty.IsCaravan)
+			if (destroyedParty == null)
+			{
+				return;
+			}
+			string partyId = ((MBObjectBase)destroyedParty).StringId;
+			if (!string.IsNullOrEmpty(partyId) && FindQuestBySpawnedPartyId(partyId) != null)
+			{
+				HandleSpawnedQuestPartyDefeated(partyId);
+				return;
+			}
+			if (!destroyedParty.IsCaravan)
 			{
 				return;
 			}
