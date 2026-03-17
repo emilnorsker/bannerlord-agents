@@ -1109,6 +1109,9 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			{
 				return;
 			}
+			string settlementName = (currentSettlement?.Name)?.ToString() ?? "the player";
+			string addNote = "A hostile party '" + partyLabel + "' (id:" + questInfo.SpawnedPartyId + ") was spawned near " + settlementName + ". The quest is complete when this party is destroyed.";
+			questInfo.AIVerificationNotes = string.IsNullOrEmpty(questInfo.AIVerificationNotes) ? addNote : questInfo.AIVerificationNotes + " " + addNote;
 			QuestBase questBase = Campaign.Current?.QuestManager?.Quests?.FirstOrDefault((Func<QuestBase, bool>)((QuestBase q) => ((MBObjectBase)q).StringId == questInfo.QuestId && q.IsOngoing));
 			if (questBase != null)
 			{
