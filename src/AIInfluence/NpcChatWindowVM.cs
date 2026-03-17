@@ -88,8 +88,9 @@ public class NpcChatWindowVM : ViewModel
         string label = relation >= 20 ? "Friendly" : relation >= 0 ? "Neutral" : relation >= -20 ? "Cautious" : "Hostile";
         RelationText = $"{label} ({relation:+#;-#;0})";
         RelationColor = relation >= 0 ? "#6FCF6FFF" : "#CF6F6FFF";
-        TrustLabel = context.TrustLevel >= 0.6f ? "High Trust" : context.TrustLevel >= 0.3f ? "Moderate Trust" : "Low Trust";
-        EmotionLabel = context.EmotionalState?.Mood ?? "";
+        float trust = context?.TrustLevel ?? 0f;
+        TrustLabel = trust >= 0.6f ? "High Trust" : trust >= 0.3f ? "Moderate Trust" : "Low Trust";
+        EmotionLabel = context?.EmotionalState?.Mood ?? "";
     }
 
     private void RefreshTraitOverlay(Hero npc, NPCContext context)
@@ -170,7 +171,7 @@ public class NpcChatWindowVM : ViewModel
         var infos = WorldInfoManager.InformationManager.Instance?.GetInfo();
         if (infos == null) yield break;
         string npcName = ((object)npc?.Name)?.ToString() ?? "";
-        foreach (var i in infos.Where(i => context.KnownInfo.Contains(i.Id)))
+        foreach (var i in infos.Where(i => !string.IsNullOrEmpty(i?.Id) && context.KnownInfo.Contains(i.Id)))
         {
             if (string.IsNullOrWhiteSpace(i.Description)) continue;
             yield return i.Description.Replace("{character}", npcName).Trim();
@@ -194,6 +195,7 @@ public class NpcChatWindowVM : ViewModel
         var seen = new HashSet<string>();
         foreach (var e in list)
         {
+            if (e == null) continue;
             merged.Add(e);
             if (!string.IsNullOrEmpty(e.Id)) seen.Add(e.Id);
         }
@@ -640,6 +642,10 @@ public class NpcChatWindowVM : ViewModel
                 streamingRetired = true;
                 MessageList.Remove(streamingItem);
             }
+        }
+        catch (Exception ex)
+        {
+            AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] ExecuteSendMessage failed: " + ex.Message);
         }
         finally
         {
