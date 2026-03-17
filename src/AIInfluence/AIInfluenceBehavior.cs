@@ -2489,12 +2489,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			if (Mission.Current != null)
 			{
 				LogMessage("[WARNING] Mission already active (" + Mission.Current.SceneName + "). Skipping EncounterAttackConsequence to avoid stuck loading screen.");
-				context.NegativeToneCount = 0;
-				context.EscalationState = "neutral";
-				context.CombatResponse = null;
-			SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
-			LogMessage("[DEBUG] NPC context reset (mission already active) for " + npcName + ".");
-			return;
+				return;
 			}
 			LogMessage("[DEBUG] Calling MenuHelper.EncounterAttackConsequence to start mission...");
 			MenuHelper.EncounterAttackConsequence((MenuCallbackArgs)null);
