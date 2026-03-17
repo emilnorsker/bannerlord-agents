@@ -29,7 +29,6 @@ using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.Encounters;
 using TaleWorlds.CampaignSystem.Extensions;
 using TaleWorlds.CampaignSystem.GameMenus;
-using TaleWorlds.CampaignSystem.Map;
 using TaleWorlds.CampaignSystem.MapEvents;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Party.PartyComponents;
@@ -1084,7 +1083,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					aiGenQuest.SpawnedPartyId = partyStringId;
 				}
 				questBase2?.AddTrackedObject((ITrackableCampaignObject)(object)spawnResult.Party);
-				AddQuestPartyMapMarker(item.QuestId, spawnResult.Party, spawnData.PartyName ?? (spawnResult.Party.Name?.ToString()) ?? "Quest Target");
+				QuestPartyMapMarkerService.AddMarker(item.QuestId, spawnResult.Party, spawnData.PartyName ?? (spawnResult.Party.Name?.ToString()) ?? "Quest Target");
 				InformationManager.DisplayMessage(new InformationMessage($"A party has appeared on the map!", ExtraColors.RedAIInfluence));
 			}
 			if (spawnResult.Success && spawnResult.Hero != null)
@@ -1184,47 +1183,13 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 	}
 
-	private void AddQuestPartyMapMarker(string questId, MobileParty party, string displayName)
-	{
-		if (string.IsNullOrEmpty(questId) || party == null || Campaign.Current?.MapMarkerManager == null)
-			return;
-		try
-		{
-			Banner banner = party.MapFaction?.Banner ?? party.LeaderHero?.Clan?.Banner ?? Hero.MainHero?.Clan?.Banner;
-			if (banner == null)
-				return;
-			Vec2 pos = party.GetPosition2D();
-			Vec3 position = new Vec3(pos.X, pos.Y, 0f);
-			TextObject name = new TextObject(displayName, null);
-			Campaign.Current.MapMarkerManager.CreateMapMarker(banner, name, position, isVisibleOnMap: true, questId);
-		}
-		catch (Exception ex)
-		{
-			LogMessage("[QUEST] Failed to add map marker: " + ex.Message);
-		}
-	}
-
-	private void RemoveQuestPartyMapMarker(string questId)
-	{
-		if (string.IsNullOrEmpty(questId) || Campaign.Current?.MapMarkerManager == null)
-			return;
-		try
-		{
-			Campaign.Current.MapMarkerManager.RemoveAllMapMarkersByQuestId(questId);
-		}
-		catch (Exception ex)
-		{
-			LogMessage("[QUEST] Failed to remove map marker: " + ex.Message);
-		}
-	}
-
 	private void CleanupSpawnedQuestParty(AIQuestInfo questInfo)
 	{
 		if (string.IsNullOrEmpty(questInfo.SpawnedPartyId))
 		{
 			return;
 		}
-		RemoveQuestPartyMapMarker(questInfo.QuestId);
+		QuestPartyMapMarkerService.RemoveMarker(questInfo.QuestId);
 		try
 		{
 			MobileParty party = MobileParty.All?.FirstOrDefault((MobileParty p) => ((MBObjectBase)p).StringId == questInfo.SpawnedPartyId);
@@ -1294,7 +1259,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 		string updateLog = "The spawned quest party was destroyed.";
 		questInfo.SpawnedPartyId = null;
-		RemoveQuestPartyMapMarker(questInfo.QuestId);
+		QuestPartyMapMarkerService.RemoveMarker(questInfo.QuestId);
 		int newProgress = Math.Min(questInfo.ProgressCurrent + 1, questInfo.ProgressTarget);
 		questInfo.ProgressCurrent = newProgress;
 		if (questInfo.UpdateLogs == null)
