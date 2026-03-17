@@ -1018,110 +1018,45 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage("[QUEST] Error adding quest to target NPC '" + targetNpcId + "': " + ex.Message);
 			}
 		}
-		if (questAction.SpawnHostileParty)
+		SpawnNpcData spawnData = questAction.SpawnNpc;
+		if (spawnData == null && questAction.SpawnHostileParty)
 		{
-			SpawnQuestHostileParty(npc, item, questAction);
+			spawnData = new SpawnNpcData
+			{
+				Alignment = "hostile",
+				PartyName = string.IsNullOrEmpty(questAction.HostilePartyLabel) ? "Quest Enemies" : questAction.HostilePartyLabel,
+                PartySize = Math.Max(5, Math.Min(questAction.HostilePartySize, 1500)),
+				PartyTroops = string.IsNullOrEmpty(questAction.HostileTroopName) ? null : new List<string> { questAction.HostileTroopName },
+				Settlement = npc?.CurrentSettlement != null ? ((object)npc.CurrentSettlement.Name)?.ToString() : null
+			};
+		}
+		if (spawnData != null)
+		{
+			var spawnService = new NpcSpawnService(LogMessage);
+			var spawnResult = spawnService.Spawn(spawnData);
+			if (spawnResult.Success && spawnResult.Party != null)
+			{
+				item.SpawnedPartyId = ((MBObjectBase)spawnResult.Party).StringId;
+				spawnResult.Party.SetPartyUsedByQuest(true);
+				QuestBase questBase2 = Campaign.Current?.QuestManager?.Quests?.FirstOrDefault((Func<QuestBase, bool>)((QuestBase q) => ((MBObjectBase)q).StringId == item.QuestId && q.IsOngoing));
+				questBase2?.AddTrackedObject((ITrackableCampaignObject)(object)spawnResult.Party);
+				InformationManager.DisplayMessage(new InformationMessage($"A party has appeared on the map!", ExtraColors.RedAIInfluence));
+			}
+			if (spawnResult.Success && spawnResult.Hero != null)
+			{
+            NPCContext spawnedContext = GetOrCreateNPCContext(spawnResult.Hero);
+            if (spawnedContext != null)
+                SaveNPCContext(((MBObjectBase)spawnResult.Hero).StringId, spawnResult.Hero, spawnedContext);
+			}
+			else if (spawnResult.Error != null)
+			{
+				LogMessage("[QUEST] spawn_npc failed: " + spawnResult.Error);
+			}
 			SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
 		}
 		LogMessage(string.Format("[QUEST] Created quest '{0}' (ID: {1}) from {2}, reward: {3}, duration: {4} days, targets: [{5}]", questAction.Title, text5, text, num, num2, string.Join(", ", effectiveTargetNpcIds)) + ((!string.IsNullOrEmpty(text2)) ? (", completer: " + text2) : "") + ((valueOrDefault > 0) ? $", progress: 0/{valueOrDefault} ({text4})" : ""));
 	}
 
-	private void SpawnQuestHostileParty(Hero questGiver, AIQuestInfo questInfo, QuestActionData questAction)
-	{
-		try
-		{
-			int rawSize = questAction.HostilePartySize;
-			int troopCount = Math.Max(5, Math.Min(rawSize, 1500));
-			if (rawSize != troopCount)
-			{
-				LogMessage($"[QUEST] HostilePartySize {rawSize} clamped to {troopCount}");
-			}
-			string partyLabel = string.IsNullOrEmpty(questAction.HostilePartyLabel) ? "Quest Enemies" : questAction.HostilePartyLabel;
-			Clan banditClan = Clan.BanditFactions?.FirstOrDefault();
-			if (banditClan == null)
-			{
-				LogMessage("[QUEST] No bandit clan found for hostile party spawn");
-				return;
-			}
-			Settlement currentSettlement = questGiver?.CurrentSettlement;
-			Vec2 spawnPos;
-			if (currentSettlement != null)
-			{
-				CampaignVec2 gate = currentSettlement.GatePosition;
-				spawnPos = gate.ToVec2();
-			}
-		else if (questGiver?.PartyBelongedTo != null)
-		{
-			spawnPos = questGiver.PartyBelongedTo.GetPosition2D();
-		}
-		else
-		{
-			spawnPos = MobileParty.MainParty?.GetPosition2D() ?? default;
-		}
-			CharacterObject basicTroop = null;
-			if (!string.IsNullOrEmpty(questAction.HostileTroopName))
-			{
-				basicTroop = ItemMentionParser.FindBestTroopMatch(questAction.HostileTroopName);
-				if (basicTroop != null)
-				{
-					LogMessage($"[QUEST] Resolved troop '{questAction.HostileTroopName}' → '{((BasicCharacterObject)basicTroop).Name}'");
-				}
-			}
-			basicTroop = basicTroop ?? banditClan.BasicTroop;
-			if (basicTroop == null)
-			{
-				LogMessage("[QUEST] No troop type found for hostile party spawn");
-				return;
-			}
-			Hideout anyHideout = Settlement.All?
-				.Where((Settlement s) => s.IsHideout && s.Hideout != null)
-				.Select((Settlement s) => s.Hideout)
-				.FirstOrDefault();
-			if (anyHideout == null)
-			{
-				LogMessage("[QUEST] No hideout found on map — cannot spawn hostile party");
-				return;
-			}
-			CampaignVec2 campaignSpawnPos = new CampaignVec2(spawnPos, true);
-			MobileParty party = BanditPartyComponent.CreateBanditParty("quest_party_" + questInfo.QuestId, banditClan, anyHideout, false, (PartyTemplateObject)null, campaignSpawnPos);
-			if (party == null)
-			{
-				LogMessage("[QUEST] BanditPartyComponent.CreateBanditParty returned null");
-				return;
-			}
-			questInfo.SpawnedPartyId = ((MBObjectBase)party).StringId;
-			bool partySetupOk = false;
-			try
-			{
-				party.MemberRoster.AddToCounts(basicTroop, troopCount, false, 0, 0, true, -1);
-				party.Party.SetCustomName(new TextObject(partyLabel, (Dictionary<string, object>)null));
-				party.SetMovePatrolAroundPoint(campaignSpawnPos, (NavigationType)3);
-				party.SetPartyUsedByQuest(true);
-				partySetupOk = true;
-			}
-			catch (Exception setupEx)
-			{
-				LogMessage("[QUEST] Error setting up hostile party, destroying it: " + setupEx.Message);
-				DestroyPartyAction.Apply((PartyBase)null, party);
-				questInfo.SpawnedPartyId = null;
-			}
-			if (!partySetupOk)
-			{
-				return;
-			}
-			QuestBase questBase = Campaign.Current?.QuestManager?.Quests?.FirstOrDefault((Func<QuestBase, bool>)((QuestBase q) => ((MBObjectBase)q).StringId == questInfo.QuestId && q.IsOngoing));
-			if (questBase != null)
-			{
-				questBase.AddTrackedObject((ITrackableCampaignObject)(object)party);
-			}
-			LogMessage($"[QUEST] Spawned hostile party '{partyLabel}' ({troopCount} troops) near player for quest '{questInfo.Title}'");
-			InformationManager.DisplayMessage(new InformationMessage($"A hostile party '{partyLabel}' has appeared on the map!", ExtraColors.RedAIInfluence));
-		}
-		catch (Exception ex)
-		{
-			LogMessage("[QUEST] Error spawning hostile party: " + ex.Message + "\n" + ex.StackTrace);
-		}
-	}
 
 	private void ApplyQuestItemRewards(AIQuestInfo questInfo)
 	{
@@ -4601,6 +4536,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			LogMessage($"[SETTINGS] AI Backend change detected. New value: {arg} (index: {num})");
 			return;
 		}
+		if (settingName == "DebugGenerateQuestFromPrompt" && (bool)value)
+		{
+			DebugGenerateQuestFromPrompt();
+			return;
+		}
 		if (settingName == "DebugSpawnTestQuest" && (bool)value)
 		{
 			DebugSpawnTestQuest();
@@ -4718,6 +4658,91 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			LogMessage("[QuestDebug] DebugSpawnTestQuest error: " + ex.Message);
 			InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Error — see mod_log.txt", ExtraColors.RedAIInfluence));
 		}
+	}
+
+	private void DebugGenerateQuestFromPrompt()
+	{
+		string rawPrompt = GlobalSettings<ModSettings>.Instance?.DebugQuestPrompt;
+		if (string.IsNullOrWhiteSpace(rawPrompt))
+		{
+			InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Quest Generation Prompt is empty.", ExtraColors.RedAIInfluence));
+			return;
+		}
+		string prompt = rawPrompt.Trim();
+		if (prompt.Length > 500)
+			prompt = prompt.Substring(0, 500);
+
+		Vec2 mainPos = MobileParty.MainParty?.GetPosition2D() ?? default;
+		Hero questGiver = Hero.FindAll((Hero h) => h != Hero.MainHero && h.IsAlive && h.IsActive && !h.IsWanderer)
+			?.OrderBy((Hero h) =>
+			{
+				Vec2 pos = h.PartyBelongedTo != null ? h.PartyBelongedTo.GetPosition2D() : (h.CurrentSettlement?.GetPosition2D ?? default);
+				return pos.Distance(mainPos);
+			})
+			?.FirstOrDefault();
+		if (questGiver == null)
+		{
+			InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] No suitable NPC found.", ExtraColors.RedAIInfluence));
+			return;
+		}
+
+		InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Generating quest from prompt...", ExtraColors.GreenAIInfluence));
+		LogMessage("[QuestDebug] Prompt: " + prompt);
+
+		string requestPrompt = "You are generating a Bannerlord quest action.\nReturn ONLY valid JSON in this exact wrapper:\n{\"quest_action\":{...}}\n" +
+			"Inside quest_action provide action=create_quest with fields: title, description, duration_days (7-60), reward_gold (0-5000), " +
+			"and optionally spawn_npc (object with: name, alignment, culture, backstory, personality, is_female, age, settlement, " +
+			"equipment {weapon, shield, head, body, cape, gloves, legs, horse, tier}, party_name, party_troops, party_size).\n" +
+			"alignment must be one of: friendly, hostile, neutral.\n" +
+			"All item/troop/settlement names are fuzzy-matched — use natural language names.\n" +
+			"Do not add explanations.\nPlayer quest request: " + prompt;
+
+		Task.Run(async () =>
+		{
+			try
+			{
+				Task<string> requestTask = SendAIRequestRaw(requestPrompt);
+				Task timeoutTask = Task.Delay(45000);
+				Task completedTask = await Task.WhenAny(requestTask, timeoutTask);
+				string rawResponse = (completedTask == timeoutTask) ? "Error: Timeout (45s)" : await requestTask;
+
+				TtsLipSyncService.MainThreadQueue.Enqueue(() =>
+				{
+					try
+					{
+						if (string.IsNullOrEmpty(rawResponse) || rawResponse.StartsWith("Error:"))
+						{
+							LogMessage("[QuestDebug] AI request failed: " + (rawResponse ?? "empty"));
+							InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Failed: " + (rawResponse ?? "empty"), ExtraColors.RedAIInfluence));
+							return;
+						}
+						string cleaned = JsonCleaner.CleanJsonGeneric(rawResponse) ?? rawResponse;
+						AIResponse aiResponse = JsonConvert.DeserializeObject<AIResponse>(cleaned);
+						QuestActionData questAction = aiResponse?.QuestAction;
+						if (questAction == null)
+							questAction = JsonConvert.DeserializeObject<QuestActionData>(cleaned);
+						if (questAction == null || !"create_quest".Equals(questAction.Action, StringComparison.OrdinalIgnoreCase))
+						{
+							LogMessage("[QuestDebug] Parse failed or wrong action. Raw: " + rawResponse);
+							InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Parse failed — see mod_log.txt", ExtraColors.RedAIInfluence));
+							return;
+						}
+						NPCContext context = GetOrCreateNPCContext(questGiver);
+						ProcessCreateQuest(questGiver, context, questAction);
+						InformationManager.DisplayMessage(new InformationMessage($"[QuestDebug] Quest created on {questGiver.Name}.", ExtraColors.GreenAIInfluence));
+					}
+					catch (Exception ex)
+					{
+						LogMessage("[QuestDebug] Main-thread error: " + ex.Message + "\n" + ex.StackTrace);
+						InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Error — see mod_log.txt", ExtraColors.RedAIInfluence));
+					}
+				});
+			}
+			catch (Exception ex)
+			{
+				LogMessage("[QuestDebug] Background error: " + ex.Message + "\n" + ex.StackTrace);
+			}
+		});
 	}
 
 	private void DebugViewActiveQuests()

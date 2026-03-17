@@ -4622,8 +4622,32 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 		return GetEnabledEventTypes().Any();
 	}
 
+	private string _debugQuestPrompt = "Create a combat quest where I must defeat a hostile warlord. He should be a tier 4 warrior with a large warband of 50 troops camped near the closest town. Give him a name, backstory, and personality. Make him hostile.";
+
 	[SettingPropertyGroup("Quest Debug", GroupOrder = 20)]
-	[SettingPropertyBool("Spawn Test Quest", Order = 0, RequireRestart = false, HintText = "Spawns a test AI quest on the nearest NPC with all reward types (gold, items, skill XP, influence, hostile party). Use to verify the quest system works in-game.")]
+	[SettingPropertyText("Quest Generation Prompt", -1, false, "", RequireRestart = false, HintText = "Enter a quest idea. Use 'Generate Quest From Prompt' to create it via the AI.")]
+	public string DebugQuestPrompt
+	{
+		get => _debugQuestPrompt;
+		set => _debugQuestPrompt = value ?? "";
+	}
+
+	[SettingPropertyGroup("Quest Debug", GroupOrder = 20)]
+	[SettingPropertyBool("Generate Quest From Prompt", Order = 1, RequireRestart = false, HintText = "Sends the Quest Generation Prompt to the AI to create a quest with spawn_npc on the nearest NPC.")]
+	public bool DebugGenerateQuestFromPrompt
+	{
+		get => false;
+		set
+		{
+			if (value)
+			{
+				this.OnSettingChanged?.Invoke("DebugGenerateQuestFromPrompt", value);
+			}
+		}
+	}
+
+	[SettingPropertyGroup("Quest Debug", GroupOrder = 20)]
+	[SettingPropertyBool("Spawn Test Quest", Order = 2, RequireRestart = false, HintText = "Spawns a test AI quest on the nearest NPC with all reward types (gold, items, skill XP, influence, hostile party). Use to verify the quest system works in-game.")]
 	public bool DebugSpawnTestQuest
 	{
 		get => false;
@@ -4637,7 +4661,7 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 	}
 
 	[SettingPropertyGroup("Quest Debug", GroupOrder = 20)]
-	[SettingPropertyBool("View Active AI Quests", Order = 1, RequireRestart = false, HintText = "Prints all active AI quests (ID, title, giver, rewards, progress) to the game log and HUD.")]
+	[SettingPropertyBool("View Active AI Quests", Order = 3, RequireRestart = false, HintText = "Prints all active AI quests (ID, title, giver, rewards, progress) to the game log and HUD.")]
 	public bool DebugViewActiveQuests
 	{
 		get => false;
@@ -4651,7 +4675,7 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 	}
 
 	[SettingPropertyGroup("Quest Debug", GroupOrder = 20)]
-	[SettingPropertyBool("Fail All Active AI Quests", Order = 2, RequireRestart = false, HintText = "Immediately fails every active AI quest. Useful for clearing stuck quests during testing.")]
+	[SettingPropertyBool("Fail All Active AI Quests", Order = 4, RequireRestart = false, HintText = "Immediately fails every active AI quest. Useful for clearing stuck quests during testing.")]
 	public bool DebugFailAllQuests
 	{
 		get => false;
