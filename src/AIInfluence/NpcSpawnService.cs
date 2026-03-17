@@ -392,7 +392,7 @@ public class NpcSpawnService
 			{
 				if (!string.IsNullOrWhiteSpace(alignment) && playerFaction != null)
 				{
-					bool wantsFriendly = alignment.Equals("friendly", StringComparison.OrdinalIgnoreCase);
+					bool wantsFriendly = NormalizeAlignment(alignment) == "friendly";
 					bool isFriendly = match.MapFaction != null && !match.MapFaction.IsAtWarWith(playerFaction);
 					if (wantsFriendly != isFriendly)
 						_log($"[NPC_SPAWN] Warning: faction '{factionName}' resolved to '{match.Name}' but alignment is '{alignment}' and faction is {(isFriendly ? "friendly" : "hostile")} to player");
@@ -405,19 +405,37 @@ public class NpcSpawnService
 		return ResolveByAlignment(alignment, playerFaction, settlement);
 	}
 
+	private static string NormalizeAlignment(string alignment)
+	{
+		if (string.IsNullOrWhiteSpace(alignment))
+			return "neutral";
+		string lower = alignment.Trim().ToLowerInvariant();
+		switch (lower)
+		{
+			case "friendly": case "friend": case "ally": case "allied": case "peaceful":
+				return "friendly";
+			case "hostile": case "enemy": case "foe": case "aggressive": case "war":
+				return "hostile";
+			default:
+				return "neutral";
+		}
+	}
+
 	private Clan ResolveByAlignment(string alignment, IFaction playerFaction, Settlement settlement)
 	{
-		if (string.IsNullOrWhiteSpace(alignment) || alignment.Equals("neutral", StringComparison.OrdinalIgnoreCase))
+		string normalized = NormalizeAlignment(alignment);
+
+		if (normalized == "neutral")
 			return ValidClanOrFallback(settlement.OwnerClan) ?? Clan.PlayerClan;
 
-		if (alignment.Equals("friendly", StringComparison.OrdinalIgnoreCase))
+		if (normalized == "friendly")
 		{
 			if (playerFaction != null && IsValidOwnerClan(settlement.OwnerClan) && !settlement.OwnerClan.MapFaction.IsAtWarWith(playerFaction))
 				return settlement.OwnerClan;
 			return Clan.PlayerClan;
 		}
 
-		if (alignment.Equals("hostile", StringComparison.OrdinalIgnoreCase))
+		if (normalized == "hostile")
 		{
 			if (playerFaction == null)
 				return Clan.BanditFactions?.FirstOrDefault();
@@ -436,7 +454,6 @@ public class NpcSpawnService
 			return Clan.BanditFactions?.FirstOrDefault();
 		}
 
-		_log($"[NPC_SPAWN] Unknown alignment '{alignment}', treating as neutral");
 		return ValidClanOrFallback(settlement.OwnerClan) ?? Clan.PlayerClan;
 	}
 
