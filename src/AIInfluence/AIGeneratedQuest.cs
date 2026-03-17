@@ -48,6 +48,11 @@ public class AIGeneratedQuest : QuestBase
 	[SaveableField(11)]
 	private bool _pendingFailDueToDeadGiver;
 
+	[SaveableField(12)]
+	private string _spawnedPartyId;
+
+	public string SpawnedPartyId { get => _spawnedPartyId; set => _spawnedPartyId = value; }
+
 	public override TextObject Title => new TextObject(_title, (Dictionary<string, object>)null);
 
 	public string QuestDescription => _description;

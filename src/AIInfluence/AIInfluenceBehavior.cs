@@ -734,21 +734,18 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	{
 		try
 		{
-			foreach (KeyValuePair<string, NPCContext> kv in _npcContexts.ToList())
+			IEnumerable<QuestBase> quests = Campaign.Current?.QuestManager?.Quests;
+			if (quests == null)
 			{
-				foreach (AIQuestInfo q in kv.Value?.ActiveAIQuests ?? Enumerable.Empty<AIQuestInfo>())
+				return;
+			}
+			foreach (QuestBase q in quests)
+			{
+				if (q is AIGeneratedQuest aiQuest && q.IsOngoing && !string.IsNullOrEmpty(aiQuest.SpawnedPartyId))
 				{
-					if (!string.IsNullOrEmpty(q.SpawnedPartyId) && (MobileParty.All?.Any((MobileParty p) => ((MBObjectBase)p).StringId == q.SpawnedPartyId) != true))
+					if (MobileParty.All?.Any((MobileParty p) => ((MBObjectBase)p).StringId == aiQuest.SpawnedPartyId) != true)
 					{
-						HandleSpawnedQuestPartyDefeated(q.SpawnedPartyId);
-						return;
-					}
-				}
-				foreach (AIQuestInfo q in kv.Value?.IncomingAIQuests ?? Enumerable.Empty<AIQuestInfo>())
-				{
-					if (!string.IsNullOrEmpty(q.SpawnedPartyId) && (MobileParty.All?.Any((MobileParty p) => ((MBObjectBase)p).StringId == q.SpawnedPartyId) != true))
-					{
-						HandleSpawnedQuestPartyDefeated(q.SpawnedPartyId);
+						HandleSpawnedQuestPartyDefeated(aiQuest.SpawnedPartyId);
 						return;
 					}
 				}
@@ -1121,7 +1118,13 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage("[QUEST] BanditPartyComponent.CreateBanditParty returned null");
 				return;
 			}
-			questInfo.SpawnedPartyId = ((MBObjectBase)party).StringId;
+			string partyStringId = ((MBObjectBase)party).StringId;
+			questInfo.SpawnedPartyId = partyStringId;
+			AIGeneratedQuest aiGenQuest = Campaign.Current?.QuestManager?.Quests?.FirstOrDefault((Func<QuestBase, bool>)((QuestBase q) => ((MBObjectBase)q).StringId == questInfo.QuestId && q.IsOngoing)) as AIGeneratedQuest;
+			if (aiGenQuest != null)
+			{
+				aiGenQuest.SpawnedPartyId = partyStringId;
+			}
 			bool partySetupOk = false;
 			try
 			{
@@ -1136,6 +1139,10 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage("[QUEST] Error setting up hostile party, destroying it: " + setupEx.Message);
 				DestroyPartyAction.Apply((PartyBase)null, party);
 				questInfo.SpawnedPartyId = null;
+				if (aiGenQuest != null)
+				{
+					aiGenQuest.SpawnedPartyId = "";
+				}
 			}
 			if (!partySetupOk)
 			{
@@ -1254,6 +1261,10 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				DestroyPartyAction.Apply((PartyBase)null, party);
 				LogMessage($"[QUEST] Destroyed spawned party '{questInfo.SpawnedPartyId}' on quest end");
 				questInfo.SpawnedPartyId = null;
+				if (questBase is AIGeneratedQuest aiQuest)
+				{
+					aiQuest.SpawnedPartyId = "";
+				}
 			}
 		}
 		catch (Exception ex)
@@ -1317,8 +1328,12 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			ProgressSetTo = newProgress
 		});
 		AIGeneratedQuest aiQuest = Campaign.Current?.QuestManager?.Quests?.FirstOrDefault((Func<QuestBase, bool>)((QuestBase q) => ((MBObjectBase)q).StringId == questInfo.QuestId && q.IsOngoing)) as AIGeneratedQuest;
-		aiQuest?.AddUpdateLog(updateLog);
-		aiQuest?.SetDiscreteProgress(newProgress);
+		if (aiQuest != null)
+		{
+			aiQuest.SpawnedPartyId = "";
+			aiQuest.AddUpdateLog(updateLog);
+			aiQuest.SetDiscreteProgress(newProgress);
+		}
 		SyncQuestInfoAcrossNpcs(questInfo);
 		if (newProgress >= questInfo.ProgressTarget && questInfo.ProgressTarget > 0)
 		{
