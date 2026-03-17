@@ -2492,8 +2492,9 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				context.NegativeToneCount = 0;
 				context.EscalationState = "neutral";
 				context.CombatResponse = null;
-				SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
-				return;
+			SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
+			LogMessage("[DEBUG] NPC context reset (mission already active) for " + npcName + ".");
+			return;
 			}
 			LogMessage("[DEBUG] Calling MenuHelper.EncounterAttackConsequence to start mission...");
 			MenuHelper.EncounterAttackConsequence((MenuCallbackArgs)null);
