@@ -106,7 +106,7 @@ public class NpcSpawnService
 		if (clan == null)
 			return Fail("Could not resolve a clan for simple party");
 
-		int troopCount = Math.Max(5, Math.Min(data.PartySize ?? 10, 500));
+		int troopCount = Math.Max(1, Math.Min(data.PartySize ?? 10, 5000));
 		string partyName = data.PartyName ?? clan.Name?.ToString() ?? "War Party";
 		CampaignVec2 gatePos = settlement.GatePosition;
 		Vec2 position = gatePos.ToVec2();
@@ -133,7 +133,7 @@ public class NpcSpawnService
 			"aiinfluence_spawned_" + hero.StringId,
 			hero,
 			spawnPosition,
-			5f,
+			0f,
 			homeSettlement,
 			hero
 		);
@@ -146,7 +146,7 @@ public class NpcSpawnService
 
 		party.Party.SetCustomName(new TextObject(partyName, null));
 
-		int troopCount = Math.Max(0, Math.Min(data.PartySize ?? 0, 500));
+		int troopCount = Math.Max(0, Math.Min(data.PartySize ?? 0, 5000));
 		if (troopCount > 0)
 			AddTroopsToParty(party, data.PartyTroops, troopCount, hero.Culture);
 
