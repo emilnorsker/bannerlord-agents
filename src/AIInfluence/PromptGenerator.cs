@@ -4616,13 +4616,13 @@ public static class PromptGenerator
 			"- `\"spawn_npc\"`: object — spawns an NPC or party on the world map or in a settlement. All names are fuzzy-matched.\n" +
 			"  - `\"name\"`: NPC name. If provided, creates a named hero the player can talk to and fight. If omitted with party fields, creates a leaderless faction party.\n" +
 			"  - `\"alignment\"`: REQUIRED — `\"friendly\"`, `\"hostile\"`, or `\"neutral\"`. Determines faction: friendly = allied to player, hostile = enemy faction or bandits, neutral = local settlement owner.\n" +
-			"  - `\"culture\"`: e.g. \"Vlandian\", \"Sturgian\", \"Aserai\", \"Empire\". Determines appearance and default equipment.\n" +
+			"  - `\"culture\"`: determines appearance and default equipment. Available cultures: " + GetAvailableCultures() + ".\n" +
 			"  - `\"backstory\"`: brief backstory (shapes how this NPC talks in conversation).\n" +
 			"  - `\"personality\"`: personality traits (affects speech patterns).\n" +
 			"  - `\"is_female\"`: true/false (optional).\n" +
 			"  - `\"age\"`: 18–70 (optional, default 30).\n" +
 			"  - `\"settlement\"`: town/village name to spawn near (e.g. \"Epicrotea\"). Defaults to nearest town.\n" +
-			"  - `\"faction\"`: kingdom/clan name (e.g. \"Vlandia\"). Usually omit — alignment handles it.\n" +
+			"  - `\"faction\"`: kingdom/clan name. Usually omit — alignment handles it. Available kingdoms: " + GetAvailableKingdoms() + ".\n" +
 			"  - `\"equipment\"`: object — override default gear. All item names fuzzy-matched.\n" +
 			"    - `\"weapon\"`, `\"shield\"`, `\"head\"`, `\"body\"`, `\"cape\"`, `\"gloves\"`, `\"legs\"`, `\"horse\"`: item names.\n" +
 			"    - `\"tier\"`: 0–6 — prefer items of this quality level.\n" +
@@ -4741,5 +4741,37 @@ public static class PromptGenerator
 		"  Update: {\"action\": \"update_quest\", \"quest_id\": \"...\", \"update_log\": \"your note\", \"set_progress\": N_or_null}\n" +
 		"  Complete: {\"action\": \"complete_quest\", \"quest_id\": \"...\", \"completion_reason\": \"why\", \"set_progress\": N_or_null} — all rewards applied automatically\n" +
 		"  Fail: {\"action\": \"fail_quest\", \"quest_id\": \"...\", \"completion_reason\": \"why failed\"}\n";
+	}
+
+	private static string GetAvailableCultures()
+	{
+		try
+		{
+			var cultures = Game.Current?.ObjectManager?.GetObjectTypeList<CultureObject>();
+			if (cultures == null)
+				return "unknown";
+			var names = cultures
+				.Where(c => c?.Name != null && !string.IsNullOrWhiteSpace(c.Name.ToString()) && c.StringId != "neutral_culture")
+				.Select(c => "\"" + c.Name.ToString() + "\"")
+				.Distinct();
+			string result = string.Join(", ", names);
+			return string.IsNullOrEmpty(result) ? "unknown" : result;
+		}
+		catch { return "unknown"; }
+	}
+
+	private static string GetAvailableKingdoms()
+	{
+		try
+		{
+			if (Kingdom.All == null)
+				return "unknown";
+			var names = ((IEnumerable<Kingdom>)Kingdom.All)
+				.Where(k => k != null && !k.IsEliminated && k.Name != null)
+				.Select(k => "\"" + k.Name.ToString() + "\"");
+			string result = string.Join(", ", names);
+			return string.IsNullOrEmpty(result) ? "unknown" : result;
+		}
+		catch { return "unknown"; }
 	}
 }
