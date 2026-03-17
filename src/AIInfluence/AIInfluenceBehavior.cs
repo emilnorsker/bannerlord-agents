@@ -1018,110 +1018,39 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage("[QUEST] Error adding quest to target NPC '" + targetNpcId + "': " + ex.Message);
 			}
 		}
-		if (questAction.SpawnHostileParty)
+		SpawnNpcData spawnData = questAction.SpawnNpc;
+		if (spawnData == null && questAction.SpawnHostileParty)
 		{
-			SpawnQuestHostileParty(npc, item, questAction);
+			spawnData = new SpawnNpcData
+			{
+				Alignment = "hostile",
+				PartyName = string.IsNullOrEmpty(questAction.HostilePartyLabel) ? "Quest Enemies" : questAction.HostilePartyLabel,
+				PartySize = Math.Max(5, questAction.HostilePartySize),
+				PartyTroops = string.IsNullOrEmpty(questAction.HostileTroopName) ? null : new List<string> { questAction.HostileTroopName },
+				Settlement = npc?.CurrentSettlement != null ? ((object)npc.CurrentSettlement.Name)?.ToString() : null
+			};
+		}
+		if (spawnData != null)
+		{
+			var spawnService = new NpcSpawnService(LogMessage);
+			var spawnResult = spawnService.Spawn(spawnData);
+			if (spawnResult.Success && spawnResult.Party != null)
+			{
+				item.SpawnedPartyId = ((MBObjectBase)spawnResult.Party).StringId;
+				spawnResult.Party.SetPartyUsedByQuest(true);
+				QuestBase questBase2 = Campaign.Current?.QuestManager?.Quests?.FirstOrDefault((Func<QuestBase, bool>)((QuestBase q) => ((MBObjectBase)q).StringId == item.QuestId && q.IsOngoing));
+				questBase2?.AddTrackedObject((ITrackableCampaignObject)(object)spawnResult.Party);
+				InformationManager.DisplayMessage(new InformationMessage($"A party has appeared on the map!", ExtraColors.RedAIInfluence));
+			}
+			else if (spawnResult.Error != null)
+			{
+				LogMessage("[QUEST] spawn_npc failed: " + spawnResult.Error);
+			}
 			SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
 		}
 		LogMessage(string.Format("[QUEST] Created quest '{0}' (ID: {1}) from {2}, reward: {3}, duration: {4} days, targets: [{5}]", questAction.Title, text5, text, num, num2, string.Join(", ", effectiveTargetNpcIds)) + ((!string.IsNullOrEmpty(text2)) ? (", completer: " + text2) : "") + ((valueOrDefault > 0) ? $", progress: 0/{valueOrDefault} ({text4})" : ""));
 	}
 
-	private void SpawnQuestHostileParty(Hero questGiver, AIQuestInfo questInfo, QuestActionData questAction)
-	{
-		try
-		{
-			int rawSize = questAction.HostilePartySize;
-			int troopCount = Math.Max(5, Math.Min(rawSize, 1500));
-			if (rawSize != troopCount)
-			{
-				LogMessage($"[QUEST] HostilePartySize {rawSize} clamped to {troopCount}");
-			}
-			string partyLabel = string.IsNullOrEmpty(questAction.HostilePartyLabel) ? "Quest Enemies" : questAction.HostilePartyLabel;
-			Clan banditClan = Clan.BanditFactions?.FirstOrDefault();
-			if (banditClan == null)
-			{
-				LogMessage("[QUEST] No bandit clan found for hostile party spawn");
-				return;
-			}
-			Settlement currentSettlement = questGiver?.CurrentSettlement;
-			Vec2 spawnPos;
-			if (currentSettlement != null)
-			{
-				CampaignVec2 gate = currentSettlement.GatePosition;
-				spawnPos = gate.ToVec2();
-			}
-		else if (questGiver?.PartyBelongedTo != null)
-		{
-			spawnPos = questGiver.PartyBelongedTo.GetPosition2D();
-		}
-		else
-		{
-			spawnPos = MobileParty.MainParty?.GetPosition2D() ?? default;
-		}
-			CharacterObject basicTroop = null;
-			if (!string.IsNullOrEmpty(questAction.HostileTroopName))
-			{
-				basicTroop = ItemMentionParser.FindBestTroopMatch(questAction.HostileTroopName);
-				if (basicTroop != null)
-				{
-					LogMessage($"[QUEST] Resolved troop '{questAction.HostileTroopName}' → '{((BasicCharacterObject)basicTroop).Name}'");
-				}
-			}
-			basicTroop = basicTroop ?? banditClan.BasicTroop;
-			if (basicTroop == null)
-			{
-				LogMessage("[QUEST] No troop type found for hostile party spawn");
-				return;
-			}
-			Hideout anyHideout = Settlement.All?
-				.Where((Settlement s) => s.IsHideout && s.Hideout != null)
-				.Select((Settlement s) => s.Hideout)
-				.FirstOrDefault();
-			if (anyHideout == null)
-			{
-				LogMessage("[QUEST] No hideout found on map — cannot spawn hostile party");
-				return;
-			}
-			CampaignVec2 campaignSpawnPos = new CampaignVec2(spawnPos, true);
-			MobileParty party = BanditPartyComponent.CreateBanditParty("quest_party_" + questInfo.QuestId, banditClan, anyHideout, false, (PartyTemplateObject)null, campaignSpawnPos);
-			if (party == null)
-			{
-				LogMessage("[QUEST] BanditPartyComponent.CreateBanditParty returned null");
-				return;
-			}
-			questInfo.SpawnedPartyId = ((MBObjectBase)party).StringId;
-			bool partySetupOk = false;
-			try
-			{
-				party.MemberRoster.AddToCounts(basicTroop, troopCount, false, 0, 0, true, -1);
-				party.Party.SetCustomName(new TextObject(partyLabel, (Dictionary<string, object>)null));
-				party.SetMovePatrolAroundPoint(campaignSpawnPos, (NavigationType)3);
-				party.SetPartyUsedByQuest(true);
-				partySetupOk = true;
-			}
-			catch (Exception setupEx)
-			{
-				LogMessage("[QUEST] Error setting up hostile party, destroying it: " + setupEx.Message);
-				DestroyPartyAction.Apply((PartyBase)null, party);
-				questInfo.SpawnedPartyId = null;
-			}
-			if (!partySetupOk)
-			{
-				return;
-			}
-			QuestBase questBase = Campaign.Current?.QuestManager?.Quests?.FirstOrDefault((Func<QuestBase, bool>)((QuestBase q) => ((MBObjectBase)q).StringId == questInfo.QuestId && q.IsOngoing));
-			if (questBase != null)
-			{
-				questBase.AddTrackedObject((ITrackableCampaignObject)(object)party);
-			}
-			LogMessage($"[QUEST] Spawned hostile party '{partyLabel}' ({troopCount} troops) near player for quest '{questInfo.Title}'");
-			InformationManager.DisplayMessage(new InformationMessage($"A hostile party '{partyLabel}' has appeared on the map!", ExtraColors.RedAIInfluence));
-		}
-		catch (Exception ex)
-		{
-			LogMessage("[QUEST] Error spawning hostile party: " + ex.Message + "\n" + ex.StackTrace);
-		}
-	}
 
 	private void ApplyQuestItemRewards(AIQuestInfo questInfo)
 	{
