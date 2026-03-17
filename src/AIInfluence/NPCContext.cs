@@ -308,14 +308,22 @@ public class NPCContext
 		return list;
 	}
 
+	private static string StripPillSuffix(string message)
+	{
+		if (string.IsNullOrEmpty(message)) return message;
+		int idx = message.IndexOf("\n---\n", StringComparison.Ordinal);
+		return idx >= 0 ? message.Substring(0, idx) : message;
+	}
+
 	private string ComputeMessageHash(string message)
 	{
 		if (string.IsNullOrEmpty(message))
 		{
 			return string.Empty;
 		}
+		string canonical = StripPillSuffix(message);
 		using SHA256 sHA = SHA256.Create();
-		byte[] inArray = sHA.ComputeHash(Encoding.UTF8.GetBytes(message));
+		byte[] inArray = sHA.ComputeHash(Encoding.UTF8.GetBytes(canonical));
 		return Convert.ToBase64String(inArray);
 	}
 
