@@ -58,6 +58,12 @@ public class NpcSpawnService
 		if (clan == null)
 			return Fail("Could not resolve a clan for NPC spawn");
 
+		if (clan.IsBanditFaction || clan.FactionMidSettlement == null)
+		{
+			_log($"[NPC_SPAWN] Clan '{clan.Name}' is bandit or has no FactionMidSettlement; using settlement owner for lord party");
+			clan = ValidClanOrFallback(settlement.OwnerClan) ?? Clan.PlayerClan;
+		}
+
 		CharacterObject template = ResolveTemplate(data.Culture, data.Occupation, data.IsFemale, settlement);
 		if (template == null)
 			return Fail("Could not resolve a character template");
