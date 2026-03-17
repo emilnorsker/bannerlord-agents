@@ -55,7 +55,7 @@ public class NpcChatWindowVM : ViewModel
     // ── Right panel – flat list, section headers included as items ────────
     [DataSourceProperty] public MBBindingList<TextItemVM> RightPanelItems { get; } = new MBBindingList<TextItemVM>();
 
-    private void AddNewestMessage(ChatMessageItemVM item) => MessageList.Insert(0, item);
+    private void AddNewestMessage(ChatMessageItemVM item) => MessageList.Add(item);
 
     public NpcChatWindowVM(Hero npc, NPCContext context, Action onReturn)
     {
