@@ -478,7 +478,7 @@ public class NpcSpawnService
 		string normalized = name.Trim().ToLowerInvariant();
 
 		Clan exact = Clan.All?.FirstOrDefault(c =>
-			!c.IsEliminated &&
+			IsValidOwnerClan(c) &&
 			c.Name != null && string.Equals(c.Name.ToString(), name, StringComparison.OrdinalIgnoreCase));
 		if (exact != null)
 			return exact;
@@ -490,7 +490,7 @@ public class NpcSpawnService
 			return kingdom.RulingClan;
 
 		Clan contains = Clan.All?.FirstOrDefault(c =>
-			!c.IsEliminated &&
+			IsValidOwnerClan(c) &&
 			c.Name != null && c.Name.ToString().ToLowerInvariant().Contains(normalized));
 		if (contains != null)
 			return contains;
