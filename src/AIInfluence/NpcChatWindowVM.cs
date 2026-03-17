@@ -91,6 +91,15 @@ public class NpcChatWindowVM : ViewModel
         EmotionLabel = context.EmotionalState?.Mood ?? "";
     }
 
+    private void RefreshTraitOverlay(Hero npc, NPCContext context)
+    {
+        PopulateTraitOverlay(npc, context);
+        ((ViewModel)this).OnPropertyChangedWithValue(RelationText, "RelationText");
+        ((ViewModel)this).OnPropertyChangedWithValue(RelationColor, "RelationColor");
+        ((ViewModel)this).OnPropertyChangedWithValue(TrustLabel, "TrustLabel");
+        ((ViewModel)this).OnPropertyChangedWithValue(EmotionLabel, "EmotionLabel");
+    }
+
     private void PopulateHistory(NPCContext context)
     {
         if (context?.ConversationHistory == null) return;
@@ -525,7 +534,11 @@ public class NpcChatWindowVM : ViewModel
                             catch (Exception ex) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] SaveNPCContext after pill persist failed: " + ex.Message); }
                         }
                         if (ctx != null)
+                        {
+                            AIInfluenceBehavior.Instance?.UpdateContextData(ctx, _npc);
+                            RefreshTraitOverlay(_npc, ctx);
                             RefreshCharacterSection(_npc, ctx);
+                        }
                     }
                     catch (Exception ex)
                     {
