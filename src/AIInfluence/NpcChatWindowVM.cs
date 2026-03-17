@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using AIInfluence.Diplomacy;
 using AIInfluence.DynamicEvents;
 using AIInfluence.Services;
 using MCM.Abstractions.Base.Global;
@@ -105,9 +106,18 @@ public class NpcChatWindowVM : ViewModel
         RightPanelItems.Add(new TextItemVM("WORLD EVENTS", Header));
         try
         {
-            var events = DynamicEventsManager.Instance?.GetActiveEvents()
-                             ?.OrderByDescending(e => e.CreationCampaignDays)
-                             .Take(5) ?? Enumerable.Empty<DynamicEvent>();
+            List<DynamicEvent> LoadDiplomacy()
+            {
+                try { return new DiplomacyStorage().LoadDiplomaticEvents() ?? new List<DynamicEvent>(); }
+                catch (Exception ex) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] LoadDiplomaticEvents failed: " + ex.Message); return new List<DynamicEvent>(); }
+            }
+            var events = (DynamicEventsManager.Instance?.GetActiveEvents() ?? Enumerable.Empty<DynamicEvent>())
+                .Concat(LoadDiplomacy())
+                .Where(e => e != null && !string.IsNullOrEmpty(e.Id))
+                .GroupBy(e => e.Id)
+                .Select(g => g.First())
+                .OrderByDescending(e => e.CreationCampaignDays)
+                .Take(5);
             foreach (var e in events)
             {
                 string text = string.IsNullOrWhiteSpace(e.Title) ? e.Description : e.Title;
