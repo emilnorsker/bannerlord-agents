@@ -4769,7 +4769,8 @@ public static class PromptGenerator
 				return "unknown";
 			var names = ((IEnumerable<Kingdom>)Kingdom.All)
 				.Where(k => k != null && !k.IsEliminated && k.Name != null)
-				.Select(k => "\"" + k.Name.ToString() + "\"");
+				.Select(k => "\"" + k.Name.ToString() + "\"")
+				.Distinct();
 			string result = string.Join(", ", names);
 			return string.IsNullOrEmpty(result) ? "unknown" : result;
 		}
