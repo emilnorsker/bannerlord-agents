@@ -139,7 +139,7 @@ public class LenientIntConverter : JsonConverter<int?>
 		if (token.Type == JTokenType.Integer)
 			return token.Value<int>();
 		if (token.Type == JTokenType.Float)
-			return (int)token.Value<float>();
+			return (int)Math.Round(token.Value<float>());
 		if (token.Type == JTokenType.String && int.TryParse(token.ToString().Trim(), out int result))
 			return result;
 		return null;
