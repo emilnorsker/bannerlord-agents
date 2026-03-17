@@ -75,7 +75,7 @@
         <!-- MarginLeft=Frame.Start so the backdrop doesn't dim the character -->
         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                 MarginLeft="!Frame.Start"
-                Color="#141414CC">
+                Sprite="BlankWhite" Color="#141414CC">
           <Children>
             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                     DoNotAcceptEvents="false">
@@ -85,7 +85,7 @@
                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
                         SuggestedHeight="!Header.H"
                         VerticalAlignment="Top"
-                        Color="#141414CC">
+                        Sprite="BlankWhite" Color="#141414CC">
                   <Children>
                     <!-- "Conversation Log" static label -->
                     <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"

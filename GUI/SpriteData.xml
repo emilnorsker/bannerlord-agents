@@ -3,7 +3,7 @@
     <SpriteCategory>
       <Name>ui_aiinfluence</Name>
       <SpriteSheetCount>1</SpriteSheetCount>
-      <SpriteSheetSize />
+      <SpriteSheetSize Width="2048" Height="512" />
     </SpriteCategory>
   </SpriteCategories>
 </SpriteData>

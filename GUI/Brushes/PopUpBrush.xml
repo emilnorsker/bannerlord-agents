@@ -34,6 +34,7 @@
   </Brush>
 
   <!-- Outcome text — warm gold (Figma: #E7C678, filter3_d — "John was attacked...") -->
+  <!-- TODO: wire up in ContentSegmentVM outcome pill once IsOutcome segment type is added -->
   <Brush Name="Chat.Outcome.Text">
     <Styles>
       <Style Name="Default" FontColor="#E7C678FF" FontSize="14" />
@@ -41,6 +42,7 @@
   </Brush>
 
   <!-- System event line — dimmed, centered -->
+  <!-- TODO: wire up in ChatInterface.xml ItemTemplate once IsEvent segment type is added -->
   <Brush Name="Chat.Event.Text">
     <Styles>
       <Style Name="Default" FontColor="#787880FF" FontSize="12" />
@@ -48,6 +50,7 @@
   </Brush>
 
   <!-- Item grant notification text — purple (Figma: #E1ACEE) -->
+  <!-- TODO: wire up in ChatInterface.xml ItemTemplate once IsItemGrant segment type is added -->
   <Brush Name="Chat.ItemGrant.Text">
     <Styles>
       <Style Name="Default" FontColor="#E1ACEEEF" FontSize="13" />
