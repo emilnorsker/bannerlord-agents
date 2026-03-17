@@ -498,7 +498,7 @@ public class NpcSpawnService
 		Kingdom kingdom = Kingdom.All?.FirstOrDefault(k =>
 			!k.IsEliminated &&
 			k.Name != null && string.Equals(k.Name.ToString(), name, StringComparison.OrdinalIgnoreCase));
-		if (kingdom?.RulingClan != null)
+		if (kingdom?.RulingClan != null && IsValidOwnerClan(kingdom.RulingClan))
 			return kingdom.RulingClan;
 
 		Clan contains = Clan.All?.FirstOrDefault(c =>
@@ -510,7 +510,7 @@ public class NpcSpawnService
 		Kingdom kingdomContains = Kingdom.All?.FirstOrDefault(k =>
 			!k.IsEliminated &&
 			k.Name != null && k.Name.ToString().ToLowerInvariant().Contains(normalized));
-		if (kingdomContains?.RulingClan != null)
+		if (kingdomContains?.RulingClan != null && IsValidOwnerClan(kingdomContains.RulingClan))
 			return kingdomContains.RulingClan;
 
 		return null;
