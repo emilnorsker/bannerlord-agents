@@ -4632,7 +4632,8 @@ public static class PromptGenerator
 			"  Examples:\n" +
 			"    Quest giver in town: {\"name\": \"Aldric\", \"alignment\": \"friendly\", \"culture\": \"Vlandian\", \"backstory\": \"A merchant who lost his caravan\", \"personality\": \"Nervous, grateful\", \"settlement\": \"Epicrotea\"}\n" +
 			"    Hostile warband: {\"name\": \"Kargas\", \"alignment\": \"hostile\", \"culture\": \"Sturgian\", \"backstory\": \"A bandit chief\", \"personality\": \"Cruel, mocking\", \"equipment\": {\"weapon\": \"two handed axe\", \"head\": \"wolf head\", \"tier\": 4}, \"party_name\": \"Kargas's Raiders\", \"party_troops\": [\"sturgian raider\"], \"party_size\": 30}\n" +
-			"    Simple bandit group: {\"alignment\": \"hostile\", \"party_name\": \"Roadside Bandits\", \"party_troops\": [\"looter\"], \"party_size\": 15}\n");
+			"    Simple bandit group: {\"alignment\": \"hostile\", \"party_name\": \"Roadside Bandits\", \"party_troops\": [\"looter\"], \"party_size\": 15}\n" +
+			"  IMPORTANT: When creating a quest that involves combat (kill bandits, defeat a warlord, clear a road, etc.), you MUST use spawn_npc to spawn the enemies on the map. Without spawn_npc, there will be nothing for the player to fight. Use a named NPC leader for important foes, or a simple party (no name) for generic enemies.\n");
 		stringBuilder.Append("\n");
 		return stringBuilder.ToString();
 	}
