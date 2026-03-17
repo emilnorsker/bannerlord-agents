@@ -235,6 +235,8 @@ public class NPCContext
 	{
 		if (ConversationHistory == null || index < 0 || index >= ConversationHistory.Count || string.IsNullOrEmpty(actionText))
 			return;
+		if (ConversationHistory[index].Contains("\n---\n"))
+			return; // already has a pill suffix; do not append again
 		ConversationHistory[index] = ConversationHistory[index] + "\n---\n" + actionText;
 	}
 
