@@ -1025,7 +1025,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			{
 				Alignment = "hostile",
 				PartyName = string.IsNullOrEmpty(questAction.HostilePartyLabel) ? "Quest Enemies" : questAction.HostilePartyLabel,
-				PartySize = Math.Max(5, questAction.HostilePartySize),
+                PartySize = Math.Max(5, Math.Min(questAction.HostilePartySize, 1500)),
 				PartyTroops = string.IsNullOrEmpty(questAction.HostileTroopName) ? null : new List<string> { questAction.HostileTroopName },
 				Settlement = npc?.CurrentSettlement != null ? ((object)npc.CurrentSettlement.Name)?.ToString() : null
 			};
