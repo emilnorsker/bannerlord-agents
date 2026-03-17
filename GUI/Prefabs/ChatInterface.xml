@@ -148,7 +148,7 @@
 
                                     <!-- Separator line above each message group (Figma: organic gray gradient strip) -->
                                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
-                                            SuggestedHeight="4"
+                                            SuggestedHeight="16"
                                             VerticalAlignment="Top"
                                             Sprite="chat_msg_separator"
                                             AlphaFactor="0.85"
