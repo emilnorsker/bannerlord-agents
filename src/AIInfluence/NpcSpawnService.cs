@@ -108,7 +108,8 @@ public class NpcSpawnService
 
 		int troopCount = Math.Max(5, Math.Min(data.PartySize ?? 10, 500));
 		string partyName = data.PartyName ?? clan.Name?.ToString() ?? "War Party";
-		Vec2 position = settlement.GetPosition2D;
+		CampaignVec2 gatePos = settlement.GatePosition;
+		Vec2 position = gatePos.ToVec2();
 
 		MobileParty party;
 		if (clan.IsBanditFaction)
@@ -126,13 +127,13 @@ public class NpcSpawnService
 	private MobileParty SpawnLordParty(Hero hero, SpawnNpcData data, Settlement homeSettlement)
 	{
 		string partyName = data.PartyName ?? $"{hero.Name}'s Party";
-		Vec2 position = homeSettlement.GetPosition2D;
+		CampaignVec2 spawnPosition = homeSettlement.GatePosition;
 
 		MobileParty party = LordPartyComponent.CreateLordParty(
 			"aiinfluence_spawned_" + hero.StringId,
 			hero,
-			new CampaignVec2(position, true),
-			2f,
+			spawnPosition,
+			5f,
 			homeSettlement,
 			hero
 		);
