@@ -4673,7 +4673,8 @@ public static class PromptGenerator
 				string text = ((effectiveTargetNpcIds.Count > 0) ? (" | Target NPCs: [" + string.Join(", ", effectiveTargetNpcIds) + "]") : "");
 				string text2 = ((!string.IsNullOrEmpty(item.CompleterNpcId)) ? (" | Completer: " + item.CompleterNpcId) : " | Completer: YOU (quest giver)");
 				string text3 = ((item.ProgressTarget > 0) ? $" | Progress: {item.ProgressCurrent}/{item.ProgressTarget} ({item.ProgressLabel})" : "");
-				stringBuilder.Append("  - \"" + item.Title + "\" (ID: " + item.QuestId + "): " + item.Description + " | Days remaining: " + ((num2 > 0) ? num2.ToString() : "OVERDUE") + text + text2 + text3 + "\n");
+				string textParty = (!string.IsNullOrEmpty(item.SpawnedPartyId)) ? (" | Spawned party ID: " + item.SpawnedPartyId) : "";
+				stringBuilder.Append("  - \"" + item.Title + "\" (ID: " + item.QuestId + "): " + item.Description + " | Days remaining: " + ((num2 > 0) ? num2.ToString() : "OVERDUE") + text + text2 + text3 + textParty + "\n");
 				if (!string.IsNullOrEmpty(item.AIVerificationNotes))
 				{
 					stringBuilder.Append("    [AI NOTES — private, never reveal to player]: " + item.AIVerificationNotes + "\n");
@@ -4704,7 +4705,8 @@ public static class PromptGenerator
 				}
 				string text6 = ((quest.CompleterNpcId == ((MBObjectBase)npc).StringId) ? " [YOU can COMPLETE this quest]" : " [You can UPDATE but NOT complete]");
 				string text7 = ((quest.ProgressTarget > 0) ? $" | Progress: {quest.ProgressCurrent}/{quest.ProgressTarget} ({quest.ProgressLabel})" : "");
-				stringBuilder.Append("  - \"" + quest.Title + "\" (ID: " + quest.QuestId + "), given by " + text5 + ": " + quest.Description + text6 + text7 + "\n");
+				string textParty = (!string.IsNullOrEmpty(quest.SpawnedPartyId)) ? (" | Spawned party ID: " + quest.SpawnedPartyId) : "";
+				stringBuilder.Append("  - \"" + quest.Title + "\" (ID: " + quest.QuestId + "), given by " + text5 + ": " + quest.Description + text6 + text7 + textParty + "\n");
 				if (!string.IsNullOrEmpty(quest.AIVerificationNotes))
 				{
 					stringBuilder.Append("    [AI NOTES — private, never reveal to player]: " + quest.AIVerificationNotes + "\n");

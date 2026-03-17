@@ -1038,6 +1038,15 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			{
 				item.SpawnedPartyId = ((MBObjectBase)spawnResult.Party).StringId;
 				spawnResult.Party.SetPartyUsedByQuest(true);
+				if (string.Equals(spawnData.Alignment, "hostile", StringComparison.OrdinalIgnoreCase))
+				{
+					string partyName = spawnData.PartyName ?? (spawnResult.Party.Name?.ToString()) ?? "a party";
+					string spawnLocation = !string.IsNullOrEmpty(spawnData.Settlement)
+						? spawnData.Settlement
+						: (npc?.PartyBelongedTo != null ? ((npc.Name)?.ToString() ?? "the quest giver") : "the player");
+					string addNote = "A hostile party '" + partyName + "' (id:" + item.SpawnedPartyId + ") was spawned near " + spawnLocation + ". The quest is complete when this party is destroyed.";
+					item.AIVerificationNotes = string.IsNullOrEmpty(item.AIVerificationNotes) ? addNote : item.AIVerificationNotes + " " + addNote;
+				}
 				QuestBase questBase2 = Campaign.Current?.QuestManager?.Quests?.FirstOrDefault((Func<QuestBase, bool>)((QuestBase q) => ((MBObjectBase)q).StringId == item.QuestId && q.IsOngoing));
 				questBase2?.AddTrackedObject((ITrackableCampaignObject)(object)spawnResult.Party);
 				InformationManager.DisplayMessage(new InformationMessage($"A party has appeared on the map!", ExtraColors.RedAIInfluence));
@@ -1056,7 +1065,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 		LogMessage(string.Format("[QUEST] Created quest '{0}' (ID: {1}) from {2}, reward: {3}, duration: {4} days, targets: [{5}]", questAction.Title, text5, text, num, num2, string.Join(", ", effectiveTargetNpcIds)) + ((!string.IsNullOrEmpty(text2)) ? (", completer: " + text2) : "") + ((valueOrDefault > 0) ? $", progress: 0/{valueOrDefault} ({text4})" : ""));
 	}
-
 
 	private void ApplyQuestItemRewards(AIQuestInfo questInfo)
 	{
