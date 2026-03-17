@@ -184,11 +184,31 @@ public class NpcChatWindowVM : ViewModel
     private ChatMessageItemVM ParseLine(string line, string typeTag = "")
     {
         string actionSuffix = null;
+        string relSuffix = null;
         int delimIdx = line.IndexOf(ActionDelim, StringComparison.Ordinal);
         if (delimIdx >= 0)
         {
-            actionSuffix = line.Substring(delimIdx + ActionDelim.Length).Trim();
+            string rest = line.Substring(delimIdx + ActionDelim.Length);
             line = line.Substring(0, delimIdx);
+            int relIdx = rest.IndexOf(RelationDelim, StringComparison.Ordinal);
+            if (relIdx >= 0)
+            {
+                actionSuffix = rest.Substring(0, relIdx).Trim();
+                relSuffix = rest.Substring(relIdx + RelationDelim.Length).Trim();
+            }
+            else
+            {
+                actionSuffix = rest.Trim();
+            }
+        }
+        else
+        {
+            int relIdx = line.IndexOf(RelationDelim, StringComparison.Ordinal);
+            if (relIdx >= 0)
+            {
+                relSuffix = line.Substring(relIdx + RelationDelim.Length).Trim();
+                line = line.Substring(0, relIdx);
+            }
         }
 
         int colonIdx = line.IndexOf(": ", StringComparison.Ordinal);
@@ -230,6 +250,8 @@ public class NpcChatWindowVM : ViewModel
 
         if (!string.IsNullOrEmpty(actionSuffix))
             item.ContentSegments.Add(new ContentSegmentVM(actionSuffix, ActionColor, ActionBubbleColor, isPill: true));
+        if (!string.IsNullOrEmpty(relSuffix))
+            item.ContentSegments.Add(new ContentSegmentVM(relSuffix, RelationMessageColor, RelationBubbleColor, isPill: true));
 
         return item;
     }
@@ -246,7 +268,8 @@ public class NpcChatWindowVM : ViewModel
             targetItem.ContentSegments.Add(new ContentSegmentVM("", SpeechTextColor, NpcBubbleColor));
     }
 
-    private const string ActionDelim = "\n---\n";
+    private const string ActionDelim   = "\n---\n";
+    private const string RelationDelim = "\n===\n";
 
     private static string GetRelationChangeMessage(AIResponse r, NPCContext ctx, string npcName)
     {
@@ -473,10 +496,14 @@ public class NpcChatWindowVM : ViewModel
                         {
                             if (!string.IsNullOrEmpty(playerActionText) && playerHistoryIdx >= 0 && playerHistoryIdx < ctx.ConversationHistory.Count)
                                 ctx.AppendActionToMessage(playerHistoryIdx, playerActionText);
-                            string npcPills = string.Join(" ", new[] { npcActionText, relMsg }.Where(s => !string.IsNullOrEmpty(s)));
                             int npcHistoryIdx = ctx.ConversationHistory.Count - 1;
-                            if (!string.IsNullOrEmpty(npcPills) && npcHistoryIdx > playerHistoryIdx)
-                                ctx.AppendActionToMessage(npcHistoryIdx, npcPills);
+                            if (npcHistoryIdx > playerHistoryIdx)
+                            {
+                                if (!string.IsNullOrEmpty(npcActionText))
+                                    ctx.AppendActionToMessage(npcHistoryIdx, npcActionText);
+                                if (!string.IsNullOrEmpty(relMsg))
+                                    ctx.AppendRelationToMessage(npcHistoryIdx, relMsg);
+                            }
                             try { AIInfluenceBehavior.Instance?.SaveNPCContext(((MBObjectBase)_npc).StringId, _npc, ctx); }
                             catch (Exception ex) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] SaveNPCContext after pill persist failed: " + ex.Message); }
                         }

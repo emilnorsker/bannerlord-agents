@@ -236,8 +236,18 @@ public class NPCContext
 		if (ConversationHistory == null || index < 0 || index >= ConversationHistory.Count || string.IsNullOrEmpty(actionText))
 			return;
 		if (ConversationHistory[index].Contains("\n---\n"))
-			return; // already has a pill suffix; do not append again
+			return; // already has an action suffix; do not append again
 		ConversationHistory[index] = ConversationHistory[index] + "\n---\n" + actionText;
+	}
+
+	/// <summary>Appends relation pill text to a message for persistence. Format: "msg[\n---\naction]\n===\nrelation".</summary>
+	public void AppendRelationToMessage(int index, string relationText)
+	{
+		if (ConversationHistory == null || index < 0 || index >= ConversationHistory.Count || string.IsNullOrEmpty(relationText))
+			return;
+		if (ConversationHistory[index].Contains("\n===\n"))
+			return; // already has a relation suffix; do not append again
+		ConversationHistory[index] = ConversationHistory[index] + "\n===\n" + relationText;
 	}
 
 	public string GetFormattedHistory()
@@ -312,6 +322,7 @@ public class NPCContext
 	{
 		if (string.IsNullOrEmpty(message)) return message;
 		int idx = message.IndexOf("\n---\n", StringComparison.Ordinal);
+		if (idx < 0) idx = message.IndexOf("\n===\n", StringComparison.Ordinal);
 		return idx >= 0 ? message.Substring(0, idx) : message;
 	}
 

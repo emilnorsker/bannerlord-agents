@@ -741,13 +741,14 @@ public static class PromptGenerator
 			val = CampaignTime.Now;
 			double nowDays = (val).ToDays;
 			IEnumerable<string> source = context.ConversationHistory.Skip(Math.Max(0, context.ConversationHistory.Count - GlobalSettings<ModSettings>.Instance.PromptMaxHistory)).Take(GlobalSettings<ModSettings>.Instance.PromptMaxHistory);
-		arg5 = string.Join("\n", source.Select(delegate(string msg)
+			arg5 = string.Join("\n", source.Select(delegate(string msg)
 		{
 			if (string.IsNullOrEmpty(msg))
 			{
 				return msg;
 			}
 			int pillIdx = msg.IndexOf("\n---\n", StringComparison.Ordinal);
+			if (pillIdx < 0) pillIdx = msg.IndexOf("\n===\n", StringComparison.Ordinal);
 			if (pillIdx >= 0)
 				msg = msg.Substring(0, pillIdx);
 			double? num12 = null;
@@ -789,6 +790,7 @@ public static class PromptGenerator
 		text46 = string.Join("\n", list10.Skip(Math.Max(0, list10.Count - 5)).Select(delegate(string msg)
 		{
 			int pillIdx = msg.IndexOf("\n---\n", StringComparison.Ordinal);
+			if (pillIdx < 0) pillIdx = msg.IndexOf("\n===\n", StringComparison.Ordinal);
 			if (pillIdx >= 0)
 				msg = msg.Substring(0, pillIdx);
 			double? num12 = null;
