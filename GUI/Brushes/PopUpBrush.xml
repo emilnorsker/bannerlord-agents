@@ -12,17 +12,17 @@
     </Styles>
   </Brush>
 
-  <!-- NPC name in header — left-aligned, slightly larger -->
+  <!-- NPC name in header — Figma spec: #BBAE92 -->
   <Brush Name="Chat.Sender.Name">
     <Styles>
-      <Style Name="Default" FontColor="#E8DCC8FF" FontSize="15" />
+      <Style Name="Default" FontColor="#BBAE92FF" FontSize="15" />
     </Styles>
   </Brush>
 
-  <!-- Message body text -->
+  <!-- Message body text — Figma spec: #A1A1A1 -->
   <Brush Name="Chat.Body.Text">
     <Styles>
-      <Style Name="Default" FontColor="#C8C0B0FF" FontSize="14" />
+      <Style Name="Default" FontColor="#A1A1A1FF" FontSize="14" />
     </Styles>
   </Brush>
 
