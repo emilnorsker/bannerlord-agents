@@ -742,13 +742,17 @@ public static class PromptGenerator
 			double nowDays = (val).ToDays;
 			IEnumerable<string> source = context.ConversationHistory.Skip(Math.Max(0, context.ConversationHistory.Count - GlobalSettings<ModSettings>.Instance.PromptMaxHistory)).Take(GlobalSettings<ModSettings>.Instance.PromptMaxHistory);
 			arg5 = string.Join("\n", source.Select(delegate(string msg)
+		{
+			if (string.IsNullOrEmpty(msg))
 			{
-				if (string.IsNullOrEmpty(msg))
-				{
-					return msg;
-				}
-				double? num12 = null;
-				int num13 = msg.IndexOf("[sent_at_days=", StringComparison.OrdinalIgnoreCase);
+				return msg;
+			}
+			int pillIdx = msg.IndexOf("\n---\n", StringComparison.Ordinal);
+			if (pillIdx < 0) pillIdx = msg.IndexOf("\n===\n", StringComparison.Ordinal);
+			if (pillIdx >= 0)
+				msg = msg.Substring(0, pillIdx);
+			double? num12 = null;
+			int num13 = msg.IndexOf("[sent_at_days=", StringComparison.OrdinalIgnoreCase);
 				if (num13 >= 0)
 				{
 					int num14 = num13 + "[sent_at_days=".Length;
@@ -783,10 +787,14 @@ public static class PromptGenerator
 		{
 			val = CampaignTime.Now;
 			double nowDays2 = (val).ToDays;
-			text46 = string.Join("\n", list10.Skip(Math.Max(0, list10.Count - 5)).Select(delegate(string msg)
-			{
-				double? num12 = null;
-				int num13 = msg.IndexOf("[sent_at_days=", StringComparison.OrdinalIgnoreCase);
+		text46 = string.Join("\n", list10.Skip(Math.Max(0, list10.Count - 5)).Select(delegate(string msg)
+		{
+			int pillIdx = msg.IndexOf("\n---\n", StringComparison.Ordinal);
+			if (pillIdx < 0) pillIdx = msg.IndexOf("\n===\n", StringComparison.Ordinal);
+			if (pillIdx >= 0)
+				msg = msg.Substring(0, pillIdx);
+			double? num12 = null;
+			int num13 = msg.IndexOf("[sent_at_days=", StringComparison.OrdinalIgnoreCase);
 				if (num13 >= 0)
 				{
 					int num14 = num13 + "[sent_at_days=".Length;
