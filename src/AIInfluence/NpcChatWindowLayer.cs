@@ -1,6 +1,7 @@
 using System;
 using System.Reflection;
 using AIInfluence.UI;
+using MCM.Abstractions.Base.Global;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.ViewModelCollection;
 using TaleWorlds.Core.ImageIdentifiers;
@@ -16,12 +17,11 @@ public class NpcChatWindowLayer : GauntletLayer
     private object _movie;
     private NpcChatWindowVM _viewModel;
     /// <summary>
-    /// Horizontal conversation-camera offset (scene units), tuned so the NPC
-    /// appears centered inside the left chat panel in ChatInterface.xml.
-    /// Only applies to in-mission conversations; map conversations use a
-    /// separate tableau camera and require a per-frame Harmony postfix.
+    /// Reads the mission camera offset from MCM settings. Map conversations
+    /// use a separate tableau camera with its own MCM setting, applied via
+    /// a per-frame Harmony postfix (MapConversationCameraOffsetPatch).
     /// </summary>
-    private const float ConversationCameraOffsetX = -18f; // mission world-space units; map-conversation equivalent is -0.18f (different coordinate space, see MapConversationCameraOffsetPatch)
+    private static float MissionOffsetX => GlobalSettings<ModSettings>.Instance?.MissionCameraOffsetX ?? -18f;
 
     public NpcChatWindowLayer(Hero npc, NPCContext context, Action onReturn)
         : base("NpcChatWindowLayer", 300, false)
@@ -43,7 +43,7 @@ public class NpcChatWindowLayer : GauntletLayer
         _viewModel = new NpcChatWindowVM(npc, context, onReturn);
         _movie = base.LoadMovie("ChatInterface", (ViewModel)(object)_viewModel);
         ((ScreenLayer)this).InputRestrictions.SetInputRestrictions(true, (InputUsageMask)7);
-        ApplyMissionCameraOffset(ConversationCameraOffsetX);
+        ApplyMissionCameraOffset(MissionOffsetX);
     }
 
     protected override void OnFinalize()
