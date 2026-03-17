@@ -144,6 +144,14 @@
                                         MarginTop="2" MarginBottom="1">
                                   <Children>
 
+                                    <!-- Separator line above each message group (Figma: organic gray gradient strip) -->
+                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
+                                            SuggestedHeight="4"
+                                            VerticalAlignment="Top"
+                                            Sprite="chat_msg_separator"
+                                            AlphaFactor="0.85"
+                                            DoNotAcceptEvents="true" />
+
                                     <!-- NPC side: left-aligned, constrained right -->
                                     <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                StackLayout.LayoutMethod="VerticalBottomToTop"
@@ -158,7 +166,7 @@
                                                        MarginLeft="10" MarginTop="4" MarginBottom="4">
                                               <Children>
                                                 <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                               Brush="Conversation.HeaderText"
+                                                               Brush="Chat.Sender.Name"
                                                                Text="@SenderName" IsDisabled="true" />
                                                 <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                                             VerticalAlignment="Bottom" MarginLeft="8" MarginBottom="3"
@@ -175,28 +183,28 @@
                                                    StackLayout.LayoutMethod="VerticalBottomToTop"
                                                    Spacing="10">
                                           <ItemTemplate>
-                                            <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Bubble.W" HeightSizePolicy="CoverChildren"
-                                                    HorizontalAlignment="Left" IsVisible="@IsBody"
-                                                    MarginTop="2" MarginBottom="2"
-                                                    Sprite="General\CharacterCreation\name_input_area" Color="@BackColor">
-                                              <Children>
-                                                <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                            Margin="14,6,14,6"
-                                                            Brush="Conversation.ConversedPartyLine.Text" Brush.FontColor="@TextColor"
-                                                            Text="@Text" />
-                                              </Children>
-                                            </Widget>
-                                            <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                    HorizontalAlignment="Left" IsVisible="@IsPill"
-                                                    MarginTop="2" MarginBottom="2"
-                                                    Sprite="name_shadow_9" Color="@BackColor">
-                                              <Children>
-                                                <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                            Margin="12,4,12,4"
-                                                            Brush="Conversation.ConversedPartyLine.Text" Brush.FontColor="@TextColor"
-                                                            Text="@Text" />
-                                              </Children>
-                                            </Widget>
+                                                            <!-- NPC body segment (IsBody) -->
+                                                            <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Bubble.W" HeightSizePolicy="CoverChildren"
+                                                                    HorizontalAlignment="Left" IsVisible="@IsBody"
+                                                                    MarginTop="2" MarginBottom="2">
+                                                              <Children>
+                                                                <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                                            Margin="4,2,4,2"
+                                                                            Brush="Chat.Body.Text"
+                                                                            Text="@Text" />
+                                                              </Children>
+                                                            </Widget>
+                                                            <!-- NPC pill segment (action/emote — orange) -->
+                                                            <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                                    HorizontalAlignment="Left" IsVisible="@IsPill"
+                                                                    MarginTop="2" MarginBottom="2">
+                                                              <Children>
+                                                                <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                                            Margin="4,2,4,2"
+                                                                            Brush="Chat.Action.Text"
+                                                                            Text="@Text" />
+                                                              </Children>
+                                                            </Widget>
                                           </ItemTemplate>
                                         </ListPanel>
                                       </Children>
@@ -210,13 +218,12 @@
                                                IsVisible="@IsPlayer">
                                       <Children>
                                         <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                HorizontalAlignment="Right"
-                                                Sprite="name_shadow_9" AlphaFactor="0.7">
+                                                HorizontalAlignment="Right">
                                           <Children>
                                             <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                                            HorizontalAlignment="Right"
                                                            MarginRight="10" MarginTop="4" MarginBottom="4"
-                                                           Brush="Conversation.HeaderText"
+                                                           Brush="Chat.Sender.Name"
                                                            Text="@SenderName" IsDisabled="true" />
                                           </Children>
                                         </Widget>
@@ -226,30 +233,30 @@
                                                    StackLayout.LayoutMethod="VerticalBottomToTop"
                                                    Spacing="10">
                                           <ItemTemplate>
-                                            <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Bubble.W" HeightSizePolicy="CoverChildren"
-                                                    HorizontalAlignment="Right" IsVisible="@IsBody"
-                                                    MarginTop="2" MarginBottom="2"
-                                                    Sprite="General\CharacterCreation\name_input_area" Color="@BackColor">
-                                              <Children>
-                                                <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                            Margin="14,6,14,6"
-                                                            Brush="Conversation.ConversedPartyLine.Text" Brush.FontColor="@TextColor"
-                                                            TextHorizontalAlignment="Right"
-                                                            Text="@Text" />
-                                              </Children>
-                                            </Widget>
-                                            <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                    HorizontalAlignment="Right" IsVisible="@IsPill"
-                                                    MarginTop="2" MarginBottom="2"
-                                                    Sprite="name_shadow_9" Color="@BackColor">
-                                              <Children>
-                                                <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                            Margin="12,4,12,4"
-                                                            Brush="Conversation.ConversedPartyLine.Text" Brush.FontColor="@TextColor"
-                                                            TextHorizontalAlignment="Right"
-                                                            Text="@Text" />
-                                              </Children>
-                                            </Widget>
+                                                            <!-- Player body segment (IsBody) -->
+                                                            <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Bubble.W" HeightSizePolicy="CoverChildren"
+                                                                    HorizontalAlignment="Right" IsVisible="@IsBody"
+                                                                    MarginTop="2" MarginBottom="2">
+                                                              <Children>
+                                                                <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                                            Margin="4,2,4,2"
+                                                                            Brush="Chat.Body.Text"
+                                                                            TextHorizontalAlignment="Right"
+                                                                            Text="@Text" />
+                                                              </Children>
+                                                            </Widget>
+                                                            <!-- Player pill segment (action — orange italic, outcome — gold) -->
+                                                            <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                                    HorizontalAlignment="Right" IsVisible="@IsPill"
+                                                                    MarginTop="2" MarginBottom="2">
+                                                              <Children>
+                                                                <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                                            Margin="4,2,4,2"
+                                                                            Brush="Chat.Action.Text"
+                                                                            TextHorizontalAlignment="Right"
+                                                                            Text="@Text" />
+                                                              </Children>
+                                                            </Widget>
                                           </ItemTemplate>
                                         </ListPanel>
                                       </Children>

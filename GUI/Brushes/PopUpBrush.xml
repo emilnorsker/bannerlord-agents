@@ -26,10 +26,17 @@
     </Styles>
   </Brush>
 
-  <!-- Player action text — orange italic (Figma: *action* segments) -->
+  <!-- Player action text — orange-red italic (Figma: #FF7451, filter2_d) -->
   <Brush Name="Chat.Action.Text">
     <Styles>
-      <Style Name="Default" FontColor="#CF7A3AFF" FontSize="14" IsItalic="true" />
+      <Style Name="Default" FontColor="#FF7451FF" FontSize="14" IsItalic="true" />
+    </Styles>
+  </Brush>
+
+  <!-- Outcome text — warm gold (Figma: #E7C678, filter3_d — "John was attacked...") -->
+  <Brush Name="Chat.Outcome.Text">
+    <Styles>
+      <Style Name="Default" FontColor="#E7C678FF" FontSize="14" />
     </Styles>
   </Brush>
 
@@ -40,10 +47,10 @@
     </Styles>
   </Brush>
 
-  <!-- Item grant notification text -->
+  <!-- Item grant notification text — purple (Figma: #E1ACEE) -->
   <Brush Name="Chat.ItemGrant.Text">
     <Styles>
-      <Style Name="Default" FontColor="#9BA4B5FF" FontSize="13" />
+      <Style Name="Default" FontColor="#E1ACEEEF" FontSize="13" />
     </Styles>
   </Brush>
 </Brushes>
