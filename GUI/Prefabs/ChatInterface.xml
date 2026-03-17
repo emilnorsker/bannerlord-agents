@@ -2,7 +2,7 @@
   <!--
     Layout — left-aligned, full height:
       Left  (x=0..460)   : opaque dark backdrop (#141414).
-                           Stat overlay (TopBanner) rendered on top of character.
+                           Stat overlay (TopBanner) at top.
       Sep   (x=460..462) : thin separator
       Frame (x=462..end) : opaque dark backdrop (#141414) wrapping center+right.
         Center: fills frame minus right column.
