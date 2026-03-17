@@ -393,7 +393,7 @@ public class NpcSpawnService
 				if (!string.IsNullOrWhiteSpace(alignment) && playerFaction != null)
 				{
 					bool wantsFriendly = alignment.Equals("friendly", StringComparison.OrdinalIgnoreCase);
-					bool isFriendly = !match.MapFaction.IsAtWarWith(playerFaction);
+					bool isFriendly = match.MapFaction != null && !match.MapFaction.IsAtWarWith(playerFaction);
 					if (wantsFriendly != isFriendly)
 						_log($"[NPC_SPAWN] Warning: faction '{factionName}' resolved to '{match.Name}' but alignment is '{alignment}' and faction is {(isFriendly ? "friendly" : "hostile")} to player");
 				}
