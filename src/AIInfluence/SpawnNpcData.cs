@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace AIInfluence;
 
@@ -74,8 +76,27 @@ public class SpawnNpcData
 	public string PartyName { get; set; }
 
 	[JsonProperty("party_troops")]
+	[JsonConverter(typeof(StringOrArrayConverter))]
 	public List<string> PartyTroops { get; set; }
 
 	[JsonProperty("party_size")]
 	public int? PartySize { get; set; }
+}
+
+public class StringOrArrayConverter : JsonConverter<List<string>>
+{
+	public override List<string> ReadJson(JsonReader reader, Type objectType, List<string> existingValue, bool hasExistingValue, JsonSerializer serializer)
+	{
+		JToken token = JToken.Load(reader);
+		if (token.Type == JTokenType.String)
+			return new List<string> { token.ToString() };
+		if (token.Type == JTokenType.Array)
+			return token.ToObject<List<string>>();
+		return new List<string>();
+	}
+
+	public override void WriteJson(JsonWriter writer, List<string> value, JsonSerializer serializer)
+	{
+		serializer.Serialize(writer, value);
+	}
 }
