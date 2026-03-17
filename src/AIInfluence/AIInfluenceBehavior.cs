@@ -1066,6 +1066,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			{
 				string partyStringId = ((MBObjectBase)spawnResult.Party).StringId;
 				item.SpawnedPartyId = partyStringId;
+				item.SpawnedPartyDefeatMeansFailure = !string.Equals(spawnData.Alignment, "hostile", StringComparison.OrdinalIgnoreCase);
 				spawnResult.Party.SetPartyUsedByQuest(true);
 				QuestBase questBase2 = Campaign.Current?.QuestManager?.Quests?.FirstOrDefault((Func<QuestBase, bool>)((QuestBase q) => ((MBObjectBase)q).StringId == item.QuestId && q.IsOngoing));
 				if (questBase2 is AIGeneratedQuest aiGenQuest)
@@ -1271,8 +1272,15 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		SyncQuestInfoAcrossNpcs(questInfo);
 		if (newProgress >= questInfo.ProgressTarget && questInfo.ProgressTarget > 0)
 		{
-			QuestActionData completeAction = new QuestActionData { QuestId = questInfo.QuestId, CompletionReason = updateLog, SetProgress = newProgress };
-			ProcessCompleteQuest(npc, context, completeAction);
+			QuestActionData action = new QuestActionData { QuestId = questInfo.QuestId, CompletionReason = updateLog, SetProgress = newProgress };
+			if (questInfo.SpawnedPartyDefeatMeansFailure)
+			{
+				ProcessFailQuest(npc, context, action);
+			}
+			else
+			{
+				ProcessCompleteQuest(npc, context, action);
+			}
 		}
 		else
 		{
@@ -1637,6 +1645,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				{
 					aIQuestInfo.UpdateLogs = updatedQuestInfo.UpdateLogs;
 					aIQuestInfo.ProgressCurrent = updatedQuestInfo.ProgressCurrent;
+					aIQuestInfo.SpawnedPartyId = updatedQuestInfo.SpawnedPartyId;
 					flag = true;
 				}
 				AIQuestInfo aIQuestInfo2 = nPCContext.IncomingAIQuests?.Find((AIQuestInfo q) => q.QuestId == questId);
@@ -1644,6 +1653,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				{
 					aIQuestInfo2.UpdateLogs = updatedQuestInfo.UpdateLogs;
 					aIQuestInfo2.ProgressCurrent = updatedQuestInfo.ProgressCurrent;
+					aIQuestInfo2.SpawnedPartyId = updatedQuestInfo.SpawnedPartyId;
 					flag = true;
 				}
 				if (flag)
