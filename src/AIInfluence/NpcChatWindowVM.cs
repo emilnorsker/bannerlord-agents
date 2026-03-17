@@ -363,6 +363,9 @@ public class NpcChatWindowVM : ViewModel
             string streamingVisibleText = "";
             bool streamPumpActive = false;
             Action streamPumpStep = null;
+            // Set by the reply handler; the pump calls this once the typewriter animation reaches
+            // the final target text so the message is only swapped out after the full animation.
+            Action finalizeNpcMessage = null;
             if (useOpenRouterStreaming)
             {
                 streamingItem = ParseLine($"{npcName}: ", "");
@@ -390,6 +393,9 @@ public class NpcChatWindowVM : ViewModel
                             streamingVisibleText = streamingTargetText;
                             ReplaceStreamingSegments(streamingItem, npcName, streamingVisibleText);
                             streamPumpActive = false;
+                            Action fin = finalizeNpcMessage;
+                            finalizeNpcMessage = null;
+                            fin?.Invoke();
                         }
                     }
                     else if (streamingVisibleText.Length > streamingTargetText.Length)
@@ -397,9 +403,12 @@ public class NpcChatWindowVM : ViewModel
                         streamingVisibleText = streamingTargetText;
                         ReplaceStreamingSegments(streamingItem, npcName, streamingVisibleText);
                     }
-                    else
+                    else // visible == target: animation complete
                     {
                         streamPumpActive = false;
+                        Action fin = finalizeNpcMessage;
+                        finalizeNpcMessage = null;
+                        fin?.Invoke();
                     }
                 };
             }
@@ -435,43 +444,63 @@ public class NpcChatWindowVM : ViewModel
                 }
 
                 string tone = pendingResponse?.Tone ?? "";
+                string playerActionText = BuildPlayerActionText(pendingResponse);
+                string npcActionText = BuildNpcActionText(pendingResponse, ctx);
+                string relMsg = GetRelationChangeMessage(pendingResponse, ctx, npcName);
 
-                // UI list mutations after await may run on a thread-pool thread.
-                // Wrap to prevent a threading exception from leaking past the finally block.
-                try
+                // Swaps the streaming placeholder for the finalised message item and persists pills.
+                // Called immediately for non-streaming responses, or by the pump once the typewriter
+                // animation has finished revealing all characters.
+                Action doFinalize = () =>
                 {
-                    streamingRetired = true;
-                    if (streamingItem != null)
-                        MessageList.Remove(streamingItem);
-                    string playerActionText = BuildPlayerActionText(pendingResponse);
-                    string npcActionText = BuildNpcActionText(pendingResponse, ctx);
-                    string relMsg = GetRelationChangeMessage(pendingResponse, ctx, npcName);
-
-                    if (!string.IsNullOrEmpty(playerActionText) && playerMessageItem != null)
-                        playerMessageItem.ContentSegments.Add(new ContentSegmentVM(playerActionText, ActionColor, ActionBubbleColor, true));
-
-                    var npcItem = ParseLine($"{npcName}: {reply}", tone);
-                    if (!string.IsNullOrEmpty(npcActionText))
-                        npcItem.ContentSegments.Add(new ContentSegmentVM(npcActionText, ActionColor, ActionBubbleColor, true));
-                    if (!string.IsNullOrEmpty(relMsg))
-                        npcItem.ContentSegments.Add(new ContentSegmentVM(relMsg, RelationMessageColor, RelationBubbleColor, true));
-                    AddNewestMessage(npcItem);
-
-                    if (ctx?.ConversationHistory != null)
+                    try
                     {
-                        if (!string.IsNullOrEmpty(playerActionText) && playerHistoryIdx >= 0 && playerHistoryIdx < ctx.ConversationHistory.Count)
-                            ctx.AppendActionToMessage(playerHistoryIdx, playerActionText);
-                        string npcPills = string.Join(" ", new[] { npcActionText, relMsg }.Where(s => !string.IsNullOrEmpty(s)));
-                        int npcHistoryIdx = ctx.ConversationHistory.Count - 1;
-                        if (!string.IsNullOrEmpty(npcPills) && npcHistoryIdx > playerHistoryIdx)
-                            ctx.AppendActionToMessage(npcHistoryIdx, npcPills);
-                        try { AIInfluenceBehavior.Instance?.SaveNPCContext(((MBObjectBase)_npc).StringId, _npc, ctx); }
-                        catch (Exception ex) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] SaveNPCContext after pill persist failed: " + ex.Message); }
+                        streamingRetired = true;
+                        if (streamingItem != null)
+                            MessageList.Remove(streamingItem);
+
+                        if (!string.IsNullOrEmpty(playerActionText) && playerMessageItem != null)
+                            playerMessageItem.ContentSegments.Add(new ContentSegmentVM(playerActionText, ActionColor, ActionBubbleColor, true));
+
+                        var npcItem = ParseLine($"{npcName}: {reply}", tone);
+                        if (!string.IsNullOrEmpty(npcActionText))
+                            npcItem.ContentSegments.Add(new ContentSegmentVM(npcActionText, ActionColor, ActionBubbleColor, true));
+                        if (!string.IsNullOrEmpty(relMsg))
+                            npcItem.ContentSegments.Add(new ContentSegmentVM(relMsg, RelationMessageColor, RelationBubbleColor, true));
+                        AddNewestMessage(npcItem);
+
+                        if (ctx?.ConversationHistory != null)
+                        {
+                            if (!string.IsNullOrEmpty(playerActionText) && playerHistoryIdx >= 0 && playerHistoryIdx < ctx.ConversationHistory.Count)
+                                ctx.AppendActionToMessage(playerHistoryIdx, playerActionText);
+                            string npcPills = string.Join(" ", new[] { npcActionText, relMsg }.Where(s => !string.IsNullOrEmpty(s)));
+                            int npcHistoryIdx = ctx.ConversationHistory.Count - 1;
+                            if (!string.IsNullOrEmpty(npcPills) && npcHistoryIdx > playerHistoryIdx)
+                                ctx.AppendActionToMessage(npcHistoryIdx, npcPills);
+                            try { AIInfluenceBehavior.Instance?.SaveNPCContext(((MBObjectBase)_npc).StringId, _npc, ctx); }
+                            catch (Exception ex) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] SaveNPCContext after pill persist failed: " + ex.Message); }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] UI mutation after reply failed: " + ex.Message);
+                    }
+                };
+
+                if (useOpenRouterStreaming && streamingItem != null)
+                {
+                    // Let the typewriter pump finish animating to the full reply, then finalize.
+                    finalizeNpcMessage = doFinalize;
+                    streamingTargetText = reply;
+                    if (!streamPumpActive && streamPumpStep != null)
+                    {
+                        streamPumpActive = true;
+                        streamPumpStep();
                     }
                 }
-                catch (Exception ex)
+                else
                 {
-                    AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] UI mutation after reply failed: " + ex.Message);
+                    doFinalize();
                 }
             }
             else if (streamingItem != null)
