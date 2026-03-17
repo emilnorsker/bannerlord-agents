@@ -71,11 +71,11 @@
                 PositionXOffset="!Left.W"
                 Sprite="BlankWhiteSquare_9" Color="!SepColor" />
 
-        <!-- ══ CENTER + RIGHT — dark backdrop ════════════════ -->
+        <!-- ══ CENTER + RIGHT — dark backdrop (Figma: #141414 at 80%) ════════════════ -->
         <!-- MarginLeft=Frame.Start so the backdrop doesn't dim the character -->
         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                 MarginLeft="!Frame.Start"
-                Color="#1A1A1FFF">
+                Color="#141414CC">
           <Children>
             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                     DoNotAcceptEvents="false">
@@ -85,7 +85,7 @@
                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
                         SuggestedHeight="!Header.H"
                         VerticalAlignment="Top"
-                        Color="#15151AFF">
+                        Color="#141414CC">
                   <Children>
                     <!-- "Conversation Log" static label -->
                     <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
@@ -106,21 +106,10 @@
                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                         MarginTop="!Header.H" MarginRight="!Frame.End">
                   <Children>
-                    <!-- Middle panel background: custom dark texture + gradient + noise (Figma node 898-2031) -->
-                    <!-- Layer 1: dark noisy texture at ~95% alpha -->
+                    <!-- Middle panel background: dark texture (Figma: image fill 20% on #141414 base) -->
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                             Sprite="chat_panel_bg"
-                            AlphaFactor="0.95"
-                            DoNotAcceptEvents="true" />
-                    <!-- Layer 2: cyan-to-dark gradient overlay at 90% (top→down, #31F2F6→#242424) -->
-                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                            Sprite="chat_gradient_overlay"
-                            AlphaFactor="0.9"
-                            DoNotAcceptEvents="true" />
-                    <!-- Layer 3: noise grain overlay -->
-                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                            Sprite="chat_noise"
-                            AlphaFactor="1.0"
+                            AlphaFactor="0.2"
                             DoNotAcceptEvents="true" />
 
                     <!-- Message scroll area -->
