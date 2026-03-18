@@ -166,6 +166,7 @@
                                   <Children>
                                     <!-- NPC side: left-aligned, 90% width -->
                                     <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                               HorizontalAlignment="Left"
                                                StackLayout.LayoutMethod="VerticalBottomToTop"
                                                MarginLeft="!Msg.Margin" MarginRight="!Msg.Margin"
                                                IsVisible="@IsNpc">
@@ -196,8 +197,8 @@
                                                    Spacing="10">
                                           <ItemTemplate>
                                             <!-- Single root required by Gauntlet ItemTemplate (fix from main).
-                                                 Body/pill visibility toggled via IsVisible; Sprite+Color for bubble/pill backgrounds. -->
-                                            <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren">
+                                                 StretchToParent so row fills width; body/pill align left within it. -->
+                                            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren">
                                               <Children>
                                                 <!-- NPC body segment (90% width) -->
                                                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
@@ -256,8 +257,8 @@
                                                    Spacing="10">
                                           <ItemTemplate>
                                             <!-- Single root required by Gauntlet ItemTemplate (fix from main).
-                                                 Body/pill visibility toggled via IsVisible; Sprite+Color for bubble/pill backgrounds. -->
-                                            <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" HorizontalAlignment="Right">
+                                                 StretchToParent so row fills width; body/pill align right within it. -->
+                                            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren">
                                               <Children>
                                                 <!-- Player body segment (90% width) -->
                                                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
