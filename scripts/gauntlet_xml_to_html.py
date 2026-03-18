@@ -41,8 +41,28 @@ def get_attr(el: ET.Element, name: str, constants: dict, default: str = "") -> s
     return resolve_constants(v, constants)
 
 
+def use_frame_inner_grid(el: ET.Element, constants: dict) -> bool:
+    """ChatInterface Frame inner: Header(80) + [Center|RightSep(2)|Right(300)]."""
+    children = []
+    for c in el:
+        if c.tag == "Children":
+            children = list(c)
+            break
+    if len(children) != 4:
+        return False
+    c1, c2, c3, c4 = children
+    h1 = get_attr(c1, "SuggestedHeight", constants)
+    mt2 = get_attr(c2, "MarginTop", constants)
+    mr2 = get_attr(c2, "MarginRight", constants)
+    w3 = get_attr(c3, "SuggestedWidth", constants)
+    w4 = get_attr(c4, "SuggestedWidth", constants)
+    return h1 == "80" and mt2 == "80" and mr2 == "302" and w3 == "2" and w4 == "300"
+
+
 def infer_flex_direction(el: ET.Element) -> str:
-    """Infer row vs column from children alignment when no StackLayout."""
+    """Infer row vs column from children alignment when no StackLayout.
+    Gauntlet default: siblings with HA Left/Right lay out horizontally (row).
+    ChatInterface root: Left(460) | Sep(2) | Frame(flex) = row."""
     children = []
     for c in el:
         if c.tag == "Children":
@@ -58,10 +78,12 @@ def infer_flex_direction(el: ET.Element) -> str:
         return "row"
     if has_right and len(children) == 2:
         return "row"
+    if len(children) >= 3 and has_left:
+        return "row"
     return "column"
 
 
-def widget_to_css(el: ET.Element, constants: dict) -> str:
+def widget_to_css(el: ET.Element, constants: dict, skip_mt_mr_for_grid: bool = False) -> str:
     """Build CSS from Gauntlet widget attributes."""
     parts = []
     w = get_attr(el, "WidthSizePolicy", constants)
@@ -78,19 +100,22 @@ def widget_to_css(el: ET.Element, constants: dict) -> str:
     margin = get_attr(el, "Margin", constants)
     layout = get_attr(el, "StackLayout.LayoutMethod", constants)
     alpha = get_attr(el, "AlphaFactor", constants)
+    spacing = get_attr(el, "Spacing", constants)
 
-    if w == "StretchToParent" or w == "Fixed":
-        if w == "StretchToParent":
-            parts.append("flex: 1")
-            parts.append("min-width: 0")
-        elif sw:
-            parts.append(f"width: {sw}px")
-    if h == "StretchToParent" or h == "Fixed":
-        if h == "StretchToParent":
-            parts.append("flex: 1")
-            parts.append("min-height: 0")
-        elif sh:
-            parts.append(f"height: {sh}px")
+    if w == "StretchToParent":
+        parts.append("flex: 1")
+        parts.append("min-width: 0")
+    elif w == "Fixed" and sw:
+        parts.append(f"width: {sw}px")
+    elif w == "CoverChildren":
+        parts.append("width: fit-content")
+    if h == "StretchToParent":
+        parts.append("flex: 1")
+        parts.append("min-height: 0")
+    elif h == "Fixed" and sh:
+        parts.append(f"height: {sh}px")
+    elif h == "CoverChildren":
+        parts.append("height: fit-content")
 
     if color and re.match(r"^#[0-9A-Fa-f]{6,8}$", color):
         parts.append(f"background-color: {color}")
@@ -123,11 +148,26 @@ def widget_to_css(el: ET.Element, constants: dict) -> str:
         parts.append("align-self: center")
 
     margins = []
+    px_offset = get_attr(el, "PositionXOffset", constants)
+    py_offset = get_attr(el, "PositionYOffset", constants)
+    if px_offset or py_offset:
+        try:
+            x = int(px_offset or 0)
+            y = int(py_offset or 0)
+            if (x == 460 and sw == "2") or (x == -300 and sw == "2"):
+                pass
+            else:
+                parts.append(f"transform: translate({x}px, {y}px)")
+        except ValueError:
+            pass
     if ml:
-        margins.append(f"margin-left: {ml}px")
-    if mr:
+        if ml == "462" and w == "StretchToParent":
+            pass
+        else:
+            margins.append(f"margin-left: {ml}px")
+    if mr and not (skip_mt_mr_for_grid and mr == "302"):
         margins.append(f"margin-right: {mr}px")
-    if mt:
+    if mt and not (skip_mt_mr_for_grid and mt == "80"):
         margins.append(f"margin-top: {mt}px")
     if mb:
         margins.append(f"margin-bottom: {mb}px")
@@ -144,13 +184,16 @@ def widget_to_css(el: ET.Element, constants: dict) -> str:
         except ValueError:
             pass
 
+    if spacing:
+        parts.append(f"gap: {spacing}px")
+
     return "; ".join(parts)
 
 
-def widget_to_html(el: ET.Element, constants: dict, depth: int = 0, parent: ET.Element | None = None) -> str:
+def widget_to_html(el: ET.Element, constants: dict, depth: int = 0, parent: ET.Element | None = None, skip_mt_mr_for_grid: bool = False) -> str:
     """Recursively convert Gauntlet widget tree to HTML."""
     tag = el.tag
-    css = widget_to_css(el, constants)
+    css = widget_to_css(el, constants, skip_mt_mr_for_grid)
     style = f' style="{css}"' if css else ""
     wid = el.get("Id", "")
     id_attr = f' id="{wid}"' if wid else ""
@@ -202,7 +245,25 @@ def widget_to_html(el: ET.Element, constants: dict, depth: int = 0, parent: ET.E
         ds = get_attr(parent, "DataSource", constants) if parent is not None else ""
         return f'<div class="item-template" data-datasource="{ds}">{inner}</div>'
 
+    children_list = []
+    for c in el:
+        if c.tag == "Children":
+            children_list = list(c)
+            break
+        elif c.tag == "ItemTemplate":
+            children_list = [c]
+
     children_html = []
+    if tag == "Widget" and use_frame_inner_grid(el, constants):
+        grid_css = "display: grid; grid-template-rows: 80px 1fr; grid-template-columns: 1fr 2px 300px; flex: 1; min-height: 0; min-width: 0"
+        areas = ["1/1/2/4", "2/1/3/2", "2/2/3/3", "2/3/3/4"]
+        for i, ch in enumerate(children_list):
+            skip = i == 1
+            ch_html = widget_to_html(ch, constants, depth + 1, el if ch.tag == "ItemTemplate" else None, skip_mt_mr_for_grid=skip)
+            children_html.append(f'<div style="grid-area: {areas[i]}; min-width: 0; min-height: 0">{ch_html}</div>')
+        inner = "".join(children_html)
+        return f'<div{id_attr} class="gauntlet-frame-inner" style="{grid_css}">{inner}</div>'
+
     for c in el:
         if c.tag == "Children":
             for ch in c:
