@@ -37,6 +37,10 @@
                 WidthSizePolicy="Fixed" SuggestedWidth="!Left.W"
                 HeightSizePolicy="StretchToParent">
           <Children>
+            <!-- Fallback background when tableau/scene fails (e.g. custom culture) -->
+            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                    Sprite="General\CharacterCreation\character_creation_background_gradient"
+                    AlphaFactor="0.12" Color="#141414ff" DoNotAcceptEvents="true" />
             <!-- Stat overlay at top — sits directly over the 3D character -->
             <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
                          SuggestedHeight="52"
