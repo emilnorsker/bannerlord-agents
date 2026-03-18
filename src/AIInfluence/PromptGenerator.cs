@@ -4621,8 +4621,8 @@ public static class PromptGenerator
 			"- `\"crime_rating_change\"`: integer (negative = reduce crime, positive = increase). Applied to the player's current kingdom.\n" +
 			"- `\"influence_change\"`: integer influence change for the player's clan (positive = gain, negative = lose).\n" +
 			"Spawning parties and NPCs (optional):\n" +
-			"- `\"spawn_party\"`: object — spawns a party and/or a single NPC on the world map or in a settlement. Use ONLY when the quest requires NEW entities — do NOT use if the quest targets an existing NPC (e.g. kill an existing lord; verification is via Recent Events). Can spawn: (1) a simple party (omit `name`, use party fields) — bandit parties, patrols, etc. are parties NOT NPCs; no named hero to talk to; (2) a named NPC leading a party (`name` + party fields); (3) a single NPC (`name`, `party_size`: 0 or omit party fields). All names are fuzzy-matched.\n" +
-			"  - `\"name\"`: NPC name. If provided, creates a named hero the player can talk to and fight. If omitted with party fields, creates a party only (bandits, patrol, etc.) — no NPC, no one to talk to.\n" +
+			"- `\"spawn_party\"`: object — spawns a party and/or a single NPC on the world map or in a settlement. Use ONLY when the quest requires NEW entities — do NOT use if the quest targets an existing NPC (e.g. kill an existing lord; verification is via Recent Events). Can spawn: (1) a leaderless party (omit `name`, use party fields) — bandits, patrols, etc.; no NPC, no one to talk to; (2) a named NPC leading a party (`name` + party fields); (3) a single NPC (`name`, `party_size`: 0 or omit party fields). All names are fuzzy-matched.\n" +
+			"  - `\"name\"`: NPC name. If provided, creates a named hero the player can talk to and fight. If omitted with party fields, creates a leaderless party — no NPC, no one to talk to.\n" +
 			"  - `\"alignment\"`: REQUIRED — `\"friendly\"`, `\"hostile\"`, or `\"neutral\"`. Determines faction: friendly = allied to player, hostile = enemy faction or bandits, neutral = local settlement owner.\n" +
 			"  - `\"culture\"`: determines appearance and default equipment. Available cultures: " + GetAvailableCultures() + ".\n" +
 			"  - `\"backstory\"`: brief backstory (shapes how this NPC talks in conversation).\n" +
@@ -4640,8 +4640,8 @@ public static class PromptGenerator
 			"  Examples:\n" +
 			"    Quest giver in town: {\"name\": \"Aldric\", \"alignment\": \"friendly\", \"culture\": \"Vlandian\", \"backstory\": \"A merchant who lost his caravan\", \"personality\": \"Nervous, grateful\", \"settlement\": \"Epicrotea\"}\n" +
 			"    Hostile warband: {\"name\": \"Kargas\", \"alignment\": \"hostile\", \"culture\": \"Sturgian\", \"backstory\": \"A bandit chief\", \"personality\": \"Cruel, mocking\", \"equipment\": {\"weapon\": \"two handed axe\", \"head\": \"wolf head\", \"tier\": 4}, \"party_name\": \"Kargas's Raiders\", \"party_troops\": [\"sturgian raider\"], \"party_size\": 30}\n" +
-			"    Simple bandit group: {\"alignment\": \"hostile\", \"party_name\": \"Roadside Bandits\", \"party_troops\": [\"looter\"], \"party_size\": 15}\n" +
-			"  IMPORTANT: When creating a quest that involves combat against SPAWNED enemies (kill bandits, defeat a warlord, clear a road, etc.), you MUST use spawn_party to spawn the enemies on the map. Without spawn_party, there will be nothing for the player to fight. Do NOT use spawn_party if the target is an existing lord — that quest is verified via Recent Events (HeroKilled). Use a named NPC leader for important foes, or a simple party (no name) for generic enemies.\n");
+			"    Leaderless bandit party: {\"alignment\": \"hostile\", \"party_name\": \"Roadside Bandits\", \"party_troops\": [\"looter\"], \"party_size\": 15}\n" +
+			"  IMPORTANT: When creating a quest that involves combat against SPAWNED enemies (kill bandits, defeat a warlord, clear a road, etc.), you MUST use spawn_party to spawn the enemies on the map. Without spawn_party, there will be nothing for the player to fight. Do NOT use spawn_party if the target is an existing lord — that quest is verified via Recent Events (HeroKilled). Use a named NPC leader for important foes, or a leaderless party (omit `name`) for generic enemies.\n");
 		stringBuilder.Append("\n");
 		return stringBuilder.ToString();
 	}
