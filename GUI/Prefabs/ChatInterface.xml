@@ -195,13 +195,14 @@
                                                    Spacing="10">
                                           <ItemTemplate>
                                             <!-- Single root required by Gauntlet ItemTemplate (fix from main).
-                                                 Body/pill visibility toggled via IsVisible; sprites removed in favour of Figma brushes. -->
+                                                 Body/pill visibility toggled via IsVisible; Sprite+Color for bubble/pill backgrounds. -->
                                             <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren">
                                               <Children>
                                                 <!-- NPC body segment -->
                                                 <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Bubble.W" HeightSizePolicy="CoverChildren"
                                                         HorizontalAlignment="Left" IsVisible="@IsBody"
-                                                        MarginTop="2" MarginBottom="2">
+                                                        MarginTop="2" MarginBottom="2"
+                                                        Sprite="General\CharacterCreation\name_input_area" Color="@BackColor">
                                                   <Children>
                                                     <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                                 Margin="4,2,4,2"
@@ -209,13 +210,14 @@
                                                                 Text="@Text" />
                                                   </Children>
                                                 </Widget>
-                                                <!-- NPC pill segment: shrink to content, wrap at 90% bubble -->
+                                                <!-- NPC pill segment: shrink to content, wrap at 540px (native MaxWidth uses literals) -->
                                                 <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                                         HorizontalAlignment="Left" IsVisible="@IsPill"
-                                                        MarginTop="2" MarginBottom="2">
+                                                        MarginTop="2" MarginBottom="2"
+                                                        Sprite="name_shadow_9" Color="@BackColor">
                                                   <Children>
                                                     <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                                MaxWidth="!Pill.W"
+                                                                MaxWidth="540"
                                                                 Margin="4,2,4,2"
                                                                 Brush="Chat.Action.Text"
                                                                 Brush.FontColor="@TextColor"
@@ -253,13 +255,14 @@
                                                    Spacing="10">
                                           <ItemTemplate>
                                             <!-- Single root required by Gauntlet ItemTemplate (fix from main).
-                                                 Body/pill visibility toggled via IsVisible; sprites removed in favour of Figma brushes. -->
+                                                 Body/pill visibility toggled via IsVisible; Sprite+Color for bubble/pill backgrounds. -->
                                             <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" HorizontalAlignment="Right">
                                               <Children>
                                                 <!-- Player body segment -->
                                                 <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Bubble.W" HeightSizePolicy="CoverChildren"
                                                         HorizontalAlignment="Right" IsVisible="@IsBody"
-                                                        MarginTop="2" MarginBottom="2">
+                                                        MarginTop="2" MarginBottom="2"
+                                                        Sprite="General\CharacterCreation\name_input_area" Color="@BackColor">
                                                   <Children>
                                                     <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                                 Margin="4,2,4,2"
@@ -268,13 +271,14 @@
                                                                 Text="@Text" />
                                                   </Children>
                                                 </Widget>
-                                                <!-- Player pill segment: shrink to content, wrap at 90% bubble -->
+                                                <!-- Player pill segment: shrink to content, wrap at 540px (native MaxWidth uses literals) -->
                                                 <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                                         HorizontalAlignment="Right" IsVisible="@IsPill"
-                                                        MarginTop="2" MarginBottom="2">
+                                                        MarginTop="2" MarginBottom="2"
+                                                        Sprite="name_shadow_9" Color="@BackColor">
                                                   <Children>
                                                     <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                                MaxWidth="!Pill.W"
+                                                                MaxWidth="540"
                                                                 Margin="4,2,4,2"
                                                                 Brush="Chat.Action.Text"
                                                                 Brush.FontColor="@TextColor"

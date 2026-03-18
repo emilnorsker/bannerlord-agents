@@ -389,14 +389,16 @@ public class NpcChatWindowVM : ViewModel
 
     private static string ResolveItemName(string itemId)
     {
+        if (string.IsNullOrEmpty(itemId)) return "Unknown item";
         var item = MBObjectManager.Instance?.GetObject<ItemObject>(itemId);
-        return item?.Name?.ToString() ?? itemId ?? "";
+        return item?.Name?.ToString() ?? "Unknown item";
     }
 
     private static string ResolveTroopName(string stringId)
     {
+        if (string.IsNullOrEmpty(stringId)) return "Unknown troop";
         var troop = MBObjectManager.Instance?.GetObject<CharacterObject>(stringId);
-        return troop?.Name?.ToString() ?? stringId ?? "";
+        return troop?.Name?.ToString() ?? "Unknown troop";
     }
 
     private static string FormatTroopTransferPill(string payload, string npcName)
@@ -409,7 +411,6 @@ public class NpcChatWindowVM : ViewModel
         {
             string[] segs = part.Trim().Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
             if (segs.Length < 3 || !int.TryParse(segs[2], out int count) || count <= 0) continue;
-            string type = segs[0].Trim().ToLowerInvariant();
             string name = ResolveTroopName(segs[1].Trim());
             items.Add($"{name} (x{count})");
         }
