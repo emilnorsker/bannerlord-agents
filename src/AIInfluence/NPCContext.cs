@@ -113,6 +113,8 @@ public class NPCContext
 
 	public List<ItemTransferData> PendingItemTransfers { get; set; }
 
+	public string PendingItemTransfersOpposedAttribute { get; set; }
+
 	public bool PendingIntimacyNotification { get; set; }
 
 	public string PendingConceptionMotherName { get; set; }

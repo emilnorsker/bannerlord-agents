@@ -912,6 +912,7 @@ public class DialogManager
 						_behavior.LogMessage($"[ITEM_TRANSFER] Executing pending item transfers for NPC {((MBObjectBase)npc).StringId} (Prisoner: {npc.IsPrisoner}): {context.PendingItemTransfers.Count} items");
 						_behavior.ProcessItemTransfers(npc, context, context.PendingItemTransfers);
 						context.PendingItemTransfers = null;
+						context.PendingItemTransfersOpposedAttribute = null;
 						_behavior.SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
 						_behavior.LogMessage($"[ITEM_TRANSFER] Item transfers completed for NPC {((MBObjectBase)npc).StringId}");
 					}
@@ -1626,6 +1627,7 @@ public class DialogManager
 						_behavior.LogMessage($"[ITEM_TRANSFER] Executing pending item transfers for NPC {((MBObjectBase)npc).StringId} (Prisoner: {npc.IsPrisoner}, surrender dialog): {context.PendingItemTransfers.Count} items");
 						_behavior.ProcessItemTransfers(npc, context, context.PendingItemTransfers);
 						context.PendingItemTransfers = null;
+						context.PendingItemTransfersOpposedAttribute = null;
 						_behavior.SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
 						_behavior.LogMessage($"[ITEM_TRANSFER] Item transfers completed for NPC {((MBObjectBase)npc).StringId} (surrender dialog)");
 					}

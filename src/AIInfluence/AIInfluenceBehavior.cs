@@ -2193,6 +2193,16 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			return;
 		}
+		if (!string.IsNullOrWhiteSpace(context?.PendingItemTransfersOpposedAttribute))
+		{
+			var attr = OpposedSkillCheck.ParseAttribute(context.PendingItemTransfersOpposedAttribute);
+			if (!OpposedSkillCheck.PlayerWins(Hero.MainHero, npc, attr))
+			{
+				LogMessage($"[ITEM_TRANSFER] Opposed check failed - {npc.Name} refuses");
+				InformationManager.DisplayMessage(new InformationMessage(((object)new TextObject("{=AIInfluence_TransferRefused}{npcName} refuses.", new Dictionary<string, object> { { "npcName", npc.Name } })).ToString(), Colors.Yellow));
+				return;
+			}
+		}
 		string text = ((object)npc.Name)?.ToString() ?? "Unknown";
 		foreach (ItemTransferData transfer in itemTransfers)
 		{
@@ -2249,6 +2259,16 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	public void ProcessMoneyTransfer(Hero npc, NPCContext context, MoneyTransferInfo moneyTransfer)
 	{
 		LogMessage($"[DEBUG][MONEY_TRANSFER_EXEC] ProcessMoneyTransfer called for {((object)npc?.Name ?? "null")} - amount={moneyTransfer?.Amount}, action={moneyTransfer?.Action}. If you never see this line after a chat-window transfer, the transfer was never executed.");
+		if (!string.IsNullOrWhiteSpace(moneyTransfer.OpposedAttribute))
+		{
+			var attr = OpposedSkillCheck.ParseAttribute(moneyTransfer.OpposedAttribute);
+			if (!OpposedSkillCheck.PlayerWins(Hero.MainHero, npc, attr))
+			{
+				LogMessage($"[MONEY_TRANSFER] Opposed check failed - {npc.Name} refuses");
+				InformationManager.DisplayMessage(new InformationMessage(((object)new TextObject("{=AIInfluence_TransferRefused}{npcName} refuses.", new Dictionary<string, object> { { "npcName", npc.Name } })).ToString(), Colors.Yellow));
+				return;
+			}
+		}
 		//IL_01a2: Unknown result type (might be due to invalid IL or missing references)
 		//IL_01ac: Expected O, but got Unknown
 		//IL_01ac: Unknown result type (might be due to invalid IL or missing references)
@@ -3035,6 +3055,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		if (aiResult.ItemTransfers != null && aiResult.ItemTransfers.Count > 0)
 		{
 			context.PendingItemTransfers = aiResult.ItemTransfers;
+			context.PendingItemTransfersOpposedAttribute = aiResult.ItemTransfersOpposedAttribute;
 			LogMessage($"[ITEM_TRANSFER] Saved pending item transfers: {aiResult.ItemTransfers.Count} items for NPC {npc.Name}");
 		}
 		else if (aiResult.ItemTransfers != null)
@@ -3422,7 +3443,10 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		if (aiResult.MoneyTransfer != null && aiResult.MoneyTransfer.Amount > 0)
 			ProcessMoneyTransfer(npc, context, aiResult.MoneyTransfer);
 		if (aiResult.ItemTransfers != null && aiResult.ItemTransfers.Count > 0)
+		{
+			context.PendingItemTransfersOpposedAttribute = aiResult.ItemTransfersOpposedAttribute;
 			ProcessItemTransfers(npc, context, aiResult.ItemTransfers);
+		}
 		if (!string.IsNullOrEmpty(aiResult.KingdomAction) && !aiResult.KingdomAction.Equals("none", StringComparison.OrdinalIgnoreCase))
 			ProcessKingdomAction(npc, aiResult, context);
 		if (aiResult.QuestAction != null && !string.IsNullOrEmpty(aiResult.QuestAction.Action))
