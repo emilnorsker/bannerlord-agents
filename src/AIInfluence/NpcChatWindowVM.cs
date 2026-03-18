@@ -175,7 +175,7 @@ public class NpcChatWindowVM : ViewModel
             (OrEmpty(context?.ActiveAIQuests), FormatActiveQuestLine),
             (OrEmpty(context?.IncomingAIQuests), FormatIncomingQuestLine)
         };
-        var lines = questSources.SelectMany(s => s.source.Where(HasTitle).Select(s.format)).ToList();
+        var lines = questSources.SelectMany(s => s.source.Where(IsValidQuest).Select(s.format)).ToList();
         if (lines.Count == 0) return;
         RightPanelItems.Add(new TextItemVM("QUEST", Header));
         foreach (var line in lines)
@@ -183,7 +183,9 @@ public class NpcChatWindowVM : ViewModel
     }
 
     private static IEnumerable<AIQuestInfo> OrEmpty(List<AIQuestInfo> list) => list ?? Enumerable.Empty<AIQuestInfo>();
-    private static bool HasTitle(AIQuestInfo q) => !string.IsNullOrWhiteSpace(q?.Title);
+    private static bool IsValidQuest(AIQuestInfo q) => q != null && !string.IsNullOrWhiteSpace(q.Title) && IsQuestStillOngoing(q.QuestId);
+    private static bool IsQuestStillOngoing(string questId) =>
+        !string.IsNullOrEmpty(questId) && Campaign.Current?.QuestManager?.Quests?.Any(q => ((MBObjectBase)q).StringId == questId && q.IsOngoing) == true;
     private static string FormatActiveQuestLine(AIQuestInfo q)
     {
         if (q.ProgressTarget > 0)
