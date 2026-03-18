@@ -12,6 +12,8 @@ public static class NpcChatWindowManager
 
     public static bool IsOpen => _layer != null;
 
+    internal static NpcChatWindowVM GetCurrentViewModel() => _layer?.ViewModel;
+
     public static void Show(Hero npc, NPCContext context, Action onReturn)
     {
         if (npc == null)

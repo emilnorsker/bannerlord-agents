@@ -58,6 +58,8 @@ public class NpcChatWindowVM : ViewModel
     // ── Right panel – flat list, section headers included as items ────────
     [DataSourceProperty] public MBBindingList<TextItemVM> RightPanelItems { get; } = new MBBindingList<TextItemVM>();
 
+    /// <summary>Index into RightPanelItems where the refreshable section (QUEST + CHARACTER) begins.
+    /// RefreshCharacterSection removes items from this index onwards and re-adds them.</summary>
     private int _characterSectionStartIndex;
 
     private void AddNewestMessage(ChatMessageItemVM item) => MessageList.Add(item);
@@ -166,6 +168,8 @@ public class NpcChatWindowVM : ViewModel
         AddCharacterSectionItems(npc, context);
     }
 
+    /// <summary>Adds QUEST section to RightPanelItems. Builds quest lines first, then adds header + content,
+    /// so a throw during build does not leave a partial QUEST section.</summary>
     private void AddQuestSectionItems(NPCContext context)
     {
         const string Header = "#888888FF";
@@ -193,8 +197,14 @@ public class NpcChatWindowVM : ViewModel
 
     private static IEnumerable<AIQuestInfo> OrEmpty(IList<AIQuestInfo> list) => list ?? Enumerable.Empty<AIQuestInfo>();
     private static bool IsValidQuest(AIQuestInfo q) => q != null && !string.IsNullOrWhiteSpace(q.Title) && IsQuestStillOngoing(q.QuestId);
-    private static bool IsQuestStillOngoing(string questId) =>
-        !string.IsNullOrEmpty(questId) && Campaign.Current?.QuestManager?.Quests?.Any(q => ((MBObjectBase)q).StringId == questId && q.IsOngoing) == true;
+    /// <summary>Checks if quest exists in campaign and is ongoing. Uses ToList() to avoid InvalidOperationException if Quests is modified during iteration.</summary>
+    private static bool IsQuestStillOngoing(string questId)
+    {
+        if (string.IsNullOrEmpty(questId)) return false;
+        var quests = Campaign.Current?.QuestManager?.Quests?.ToList();
+        return quests != null && quests.Any(q => ((MBObjectBase)q).StringId == questId && q.IsOngoing);
+    }
+    /// <summary>Formats an active quest line with optional progress (e.g. "2/3 targets").</summary>
     private static string FormatActiveQuestLine(AIQuestInfo q)
     {
         if (q.ProgressTarget <= 0) return $"• {q.Title}";
@@ -202,6 +212,7 @@ public class NpcChatWindowVM : ViewModel
         string label = string.IsNullOrWhiteSpace(q.ProgressLabel) ? "" : $" {q.ProgressLabel}";
         return $"• {q.Title} ({current}/{q.ProgressTarget}{label})";
     }
+    /// <summary>Formats an incoming quest line (NPC is delivery target).</summary>
     private static string FormatIncomingQuestLine(AIQuestInfo q) => $"• {q.Title} (deliver here)";
 
     private static IEnumerable<string> ResolveKnownInfo(NPCContext context, Hero npc)
@@ -261,6 +272,7 @@ public class NpcChatWindowVM : ViewModel
             RightPanelItems.Add(new TextItemVM($"Mood: {context.EmotionalState.Mood}"));
     }
 
+    /// <summary>Removes items from _characterSectionStartIndex onwards and re-adds QUEST + CHARACTER sections.</summary>
     private void RefreshCharacterSection(Hero npc, NPCContext context)
     {
         while (RightPanelItems.Count > _characterSectionStartIndex)
@@ -661,7 +673,7 @@ public class NpcChatWindowVM : ViewModel
                             catch (Exception ex) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] UpdateContextData failed: " + ex.Message); }
                             TtsLipSyncService.MainThreadQueue.Enqueue(() =>
                             {
-                                if (!NpcChatWindowManager.IsOpen) return;
+                                if (!NpcChatWindowManager.IsOpen || NpcChatWindowManager.GetCurrentViewModel() != this) return; // Skip if closed or reopened (wrong VM)
                                 RefreshTraitOverlay(_npc, ctx);
                                 RefreshCharacterSection(_npc, ctx);
                             });
@@ -697,11 +709,12 @@ public class NpcChatWindowVM : ViewModel
                     MessageList.Remove(streamingItem);
                 }
                 NPCContext ctx = null;
-                try { ctx = AIInfluenceBehavior.Instance?.GetOrCreateNPCContext(_npc); } catch { }
+                try { ctx = AIInfluenceBehavior.Instance?.GetOrCreateNPCContext(_npc); }
+                catch (Exception ex) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] GetOrCreateNPCContext (empty reply) failed: " + ex.Message); }
                 if (ctx != null && AIInfluenceBehavior.Instance != null)
                     TtsLipSyncService.MainThreadQueue.Enqueue(() =>
                     {
-                        if (!NpcChatWindowManager.IsOpen) return;
+                        if (!NpcChatWindowManager.IsOpen || NpcChatWindowManager.GetCurrentViewModel() != this) return; // Skip if closed or reopened (wrong VM)
                         RefreshTraitOverlay(_npc, ctx);
                         RefreshCharacterSection(_npc, ctx);
                     });
