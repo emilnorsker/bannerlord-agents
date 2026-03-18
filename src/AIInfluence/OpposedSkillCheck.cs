@@ -17,13 +17,27 @@ public static class OpposedSkillCheck
 		("social", DefaultCharacterAttributes.Social)
 	};
 
-	/// <summary>Parse AI attribute name to CharacterAttribute. Fuzzy fallback for LLM typos. Defaults to Vigor if invalid.</summary>
+	/// <summary>Semantic synonyms for common LLM outputs. Checked before Levenshtein.</summary>
+	private static readonly (string[] Synonyms, CharacterAttribute Attr)[] SynonymMap = new[]
+	{
+		(new[] { "strength", "physical", "might", "power" }, DefaultCharacterAttributes.Vigor),
+		(new[] { "stamina", "health", "resilience" }, DefaultCharacterAttributes.Endurance),
+		(new[] { "precision", "dexterity", "finesse" }, DefaultCharacterAttributes.Control),
+		(new[] { "crafty", "clever", "deceptive", "guile" }, DefaultCharacterAttributes.Cunning),
+		(new[] { "smartness", "intellect", "wisdom", "smart", "wit" }, DefaultCharacterAttributes.Intelligence),
+		(new[] { "charm", "charisma", "persuasion" }, DefaultCharacterAttributes.Social)
+	};
+
+	/// <summary>Parse AI attribute name to CharacterAttribute. Synonym map + fuzzy fallback. Defaults to Vigor if invalid.</summary>
 	public static CharacterAttribute ParseAttribute(string s)
 	{
 		if (string.IsNullOrWhiteSpace(s)) return DefaultCharacterAttributes.Vigor;
 		string key = s.Trim().ToLowerInvariant();
 		foreach (var (name, attr) in AttributeMap)
 			if (name == key) return attr;
+		foreach (var (synonyms, attr) in SynonymMap)
+			foreach (string syn in synonyms)
+				if (syn == key) return attr;
 		int bestDist = int.MaxValue;
 		CharacterAttribute best = DefaultCharacterAttributes.Vigor;
 		foreach (var (name, attr) in AttributeMap)
@@ -31,7 +45,7 @@ public static class OpposedSkillCheck
 			int d = Levenshtein(key, name);
 			if (d < bestDist) { bestDist = d; best = attr; }
 		}
-		return bestDist <= 3 ? best : DefaultCharacterAttributes.Vigor;
+		return bestDist <= 4 ? best : DefaultCharacterAttributes.Vigor;
 	}
 
 	private static int Levenshtein(string a, string b)
