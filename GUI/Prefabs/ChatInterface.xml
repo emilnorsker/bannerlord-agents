@@ -17,8 +17,9 @@
     <Constant Name="Right.W"       Value="300" />
     <Constant Name="Sep.W"         Value="2" />
     <Constant Name="Input.H"       Value="52" />
-    <Constant Name="Bubble.W"      Value="430" />
-    <Constant Name="Pill.W"        MultiplyResult="0.9" Value="!Bubble.W" />
+    <Constant Name="ChatPanel.W"   Value="600" />
+    <Constant Name="Bubble.W"      MultiplyResult="0.9" Value="!ChatPanel.W" />
+    <Constant Name="Pill.W"        MultiplyResult="0.9" Value="!ChatPanel.W" />
     <Constant Name="Gold"          Value="#FFE6B685" />
     <Constant Name="SubText"       Value="#9BA4B5FF" />
     <Constant Name="SepColor"      Value="#FFFFFF22" />
