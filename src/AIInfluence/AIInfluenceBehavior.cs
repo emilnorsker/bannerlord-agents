@@ -4827,7 +4827,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		LogMessage("[QuestDebug] Prompt: " + prompt);
 
 		string requestPrompt = "You are generating a Bannerlord quest action.\nReturn ONLY valid JSON in this exact wrapper:\n{\"quest_action\":{...}}\n" +
-			"Inside quest_action provide action=create_quest with fields: title, description (clear readable prose for the player — NOT JSON), duration_days (7-60), reward_gold (0-5000), " +
+			"Inside quest_action provide action=create_quest with fields: title, description, duration_days (7-60), reward_gold (0-5000), " +
 			"and optionally spawn_npc (object with: name, alignment, culture, backstory, personality, is_female, age, settlement, " +
 			"equipment {weapon, shield, head, body, cape, gloves, legs, horse, tier}, party_name, party_troops, party_size).\n" +
 			"alignment must be one of: friendly, hostile, neutral.\n" +
