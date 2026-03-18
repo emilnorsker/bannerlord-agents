@@ -18,7 +18,7 @@
     <Constant Name="Sep.W"         Value="2" />
     <Constant Name="Input.H"       Value="52" />
     <Constant Name="Bubble.W"      Value="430" />
-    <Constant Name="Pill.W"        Value="387" />
+    <Constant Name="Pill.W"        MultiplyResult="0.9" Value="!Bubble.W" />
     <Constant Name="Gold"          Value="#FFE6B685" />
     <Constant Name="SubText"       Value="#9BA4B5FF" />
     <Constant Name="SepColor"      Value="#FFFFFF22" />
@@ -208,12 +208,13 @@
                                                                 Text="@Text" />
                                                   </Children>
                                                 </Widget>
-                                                <!-- NPC pill segment (action/emote — max 90% bubble width, text wraps) -->
-                                                <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Pill.W" HeightSizePolicy="CoverChildren"
+                                                <!-- NPC pill segment: shrink to content, wrap at 90% bubble -->
+                                                <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                                         HorizontalAlignment="Left" IsVisible="@IsPill"
                                                         MarginTop="2" MarginBottom="2">
                                                   <Children>
-                                                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                    <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                                MaxWidth="!Pill.W"
                                                                 Margin="4,2,4,2"
                                                                 Brush="Chat.Action.Text"
                                                                 Brush.FontColor="@TextColor"
@@ -266,12 +267,13 @@
                                                                 Text="@Text" />
                                                   </Children>
                                                 </Widget>
-                                                <!-- Player pill segment (action/outcome — max 90% bubble width, text wraps) -->
-                                                <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Pill.W" HeightSizePolicy="CoverChildren"
+                                                <!-- Player pill segment: shrink to content, wrap at 90% bubble -->
+                                                <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                                         HorizontalAlignment="Right" IsVisible="@IsPill"
                                                         MarginTop="2" MarginBottom="2">
                                                   <Children>
-                                                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                    <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                                MaxWidth="!Pill.W"
                                                                 Margin="4,2,4,2"
                                                                 Brush="Chat.Action.Text"
                                                                 Brush.FontColor="@TextColor"
