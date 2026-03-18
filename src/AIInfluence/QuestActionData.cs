@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
@@ -78,8 +79,12 @@ public class QuestActionData
 	[JsonProperty("hostile_troop_name")]
 	public string HostileTroopName { get; set; }
 
+	[JsonProperty("spawn_party")]
+	public SpawnPartyData SpawnParty { get; set; }
+
 	[JsonProperty("spawn_npc")]
-	public SpawnNpcData SpawnNpc { get; set; }
+	[Obsolete("Use SpawnParty. Kept for backward compatibility.")]
+	public SpawnPartyData SpawnNpc { get => SpawnParty; set => SpawnParty = value; }
 
 	public List<string> GetEffectiveTargetNpcIds()
 	{
