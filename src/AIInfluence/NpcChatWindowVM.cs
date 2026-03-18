@@ -231,7 +231,8 @@ public class NpcChatWindowVM : ViewModel
 
     // ── Segment parser ────────────────────────────────────────────────────
 
-    private static readonly Regex EmoteRegex = new Regex(@"\*([^*]+)\*", RegexOptions.Compiled);
+    // Matches *text* (complete) or *text at end (streaming); capture is text inside
+    private static readonly Regex EmoteRegex = new Regex(@"\*([^*]*)(?:\*|$)", RegexOptions.Compiled);
     private const string NameColor        = "#C6AC8DFF";
     private const string SpeechTextColor  = "#E8DCC8FF";
     private const string NpcBubbleColor   = "#0D1118D0"; // dark blue-grey for NPC speech
@@ -325,29 +326,16 @@ public class NpcChatWindowVM : ViewModel
                 if (!string.IsNullOrEmpty(speech))
                     item.ContentSegments.Add(new ContentSegmentVM(speech, SpeechTextColor, bubbleColor));
             }
-            string emoteText = m.Groups[1].Value;  // strip asterisks: *text* -> text
-            item.ContentSegments.Add(new ContentSegmentVM(emoteText, EmoteColor, bubbleColor, isPill: true));
+            string emoteText = m.Groups[1].Value;
+            if (!string.IsNullOrEmpty(emoteText))
+                item.ContentSegments.Add(new ContentSegmentVM(emoteText, EmoteColor, bubbleColor, isPill: true));
             pos = m.Index + m.Length;
         }
         if (pos < content.Length)
         {
-            string remainder = content.Substring(pos);
-            int lastOpenStar = remainder.LastIndexOf('*');
-            if (lastOpenStar >= 0)
-            {
-                string speech = remainder.Substring(0, lastOpenStar).Trim();
-                string emotePart = remainder.Substring(lastOpenStar + 1);
-                if (!string.IsNullOrEmpty(speech))
-                    item.ContentSegments.Add(new ContentSegmentVM(speech, SpeechTextColor, bubbleColor));
-                if (!string.IsNullOrEmpty(emotePart))
-                    item.ContentSegments.Add(new ContentSegmentVM(emotePart, EmoteColor, bubbleColor, isPill: true));
-            }
-            else
-            {
-                string trimmed = remainder.Trim();
-                if (!string.IsNullOrEmpty(trimmed))
-                    item.ContentSegments.Add(new ContentSegmentVM(trimmed, SpeechTextColor, bubbleColor));
-            }
+            string remainder = content.Substring(pos).Trim();
+            if (!string.IsNullOrEmpty(remainder))
+                item.ContentSegments.Add(new ContentSegmentVM(remainder, SpeechTextColor, bubbleColor));
         }
 
         if (!string.IsNullOrEmpty(actionSuffix))
