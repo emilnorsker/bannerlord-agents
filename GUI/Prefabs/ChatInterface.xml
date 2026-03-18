@@ -41,7 +41,7 @@
         <Widget HorizontalAlignment="Left"
                 WidthSizePolicy="Fixed" SuggestedWidth="!Left.W"
                 HeightSizePolicy="StretchToParent"
-                Sprite="BlankWhite" Color="#141414FF">
+                Sprite="BlankWhiteSquare_9" Color="#141414FF">
           <Children>
             <!-- Stat overlay at top of left column -->
             <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
@@ -77,11 +77,11 @@
                 PositionXOffset="!Left.W"
                 Sprite="BlankWhiteSquare_9" Color="!SepColor" />
 
-        <!-- ══ CENTER + RIGHT — custom chat_panel_bg asset ════════════════ -->
+        <!-- ══ CENTER + RIGHT — built-in StdAssets\Popup\canvas_gradient ════════════════ -->
         <!-- MarginLeft=Frame.Start so the frame aligns after the left column -->
         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                 MarginLeft="!Frame.Start"
-                Sprite="chat_panel_bg" Color="#141414FF">
+                Sprite="StdAssets\Popup\canvas_gradient" Color="#141414FF">
           <!-- BlankWhite sprite required: Color alone has no effect on a bare Widget in Gauntlet -->
           <Children>
             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
@@ -92,7 +92,7 @@
                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
                         SuggestedHeight="!Header.H"
                         VerticalAlignment="Top"
-                        Sprite="chat_panel_bg" Color="#141414FF">
+                        Sprite="StdAssets\Popup\canvas_gradient" Color="#141414FF">
                   <!-- BlankWhite sprite required: Color alone has no effect on a bare Widget in Gauntlet -->
                   <Children>
                     <!-- "Conversation Log" static label -->
@@ -122,7 +122,7 @@
                   <Children>
                     <!-- Middle panel background: custom chat_panel_bg -->
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                            Sprite="chat_panel_bg" AlphaFactor="1.0"
+                            Sprite="StdAssets\Popup\canvas_gradient" AlphaFactor="1.0"
                             DoNotAcceptEvents="true" />
 
                     <!-- Message scroll area -->
@@ -161,7 +161,7 @@
                                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
                                             SuggestedHeight="16"
                                             VerticalAlignment="Top"
-                                            Sprite="chat_msg_separator"
+                                            Sprite="StdAssets\Popup\divider"
                                             AlphaFactor="0.85"
                                             DoNotAcceptEvents="true" />
 
@@ -313,7 +313,7 @@
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
                             SuggestedHeight="!Input.H"
                             VerticalAlignment="Bottom"
-                            Sprite="BlankWhite" Color="#1A110CFF">
+                            Sprite="BlankWhiteSquare_9" Color="#1A110CFF">
                       <Children>
                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                 Sprite="frame_9" ExtendLeft="4" ExtendTop="4" ExtendRight="4" ExtendBottom="4"
@@ -375,9 +375,9 @@
                         HeightSizePolicy="StretchToParent"
                         MarginTop="!Header.H">
                   <Children>
-                    <!-- Right column background: custom chat_panel_bg -->
+                    <!-- Right column background: built-in canvas_gradient -->
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                            Sprite="chat_panel_bg" Color="#141414FF" DoNotAcceptEvents="true" />
+                            Sprite="StdAssets\Popup\canvas_gradient" Color="#141414FF" DoNotAcceptEvents="true" />
 
                     <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
                                    SuggestedHeight="36"
