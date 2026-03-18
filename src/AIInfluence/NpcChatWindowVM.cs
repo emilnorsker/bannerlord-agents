@@ -420,12 +420,12 @@ public class NpcChatWindowVM : ViewModel
     {
         if (r == null) yield break;
         if (r.MoneyTransfer != null && r.MoneyTransfer.Amount != 0 && string.Equals(r.MoneyTransfer.Action, "receive", StringComparison.OrdinalIgnoreCase))
-            yield return ($"💰 You received {Math.Abs(r.MoneyTransfer.Amount)} gold from {npcName}", MoneyTransferColor, ActionBubbleColor);
+            yield return ($"• You received {Math.Abs(r.MoneyTransfer.Amount)} gold from {npcName}", MoneyTransferColor, ActionBubbleColor);
         var takeTransfers = r.ItemTransfers?.Where(t => string.Equals(t.Action, "take", StringComparison.OrdinalIgnoreCase)).ToList();
         if (takeTransfers?.Count > 0)
         {
             var itemNames = takeTransfers.Select(t => $"{ResolveItemName(t.ItemId)} (x{t.Amount})");
-            yield return ($"📦 You gave {string.Join(", ", itemNames)} to {npcName}", ItemTransferColor, ActionBubbleColor);
+            yield return ($"• You gave {string.Join(", ", itemNames)} to {npcName}", ItemTransferColor, ActionBubbleColor);
         }
     }
 
@@ -433,17 +433,17 @@ public class NpcChatWindowVM : ViewModel
     {
         if (r == null) yield break;
         if (r.MoneyTransfer != null && r.MoneyTransfer.Amount != 0 && string.Equals(r.MoneyTransfer.Action, "give", StringComparison.OrdinalIgnoreCase))
-            yield return ($"💰 {npcName} gave you {Math.Abs(r.MoneyTransfer.Amount)} gold", MoneyTransferColor, ActionBubbleColor);
+            yield return ($"• {npcName} gave you {Math.Abs(r.MoneyTransfer.Amount)} gold", MoneyTransferColor, ActionBubbleColor);
         var giveTransfers = r.ItemTransfers?.Where(t => string.Equals(t.Action, "give", StringComparison.OrdinalIgnoreCase)).ToList();
         if (giveTransfers?.Count > 0)
         {
             var itemNames = giveTransfers.Select(t => $"{ResolveItemName(t.ItemId)} (x{t.Amount})");
-            yield return ($"📦 {npcName} gave you {string.Join(", ", itemNames)}", ItemTransferColor, ActionBubbleColor);
+            yield return ($"• {npcName} gave you {string.Join(", ", itemNames)}", ItemTransferColor, ActionBubbleColor);
         }
         if (!string.IsNullOrEmpty(r.QuestAction?.Action))
-            yield return ($"📜 Quest: {r.QuestAction.Action}", QuestActionColor, ActionBubbleColor);
+            yield return ($"• Quest: {r.QuestAction.Action}", QuestActionColor, ActionBubbleColor);
         if (!string.IsNullOrEmpty(r.Decision) && r.Decision != "none" && r.Decision != "none\n")
-            yield return ($"💬 {r.Decision.Trim()}", ActionColor, ActionBubbleColor);
+            yield return ($"• {r.Decision.Trim()}", ActionColor, ActionBubbleColor);
         string techAction = ctx?.LastTechnicalActionForDisplay;
         if (!string.IsNullOrEmpty(techAction) && !techAction.Equals("none", StringComparison.OrdinalIgnoreCase))
         {
@@ -454,29 +454,29 @@ public class NpcChatWindowVM : ViewModel
                 string payload = segs.Length > 1 ? segs[1].Trim() : "";
                 bool isStop = payload.Equals("STOP", StringComparison.OrdinalIgnoreCase);
                 if (isStop)
-                    yield return ($"🛑 Stopped {name}", TechnicalActionColor, ActionBubbleColor);
+                    yield return ($"• Stopped {name}", TechnicalActionColor, ActionBubbleColor);
                 else if (name.Equals("follow_player", StringComparison.OrdinalIgnoreCase))
-                    yield return ("🚶 Now following you", TechnicalActionColor, ActionBubbleColor);
+                    yield return ("• Now following you", TechnicalActionColor, ActionBubbleColor);
                 else if (name.Equals("return_to_player", StringComparison.OrdinalIgnoreCase))
-                    yield return ("🚶 Returning to you", TechnicalActionColor, ActionBubbleColor);
+                    yield return ("• Returning to you", TechnicalActionColor, ActionBubbleColor);
                 else if (name.Equals("go_to_settlement", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(payload))
-                    yield return ($"🗺️ Traveling to {payload.Split(':')[0]}", TechnicalActionColor, ActionBubbleColor);
+                    yield return ($"• Traveling to {payload.Split(':')[0]}", TechnicalActionColor, ActionBubbleColor);
                 else if (name.Equals("transfer_troops_and_prisoners", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(payload))
-                    yield return ("⚔️ " + FormatTroopTransferPill(payload, npcName), TroopTransferColor, ActionBubbleColor);
+                    yield return ("• " + FormatTroopTransferPill(payload, npcName), TroopTransferColor, ActionBubbleColor);
                 else if (!string.IsNullOrEmpty(name))
-                    yield return ($"⚙️ {name}", TechnicalActionColor, ActionBubbleColor);
+                    yield return ($"• {name}", TechnicalActionColor, ActionBubbleColor);
             }
         }
         if (!string.IsNullOrEmpty(r.RomanceIntent) && !r.RomanceIntent.Equals("none", StringComparison.OrdinalIgnoreCase))
         {
             string ri = r.RomanceIntent.Trim().ToLowerInvariant();
             string msg = ri == "flirt" ? "Accepted your flirtation" : ri == "romance" ? "Accepted your courtship" : ri == "proposal" ? "Marriage proposal" : $"Romance: {r.RomanceIntent}";
-            yield return ($"💕 {msg}", RomanceActionColor, ActionBubbleColor);
+            yield return ($"• {msg}", RomanceActionColor, ActionBubbleColor);
         }
         if (!string.IsNullOrEmpty(r.WorkshopAction) && r.WorkshopAction.Equals("sell", StringComparison.OrdinalIgnoreCase))
-            yield return ("🏪 Sold workshop to you", WorkshopActionColor, ActionBubbleColor);
+            yield return ("• Sold workshop to you", WorkshopActionColor, ActionBubbleColor);
         if (!string.IsNullOrEmpty(r.KingdomAction) && !r.KingdomAction.Equals("none", StringComparison.OrdinalIgnoreCase))
-            yield return ($"👑 Kingdom: {r.KingdomAction}", KingdomActionColor, ActionBubbleColor);
+            yield return ($"• Kingdom: {r.KingdomAction}", KingdomActionColor, ActionBubbleColor);
     }
 
     // ── Commands ──────────────────────────────────────────────────────────
