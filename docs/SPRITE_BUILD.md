@@ -1,43 +1,32 @@
 # Custom Sprite Build
 
-The mod uses custom sprites in `GUI/SpriteParts/ui_aiinfluence/`. To make them load in-game, you must run **SpriteSheetGenerator** to pack them.
+The mod uses custom sprites in `GUI/SpriteParts/ui_aiinfluence/`. To pack them, run **SpriteSheetGenerator** (via Proton on Linux).
 
-## Prerequisites
+## Quick: Use the script
 
-- Mount & Blade II: Bannerlord installed (with editor)
-- Module folder at `GAME_INSTALL/Modules/AIInfluence/` (or run from repo with correct structure)
+```bash
+./scripts/build_sprites.sh
+```
 
-## Steps
+Requires: Bannerlord + Proton installed. Uses Xvfb if no display.
 
-1. Copy or symlink the mod files so the structure is:
-   ```
-   Modules/AIInfluence/
-   ├── GUI/
-   │   ├── Config.xml
-   │   ├── SpriteData.xml
-   │   └── SpriteParts/
-   │       └── ui_aiinfluence/
-   │           ├── chat_panel_bg.png
-   │           ├── chat_msg_separator.png
-   │           ├── name_shadow_9.png
-   │           ├── frame_9.png
-   │           └── ...
-   └── SubModule.xml
+## Manual
+
+1. Deploy the mod so `Modules/AIInfluence/GUI/` has Config.xml, SpriteData.xml, SpriteParts/ui_aiinfluence/*.png
+
+2. Run SpriteSheetGenerator (with virtual display on headless):
+   ```bash
+   export DISPLAY=:99
+   Xvfb :99 -screen 0 1024x768x24 &
+   cd "GAME_DIR"
+   proton run ./bin/Win64_Shipping_wEditor/TaleWorlds.TwoDimension.SpriteSheetGenerator.exe
    ```
 
-2. Run SpriteSheetGenerator:
-   ```
-   GAME_INSTALL/bin/Win64_Shipping_wEditor/TaleWorlds.TwoDimension.SpriteSheetGenerator.exe
-   ```
-   (Or use the "Update Sprite Sheets" option in the modding tools.)
+3. The tool creates `Assets/`, `AssetSources/`, and `GUI/AIInfluenceSpriteData.xml`. Copy these to the workspace and commit.
 
-3. The tool creates `Assets/` and `AssetSources/` under the module. Commit these if you want them in the repo, or ensure they are included when packaging the mod.
+## Sprite names
 
-4. Press ENTER in the SpriteSheetGenerator window to finish and unlock the PNG files.
-
-## Sprite Names
-
-Sprite names = filename without extension. Ensure XML references match:
+Sprite name = filename without extension. XML references must match:
 - `chat_panel_bg.png` → `chat_panel_bg`
 - `chat_msg_separator.png` → `chat_msg_separator`
 - `name_shadow_9.png` → `name_shadow_9`
