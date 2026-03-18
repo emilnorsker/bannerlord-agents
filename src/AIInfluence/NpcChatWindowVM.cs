@@ -58,6 +58,8 @@ public class NpcChatWindowVM : ViewModel
     // ── Right panel – flat list, section headers included as items ────────
     [DataSourceProperty] public MBBindingList<TextItemVM> RightPanelItems { get; } = new MBBindingList<TextItemVM>();
 
+    /// <summary>Index into RightPanelItems where the refreshable section (QUEST + CHARACTER) begins.
+    /// RefreshCharacterSection removes items from this index onwards and re-adds them.</summary>
     private int _characterSectionStartIndex;
 
     private void AddNewestMessage(ChatMessageItemVM item) => MessageList.Add(item);
@@ -162,8 +164,56 @@ public class NpcChatWindowVM : ViewModel
 
         RightPanelItems.Add(new TextItemVM(" ", "#00000000"));
         _characterSectionStartIndex = RightPanelItems.Count;
+        AddQuestSectionItems(context);
         AddCharacterSectionItems(npc, context);
     }
+
+    /// <summary>Adds QUEST section to RightPanelItems. Builds quest lines first, then adds header + content,
+    /// so a throw during build does not leave a partial QUEST section.</summary>
+    private void AddQuestSectionItems(NPCContext context)
+    {
+        const string Header = "#888888FF";
+        const string QuestColor = "#D0A96BFF";
+        List<string> lines;
+        if (context == null)
+            lines = new List<string>();
+        else
+        {
+            var questSources = new (IEnumerable<AIQuestInfo> source, Func<AIQuestInfo, string> format)[]
+            {
+                (OrEmpty(context.ActiveAIQuests), FormatActiveQuestLine),
+                (OrEmpty(context.IncomingAIQuests), FormatIncomingQuestLine)
+            };
+            var all = questSources.SelectMany(s => s.source.Where(IsValidQuest).Select(q => (quest: q, formatter: s.format)));
+            lines = all.GroupBy(x => x.quest.QuestId).Select(g => { var f = g.First(); return f.formatter(f.quest); }).ToList();
+        }
+        RightPanelItems.Add(new TextItemVM("QUEST", Header));
+        if (lines.Count == 0)
+            RightPanelItems.Add(new TextItemVM("• No active quest with this character", Header));
+        else
+            foreach (var line in lines)
+                RightPanelItems.Add(new TextItemVM(line, QuestColor));
+    }
+
+    private static IEnumerable<AIQuestInfo> OrEmpty(IList<AIQuestInfo> list) => list ?? Enumerable.Empty<AIQuestInfo>();
+    private static bool IsValidQuest(AIQuestInfo q) => q != null && !string.IsNullOrWhiteSpace(q.Title) && IsQuestStillOngoing(q.QuestId);
+    /// <summary>Checks if quest exists in campaign and is ongoing. Uses ToList() to avoid InvalidOperationException if Quests is modified during iteration.</summary>
+    private static bool IsQuestStillOngoing(string questId)
+    {
+        if (string.IsNullOrEmpty(questId)) return false;
+        var quests = Campaign.Current?.QuestManager?.Quests?.ToList();
+        return quests != null && quests.Any(q => ((MBObjectBase)q).StringId == questId && q.IsOngoing);
+    }
+    /// <summary>Formats an active quest line with optional progress (e.g. "2/3 targets").</summary>
+    private static string FormatActiveQuestLine(AIQuestInfo q)
+    {
+        if (q.ProgressTarget <= 0) return $"• {q.Title}";
+        int current = Math.Max(0, Math.Min(q.ProgressCurrent, q.ProgressTarget));
+        string label = string.IsNullOrWhiteSpace(q.ProgressLabel) ? "" : $" {q.ProgressLabel}";
+        return $"• {q.Title} ({current}/{q.ProgressTarget}{label})";
+    }
+    /// <summary>Formats an incoming quest line (NPC is delivery target).</summary>
+    private static string FormatIncomingQuestLine(AIQuestInfo q) => $"• {q.Title} (deliver here)";
 
     private static IEnumerable<string> ResolveKnownInfo(NPCContext context, Hero npc)
     {
@@ -214,7 +264,7 @@ public class NpcChatWindowVM : ViewModel
     {
         const string Header = "#888888FF";
         RightPanelItems.Add(new TextItemVM("CHARACTER", Header));
-        int rel = (int)npc.GetRelation(Hero.MainHero);
+        int rel = Hero.MainHero != null ? (int)npc.GetRelation(Hero.MainHero) : 0;
         RightPanelItems.Add(new TextItemVM($"Relation: {rel:+#;-#;0}", rel >= 0 ? "#6FCF6FFF" : "#CF6F6FFF"));
         RightPanelItems.Add(new TextItemVM($"Trust: {(context?.TrustLevel ?? 0f) * 100f:F0}%"));
         RightPanelItems.Add(new TextItemVM($"Interactions: {context?.InteractionCount ?? 0}"));
@@ -222,11 +272,21 @@ public class NpcChatWindowVM : ViewModel
             RightPanelItems.Add(new TextItemVM($"Mood: {context.EmotionalState.Mood}"));
     }
 
+    /// <summary>Removes items from _characterSectionStartIndex onwards and re-adds QUEST + CHARACTER sections.</summary>
     private void RefreshCharacterSection(Hero npc, NPCContext context)
     {
         while (RightPanelItems.Count > _characterSectionStartIndex)
             RightPanelItems.RemoveAt(RightPanelItems.Count - 1);
-        AddCharacterSectionItems(npc, context);
+        try
+        {
+            AddQuestSectionItems(context);
+            AddCharacterSectionItems(npc, context);
+        }
+        catch (Exception ex)
+        {
+            AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] RefreshCharacterSection failed: " + ex.Message);
+            try { AddCharacterSectionItems(npc, context); } catch (Exception ex2) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] RefreshCharacterSection fallback failed: " + ex2.Message); }
+        }
     }
 
     // ── Segment parser ────────────────────────────────────────────────────
@@ -662,8 +722,12 @@ public class NpcChatWindowVM : ViewModel
                                 catch (Exception ex) { AIInfluenceBehavior.Instance.LogMessage("[NpcChatWindow] SaveNPCContext after UpdateContextData failed: " + ex.Message); }
                             }
                             catch (Exception ex) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] UpdateContextData failed: " + ex.Message); }
-                            RefreshTraitOverlay(_npc, ctx);
-                            RefreshCharacterSection(_npc, ctx);
+                            TtsLipSyncService.MainThreadQueue.Enqueue(() =>
+                            {
+                                if (!NpcChatWindowManager.IsOpen || NpcChatWindowManager.GetCurrentViewModel() != this) return; // Skip if closed or reopened (wrong VM)
+                                RefreshTraitOverlay(_npc, ctx);
+                                RefreshCharacterSection(_npc, ctx);
+                            });
                         }
                     }
                     catch (Exception ex)
@@ -688,10 +752,23 @@ public class NpcChatWindowVM : ViewModel
                     doFinalize();
                 }
             }
-            else if (streamingItem != null)
+            else
             {
-                streamingRetired = true;
-                MessageList.Remove(streamingItem);
+                if (streamingItem != null)
+                {
+                    streamingRetired = true;
+                    MessageList.Remove(streamingItem);
+                }
+                NPCContext ctx = null;
+                try { ctx = AIInfluenceBehavior.Instance?.GetOrCreateNPCContext(_npc); }
+                catch (Exception ex) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] GetOrCreateNPCContext (empty reply) failed: " + ex.Message); }
+                if (ctx != null && AIInfluenceBehavior.Instance != null)
+                    TtsLipSyncService.MainThreadQueue.Enqueue(() =>
+                    {
+                        if (!NpcChatWindowManager.IsOpen || NpcChatWindowManager.GetCurrentViewModel() != this) return; // Skip if closed or reopened (wrong VM)
+                        RefreshTraitOverlay(_npc, ctx);
+                        RefreshCharacterSection(_npc, ctx);
+                    });
             }
         }
         catch (Exception ex)
