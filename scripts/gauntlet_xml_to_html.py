@@ -190,7 +190,7 @@ def widget_to_css(el: ET.Element, constants: dict, skip_mt_mr_for_grid: bool = F
     return "; ".join(parts)
 
 
-def widget_to_html(el: ET.Element, constants: dict, depth: int = 0, parent: ET.Element | None = None, skip_mt_mr_for_grid: bool = False) -> str:
+def widget_to_html(el: ET.Element, constants: dict, depth: int = 0, parent: ET.Element | None = None, skip_mt_mr_for_grid: bool = False, prefab_name: str | None = None) -> str:
     """Recursively convert Gauntlet widget tree to HTML."""
     tag = el.tag
     css = widget_to_css(el, constants, skip_mt_mr_for_grid)
@@ -253,6 +253,12 @@ def widget_to_html(el: ET.Element, constants: dict, depth: int = 0, parent: ET.E
         elif c.tag == "ItemTemplate":
             children_list = [c]
 
+    if prefab_name == "ChatInterface" and tag == "Widget" and len(children_list) == 3:
+        first_w = get_attr(children_list[0], "SuggestedWidth", constants) if children_list else ""
+        second_w = get_attr(children_list[1], "SuggestedWidth", constants) if len(children_list) > 1 else ""
+        if first_w == "460" and second_w == "2":
+            children_list = children_list[2:]
+
     children_html = []
     if tag == "Widget" and use_frame_inner_grid(el, constants):
         grid_css = "display: grid; grid-template-rows: 80px 1fr; grid-template-columns: 1fr 2px 300px; flex: 1; min-height: 0; min-width: 0"
@@ -264,12 +270,11 @@ def widget_to_html(el: ET.Element, constants: dict, depth: int = 0, parent: ET.E
         inner = "".join(children_html)
         return f'<div{id_attr} class="gauntlet-frame-inner" style="{grid_css}">{inner}</div>'
 
-    for c in el:
-        if c.tag == "Children":
-            for ch in c:
-                children_html.append(widget_to_html(ch, constants, depth + 1))
-        elif c.tag == "ItemTemplate":
-            children_html.append(widget_to_html(c, constants, depth + 1, el))
+    for ch in children_list:
+        if ch.tag == "ItemTemplate":
+            children_html.append(widget_to_html(ch, constants, depth + 1, el))
+        else:
+            children_html.append(widget_to_html(ch, constants, depth + 1))
 
     if tag in ("ScrollablePanel", "ClipContents"):
         extra = " overflow: auto;"
@@ -327,7 +332,7 @@ def main():
             for w in child:
                 html_parts.append(widget_to_html(w, constants))
         else:
-            html_parts.append(widget_to_html(child, constants))
+            html_parts.append(widget_to_html(child, constants, prefab_name=args.prefab))
 
     html = f"""<!DOCTYPE html>
 <html lang="en">
