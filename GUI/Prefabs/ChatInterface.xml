@@ -208,11 +208,11 @@
                                                   </Children>
                                                 </Widget>
                                                 <!-- NPC pill segment (action/emote — orange) -->
-                                                <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Bubble.W" HeightSizePolicy="CoverChildren"
                                                         HorizontalAlignment="Left" IsVisible="@IsPill"
                                                         MarginTop="2" MarginBottom="2">
                                                   <Children>
-                                                    <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                                 Margin="4,2,4,2"
                                                                 Brush="Chat.Action.Text"
                                                                 Text="@Text" />
@@ -265,11 +265,11 @@
                                                   </Children>
                                                 </Widget>
                                                 <!-- Player pill segment (action/outcome) -->
-                                                <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Bubble.W" HeightSizePolicy="CoverChildren"
                                                         HorizontalAlignment="Right" IsVisible="@IsPill"
                                                         MarginTop="2" MarginBottom="2">
                                                   <Children>
-                                                    <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                                 Margin="4,2,4,2"
                                                                 Brush="Chat.Action.Text"
                                                                 TextHorizontalAlignment="Right"
