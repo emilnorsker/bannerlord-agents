@@ -6,7 +6,7 @@ using Newtonsoft.Json.Linq;
 namespace AIInfluence;
 
 [JsonSerializable]
-public class SpawnNpcEquipment
+public class SpawnPartyEquipment
 {
 	[JsonProperty("weapon")]
 	public string Weapon { get; set; }
@@ -38,7 +38,7 @@ public class SpawnNpcEquipment
 }
 
 [JsonSerializable]
-public class SpawnNpcData
+public class SpawnPartyData
 {
 	[JsonProperty("name")]
 	public string Name { get; set; }
@@ -73,7 +73,7 @@ public class SpawnNpcData
 	public string Settlement { get; set; }
 
 	[JsonProperty("equipment")]
-	public SpawnNpcEquipment Equipment { get; set; }
+	public SpawnPartyEquipment Equipment { get; set; }
 
 	[JsonProperty("party_name")]
 	public string PartyName { get; set; }

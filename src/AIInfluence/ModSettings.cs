@@ -4633,7 +4633,7 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 	}
 
 	[SettingPropertyGroup("Quest Debug", GroupOrder = 20)]
-	[SettingPropertyBool("Generate Quest From Prompt", Order = 1, RequireRestart = false, HintText = "Sends the Quest Generation Prompt to the AI to create a quest with spawn_npc on the nearest NPC.")]
+	[SettingPropertyBool("Generate Quest From Prompt", Order = 1, RequireRestart = false, HintText = "Sends the Quest Generation Prompt to the AI to create a quest with spawn_party on the nearest NPC.")]
 	public bool DebugGenerateQuestFromPrompt
 	{
 		get => false;

@@ -4620,8 +4620,8 @@ public static class PromptGenerator
 			"- `\"reward_skill_xp\"`: integer XP amount (50–2000) for the skill above.\n" +
 			"- `\"crime_rating_change\"`: integer (negative = reduce crime, positive = increase). Applied to the player's current kingdom.\n" +
 			"- `\"influence_change\"`: integer influence change for the player's clan (positive = gain, negative = lose).\n" +
-			"Spawning NPCs and parties (optional):\n" +
-			"- `\"spawn_npc\"`: object — spawns an NPC or party on the world map or in a settlement. All names are fuzzy-matched.\n" +
+			"Spawning parties and NPCs (optional):\n" +
+			"- `\"spawn_party\"`: object — spawns a party and/or a single NPC on the world map or in a settlement. Use ONLY when the quest requires NEW entities — do NOT use if the quest targets an existing NPC (e.g. kill an existing lord; verification is via Recent Events). Can spawn: (1) a simple party (omit `name`, use party fields) — leaderless bandits etc.; (2) a named NPC leading a party (`name` + party fields); (3) a single NPC (`name`, `party_size`: 0 or omit party fields). All names are fuzzy-matched.\n" +
 			"  - `\"name\"`: NPC name. If provided, creates a named hero the player can talk to and fight. If omitted with party fields, creates a leaderless faction party.\n" +
 			"  - `\"alignment\"`: REQUIRED — `\"friendly\"`, `\"hostile\"`, or `\"neutral\"`. Determines faction: friendly = allied to player, hostile = enemy faction or bandits, neutral = local settlement owner.\n" +
 			"  - `\"culture\"`: determines appearance and default equipment. Available cultures: " + GetAvailableCultures() + ".\n" +
@@ -4641,7 +4641,7 @@ public static class PromptGenerator
 			"    Quest giver in town: {\"name\": \"Aldric\", \"alignment\": \"friendly\", \"culture\": \"Vlandian\", \"backstory\": \"A merchant who lost his caravan\", \"personality\": \"Nervous, grateful\", \"settlement\": \"Epicrotea\"}\n" +
 			"    Hostile warband: {\"name\": \"Kargas\", \"alignment\": \"hostile\", \"culture\": \"Sturgian\", \"backstory\": \"A bandit chief\", \"personality\": \"Cruel, mocking\", \"equipment\": {\"weapon\": \"two handed axe\", \"head\": \"wolf head\", \"tier\": 4}, \"party_name\": \"Kargas's Raiders\", \"party_troops\": [\"sturgian raider\"], \"party_size\": 30}\n" +
 			"    Simple bandit group: {\"alignment\": \"hostile\", \"party_name\": \"Roadside Bandits\", \"party_troops\": [\"looter\"], \"party_size\": 15}\n" +
-			"  IMPORTANT: When creating a quest that involves combat (kill bandits, defeat a warlord, clear a road, etc.), you MUST use spawn_npc to spawn the enemies on the map. Without spawn_npc, there will be nothing for the player to fight. Use a named NPC leader for important foes, or a simple party (no name) for generic enemies.\n");
+			"  IMPORTANT: When creating a quest that involves combat against SPAWNED enemies (kill bandits, defeat a warlord, clear a road, etc.), you MUST use spawn_party to spawn the enemies on the map. Without spawn_party, there will be nothing for the player to fight. Do NOT use spawn_party if the target is an existing lord — that quest is verified via Recent Events (HeroKilled). Use a named NPC leader for important foes, or a simple party (no name) for generic enemies.\n");
 		stringBuilder.Append("\n");
 		return stringBuilder.ToString();
 	}
@@ -4748,7 +4748,7 @@ public static class PromptGenerator
 		return "- `quest_action`: (object) Quest-related action. **Omit if no quest interaction.**\n" +
 		"  Create: {\"action\": \"create_quest\", \"title\": \"...\", \"description\": \"...\", \"duration_days\": N, \"target_npc_ids\": [\"id1\"], \"completer_npc_id\": \"id or null\", \"ai_verification_notes\": \"private notes\", \"progress_target\": N_or_null, \"progress_label\": \"label_or_null\", " +
 		"\"reward_gold\": N, \"reward_items\": [{\"item_name\": \"grain\", \"count\": 10}], \"reward_skill\": \"Charm\", \"reward_skill_xp\": 200, \"crime_rating_change\": -10, \"influence_change\": 5, " +
-		"\"spawn_npc\": {\"name\": \"Kargas\", \"alignment\": \"hostile\", \"culture\": \"Sturgian\", \"backstory\": \"A bandit chief\", \"personality\": \"Cruel\", \"equipment\": {\"weapon\": \"two handed axe\", \"tier\": 4}, \"party_name\": \"Kargas's Raiders\", \"party_troops\": [\"sturgian raider\"], \"party_size\": 30}}\n" +
+		"\"spawn_party\": {\"name\": \"Kargas\", \"alignment\": \"hostile\", \"culture\": \"Sturgian\", \"backstory\": \"A bandit chief\", \"personality\": \"Cruel\", \"equipment\": {\"weapon\": \"two handed axe\", \"tier\": 4}, \"party_name\": \"Kargas's Raiders\", \"party_troops\": [\"sturgian raider\"], \"party_size\": 30}}\n" +
 		"  Update: {\"action\": \"update_quest\", \"quest_id\": \"...\", \"update_log\": \"your note\", \"set_progress\": N_or_null}\n" +
 		"  Complete: {\"action\": \"complete_quest\", \"quest_id\": \"...\", \"completion_reason\": \"why\", \"set_progress\": N_or_null} — all rewards applied automatically\n" +
 		"  Fail: {\"action\": \"fail_quest\", \"quest_id\": \"...\", \"completion_reason\": \"why failed\"}\n";
