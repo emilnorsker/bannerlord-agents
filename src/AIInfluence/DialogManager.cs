@@ -912,6 +912,7 @@ public class DialogManager
 						_behavior.LogMessage($"[ITEM_TRANSFER] Executing pending item transfers for NPC {((MBObjectBase)npc).StringId} (Prisoner: {npc.IsPrisoner}): {context.PendingItemTransfers.Count} items");
 						_behavior.ProcessItemTransfers(npc, context, context.PendingItemTransfers);
 						context.PendingItemTransfers = null;
+						context.PendingItemTransfersOpposedAttribute = null;
 						_behavior.SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
 						_behavior.LogMessage($"[ITEM_TRANSFER] Item transfers completed for NPC {((MBObjectBase)npc).StringId}");
 					}
@@ -1418,7 +1419,7 @@ public class DialogManager
 												{
 													_behavior.LogMessage("[ROLEPLAY] Natural death (no killer specified)");
 												}
-												_behavior.KillCharacterHeroPublic(npc, val19, killedInAction: false);
+												_behavior.KillCharacterHeroPublic(npc, val19, killedInAction: false, context.OpposedAttribute);
 												_behavior.LogMessage($"[ROLEPLAY] Character {npc.Name} (prisoner: {npc.IsPrisoner}) has been removed from the game.");
 											}
 											context.PendingDeath = null;
@@ -1626,6 +1627,7 @@ public class DialogManager
 						_behavior.LogMessage($"[ITEM_TRANSFER] Executing pending item transfers for NPC {((MBObjectBase)npc).StringId} (Prisoner: {npc.IsPrisoner}, surrender dialog): {context.PendingItemTransfers.Count} items");
 						_behavior.ProcessItemTransfers(npc, context, context.PendingItemTransfers);
 						context.PendingItemTransfers = null;
+						context.PendingItemTransfersOpposedAttribute = null;
 						_behavior.SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
 						_behavior.LogMessage($"[ITEM_TRANSFER] Item transfers completed for NPC {((MBObjectBase)npc).StringId} (surrender dialog)");
 					}

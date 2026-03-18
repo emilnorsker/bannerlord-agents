@@ -13,4 +13,8 @@ public class CharacterDeathInfo
 
 	[JsonProperty("killer_string_id")]
 	public string KillerStringId { get; set; }
+
+	/// <summary>Single attribute for opposed check when player is killer. AI chooses: vigor, endurance, control, cunning, intelligence, social.</summary>
+	[JsonProperty("opposed_attribute")]
+	public string OpposedAttribute { get; set; }
 }

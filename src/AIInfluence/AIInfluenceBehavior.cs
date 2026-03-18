@@ -2194,6 +2194,24 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			return;
 		}
+		if (!string.IsNullOrWhiteSpace(context?.PendingItemTransfersOpposedAttribute))
+		{
+			var attr = OpposedSkillCheck.ParseAttribute(context.PendingItemTransfersOpposedAttribute);
+			bool won = OpposedSkillCheck.PlayerWins(Hero.MainHero, npc, attr, out int roll, out int dc, out int total);
+			InformationManager.DisplayMessage(new InformationMessage(((object)new TextObject("{=AIInfluence_OpposedRoll}Roll {roll} + mod = {total} vs DC {dc}. {result}", new Dictionary<string, object>
+			{
+				{ "roll", roll },
+				{ "total", total },
+				{ "dc", dc },
+				{ "result", won ? "Success" : "Failed" }
+			})).ToString(), won ? Colors.Green : Colors.Yellow));
+			if (!won)
+			{
+				LogMessage($"[ITEM_TRANSFER] Opposed check failed - {npc.Name} refuses");
+				InformationManager.DisplayMessage(new InformationMessage(((object)new TextObject("{=AIInfluence_TransferRefused}{npcName} refuses.", new Dictionary<string, object> { { "npcName", npc.Name } })).ToString(), Colors.Yellow));
+				return;
+			}
+		}
 		string text = ((object)npc.Name)?.ToString() ?? "Unknown";
 		foreach (ItemTransferData transfer in itemTransfers)
 		{
@@ -2250,6 +2268,24 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	public void ProcessMoneyTransfer(Hero npc, NPCContext context, MoneyTransferInfo moneyTransfer)
 	{
 		LogMessage($"[DEBUG][MONEY_TRANSFER_EXEC] ProcessMoneyTransfer called for {((object)npc?.Name ?? "null")} - amount={moneyTransfer?.Amount}, action={moneyTransfer?.Action}. If you never see this line after a chat-window transfer, the transfer was never executed.");
+		if (!string.IsNullOrWhiteSpace(moneyTransfer.OpposedAttribute))
+		{
+			var attr = OpposedSkillCheck.ParseAttribute(moneyTransfer.OpposedAttribute);
+			bool won = OpposedSkillCheck.PlayerWins(Hero.MainHero, npc, attr, out int roll, out int dc, out int total);
+			InformationManager.DisplayMessage(new InformationMessage(((object)new TextObject("{=AIInfluence_OpposedRoll}Roll {roll} + mod = {total} vs DC {dc}. {result}", new Dictionary<string, object>
+			{
+				{ "roll", roll },
+				{ "total", total },
+				{ "dc", dc },
+				{ "result", won ? "Success" : "Failed" }
+			})).ToString(), won ? Colors.Green : Colors.Yellow));
+			if (!won)
+			{
+				LogMessage($"[MONEY_TRANSFER] Opposed check failed - {npc.Name} refuses");
+				InformationManager.DisplayMessage(new InformationMessage(((object)new TextObject("{=AIInfluence_TransferRefused}{npcName} refuses.", new Dictionary<string, object> { { "npcName", npc.Name } })).ToString(), Colors.Yellow));
+				return;
+			}
+		}
 		//IL_01a2: Unknown result type (might be due to invalid IL or missing references)
 		//IL_01ac: Expected O, but got Unknown
 		//IL_01ac: Unknown result type (might be due to invalid IL or missing references)
@@ -2854,6 +2890,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage("[ROLEPLAY] Character " + npcName + " CAN be killed - all conditions met");
 				context.DeathReason = deathReason;
 				context.KillerStringId = killerStringId;
+				context.OpposedAttribute = aiResult.CharacterDeath.OpposedAttribute;
 				context.PendingDeath = "pending";
 				SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
 				if (Settlement.CurrentSettlement != null && Mission.Current != null)
@@ -3035,6 +3072,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		if (aiResult.ItemTransfers != null && aiResult.ItemTransfers.Count > 0)
 		{
 			context.PendingItemTransfers = aiResult.ItemTransfers;
+			context.PendingItemTransfersOpposedAttribute = aiResult.ItemTransfersOpposedAttribute
+				?? aiResult.ItemTransfers.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.OpposedAttribute))?.OpposedAttribute;
 			LogMessage($"[ITEM_TRANSFER] Saved pending item transfers: {aiResult.ItemTransfers.Count} items for NPC {npc.Name}");
 		}
 		else if (aiResult.ItemTransfers != null)
@@ -3290,6 +3329,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			context.DeathReason = aiResult.CharacterDeath.DeathReason ?? "unknown causes";
 			context.KillerStringId = aiResult.CharacterDeath.KillerStringId;
+			context.OpposedAttribute = aiResult.CharacterDeath.OpposedAttribute;
 			context.PendingDeath = "pending";
 			bool isSettlementCombat = Settlement.CurrentSettlement != null && Mission.Current != null;
 			if (isSettlementCombat)
@@ -3324,7 +3364,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 								if (npc != null && !npc.IsDead)
 								{
 									Hero killer = string.IsNullOrEmpty(context.KillerStringId) ? null : Hero.FindFirst((Func<Hero, bool>)((Hero h) => h != null && ((MBObjectBase)h).StringId == context.KillerStringId));
-									KillCharacterHeroPublic(npc, killer, killedInAction: false);
+									KillCharacterHeroPublic(npc, killer, killedInAction: false, context.OpposedAttribute);
 								}
 								context.PendingDeath = null;
 								context.KillerStringId = null;
@@ -3421,7 +3461,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		if (aiResult.MoneyTransfer != null && aiResult.MoneyTransfer.Amount > 0)
 			ProcessMoneyTransfer(npc, context, aiResult.MoneyTransfer);
 		if (aiResult.ItemTransfers != null && aiResult.ItemTransfers.Count > 0)
+		{
+			context.PendingItemTransfersOpposedAttribute = aiResult.ItemTransfersOpposedAttribute
+				?? aiResult.ItemTransfers.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.OpposedAttribute))?.OpposedAttribute;
 			ProcessItemTransfers(npc, context, aiResult.ItemTransfers);
+		}
 		if (!string.IsNullOrEmpty(aiResult.KingdomAction) && !aiResult.KingdomAction.Equals("none", StringComparison.OrdinalIgnoreCase))
 			ProcessKingdomAction(npc, aiResult, context);
 		if (aiResult.QuestAction != null && !string.IsNullOrEmpty(aiResult.QuestAction.Action))
@@ -8154,12 +8198,12 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		return true;
 	}
 
-	public void KillCharacterHeroPublic(Hero hero, Hero killer, bool killedInAction)
+	public void KillCharacterHeroPublic(Hero hero, Hero killer, bool killedInAction, string opposedAttribute = null)
 	{
-		KillCharacterHero(hero, killer, killedInAction);
+		KillCharacterHero(hero, killer, killedInAction, opposedAttribute);
 	}
 
-	private void KillCharacterHero(Hero hero, Hero killer, bool killedInAction)
+	private void KillCharacterHero(Hero hero, Hero killer, bool killedInAction, string opposedAttribute = null)
 	{
 		//IL_0178: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0192: Unknown result type (might be due to invalid IL or missing references)
@@ -8180,6 +8224,24 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			{
 				LogMessage("[WARNING] Attempted to kill null or already dead hero");
 				return;
+			}
+			var attr = OpposedSkillCheck.ParseAttribute(opposedAttribute);
+			if (killer == Hero.MainHero)
+			{
+				bool won = OpposedSkillCheck.PlayerWins(Hero.MainHero, hero, attr, out int roll, out int dc, out int total);
+				InformationManager.DisplayMessage(new InformationMessage(((object)new TextObject("{=AIInfluence_OpposedRoll}Roll {roll} + mod = {total} vs DC {dc}. {result}", new Dictionary<string, object>
+				{
+					{ "roll", roll },
+					{ "total", total },
+					{ "dc", dc },
+					{ "result", won ? "Success" : "Failed" }
+				})).ToString(), won ? Colors.Green : Colors.Yellow));
+				if (!won)
+				{
+					LogMessage($"[CHARACTER_DEATH] Opposed skill check failed - {hero.Name} survives");
+					InformationManager.DisplayMessage(new InformationMessage(((object)new TextObject("{=AIInfluence_LethalStrikeFailed}Your strike was not lethal. {npcName} survives.", new Dictionary<string, object> { { "npcName", hero.Name } })).ToString(), Colors.Yellow));
+					return;
+				}
 			}
 			TextObject name = hero.Name;
 			Hero obj = killer;

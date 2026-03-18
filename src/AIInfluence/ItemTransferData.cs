@@ -13,4 +13,8 @@ public class ItemTransferData
 
 	[JsonProperty("action")]
 	public string Action { get; set; }
+
+	/// <summary>Fallback when AI puts opposed_attribute inside item instead of top-level.</summary>
+	[JsonProperty("opposed_attribute")]
+	public string OpposedAttribute { get; set; }
 }
