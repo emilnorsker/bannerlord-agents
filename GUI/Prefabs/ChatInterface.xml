@@ -1,11 +1,11 @@
 <Prefab>
   <!--
+    Hierarchy: Frame (stretches screen) → Content (inset) → Panels.
     Layout — left-aligned, full height:
-      Left  (x=0..460)   : opaque dark backdrop (#141414).
-                           Stat overlay (TopBanner) at top.
-      Sep   (x=460..462) : thin separator
-      Frame (x=462..end) : opaque dark backdrop (#141414) wrapping center+right.
-        Center: fills frame minus right column.
+      Left  (x=24..484)  : transparent, Stat overlay (TopBanner) at top.
+      Sep   (x=484..486)  : thin separator
+      Center+Right (x=486..end) : canvas_dark backdrop.
+        Center: fills minus right column.
         Right : fixed 300px at right edge.
 
     Sprites/brushes: confirmed from WorldEventsWindow.xml, AIInfluenceTextQueryPopup.xml,
@@ -22,26 +22,35 @@
     <Constant Name="Gold"          Value="#FFE6B685" />
     <Constant Name="SubText"       Value="#9BA4B5FF" />
     <Constant Name="SepColor"      Value="#FFFFFF22" />
-    <Constant Name="Frame.Start"   Value="462" />
+    <Constant Name="Frame.Start"   Value="486" />
     <Constant Name="Frame.End"     Value="302" />
+    <Constant Name="Frame.Inset"   Value="24" />
   </Constants>
 
   <Window Id="ChatInterfaceWindow" Layer="Overlay">
 
-    <!-- Outer container: full screen, holds left + framed block side by side -->
+    <!-- Frame: root container, stretches to fill screen; panels are children inside -->
     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+            Sprite="Frame1Broken_frame"
+            ExtendLeft="!Frame.Inset" ExtendRight="!Frame.Inset"
+            ExtendTop="!Frame.Inset" ExtendBottom="!Frame.Inset"
             DoNotAcceptEvents="false">
       <Children>
-        <!-- Full-screen backdrop: StdAssets\Popup\canvas_dark -->
+        <!-- Content area: inside frame, inset so panels don't overlap border -->
         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                MarginLeft="!Frame.Start"
-                Sprite="StdAssets\Popup\canvas_dark" Color="#141414FF"
-                DoNotAcceptEvents="true" />
+                MarginLeft="!Frame.Inset" MarginRight="!Frame.Inset"
+                MarginTop="!Frame.Inset" MarginBottom="!Frame.Inset">
+          <Children>
+            <!-- Backdrop: canvas_dark for center+right area -->
+            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                    MarginLeft="!Frame.Start"
+                    Sprite="StdAssets\Popup\canvas_dark" Color="#141414FF"
+                    DoNotAcceptEvents="true" />
 
-        <!-- ══ LEFT COLUMN — transparent (no background) ══ -->
-        <Widget HorizontalAlignment="Left"
-                WidthSizePolicy="Fixed" SuggestedWidth="!Left.W"
-                HeightSizePolicy="StretchToParent">
+            <!-- ══ LEFT COLUMN — transparent (no background) ══ -->
+            <Widget HorizontalAlignment="Left"
+                    WidthSizePolicy="Fixed" SuggestedWidth="!Left.W"
+                    HeightSizePolicy="StretchToParent">
           <Children>
             <!-- Stat overlay at top of left column -->
             <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
@@ -77,7 +86,7 @@
                 PositionXOffset="!Left.W"
                 Sprite="BlankWhiteSquare_9" Color="!SepColor" />
 
-        <!-- ══ CENTER + RIGHT — StdAssets\Popup\canvas_dark + Frame1Broken border ════════════════ -->
+        <!-- ══ CENTER + RIGHT — canvas_dark backdrop ══ -->
         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                 MarginLeft="!Frame.Start"
                 Sprite="StdAssets\Popup\canvas_dark" Color="#141414FF">
@@ -458,12 +467,8 @@
           </Children>
         </Widget>
 
-        <!-- Frame border: wraps whole chat (left + center + right), inset to stay in bounds -->
-        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                MarginLeft="16" MarginRight="16" MarginTop="16" MarginBottom="16"
-                Sprite="Frame1Broken_frame"
-                ExtendLeft="24" ExtendRight="24" ExtendTop="24" ExtendBottom="24"
-                DoNotAcceptEvents="true" />
+          </Children>
+        </Widget>
       </Children>
     </Widget>
   </Window>
