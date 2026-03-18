@@ -272,7 +272,7 @@ public class NpcChatWindowVM : ViewModel
         catch (Exception ex)
         {
             AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] RefreshCharacterSection failed: " + ex.Message);
-            try { AddCharacterSectionItems(npc, context); } catch { }
+            try { AddCharacterSectionItems(npc, context); } catch (Exception ex2) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] RefreshCharacterSection fallback failed: " + ex2.Message); }
         }
     }
 
