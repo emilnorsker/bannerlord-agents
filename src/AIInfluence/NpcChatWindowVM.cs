@@ -168,29 +168,32 @@ public class NpcChatWindowVM : ViewModel
 
     private void AddQuestSectionItems(NPCContext context)
     {
+        if (context == null) return;
         const string Header = "#888888FF";
         const string QuestColor = "#D0A96BFF";
         var questSources = new (IEnumerable<AIQuestInfo> source, Func<AIQuestInfo, string> format)[]
         {
-            (OrEmpty(context?.ActiveAIQuests), FormatActiveQuestLine),
-            (OrEmpty(context?.IncomingAIQuests), FormatIncomingQuestLine)
+            (OrEmpty(context.ActiveAIQuests), FormatActiveQuestLine),
+            (OrEmpty(context.IncomingAIQuests), FormatIncomingQuestLine)
         };
-        var lines = questSources.SelectMany(s => s.source.Where(IsValidQuest).Select(s.format)).ToList();
+        var all = questSources.SelectMany(s => s.source.Where(IsValidQuest).Select(q => (quest: q, formatter: s.format)));
+        var lines = all.GroupBy(x => x.quest.QuestId).Select(g => g.First().formatter(g.First().quest)).ToList();
         if (lines.Count == 0) return;
         RightPanelItems.Add(new TextItemVM("QUEST", Header));
         foreach (var line in lines)
             RightPanelItems.Add(new TextItemVM(line, QuestColor));
     }
 
-    private static IEnumerable<AIQuestInfo> OrEmpty(List<AIQuestInfo> list) => list ?? Enumerable.Empty<AIQuestInfo>();
+    private static IEnumerable<AIQuestInfo> OrEmpty(IList<AIQuestInfo> list) => list ?? Enumerable.Empty<AIQuestInfo>();
     private static bool IsValidQuest(AIQuestInfo q) => q != null && !string.IsNullOrWhiteSpace(q.Title) && IsQuestStillOngoing(q.QuestId);
     private static bool IsQuestStillOngoing(string questId) =>
         !string.IsNullOrEmpty(questId) && Campaign.Current?.QuestManager?.Quests?.Any(q => ((MBObjectBase)q).StringId == questId && q.IsOngoing) == true;
     private static string FormatActiveQuestLine(AIQuestInfo q)
     {
-        if (q.ProgressTarget > 0)
-            return $"• {q.Title} ({q.ProgressCurrent}/{q.ProgressTarget})";
-        return $"• {q.Title}";
+        if (q.ProgressTarget <= 0) return $"• {q.Title}";
+        int current = Math.Max(0, Math.Min(q.ProgressCurrent, q.ProgressTarget));
+        string label = string.IsNullOrWhiteSpace(q.ProgressLabel) ? "" : $" {q.ProgressLabel}";
+        return $"• {q.Title} ({current}/{q.ProgressTarget}{label})";
     }
     private static string FormatIncomingQuestLine(AIQuestInfo q) => $"• {q.Title} (deliver here)";
 
