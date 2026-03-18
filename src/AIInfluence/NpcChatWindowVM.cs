@@ -170,17 +170,12 @@ public class NpcChatWindowVM : ViewModel
     {
         const string Header = "#888888FF";
         const string QuestColor = "#D0A96BFF";
-        var lines = new List<string>();
-        foreach (var q in context?.ActiveAIQuests ?? Enumerable.Empty<AIQuestInfo>())
+        var questSources = new (IEnumerable<AIQuestInfo> source, Func<AIQuestInfo, string> format)[]
         {
-            if (string.IsNullOrWhiteSpace(q?.Title)) continue;
-            lines.Add(q.ProgressTarget > 0 ? $"• {q.Title} ({q.ProgressCurrent}/{q.ProgressTarget})" : $"• {q.Title}");
-        }
-        foreach (var q in context?.IncomingAIQuests ?? Enumerable.Empty<AIQuestInfo>())
-        {
-            if (string.IsNullOrWhiteSpace(q?.Title)) continue;
-            lines.Add($"• {q.Title} (deliver here)");
-        }
+            (context?.ActiveAIQuests ?? Enumerable.Empty<AIQuestInfo>(), q => q.ProgressTarget > 0 ? $"• {q.Title} ({q.ProgressCurrent}/{q.ProgressTarget})" : $"• {q.Title}"),
+            (context?.IncomingAIQuests ?? Enumerable.Empty<AIQuestInfo>(), q => $"• {q.Title} (deliver here)")
+        };
+        var lines = questSources.SelectMany(s => s.source.Where(q => !string.IsNullOrWhiteSpace(q?.Title)).Select(s.format)).ToList();
         if (lines.Count == 0) return;
         RightPanelItems.Add(new TextItemVM("QUEST", Header));
         foreach (var line in lines)
