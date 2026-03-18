@@ -168,17 +168,21 @@ public class NpcChatWindowVM : ViewModel
 
     private void AddQuestSectionItems(NPCContext context)
     {
-        if (context == null) return;
         const string Header = "#888888FF";
         const string QuestColor = "#D0A96BFF";
+        RightPanelItems.Add(new TextItemVM("QUEST", Header));
+        if (context == null)
+        {
+            RightPanelItems.Add(new TextItemVM("• No active quest with this character", Header));
+            return;
+        }
         var questSources = new (IEnumerable<AIQuestInfo> source, Func<AIQuestInfo, string> format)[]
         {
             (OrEmpty(context.ActiveAIQuests), FormatActiveQuestLine),
             (OrEmpty(context.IncomingAIQuests), FormatIncomingQuestLine)
         };
         var all = questSources.SelectMany(s => s.source.Where(IsValidQuest).Select(q => (quest: q, formatter: s.format)));
-        var lines = all.GroupBy(x => x.quest.QuestId).Select(g => g.First().formatter(g.First().quest)).ToList();
-        RightPanelItems.Add(new TextItemVM("QUEST", Header));
+        var lines = all.GroupBy(x => x.quest.QuestId).Select(g => { var f = g.First(); return f.formatter(f.quest); }).ToList();
         if (lines.Count == 0)
             RightPanelItems.Add(new TextItemVM("• No active quest with this character", Header));
         else
@@ -260,8 +264,16 @@ public class NpcChatWindowVM : ViewModel
     {
         while (RightPanelItems.Count > _characterSectionStartIndex)
             RightPanelItems.RemoveAt(RightPanelItems.Count - 1);
-        AddQuestSectionItems(context);
-        AddCharacterSectionItems(npc, context);
+        try
+        {
+            AddQuestSectionItems(context);
+            AddCharacterSectionItems(npc, context);
+        }
+        catch (Exception ex)
+        {
+            AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] RefreshCharacterSection failed: " + ex.Message);
+            try { AddCharacterSectionItems(npc, context); } catch { }
+        }
     }
 
     // ── Segment parser ────────────────────────────────────────────────────
