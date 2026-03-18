@@ -38,11 +38,10 @@
                 Sprite="StdAssets\Popup\canvas_dark" Color="#141414FF"
                 DoNotAcceptEvents="true" />
 
-        <!-- ══ LEFT COLUMN — opaque backdrop ══ -->
+        <!-- ══ LEFT COLUMN — transparent (no background) ══ -->
         <Widget HorizontalAlignment="Left"
                 WidthSizePolicy="Fixed" SuggestedWidth="!Left.W"
-                HeightSizePolicy="StretchToParent"
-                Sprite="BlankWhiteSquare_9" Color="#141414FF">
+                HeightSizePolicy="StretchToParent">
           <Children>
             <!-- Stat overlay at top of left column -->
             <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
@@ -120,15 +119,9 @@
                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                         MarginTop="!Header.H" MarginRight="!Frame.End">
                   <Children>
-                    <!-- Middle panel background: General\InnerFrame1\canvas -->
+                    <!-- Middle panel background: same dark style as former left panel -->
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                            Sprite="General\InnerFrame1\canvas" AlphaFactor="1.0"
-                            DoNotAcceptEvents="true" />
-
-                    <!-- Centered name_shadow_9 overlay for visual weight -->
-                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                            Sprite="name_shadow_9" AlphaFactor="0.25"
-                            HorizontalAlignment="Center" VerticalAlignment="Center"
+                            Sprite="BlankWhiteSquare_9" Color="#141414FF"
                             DoNotAcceptEvents="true" />
 
                     <!-- Message scroll area -->
