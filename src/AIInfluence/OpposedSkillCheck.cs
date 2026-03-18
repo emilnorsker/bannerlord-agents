@@ -33,17 +33,18 @@ public static class OpposedSkillCheck
 	/// Nat 20 = success (5% chance when outmatched).
 	/// Nat 1 = fail (5% chance when dominant).
 	/// </summary>
-	public static bool PlayerWins(Hero player, Hero npc, CharacterAttribute attr)
+	public static bool PlayerWins(Hero player, Hero npc, CharacterAttribute attr, out int roll, out int dc, out int playerTotal)
 	{
 		int playerAbility = GetAbility(player, attr);
 		int npcAbility = GetAbility(npc, attr);
 
-		int roll = MBRandom.RandomInt(1, 20);
-		if (roll == 20) return true;
-		if (roll == 1) return false;
+		roll = MBRandom.RandomInt(1, 20);
+		if (roll == 20) { dc = 0; playerTotal = 20; return true; }
+		if (roll == 1) { dc = 21; playerTotal = 1; return false; }
 
-		int dc = (npcAbility / 20) + MBRandom.RandomInt(1, 20);
-		int playerTotal = roll + (playerAbility / 20);
+		int npcRoll = MBRandom.RandomInt(1, 20);
+		dc = (npcAbility / 20) + npcRoll;
+		playerTotal = roll + (playerAbility / 20);
 		return playerTotal >= dc;
 	}
 }

@@ -2196,7 +2196,15 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		if (!string.IsNullOrWhiteSpace(context?.PendingItemTransfersOpposedAttribute))
 		{
 			var attr = OpposedSkillCheck.ParseAttribute(context.PendingItemTransfersOpposedAttribute);
-			if (!OpposedSkillCheck.PlayerWins(Hero.MainHero, npc, attr))
+			bool won = OpposedSkillCheck.PlayerWins(Hero.MainHero, npc, attr, out int roll, out int dc, out int total);
+			InformationManager.DisplayMessage(new InformationMessage(((object)new TextObject("{=AIInfluence_OpposedRoll}Roll {roll} + mod = {total} vs DC {dc}. {result}", new Dictionary<string, object>
+			{
+				{ "roll", roll },
+				{ "total", total },
+				{ "dc", dc },
+				{ "result", won ? "Success" : "Failed" }
+			})).ToString(), won ? Colors.Green : Colors.Yellow));
+			if (!won)
 			{
 				LogMessage($"[ITEM_TRANSFER] Opposed check failed - {npc.Name} refuses");
 				InformationManager.DisplayMessage(new InformationMessage(((object)new TextObject("{=AIInfluence_TransferRefused}{npcName} refuses.", new Dictionary<string, object> { { "npcName", npc.Name } })).ToString(), Colors.Yellow));
@@ -2262,7 +2270,15 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		if (!string.IsNullOrWhiteSpace(moneyTransfer.OpposedAttribute))
 		{
 			var attr = OpposedSkillCheck.ParseAttribute(moneyTransfer.OpposedAttribute);
-			if (!OpposedSkillCheck.PlayerWins(Hero.MainHero, npc, attr))
+			bool won = OpposedSkillCheck.PlayerWins(Hero.MainHero, npc, attr, out int roll, out int dc, out int total);
+			InformationManager.DisplayMessage(new InformationMessage(((object)new TextObject("{=AIInfluence_OpposedRoll}Roll {roll} + mod = {total} vs DC {dc}. {result}", new Dictionary<string, object>
+			{
+				{ "roll", roll },
+				{ "total", total },
+				{ "dc", dc },
+				{ "result", won ? "Success" : "Failed" }
+			})).ToString(), won ? Colors.Green : Colors.Yellow));
+			if (!won)
 			{
 				LogMessage($"[MONEY_TRANSFER] Opposed check failed - {npc.Name} refuses");
 				InformationManager.DisplayMessage(new InformationMessage(((object)new TextObject("{=AIInfluence_TransferRefused}{npcName} refuses.", new Dictionary<string, object> { { "npcName", npc.Name } })).ToString(), Colors.Yellow));
@@ -8207,11 +8223,22 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				return;
 			}
 			var attr = OpposedSkillCheck.ParseAttribute(opposedAttribute);
-			if (killer == Hero.MainHero && !OpposedSkillCheck.PlayerWins(Hero.MainHero, hero, attr))
+			if (killer == Hero.MainHero)
 			{
-				LogMessage($"[CHARACTER_DEATH] Opposed skill check failed - {hero.Name} survives");
-				InformationManager.DisplayMessage(new InformationMessage(((object)new TextObject("{=AIInfluence_LethalStrikeFailed}Your strike was not lethal. {npcName} survives.", new Dictionary<string, object> { { "npcName", hero.Name } })).ToString(), Colors.Yellow));
-				return;
+				bool won = OpposedSkillCheck.PlayerWins(Hero.MainHero, hero, attr, out int roll, out int dc, out int total);
+				InformationManager.DisplayMessage(new InformationMessage(((object)new TextObject("{=AIInfluence_OpposedRoll}Roll {roll} + mod = {total} vs DC {dc}. {result}", new Dictionary<string, object>
+				{
+					{ "roll", roll },
+					{ "total", total },
+					{ "dc", dc },
+					{ "result", won ? "Success" : "Failed" }
+				})).ToString(), won ? Colors.Green : Colors.Yellow));
+				if (!won)
+				{
+					LogMessage($"[CHARACTER_DEATH] Opposed skill check failed - {hero.Name} survives");
+					InformationManager.DisplayMessage(new InformationMessage(((object)new TextObject("{=AIInfluence_LethalStrikeFailed}Your strike was not lethal. {npcName} survives.", new Dictionary<string, object> { { "npcName", hero.Name } })).ToString(), Colors.Yellow));
+					return;
+				}
 			}
 			TextObject name = hero.Name;
 			Hero obj = killer;
