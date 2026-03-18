@@ -639,8 +639,11 @@ public class NpcChatWindowVM : ViewModel
                                 catch (Exception ex) { AIInfluenceBehavior.Instance.LogMessage("[NpcChatWindow] SaveNPCContext after UpdateContextData failed: " + ex.Message); }
                             }
                             catch (Exception ex) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] UpdateContextData failed: " + ex.Message); }
-                            RefreshTraitOverlay(_npc, ctx);
-                            RefreshCharacterSection(_npc, ctx);
+                            TtsLipSyncService.MainThreadQueue.Enqueue(() =>
+                            {
+                                RefreshTraitOverlay(_npc, ctx);
+                                RefreshCharacterSection(_npc, ctx);
+                            });
                         }
                     }
                     catch (Exception ex)
