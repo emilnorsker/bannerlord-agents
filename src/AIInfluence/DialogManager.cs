@@ -1418,7 +1418,7 @@ public class DialogManager
 												{
 													_behavior.LogMessage("[ROLEPLAY] Natural death (no killer specified)");
 												}
-												_behavior.KillCharacterHeroPublic(npc, val19, killedInAction: false);
+												_behavior.KillCharacterHeroPublic(npc, val19, killedInAction: false, context.OpposedActionType);
 												_behavior.LogMessage($"[ROLEPLAY] Character {npc.Name} (prisoner: {npc.IsPrisoner}) has been removed from the game.");
 											}
 											context.PendingDeath = null;
