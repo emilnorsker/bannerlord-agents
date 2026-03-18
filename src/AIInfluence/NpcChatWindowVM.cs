@@ -170,20 +170,21 @@ public class NpcChatWindowVM : ViewModel
     {
         const string Header = "#888888FF";
         const string QuestColor = "#D0A96BFF";
-        bool hasQuest = false;
-        foreach (var q in context?.ActiveAIQuests ?? new List<AIQuestInfo>())
+        var lines = new List<string>();
+        foreach (var q in context?.ActiveAIQuests ?? Enumerable.Empty<AIQuestInfo>())
         {
             if (string.IsNullOrWhiteSpace(q?.Title)) continue;
-            if (!hasQuest) { RightPanelItems.Add(new TextItemVM("QUEST", Header)); hasQuest = true; }
-            string progress = q.ProgressTarget > 0 ? $" ({q.ProgressCurrent}/{q.ProgressTarget})" : "";
-            RightPanelItems.Add(new TextItemVM($"• {q.Title}{progress}", QuestColor));
+            lines.Add(q.ProgressTarget > 0 ? $"• {q.Title} ({q.ProgressCurrent}/{q.ProgressTarget})" : $"• {q.Title}");
         }
-        foreach (var q in context?.IncomingAIQuests ?? new List<AIQuestInfo>())
+        foreach (var q in context?.IncomingAIQuests ?? Enumerable.Empty<AIQuestInfo>())
         {
             if (string.IsNullOrWhiteSpace(q?.Title)) continue;
-            if (!hasQuest) { RightPanelItems.Add(new TextItemVM("QUEST", Header)); hasQuest = true; }
-            RightPanelItems.Add(new TextItemVM($"• {q.Title} (deliver here)", QuestColor));
+            lines.Add($"• {q.Title} (deliver here)");
         }
+        if (lines.Count == 0) return;
+        RightPanelItems.Add(new TextItemVM("QUEST", Header));
+        foreach (var line in lines)
+            RightPanelItems.Add(new TextItemVM(line, QuestColor));
     }
 
     private static IEnumerable<string> ResolveKnownInfo(NPCContext context, Hero npc)
