@@ -44,15 +44,59 @@
     "extracted": true
   },
   {
-    "sprite": "Encyclopedia\\canvas",
+    "sprite": "StdAssets\\panel_background",
+    "sheet_id": 2,
+    "category": "ui_group1",
+    "x": 1628,
+    "y": 2769,
+    "w": 220,
+    "h": 220,
+    "out_file": "bannerlord_gui_StdAssets_panel_background.png",
+    "extracted": true
+  },
+  {
+    "sprite": "StdAssets\\flat_panel",
     "sheet_id": 1,
-    "category": "ui_encyclopedia",
-    "x": 4,
-    "y": 4,
-    "w": 1500,
-    "h": 960,
-    "out_file": "bannerlord_gui_Encyclopedia_canvas.png",
-    "extract_error": "not in BannerEdge: Encyclopedia\\canvas"
+    "category": "ui_group1",
+    "x": 3932,
+    "y": 662,
+    "w": 150,
+    "h": 1080,
+    "out_file": "bannerlord_gui_StdAssets_flat_panel.png",
+    "extracted": true
+  },
+  {
+    "sprite": "StdAssets\\flat_panel_texture",
+    "sheet_id": 1,
+    "category": "ui_group1",
+    "x": 1570,
+    "y": 1538,
+    "w": 1377,
+    "h": 533,
+    "out_file": "bannerlord_gui_StdAssets_flat_panel_texture.png",
+    "extracted": true
+  },
+  {
+    "sprite": "StdAssets\\panel_dent",
+    "sheet_id": 2,
+    "category": "ui_group1",
+    "x": 2102,
+    "y": 3758,
+    "w": 152,
+    "h": 152,
+    "out_file": "bannerlord_gui_StdAssets_panel_dent.png",
+    "extracted": true
+  },
+  {
+    "sprite": "StdAssets\\Popup\\order_popup_canvas",
+    "sheet_id": 1,
+    "category": "ui_group1",
+    "x": 2648,
+    "y": 878,
+    "w": 1245,
+    "h": 652,
+    "out_file": "bannerlord_gui_StdAssets_Popup_order_popup_canvas.png",
+    "extracted": true
   },
   {
     "sprite": "SPGeneral\\Frame1.Broken\\canvas",
@@ -64,5 +108,214 @@
     "h": 512,
     "out_file": "bannerlord_gui_SPGeneral_Frame1.Broken_canvas.png",
     "extracted": true
+  },
+  {
+    "sprite": "SPGeneral\\Frame1\\canvas",
+    "sheet_id": 1,
+    "category": "ui_group1",
+    "x": 2459,
+    "y": 3179,
+    "w": 618,
+    "h": 798,
+    "out_file": "bannerlord_gui_SPGeneral_Frame1_canvas.png",
+    "extracted": true
+  },
+  {
+    "sprite": "SPGeneral\\EscapeMenu\\escape_panel",
+    "sheet_id": 2,
+    "category": "ui_group1",
+    "x": 496,
+    "y": 4,
+    "w": 544,
+    "h": 731,
+    "out_file": "bannerlord_gui_SPGeneral_EscapeMenu_escape_panel.png",
+    "extracted": true
+  },
+  {
+    "sprite": "SPGeneral\\EscapeMenu\\esc_menu_frame_canvas",
+    "sheet_id": 3,
+    "category": "ui_group1",
+    "x": 2981,
+    "y": 445,
+    "w": 80,
+    "h": 80,
+    "out_file": "bannerlord_gui_SPGeneral_EscapeMenu_esc_menu_frame_canvas.png",
+    "extracted": true
+  },
+  {
+    "sprite": "SPGeneral\\GameMenu\\panel_frame",
+    "sheet_id": 2,
+    "category": "ui_group1",
+    "x": 4,
+    "y": 4,
+    "w": 484,
+    "h": 836,
+    "out_file": "bannerlord_gui_SPGeneral_GameMenu_panel_frame.png",
+    "extracted": true
+  },
+  {
+    "sprite": "SPGeneral\\GameMenu\\troop_selection_panel",
+    "sheet_id": 1,
+    "category": "ui_group1",
+    "x": 1512,
+    "y": 4,
+    "w": 1128,
+    "h": 965,
+    "out_file": "bannerlord_gui_SPGeneral_GameMenu_troop_selection_panel.png",
+    "extracted": true
+  },
+  {
+    "sprite": "SPGeneral\\SPScoreboard\\tournament_canvas",
+    "sheet_id": 1,
+    "category": "ui_group1",
+    "x": 1648,
+    "y": 3179,
+    "w": 803,
+    "h": 619,
+    "out_file": "bannerlord_gui_SPGeneral_SPScoreboard_tournament_canvas.png",
+    "extracted": true
+  },
+  {
+    "sprite": "SPGeneral\\Tutorial\\tutorial_canvas",
+    "sheet_id": 2,
+    "category": "ui_group1",
+    "x": 4066,
+    "y": 3296,
+    "w": 26,
+    "h": 29,
+    "out_file": "bannerlord_gui_SPGeneral_Tutorial_tutorial_canvas.png",
+    "extracted": true
+  },
+  {
+    "sprite": "General\\CharacterCreation\\character_creation_panel",
+    "sheet_id": 1,
+    "category": "ui_group1",
+    "x": 868,
+    "y": 1538,
+    "w": 694,
+    "h": 1080,
+    "out_file": "bannerlord_gui_General_CharacterCreation_character_creation_panel.png",
+    "extracted": true
+  },
+  {
+    "sprite": "General\\InnerFrame1\\canvas",
+    "sheet_id": 2,
+    "category": "ui_group1",
+    "x": 3838,
+    "y": 3109,
+    "w": 220,
+    "h": 220,
+    "out_file": "bannerlord_gui_General_InnerFrame1_canvas.png",
+    "extracted": true
+  },
+  {
+    "sprite": "CharacterDeveloper\\AttributePopup\\attribute_popup_canvas",
+    "sheet_id": 1,
+    "category": "ui_characterdeveloper",
+    "x": 588,
+    "y": 4,
+    "w": 533,
+    "h": 627,
+    "out_file": "bannerlord_gui_CharacterDeveloper_AttributePopup_attribute_popup_canvas.png",
+    "extracted": true
+  },
+  {
+    "sprite": "CharacterDeveloper\\character_progress_panel",
+    "sheet_id": 1,
+    "category": "ui_characterdeveloper",
+    "x": 2325,
+    "y": 272,
+    "w": 650,
+    "h": 66,
+    "out_file": "bannerlord_gui_CharacterDeveloper_character_progress_panel.png",
+    "extracted": true
+  },
+  {
+    "sprite": "CharacterDeveloper\\left_panel_coverup",
+    "sheet_id": 1,
+    "category": "ui_characterdeveloper",
+    "x": 3045,
+    "y": 4,
+    "w": 556,
+    "h": 260,
+    "out_file": "bannerlord_gui_CharacterDeveloper_left_panel_coverup.png",
+    "extracted": true
+  },
+  {
+    "sprite": "CharacterDeveloper\\left_panel_stone",
+    "sheet_id": 1,
+    "category": "ui_characterdeveloper",
+    "x": 1705,
+    "y": 272,
+    "w": 612,
+    "h": 91,
+    "out_file": "bannerlord_gui_CharacterDeveloper_left_panel_stone.png",
+    "extracted": true
+  },
+  {
+    "sprite": "button_canvas",
+    "sheet_id": 2,
+    "category": "ui_group1",
+    "x": 1066,
+    "y": 3303,
+    "w": 97,
+    "h": 87,
+    "out_file": "bannerlord_gui_button_canvas.png",
+    "extracted": true
+  },
+  {
+    "sprite": "rounded_canvas",
+    "sheet_id": 2,
+    "category": "ui_group1",
+    "x": 841,
+    "y": 3351,
+    "w": 40,
+    "h": 40,
+    "out_file": "bannerlord_gui_rounded_canvas.png",
+    "extracted": true
+  },
+  {
+    "sprite": "Barter\\barter_panel",
+    "sheet_id": 1,
+    "category": "ui_barter",
+    "x": 4,
+    "y": 4,
+    "w": 912,
+    "h": 555,
+    "out_file": "bannerlord_gui_Barter_barter_panel.png",
+    "extract_error": "not in BannerEdge: Barter\\barter_panel"
+  },
+  {
+    "sprite": "Conversation\\npc_dialogue_panel",
+    "sheet_id": 1,
+    "category": "ui_conversation",
+    "x": 4,
+    "y": 4,
+    "w": 701,
+    "h": 192,
+    "out_file": "bannerlord_gui_Conversation_npc_dialogue_panel.png",
+    "extract_error": "not in BannerEdge: Conversation\\npc_dialogue_panel"
+  },
+  {
+    "sprite": "Quest\\background_quest",
+    "sheet_id": 1,
+    "category": "ui_quest",
+    "x": 1085,
+    "y": 4,
+    "w": 600,
+    "h": 700,
+    "out_file": "bannerlord_gui_Quest_background_quest.png",
+    "extract_error": "not in BannerEdge: Quest\\background_quest"
+  },
+  {
+    "sprite": "Quest\\big_canvas",
+    "sheet_id": 1,
+    "category": "ui_quest",
+    "x": 4,
+    "y": 4,
+    "w": 550,
+    "h": 1014,
+    "out_file": "bannerlord_gui_Quest_big_canvas.png",
+    "extract_error": "not in BannerEdge: Quest\\big_canvas"
   }
 ]
