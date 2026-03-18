@@ -72,6 +72,10 @@ public class AIResponse
 	[JsonProperty("item_transfers")]
 	public List<ItemTransferData> ItemTransfers { get; set; }
 
+	/// <summary>When set with item_transfers, transfer is contested—run opposed check. Omit for agreements.</summary>
+	[JsonProperty("item_transfers_opposed_attribute")]
+	public string ItemTransfersOpposedAttribute { get; set; }
+
 	[JsonProperty("character_personality")]
 	public string CharacterPersonality { get; set; }
 
