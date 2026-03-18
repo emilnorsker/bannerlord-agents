@@ -1083,7 +1083,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					aiGenQuest.SpawnedPartyId = partyStringId;
 				}
 				questBase2?.AddTrackedObject((ITrackableCampaignObject)(object)spawnResult.Party);
-				QuestPartyMapMarkerService.AddMarker(item.QuestId, spawnResult.Party, spawnData.PartyName ?? (spawnResult.Party.Name?.ToString()) ?? "Quest Target");
+				spawnResult.Party.IsVisible = true;
 				InformationManager.DisplayMessage(new InformationMessage($"A party has appeared on the map!", ExtraColors.RedAIInfluence));
 			}
 			if (spawnResult.Success && spawnResult.Hero != null)
@@ -1189,7 +1189,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			return;
 		}
-		QuestPartyMapMarkerService.RemoveMarker(questInfo.QuestId);
 		try
 		{
 			MobileParty party = MobileParty.All?.FirstOrDefault((MobileParty p) => ((MBObjectBase)p).StringId == questInfo.SpawnedPartyId);
@@ -1259,7 +1258,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 		string updateLog = "The spawned quest party was destroyed.";
 		questInfo.SpawnedPartyId = null;
-		QuestPartyMapMarkerService.RemoveMarker(questInfo.QuestId);
 		int newProgress = Math.Min(questInfo.ProgressCurrent + 1, questInfo.ProgressTarget);
 		questInfo.ProgressCurrent = newProgress;
 		if (questInfo.UpdateLogs == null)
