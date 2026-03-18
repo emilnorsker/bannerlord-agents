@@ -377,25 +377,64 @@ public class NpcChatWindowVM : ViewModel
         return "";
     }
 
-    private static string BuildPlayerActionText(AIResponse r)
+    private static string ResolveItemName(string itemId)
+    {
+        var item = MBObjectManager.Instance?.GetObject<ItemObject>(itemId);
+        return item != null ? ((object)item.Name)?.ToString() ?? itemId : itemId;
+    }
+
+    private static string ResolveTroopName(string stringId)
+    {
+        var troop = MBObjectManager.Instance?.GetObject<CharacterObject>(stringId);
+        return troop != null ? ((object)troop.Name)?.ToString() ?? stringId : stringId;
+    }
+
+    private static string FormatTroopTransferPill(string payload, string npcName)
+    {
+        string[] dirAndRest = payload.Split(new[] { ':' }, 2);
+        if (dirAndRest.Length < 2) return "Transferred troops";
+        bool toPlayer = dirAndRest[0].Trim().Equals("to_player", StringComparison.OrdinalIgnoreCase);
+        var items = new List<string>();
+        foreach (string part in dirAndRest[1].Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            string[] segs = part.Trim().Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
+            if (segs.Length < 3 || !int.TryParse(segs[2], out int count) || count <= 0) continue;
+            string type = segs[0].Trim().ToLowerInvariant();
+            string name = ResolveTroopName(segs[1].Trim());
+            items.Add($"{name} (x{count})");
+        }
+        if (items.Count == 0) return toPlayer ? $"{npcName} transferred troops to you" : $"You transferred troops to {npcName}";
+        string list = string.Join(", ", items);
+        return toPlayer ? $"{npcName} gave you {list}" : $"You gave {list} to {npcName}";
+    }
+
+    private static string BuildPlayerActionText(AIResponse r, string npcName)
     {
         if (r == null) return "";
         var parts = new List<string>();
         if (r.MoneyTransfer != null && r.MoneyTransfer.Amount != 0 && string.Equals(r.MoneyTransfer.Action, "receive", StringComparison.OrdinalIgnoreCase))
-            parts.Add($"Transferred {Math.Abs(r.MoneyTransfer.Amount)} gold");
-        if (r.ItemTransfers?.Count > 0 && r.ItemTransfers.Any(t => string.Equals(t.Action, "take", StringComparison.OrdinalIgnoreCase)))
-            parts.Add($"Transferred {r.ItemTransfers.Count(t => string.Equals(t.Action, "take", StringComparison.OrdinalIgnoreCase))} item(s)");
+            parts.Add($"You received {Math.Abs(r.MoneyTransfer.Amount)} gold from {npcName}");
+        var takeTransfers = r.ItemTransfers?.Where(t => string.Equals(t.Action, "take", StringComparison.OrdinalIgnoreCase)).ToList();
+        if (takeTransfers?.Count > 0)
+        {
+            var itemNames = takeTransfers.Select(t => $"{ResolveItemName(t.ItemId)} (x{t.Amount})");
+            parts.Add($"You gave {string.Join(", ", itemNames)} to {npcName}");
+        }
         return string.Join(" ", parts);
     }
 
-    private static string BuildNpcActionText(AIResponse r, NPCContext ctx)
+    private static string BuildNpcActionText(AIResponse r, NPCContext ctx, string npcName)
     {
         if (r == null) return "";
         var parts = new List<string>();
         if (r.MoneyTransfer != null && r.MoneyTransfer.Amount != 0 && string.Equals(r.MoneyTransfer.Action, "give", StringComparison.OrdinalIgnoreCase))
-            parts.Add($"Transferred {Math.Abs(r.MoneyTransfer.Amount)} gold");
-        if (r.ItemTransfers?.Count > 0 && r.ItemTransfers.Any(t => string.Equals(t.Action, "give", StringComparison.OrdinalIgnoreCase)))
-            parts.Add($"Transferred {r.ItemTransfers.Count(t => string.Equals(t.Action, "give", StringComparison.OrdinalIgnoreCase))} item(s)");
+            parts.Add($"{npcName} gave you {Math.Abs(r.MoneyTransfer.Amount)} gold");
+        var giveTransfers = r.ItemTransfers?.Where(t => string.Equals(t.Action, "give", StringComparison.OrdinalIgnoreCase)).ToList();
+        if (giveTransfers?.Count > 0)
+        {
+            var itemNames = giveTransfers.Select(t => $"{ResolveItemName(t.ItemId)} (x{t.Amount})");
+            parts.Add($"{npcName} gave you {string.Join(", ", itemNames)}");
+        }
         if (!string.IsNullOrEmpty(r.QuestAction?.Action))
             parts.Add($"Quest: {r.QuestAction.Action}");
         if (!string.IsNullOrEmpty(r.Decision) && r.Decision != "none" && r.Decision != "none\n")
@@ -417,6 +456,8 @@ public class NpcChatWindowVM : ViewModel
                     parts.Add("Returning to you");
                 else if (name.Equals("go_to_settlement", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(payload))
                     parts.Add($"Traveling to {payload.Split(':')[0]}");
+                else if (name.Equals("transfer_troops_and_prisoners", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(payload))
+                    parts.Add(FormatTroopTransferPill(payload, npcName));
                 else if (!string.IsNullOrEmpty(name))
                     parts.Add(name);
             }
@@ -562,8 +603,8 @@ public class NpcChatWindowVM : ViewModel
                 }
 
                 string tone = pendingResponse?.Tone ?? "";
-                string playerActionText = BuildPlayerActionText(pendingResponse);
-                string npcActionText = BuildNpcActionText(pendingResponse, ctx);
+                string playerActionText = BuildPlayerActionText(pendingResponse, npcName);
+                string npcActionText = BuildNpcActionText(pendingResponse, ctx, npcName);
                 string relMsg = GetRelationChangeMessage(pendingResponse, ctx, npcName);
 
                 // Swaps the streaming placeholder for the finalised message item and persists pills.
