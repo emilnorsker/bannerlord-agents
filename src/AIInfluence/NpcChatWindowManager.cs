@@ -14,10 +14,18 @@ public static class NpcChatWindowManager
 
     public static void Show(Hero npc, NPCContext context, Action onReturn)
     {
+        if (npc == null)
+        {
+            AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] Show called with null npc.");
+            return;
+        }
         Close();
         ScreenBase topScreen = ScreenManager.TopScreen;
         if (topScreen == null)
+        {
+            AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] No top screen, cannot show.");
             return;
+        }
         try
         {
             _ownerScreen = topScreen;
@@ -25,8 +33,9 @@ public static class NpcChatWindowManager
             topScreen.AddLayer((ScreenLayer)(object)_layer);
             ScreenManager.TrySetFocus((ScreenLayer)(object)_layer);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] Show failed: " + ex.Message);
             Close();
         }
     }
@@ -40,7 +49,10 @@ public static class NpcChatWindowManager
             ((ScreenLayer)_layer).InputRestrictions.ResetInputRestrictions();
             _ownerScreen?.RemoveLayer((ScreenLayer)(object)_layer);
         }
-        catch (Exception) { }
+        catch (Exception ex)
+        {
+            AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] Close failed: " + ex.Message);
+        }
         _layer = null;
         _ownerScreen = null;
 

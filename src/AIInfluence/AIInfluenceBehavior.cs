@@ -859,7 +859,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	{
 		//IL_0024: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0025: Unknown result type (might be due to invalid IL or missing references)
-		_delayedTaskManager.AddTask(4.0, delegate
+		_delayedTaskManager.AddTask(0.2, delegate
 		{
 			//IL_0114: Unknown result type (might be due to invalid IL or missing references)
 			//IL_0119: Unknown result type (might be due to invalid IL or missing references)
