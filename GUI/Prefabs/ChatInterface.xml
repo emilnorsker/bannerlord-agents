@@ -32,10 +32,10 @@
     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
             DoNotAcceptEvents="false">
       <Children>
-        <!-- Full-screen backdrop: StdAssets\Popup\canvas (dark textured fill) -->
+        <!-- Full-screen backdrop: StdAssets\Popup\canvas_dark -->
         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                 MarginLeft="!Frame.Start"
-                Sprite="StdAssets\Popup\canvas" Color="#141414FF"
+                Sprite="StdAssets\Popup\canvas_dark" Color="#141414FF"
                 DoNotAcceptEvents="true" />
 
         <!-- ══ LEFT COLUMN — opaque backdrop ══ -->
@@ -78,10 +78,10 @@
                 PositionXOffset="!Left.W"
                 Sprite="BlankWhiteSquare_9" Color="!SepColor" />
 
-        <!-- ══ CENTER + RIGHT — StdAssets\Popup\canvas (fills both panels) ════════════════ -->
+        <!-- ══ CENTER + RIGHT — StdAssets\Popup\canvas_dark + Frame1Broken border ════════════════ -->
         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                 MarginLeft="!Frame.Start"
-                Sprite="StdAssets\Popup\canvas" Color="#141414FF">
+                Sprite="StdAssets\Popup\canvas_dark" Color="#141414FF">
           <!-- BlankWhite sprite required: Color alone has no effect on a bare Widget in Gauntlet -->
           <Children>
             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
@@ -92,7 +92,7 @@
                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
                         SuggestedHeight="!Header.H"
                         VerticalAlignment="Top"
-                        Sprite="StdAssets\Popup\canvas" Color="#141414FF">
+                        Sprite="StdAssets\Popup\canvas_dark" Color="#141414FF">
                   <!-- BlankWhite sprite required: Color alone has no effect on a bare Widget in Gauntlet -->
                   <Children>
                     <!-- "Conversation Log" static label -->
@@ -120,9 +120,9 @@
                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                         MarginTop="!Header.H" MarginRight="!Frame.End">
                   <Children>
-                    <!-- Middle panel background: canvas -->
+                    <!-- Middle panel background: canvas_dark -->
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                            Sprite="StdAssets\Popup\canvas" AlphaFactor="1.0"
+                            Sprite="StdAssets\Popup\canvas_dark" AlphaFactor="1.0"
                             DoNotAcceptEvents="true" />
 
                     <!-- Centered name_shadow_9 overlay for visual weight -->
@@ -376,9 +376,9 @@
                         HeightSizePolicy="StretchToParent"
                         MarginTop="!Header.H">
                   <Children>
-                    <!-- Right column background: canvas (matches middle) -->
+                    <!-- Right column background: canvas_dark (matches middle) -->
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                            Sprite="StdAssets\Popup\canvas" Color="#141414FF" DoNotAcceptEvents="true" />
+                            Sprite="StdAssets\Popup\canvas_dark" Color="#141414FF" DoNotAcceptEvents="true" />
 
                     <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
                                    SuggestedHeight="36"
@@ -460,6 +460,12 @@
 
               </Children>
             </Widget>
+
+            <!-- Frame border: SPGeneral\Frame1.Broken\frame -->
+            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                    Sprite="Frame1Broken_frame"
+                    ExtendLeft="32" ExtendRight="32" ExtendTop="32" ExtendBottom="32"
+                    DoNotAcceptEvents="true" />
           </Children>
         </Widget>
 
