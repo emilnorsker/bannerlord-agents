@@ -72,11 +72,11 @@
                 PositionXOffset="!Left.W"
                 Sprite="BlankWhiteSquare_9" Color="!SepColor" />
 
-        <!-- ══ CENTER + RIGHT — dark backdrop using custom chat_panel_bg asset ════════════════ -->
+        <!-- ══ CENTER + RIGHT — in-game assets (BlankWhite + gradient) ════════════════ -->
         <!-- MarginLeft=Frame.Start so the frame aligns after the left column -->
         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                 MarginLeft="!Frame.Start"
-                Sprite="chat_panel_bg" Color="#141414FF">
+                Sprite="BlankWhite" Color="#141414FF">
           <!-- BlankWhite sprite required: Color alone has no effect on a bare Widget in Gauntlet -->
           <Children>
             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
@@ -87,7 +87,7 @@
                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
                         SuggestedHeight="!Header.H"
                         VerticalAlignment="Top"
-                        Sprite="chat_panel_bg" Color="#141414FF">
+                        Sprite="BlankWhite" Color="#141414FF">
                   <!-- BlankWhite sprite required: Color alone has no effect on a bare Widget in Gauntlet -->
                   <Children>
                     <!-- "Conversation Log" static label -->
@@ -115,10 +115,10 @@
                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                         MarginTop="!Header.H" MarginRight="!Frame.End">
                   <Children>
-                    <!-- Middle panel background: custom chat_panel_bg asset -->
+                    <!-- Middle panel background: in-game gradient -->
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                            Sprite="chat_panel_bg"
-                            AlphaFactor="1.0"
+                            Sprite="General\CharacterCreation\character_creation_background_gradient"
+                            Color="#141414FF" AlphaFactor="0.9"
                             DoNotAcceptEvents="true" />
 
                     <!-- Message scroll area -->
@@ -157,7 +157,7 @@
                                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
                                             SuggestedHeight="16"
                                             VerticalAlignment="Top"
-                                            Sprite="chat_msg_separator"
+                                            Sprite="StdAssets\Popup\divider"
                                             AlphaFactor="0.85"
                                             DoNotAcceptEvents="true" />
 
@@ -168,7 +168,7 @@
                                                IsVisible="@IsNpc">
                                       <Children>
                                         <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                Sprite="name_shadow_9" AlphaFactor="0.7">
+                                                Sprite="General\CharacterCreation\character_creation_background_gradient" AlphaFactor="0.5" Color="#000000FF">
                                           <Children>
                                             <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                                        StackLayout.LayoutMethod="HorizontalLeftToRight"
@@ -312,8 +312,8 @@
                             Sprite="BlankWhite" Color="#1A110CFF">
                       <Children>
                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                                Sprite="frame_9" ExtendLeft="4" ExtendTop="4" ExtendRight="4" ExtendBottom="4"
-                                AlphaFactor="0.34" IsEnabled="false" />
+                                Sprite="BlankWhiteSquare_9" Color="#1A110C88"
+                                ExtendLeft="4" ExtendTop="4" ExtendRight="4" ExtendBottom="4" IsEnabled="false" />
                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                 Sprite="General\CharacterCreation\character_creation_background_gradient"
                                 Color="#2A1A11FF" AlphaFactor="0.2" IsEnabled="false" />
@@ -324,8 +324,8 @@
                                 Sprite="General\CharacterCreation\name_input_area">
                           <Children>
                             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                                    Sprite="frame_9" ExtendLeft="3" ExtendTop="3" ExtendRight="3" ExtendBottom="3"
-                                    AlphaFactor="0.16" IsEnabled="false" />
+                                    Sprite="BlankWhiteSquare_9" Color="#00000044"
+                                    ExtendLeft="3" ExtendTop="3" ExtendRight="3" ExtendBottom="3" IsEnabled="false" />
                             <EditableTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                                HorizontalAlignment="Center" VerticalAlignment="Center"
                                                Margin="10,4,10,4"
@@ -371,9 +371,10 @@
                         HeightSizePolicy="StretchToParent"
                         MarginTop="!Header.H">
                   <Children>
-                    <!-- Right column background: custom chat_panel_bg asset -->
+                    <!-- Right column background: in-game gradient -->
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                            Sprite="chat_panel_bg" Color="#141414FF" DoNotAcceptEvents="true" />
+                            Sprite="General\CharacterCreation\character_creation_background_gradient"
+                            Color="#141414FF" AlphaFactor="0.9" DoNotAcceptEvents="true" />
 
                     <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
                                    SuggestedHeight="36"
