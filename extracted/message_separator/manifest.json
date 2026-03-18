@@ -1,0 +1,46 @@
+[
+  {
+    "sprite": "StdAssets\\Popup\\divider",
+    "sheet_id": 2,
+    "category": "ui_group1",
+    "x": 871,
+    "y": 3602,
+    "w": 521,
+    "h": 23,
+    "out_file": "bannerlord_gui_StdAssets_Popup_divider.png",
+    "extracted": true
+  },
+  {
+    "sprite": "Encyclopedia\\list_divider",
+    "sheet_id": 1,
+    "category": "ui_encyclopedia",
+    "x": 4074,
+    "y": 871,
+    "w": 5,
+    "h": 18,
+    "out_file": "bannerlord_gui_Encyclopedia_list_divider.png",
+    "extract_error": "not in BannerEdge: Encyclopedia\\list_divider"
+  },
+  {
+    "sprite": "Encyclopedia\\list_closed_divider",
+    "sheet_id": 1,
+    "category": "ui_encyclopedia",
+    "x": 3721,
+    "y": 1149,
+    "w": 247,
+    "h": 22,
+    "out_file": "bannerlord_gui_Encyclopedia_list_closed_divider.png",
+    "extract_error": "not in BannerEdge: Encyclopedia\\list_closed_divider"
+  },
+  {
+    "sprite": "horizontal_gradient_divider",
+    "sheet_id": 1,
+    "category": "ui_group1",
+    "x": 1871,
+    "y": 3164,
+    "w": 429,
+    "h": 3,
+    "out_file": "bannerlord_gui_horizontal_gradient_divider.png",
+    "extracted": true
+  }
+]

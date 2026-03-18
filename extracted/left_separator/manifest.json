@@ -1,0 +1,35 @@
+[
+  {
+    "sprite": "BlankWhiteSquare_9",
+    "sheet_id": 3,
+    "category": "ui_group1",
+    "x": 3552,
+    "y": 710,
+    "w": 25,
+    "h": 25,
+    "out_file": "bannerlord_gui_BlankWhiteSquare_9.png",
+    "extracted": true
+  },
+  {
+    "sprite": "Encyclopedia\\list_divider",
+    "sheet_id": 1,
+    "category": "ui_encyclopedia",
+    "x": 4074,
+    "y": 871,
+    "w": 5,
+    "h": 18,
+    "out_file": "bannerlord_gui_Encyclopedia_list_divider.png",
+    "extract_error": "not in BannerEdge: Encyclopedia\\list_divider"
+  },
+  {
+    "sprite": "StdAssets\\Popup\\divider_vertical",
+    "sheet_id": 2,
+    "category": "ui_group1",
+    "x": 4032,
+    "y": 1144,
+    "w": 23,
+    "h": 714,
+    "out_file": "bannerlord_gui_StdAssets_Popup_divider_vertical.png",
+    "extracted": true
+  }
+]

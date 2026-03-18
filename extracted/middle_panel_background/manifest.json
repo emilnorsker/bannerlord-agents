@@ -1,0 +1,68 @@
+[
+  {
+    "sprite": "StdAssets\\Popup\\canvas_gradient",
+    "sheet_id": 2,
+    "category": "ui_group1",
+    "x": 1048,
+    "y": 685,
+    "w": 512,
+    "h": 645,
+    "out_file": "bannerlord_gui_StdAssets_Popup_canvas_gradient.png",
+    "extracted": true
+  },
+  {
+    "sprite": "StdAssets\\Popup\\canvas",
+    "sheet_id": 2,
+    "category": "ui_group1",
+    "x": 1568,
+    "y": 706,
+    "w": 512,
+    "h": 645,
+    "out_file": "bannerlord_gui_StdAssets_Popup_canvas.png",
+    "extracted": true
+  },
+  {
+    "sprite": "StdAssets\\Popup\\canvas_dark",
+    "sheet_id": 1,
+    "category": "ui_group1",
+    "x": 3085,
+    "y": 3179,
+    "w": 699,
+    "h": 666,
+    "out_file": "bannerlord_gui_StdAssets_Popup_canvas_dark.png",
+    "extracted": true
+  },
+  {
+    "sprite": "StdAssets\\standart_popup",
+    "sheet_id": 1,
+    "category": "ui_group1",
+    "x": 4,
+    "y": 4,
+    "w": 1500,
+    "h": 960,
+    "out_file": "bannerlord_gui_StdAssets_standart_popup.png",
+    "extracted": true
+  },
+  {
+    "sprite": "Encyclopedia\\canvas",
+    "sheet_id": 1,
+    "category": "ui_encyclopedia",
+    "x": 4,
+    "y": 4,
+    "w": 1500,
+    "h": 960,
+    "out_file": "bannerlord_gui_Encyclopedia_canvas.png",
+    "extract_error": "not in BannerEdge: Encyclopedia\\canvas"
+  },
+  {
+    "sprite": "SPGeneral\\Frame1.Broken\\canvas",
+    "sheet_id": 1,
+    "category": "ui_group1",
+    "x": 868,
+    "y": 972,
+    "w": 512,
+    "h": 512,
+    "out_file": "bannerlord_gui_SPGeneral_Frame1.Broken_canvas.png",
+    "extracted": true
+  }
+]

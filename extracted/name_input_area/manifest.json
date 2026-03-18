@@ -1,0 +1,35 @@
+[
+  {
+    "sprite": "General\\CharacterCreation\\name_input_area",
+    "sheet_id": 1,
+    "category": "ui_group1",
+    "x": 1453,
+    "y": 1497,
+    "w": 397,
+    "h": 32,
+    "out_file": "bannerlord_gui_General_CharacterCreation_name_input_area.png",
+    "extracted": true
+  },
+  {
+    "sprite": "StdAssets\\Popup\\text_input",
+    "sheet_id": 2,
+    "category": "ui_group1",
+    "x": 2543,
+    "y": 4046,
+    "w": 370,
+    "h": 40,
+    "out_file": "bannerlord_gui_StdAssets_Popup_text_input.png",
+    "extracted": true
+  },
+  {
+    "sprite": "StdAssets\\text_box",
+    "sheet_id": 2,
+    "category": "ui_group1",
+    "x": 3368,
+    "y": 3545,
+    "w": 110,
+    "h": 110,
+    "out_file": "bannerlord_gui_StdAssets_text_box.png",
+    "extracted": true
+  }
+]
