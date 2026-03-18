@@ -859,7 +859,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	{
 		//IL_0024: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0025: Unknown result type (might be due to invalid IL or missing references)
-		_delayedTaskManager.AddTask(4.0, delegate
+		_delayedTaskManager.AddTask(0.2, delegate
 		{
 			//IL_0114: Unknown result type (might be due to invalid IL or missing references)
 			//IL_0119: Unknown result type (might be due to invalid IL or missing references)
@@ -1046,10 +1046,10 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage("[QUEST] Error adding quest to target NPC '" + targetNpcId + "': " + ex.Message);
 			}
 		}
-		SpawnNpcData spawnData = questAction.SpawnNpc;
+		SpawnPartyData spawnData = questAction.SpawnParty;
 		if (spawnData == null && questAction.SpawnHostileParty)
 		{
-			spawnData = new SpawnNpcData
+			spawnData = new SpawnPartyData
 			{
 				Alignment = "hostile",
 				PartyName = string.IsNullOrEmpty(questAction.HostilePartyLabel) ? "Quest Enemies" : questAction.HostilePartyLabel,
@@ -1083,6 +1083,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					aiGenQuest.SpawnedPartyId = partyStringId;
 				}
 				questBase2?.AddTrackedObject((ITrackableCampaignObject)(object)spawnResult.Party);
+				spawnResult.Party.IsVisible = true;
 				InformationManager.DisplayMessage(new InformationMessage($"A party has appeared on the map!", ExtraColors.RedAIInfluence));
 			}
 			if (spawnResult.Success && spawnResult.Hero != null)
@@ -1093,7 +1094,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			}
 			else if (spawnResult.Error != null)
 			{
-				LogMessage("[QUEST] spawn_npc failed: " + spawnResult.Error);
+				LogMessage("[QUEST] spawn_party failed: " + spawnResult.Error);
 			}
 			SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
 		}
@@ -4869,7 +4870,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 		string requestPrompt = "You are generating a Bannerlord quest action.\nReturn ONLY valid JSON in this exact wrapper:\n{\"quest_action\":{...}}\n" +
 			"Inside quest_action provide action=create_quest with fields: title, description, duration_days (7-60), reward_gold (0-5000), " +
-			"and optionally spawn_npc (object with: name, alignment, culture, backstory, personality, is_female, age, settlement, " +
+			"and optionally spawn_party (object with: name, alignment, culture, backstory, personality, is_female, age, settlement, " +
 			"equipment {weapon, shield, head, body, cape, gloves, legs, horse, tier}, party_name, party_troops, party_size).\n" +
 			"alignment must be one of: friendly, hostile, neutral.\n" +
 			"All item/troop/settlement names are fuzzy-matched — use natural language names.\n" +

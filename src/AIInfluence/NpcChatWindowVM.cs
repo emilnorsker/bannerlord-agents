@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using AIInfluence.Diplomacy;
 using AIInfluence.DynamicEvents;
 using AIInfluence.Services;
 using MCM.Abstractions.Base.Global;
@@ -57,11 +58,15 @@ public class NpcChatWindowVM : ViewModel
     // ── Right panel – flat list, section headers included as items ────────
     [DataSourceProperty] public MBBindingList<TextItemVM> RightPanelItems { get; } = new MBBindingList<TextItemVM>();
 
+    /// <summary>Index into RightPanelItems where the refreshable section (QUEST + CHARACTER) begins.
+    /// RefreshCharacterSection removes items from this index onwards and re-adds them.</summary>
+    private int _characterSectionStartIndex;
+
     private void AddNewestMessage(ChatMessageItemVM item) => MessageList.Add(item);
 
     public NpcChatWindowVM(Hero npc, NPCContext context, Action onReturn)
     {
-        _npc = npc;
+        _npc = npc ?? throw new ArgumentNullException(nameof(npc));
         _onReturn = onReturn;
         PopulateHeader(npc);
         PopulateTraitOverlay(npc, context);
@@ -85,8 +90,18 @@ public class NpcChatWindowVM : ViewModel
         string label = relation >= 20 ? "Friendly" : relation >= 0 ? "Neutral" : relation >= -20 ? "Cautious" : "Hostile";
         RelationText = $"{label} ({relation:+#;-#;0})";
         RelationColor = relation >= 0 ? "#6FCF6FFF" : "#CF6F6FFF";
-        TrustLabel = context.TrustLevel >= 60 ? "High Trust" : context.TrustLevel >= 30 ? "Moderate Trust" : "Low Trust";
-        EmotionLabel = context.EmotionalState?.Mood ?? "";
+        float trust = context?.TrustLevel ?? 0f;
+        TrustLabel = trust >= 0.6f ? "High Trust" : trust >= 0.3f ? "Moderate Trust" : "Low Trust";
+        EmotionLabel = context?.EmotionalState?.Mood ?? "";
+    }
+
+    private void RefreshTraitOverlay(Hero npc, NPCContext context)
+    {
+        PopulateTraitOverlay(npc, context);
+        ((ViewModel)this).OnPropertyChangedWithValue<string>(RelationText, "RelationText");
+        ((ViewModel)this).OnPropertyChangedWithValue<string>(RelationColor, "RelationColor");
+        ((ViewModel)this).OnPropertyChangedWithValue<string>(TrustLabel, "TrustLabel");
+        ((ViewModel)this).OnPropertyChangedWithValue<string>(EmotionLabel, "EmotionLabel");
     }
 
     private void PopulateHistory(NPCContext context)
@@ -105,9 +120,7 @@ public class NpcChatWindowVM : ViewModel
         RightPanelItems.Add(new TextItemVM("WORLD EVENTS", Header));
         try
         {
-            var events = DynamicEventsManager.Instance?.GetActiveEvents()
-                             ?.OrderByDescending(e => e.CreationCampaignDays)
-                             .Take(5) ?? Enumerable.Empty<DynamicEvent>();
+            var events = GetMergedEvents().OrderByDescending(e => e.CreationCampaignDays).Take(5);
             foreach (var e in events)
             {
                 string text = string.IsNullOrWhiteSpace(e.Title) ? e.Description : e.Title;
@@ -122,35 +135,179 @@ public class NpcChatWindowVM : ViewModel
 
         RightPanelItems.Add(new TextItemVM(" ", "#00000000"));
         RightPanelItems.Add(new TextItemVM("WHAT WE KNOW", Header));
+        bool hasWhatWeKnow = false;
         if (!string.IsNullOrWhiteSpace(context?.AIGeneratedPersonality))
+        {
             RightPanelItems.Add(new TextItemVM("• " + context.AIGeneratedPersonality));
+            hasWhatWeKnow = true;
+        }
         foreach (string q in context?.Quirks ?? new List<string>())
+        {
             if (!string.IsNullOrWhiteSpace(q))
+            {
                 RightPanelItems.Add(new TextItemVM("• " + q));
-        foreach (string info in context?.KnownInfo ?? new List<string>())
-            if (!string.IsNullOrWhiteSpace(info))
-                RightPanelItems.Add(new TextItemVM("• " + info));
+                hasWhatWeKnow = true;
+            }
+        }
+        if (!string.IsNullOrWhiteSpace(context?.AIGeneratedSpeechQuirks))
+        {
+            RightPanelItems.Add(new TextItemVM("• " + context.AIGeneratedSpeechQuirks));
+            hasWhatWeKnow = true;
+        }
+        foreach (var info in ResolveKnownInfo(context, npc))
+        {
+            RightPanelItems.Add(new TextItemVM("• " + info));
+            hasWhatWeKnow = true;
+        }
+        if (!hasWhatWeKnow)
+            RightPanelItems.Add(new TextItemVM("• Personality not yet discovered", "#888888FF"));
 
-        int rel = (int)npc.GetRelation(Hero.MainHero);
         RightPanelItems.Add(new TextItemVM(" ", "#00000000"));
+        _characterSectionStartIndex = RightPanelItems.Count;
+        AddQuestSectionItems(context);
+        AddCharacterSectionItems(npc, context);
+    }
+
+    /// <summary>Adds QUEST section to RightPanelItems. Builds quest lines first, then adds header + content,
+    /// so a throw during build does not leave a partial QUEST section.</summary>
+    private void AddQuestSectionItems(NPCContext context)
+    {
+        const string Header = "#888888FF";
+        const string QuestColor = "#D0A96BFF";
+        List<string> lines;
+        if (context == null)
+            lines = new List<string>();
+        else
+        {
+            var questSources = new (IEnumerable<AIQuestInfo> source, Func<AIQuestInfo, string> format)[]
+            {
+                (OrEmpty(context.ActiveAIQuests), FormatActiveQuestLine),
+                (OrEmpty(context.IncomingAIQuests), FormatIncomingQuestLine)
+            };
+            var all = questSources.SelectMany(s => s.source.Where(IsValidQuest).Select(q => (quest: q, formatter: s.format)));
+            lines = all.GroupBy(x => x.quest.QuestId).Select(g => { var f = g.First(); return f.formatter(f.quest); }).ToList();
+        }
+        RightPanelItems.Add(new TextItemVM("QUEST", Header));
+        if (lines.Count == 0)
+            RightPanelItems.Add(new TextItemVM("• No active quest with this character", Header));
+        else
+            foreach (var line in lines)
+                RightPanelItems.Add(new TextItemVM(line, QuestColor));
+    }
+
+    private static IEnumerable<AIQuestInfo> OrEmpty(IList<AIQuestInfo> list) => list ?? Enumerable.Empty<AIQuestInfo>();
+    private static bool IsValidQuest(AIQuestInfo q) => q != null && !string.IsNullOrWhiteSpace(q.Title) && IsQuestStillOngoing(q.QuestId);
+    /// <summary>Checks if quest exists in campaign and is ongoing. Uses ToList() to avoid InvalidOperationException if Quests is modified during iteration.</summary>
+    private static bool IsQuestStillOngoing(string questId)
+    {
+        if (string.IsNullOrEmpty(questId)) return false;
+        var quests = Campaign.Current?.QuestManager?.Quests?.ToList();
+        return quests != null && quests.Any(q => ((MBObjectBase)q).StringId == questId && q.IsOngoing);
+    }
+    /// <summary>Formats an active quest line with optional progress (e.g. "2/3 targets").</summary>
+    private static string FormatActiveQuestLine(AIQuestInfo q)
+    {
+        if (q.ProgressTarget <= 0) return $"• {q.Title}";
+        int current = Math.Max(0, Math.Min(q.ProgressCurrent, q.ProgressTarget));
+        string label = string.IsNullOrWhiteSpace(q.ProgressLabel) ? "" : $" {q.ProgressLabel}";
+        return $"• {q.Title} ({current}/{q.ProgressTarget}{label})";
+    }
+    /// <summary>Formats an incoming quest line (NPC is delivery target).</summary>
+    private static string FormatIncomingQuestLine(AIQuestInfo q) => $"• {q.Title} (deliver here)";
+
+    private static IEnumerable<string> ResolveKnownInfo(NPCContext context, Hero npc)
+    {
+        if (context?.KnownInfo == null || !context.KnownInfo.Any()) yield break;
+        var infos = WorldInfoManager.InformationManager.Instance?.GetInfo();
+        if (infos == null) yield break;
+        string npcName = ((object)npc?.Name)?.ToString() ?? "";
+        foreach (var i in infos.Where(i => !string.IsNullOrEmpty(i?.Id) && context.KnownInfo.Contains(i.Id)))
+        {
+            if (string.IsNullOrWhiteSpace(i.Description)) continue;
+            yield return i.Description.Replace("{character}", npcName).Trim();
+        }
+    }
+
+    private static List<DynamicEvent> GetMergedEvents()
+    {
+        var list = DynamicEventsManager.Instance?.GetActiveEvents() ?? new List<DynamicEvent>();
+        List<DynamicEvent> diplomatic = new List<DynamicEvent>();
+        try
+        {
+            var storage = new DiplomacyStorage();
+            diplomatic = storage.LoadDiplomaticEvents() ?? new List<DynamicEvent>();
+        }
+        catch (Exception ex)
+        {
+            AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] LoadDiplomaticEvents failed: " + ex.Message);
+        }
+        var merged = new List<DynamicEvent>();
+        var seen = new HashSet<string>();
+        foreach (var e in list)
+        {
+            if (e == null) continue;
+            merged.Add(e);
+            if (!string.IsNullOrEmpty(e.Id)) seen.Add(e.Id);
+        }
+        foreach (var e in diplomatic)
+        {
+            if (e != null && !string.IsNullOrEmpty(e.Id) && !seen.Contains(e.Id))
+            {
+                merged.Add(e);
+                seen.Add(e.Id);
+            }
+        }
+        return merged;
+    }
+
+    private void AddCharacterSectionItems(Hero npc, NPCContext context)
+    {
+        const string Header = "#888888FF";
         RightPanelItems.Add(new TextItemVM("CHARACTER", Header));
+        int rel = Hero.MainHero != null ? (int)npc.GetRelation(Hero.MainHero) : 0;
         RightPanelItems.Add(new TextItemVM($"Relation: {rel:+#;-#;0}", rel >= 0 ? "#6FCF6FFF" : "#CF6F6FFF"));
-        RightPanelItems.Add(new TextItemVM($"Trust: {context?.TrustLevel:F0}"));
+        RightPanelItems.Add(new TextItemVM($"Trust: {(context?.TrustLevel ?? 0f) * 100f:F0}%"));
         RightPanelItems.Add(new TextItemVM($"Interactions: {context?.InteractionCount ?? 0}"));
         if (!string.IsNullOrWhiteSpace(context?.EmotionalState?.Mood))
             RightPanelItems.Add(new TextItemVM($"Mood: {context.EmotionalState.Mood}"));
     }
 
+    /// <summary>Removes items from _characterSectionStartIndex onwards and re-adds QUEST + CHARACTER sections.</summary>
+    private void RefreshCharacterSection(Hero npc, NPCContext context)
+    {
+        while (RightPanelItems.Count > _characterSectionStartIndex)
+            RightPanelItems.RemoveAt(RightPanelItems.Count - 1);
+        try
+        {
+            AddQuestSectionItems(context);
+            AddCharacterSectionItems(npc, context);
+        }
+        catch (Exception ex)
+        {
+            AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] RefreshCharacterSection failed: " + ex.Message);
+            try { AddCharacterSectionItems(npc, context); } catch (Exception ex2) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] RefreshCharacterSection fallback failed: " + ex2.Message); }
+        }
+    }
+
     // ── Segment parser ────────────────────────────────────────────────────
 
-    private static readonly Regex EmoteRegex = new Regex(@"\*([^*]+)\*", RegexOptions.Compiled);
+    // Matches *text* (complete) or *text at end (streaming); capture is text inside
+    private static readonly Regex EmoteRegex = new Regex(@"\*([^*]*)(?:\*|$)", RegexOptions.Compiled);
     private const string NameColor        = "#C6AC8DFF";
     private const string SpeechTextColor  = "#E8DCC8FF";
     private const string NpcBubbleColor   = "#0D1118D0"; // dark blue-grey for NPC speech
     private const string PlayerBubbleColor = "#000000D0"; // darker for player speech
-    private const string EmoteColor         = "#9B59B6FF";  // purple
-    private const string ActionColor        = "#FFD700FF";  // golden
-    private const string ActionBubbleColor  = "#3D2E1AE8";  // dark gold tint
+    private const string EmoteColor           = "#9B59B6FF";  // purple
+    private const string ActionColor          = "#FFD700FF";  // golden (fallback)
+    private const string ActionBubbleColor    = "#3D2E1AE8";  // dark gold tint
+    private const string MoneyTransferColor   = "#E6B800FF";  // amber gold
+    private const string ItemTransferColor    = "#4CAF50FF";  // green
+    private const string TroopTransferColor   = "#78909CFF";  // steel blue-grey
+    private const string QuestActionColor     = "#26A69AFF";  // teal
+    private const string TechnicalActionColor = "#81C784FF";  // soft green
+    private const string RomanceActionColor   = "#E91E63FF";  // pink
+    private const string WorkshopActionColor  = "#FFB74DFF";  // trade orange
+    private const string KingdomActionColor   = "#5C6BC0FF";  // political purple
     private const string RelationMessageColor = "#5B9BD5FF";  // blue
     private const string RelationBubbleColor  = "#1A2D3DE8";  // dark blue tint
 
@@ -237,8 +394,9 @@ public class NpcChatWindowVM : ViewModel
                 if (!string.IsNullOrEmpty(speech))
                     item.ContentSegments.Add(new ContentSegmentVM(speech, SpeechTextColor, bubbleColor));
             }
-            string emoteText = m.Groups[1].Value;  // strip asterisks: *text* -> text
-            item.ContentSegments.Add(new ContentSegmentVM(emoteText, EmoteColor, bubbleColor, isPill: true));
+            string emoteText = m.Groups[1].Value;
+            if (!string.IsNullOrEmpty(emoteText))
+                item.ContentSegments.Add(new ContentSegmentVM(emoteText, EmoteColor, bubbleColor, isPill: true));
             pos = m.Index + m.Length;
         }
         if (pos < content.Length)
@@ -289,29 +447,66 @@ public class NpcChatWindowVM : ViewModel
         return "";
     }
 
-    private static string BuildPlayerActionText(AIResponse r)
+    private static string ResolveItemName(string itemId)
     {
-        if (r == null) return "";
-        var parts = new List<string>();
-        if (r.MoneyTransfer != null && r.MoneyTransfer.Amount != 0 && string.Equals(r.MoneyTransfer.Action, "receive", StringComparison.OrdinalIgnoreCase))
-            parts.Add($"Transferred {Math.Abs(r.MoneyTransfer.Amount)} gold");
-        if (r.ItemTransfers?.Count > 0 && r.ItemTransfers.Any(t => string.Equals(t.Action, "take", StringComparison.OrdinalIgnoreCase)))
-            parts.Add($"Transferred {r.ItemTransfers.Count(t => string.Equals(t.Action, "take", StringComparison.OrdinalIgnoreCase))} item(s)");
-        return string.Join(" ", parts);
+        if (string.IsNullOrEmpty(itemId)) return "Unknown item";
+        var item = MBObjectManager.Instance?.GetObject<ItemObject>(itemId);
+        return item?.Name?.ToString() ?? "Unknown item";
     }
 
-    private static string BuildNpcActionText(AIResponse r, NPCContext ctx)
+    private static string ResolveTroopName(string stringId)
     {
-        if (r == null) return "";
-        var parts = new List<string>();
+        if (string.IsNullOrEmpty(stringId)) return "Unknown troop";
+        var troop = MBObjectManager.Instance?.GetObject<CharacterObject>(stringId);
+        return troop?.Name?.ToString() ?? "Unknown troop";
+    }
+
+    private static string FormatTroopTransferPill(string payload, string npcName)
+    {
+        string[] dirAndRest = payload.Split(new[] { ':' }, 2);
+        if (dirAndRest.Length < 2) return "Transferred troops";
+        bool toPlayer = dirAndRest[0].Trim().Equals("to_player", StringComparison.OrdinalIgnoreCase);
+        var items = new List<string>();
+        foreach (string part in dirAndRest[1].Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            string[] segs = part.Trim().Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
+            if (segs.Length < 3 || !int.TryParse(segs[2], out int count) || count <= 0) continue;
+            string name = ResolveTroopName(segs[1].Trim());
+            items.Add($"{name} (x{count})");
+        }
+        if (items.Count == 0) return toPlayer ? $"{npcName} transferred troops to you" : $"You transferred troops to {npcName}";
+        string list = string.Join(", ", items);
+        return toPlayer ? $"{npcName} gave you {list}" : $"You gave {list} to {npcName}";
+    }
+
+    private static IEnumerable<(string text, string textColor, string backColor)> BuildPlayerActionPills(AIResponse r, string npcName)
+    {
+        if (r == null) yield break;
+        if (r.MoneyTransfer != null && r.MoneyTransfer.Amount != 0 && string.Equals(r.MoneyTransfer.Action, "receive", StringComparison.OrdinalIgnoreCase))
+            yield return ($"• You received {Math.Abs(r.MoneyTransfer.Amount)} gold from {npcName}", MoneyTransferColor, ActionBubbleColor);
+        var takeTransfers = r.ItemTransfers?.Where(t => string.Equals(t.Action, "take", StringComparison.OrdinalIgnoreCase)).ToList();
+        if (takeTransfers?.Count > 0)
+        {
+            var itemNames = takeTransfers.Select(t => $"{ResolveItemName(t.ItemId)} (x{t.Amount})");
+            yield return ($"• You gave {string.Join(", ", itemNames)} to {npcName}", ItemTransferColor, ActionBubbleColor);
+        }
+    }
+
+    private static IEnumerable<(string text, string textColor, string backColor)> BuildNpcActionPills(AIResponse r, NPCContext ctx, string npcName)
+    {
+        if (r == null) yield break;
         if (r.MoneyTransfer != null && r.MoneyTransfer.Amount != 0 && string.Equals(r.MoneyTransfer.Action, "give", StringComparison.OrdinalIgnoreCase))
-            parts.Add($"Transferred {Math.Abs(r.MoneyTransfer.Amount)} gold");
-        if (r.ItemTransfers?.Count > 0 && r.ItemTransfers.Any(t => string.Equals(t.Action, "give", StringComparison.OrdinalIgnoreCase)))
-            parts.Add($"Transferred {r.ItemTransfers.Count(t => string.Equals(t.Action, "give", StringComparison.OrdinalIgnoreCase))} item(s)");
+            yield return ($"• {npcName} gave you {Math.Abs(r.MoneyTransfer.Amount)} gold", MoneyTransferColor, ActionBubbleColor);
+        var giveTransfers = r.ItemTransfers?.Where(t => string.Equals(t.Action, "give", StringComparison.OrdinalIgnoreCase)).ToList();
+        if (giveTransfers?.Count > 0)
+        {
+            var itemNames = giveTransfers.Select(t => $"{ResolveItemName(t.ItemId)} (x{t.Amount})");
+            yield return ($"• {npcName} gave you {string.Join(", ", itemNames)}", ItemTransferColor, ActionBubbleColor);
+        }
         if (!string.IsNullOrEmpty(r.QuestAction?.Action))
-            parts.Add($"Quest: {r.QuestAction.Action}");
+            yield return ($"• Quest: {r.QuestAction.Action}", QuestActionColor, ActionBubbleColor);
         if (!string.IsNullOrEmpty(r.Decision) && r.Decision != "none" && r.Decision != "none\n")
-            parts.Add(r.Decision.Trim());
+            yield return ($"• {r.Decision.Trim()}", ActionColor, ActionBubbleColor);
         string techAction = ctx?.LastTechnicalActionForDisplay;
         if (!string.IsNullOrEmpty(techAction) && !techAction.Equals("none", StringComparison.OrdinalIgnoreCase))
         {
@@ -322,35 +517,41 @@ public class NpcChatWindowVM : ViewModel
                 string payload = segs.Length > 1 ? segs[1].Trim() : "";
                 bool isStop = payload.Equals("STOP", StringComparison.OrdinalIgnoreCase);
                 if (isStop)
-                    parts.Add($"Stopped {name}");
+                    yield return ($"• Stopped {name}", TechnicalActionColor, ActionBubbleColor);
                 else if (name.Equals("follow_player", StringComparison.OrdinalIgnoreCase))
-                    parts.Add("Now following you");
+                    yield return ("• Now following you", TechnicalActionColor, ActionBubbleColor);
                 else if (name.Equals("return_to_player", StringComparison.OrdinalIgnoreCase))
-                    parts.Add("Returning to you");
+                    yield return ("• Returning to you", TechnicalActionColor, ActionBubbleColor);
                 else if (name.Equals("go_to_settlement", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(payload))
-                    parts.Add($"Traveling to {payload.Split(':')[0]}");
+                    yield return ($"• Traveling to {payload.Split(':')[0]}", TechnicalActionColor, ActionBubbleColor);
+                else if (name.Equals("transfer_troops_and_prisoners", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(payload))
+                    yield return ("• " + FormatTroopTransferPill(payload, npcName), TroopTransferColor, ActionBubbleColor);
                 else if (!string.IsNullOrEmpty(name))
-                    parts.Add(name);
+                    yield return ($"• {name}", TechnicalActionColor, ActionBubbleColor);
             }
         }
         if (!string.IsNullOrEmpty(r.RomanceIntent) && !r.RomanceIntent.Equals("none", StringComparison.OrdinalIgnoreCase))
         {
             string ri = r.RomanceIntent.Trim().ToLowerInvariant();
-            if (ri == "flirt") parts.Add("Accepted your flirtation");
-            else if (ri == "romance") parts.Add("Accepted your courtship");
-            else if (ri == "proposal") parts.Add("Marriage proposal");
-            else parts.Add($"Romance: {r.RomanceIntent}");
+            string msg = ri == "flirt" ? "Accepted your flirtation" : ri == "romance" ? "Accepted your courtship" : ri == "proposal" ? "Marriage proposal" : $"Romance: {r.RomanceIntent}";
+            yield return ($"• {msg}", RomanceActionColor, ActionBubbleColor);
         }
         if (!string.IsNullOrEmpty(r.WorkshopAction) && r.WorkshopAction.Equals("sell", StringComparison.OrdinalIgnoreCase))
-            parts.Add("Sold workshop to you");
+            yield return ("• Sold workshop to you", WorkshopActionColor, ActionBubbleColor);
         if (!string.IsNullOrEmpty(r.KingdomAction) && !r.KingdomAction.Equals("none", StringComparison.OrdinalIgnoreCase))
-            parts.Add($"Kingdom: {r.KingdomAction}");
-        return string.Join(" ", parts);
+            yield return ($"• Kingdom: {r.KingdomAction}", KingdomActionColor, ActionBubbleColor);
     }
 
     // ── Commands ──────────────────────────────────────────────────────────
 
-    public void OnTextChanged(string newText) => _inputText = newText;
+    public void OnTextChanged(string newText)
+    {
+        if (newText != _inputText)
+        {
+            _inputText = newText ?? "";
+            ((ViewModel)this).OnPropertyChangedWithValue<string>(_inputText, "InputText");
+        }
+    }
 
     public async void ExecuteSendMessage()
     {
@@ -359,16 +560,16 @@ public class NpcChatWindowVM : ViewModel
 
         _isSending = true;
         ((ViewModel)this).OnPropertyChangedWithValue(false, "IsSendEnabled");
-        InputText = "";
 
         string playerName = ((object)Hero.MainHero?.Name)?.ToString() ?? "You";
 
         try
         {
+            if (AIInfluenceBehavior.Instance == null)
+                return;
+            InputText = "";
             var playerMessageItem = ParseLine($"{playerName}: {message}");
             AddNewestMessage(playerMessageItem);
-
-            if (AIInfluenceBehavior.Instance == null) return;
             string npcName = ((object)_npc?.Name)?.ToString() ?? "NPC";
 
             // Capture the slot index where ProcessChatInput will append the player message.
@@ -467,8 +668,8 @@ public class NpcChatWindowVM : ViewModel
                 }
 
                 string tone = pendingResponse?.Tone ?? "";
-                string playerActionText = BuildPlayerActionText(pendingResponse);
-                string npcActionText = BuildNpcActionText(pendingResponse, ctx);
+                var playerPills = BuildPlayerActionPills(pendingResponse, npcName).ToList();
+                var npcPills = BuildNpcActionPills(pendingResponse, ctx, npcName).ToList();
                 string relMsg = GetRelationChangeMessage(pendingResponse, ctx, npcName);
 
                 // Swaps the streaming placeholder for the finalised message item and persists pills.
@@ -482,23 +683,28 @@ public class NpcChatWindowVM : ViewModel
                         if (streamingItem != null)
                             MessageList.Remove(streamingItem);
 
-                        if (!string.IsNullOrEmpty(playerActionText) && playerMessageItem != null)
-                            playerMessageItem.ContentSegments.Add(new ContentSegmentVM(playerActionText, ActionColor, ActionBubbleColor, true));
+                        if (playerPills.Count > 0 && playerMessageItem != null)
+                        {
+                            foreach (var (text, textColor, backColor) in playerPills)
+                                playerMessageItem.ContentSegments.Add(new ContentSegmentVM(text, textColor, backColor, true));
+                        }
 
                         var npcItem = ParseLine($"{npcName}: {reply}", tone);
-                        if (!string.IsNullOrEmpty(npcActionText))
-                            npcItem.ContentSegments.Add(new ContentSegmentVM(npcActionText, ActionColor, ActionBubbleColor, true));
+                        foreach (var (text, textColor, backColor) in npcPills)
+                            npcItem.ContentSegments.Add(new ContentSegmentVM(text, textColor, backColor, true));
                         if (!string.IsNullOrEmpty(relMsg))
                             npcItem.ContentSegments.Add(new ContentSegmentVM(relMsg, RelationMessageColor, RelationBubbleColor, true));
                         AddNewestMessage(npcItem);
 
                         if (ctx?.ConversationHistory != null)
                         {
+                            string playerActionText = string.Join(" · ", playerPills.Select(p => p.text));
                             if (!string.IsNullOrEmpty(playerActionText) && playerHistoryIdx >= 0 && playerHistoryIdx < ctx.ConversationHistory.Count)
                                 ctx.AppendActionToMessage(playerHistoryIdx, playerActionText);
                             int npcHistoryIdx = ctx.ConversationHistory.Count - 1;
                             if (npcHistoryIdx > playerHistoryIdx)
                             {
+                                string npcActionText = string.Join(" · ", npcPills.Select(p => p.text));
                                 if (!string.IsNullOrEmpty(npcActionText))
                                     ctx.AppendActionToMessage(npcHistoryIdx, npcActionText);
                                 if (!string.IsNullOrEmpty(relMsg))
@@ -506,6 +712,22 @@ public class NpcChatWindowVM : ViewModel
                             }
                             try { AIInfluenceBehavior.Instance?.SaveNPCContext(((MBObjectBase)_npc).StringId, _npc, ctx); }
                             catch (Exception ex) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] SaveNPCContext after pill persist failed: " + ex.Message); }
+                        }
+                        if (ctx != null && AIInfluenceBehavior.Instance != null)
+                        {
+                            try
+                            {
+                                AIInfluenceBehavior.Instance.UpdateContextData(ctx, _npc);
+                                try { AIInfluenceBehavior.Instance.SaveNPCContext(((MBObjectBase)_npc).StringId, _npc, ctx); }
+                                catch (Exception ex) { AIInfluenceBehavior.Instance.LogMessage("[NpcChatWindow] SaveNPCContext after UpdateContextData failed: " + ex.Message); }
+                            }
+                            catch (Exception ex) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] UpdateContextData failed: " + ex.Message); }
+                            TtsLipSyncService.MainThreadQueue.Enqueue(() =>
+                            {
+                                if (!NpcChatWindowManager.IsOpen || NpcChatWindowManager.GetCurrentViewModel() != this) return; // Skip if closed or reopened (wrong VM)
+                                RefreshTraitOverlay(_npc, ctx);
+                                RefreshCharacterSection(_npc, ctx);
+                            });
                         }
                     }
                     catch (Exception ex)
@@ -530,11 +752,28 @@ public class NpcChatWindowVM : ViewModel
                     doFinalize();
                 }
             }
-            else if (streamingItem != null)
+            else
             {
-                streamingRetired = true;
-                MessageList.Remove(streamingItem);
+                if (streamingItem != null)
+                {
+                    streamingRetired = true;
+                    MessageList.Remove(streamingItem);
+                }
+                NPCContext ctx = null;
+                try { ctx = AIInfluenceBehavior.Instance?.GetOrCreateNPCContext(_npc); }
+                catch (Exception ex) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] GetOrCreateNPCContext (empty reply) failed: " + ex.Message); }
+                if (ctx != null && AIInfluenceBehavior.Instance != null)
+                    TtsLipSyncService.MainThreadQueue.Enqueue(() =>
+                    {
+                        if (!NpcChatWindowManager.IsOpen || NpcChatWindowManager.GetCurrentViewModel() != this) return; // Skip if closed or reopened (wrong VM)
+                        RefreshTraitOverlay(_npc, ctx);
+                        RefreshCharacterSection(_npc, ctx);
+                    });
             }
+        }
+        catch (Exception ex)
+        {
+            AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] ExecuteSendMessage failed: " + ex.Message);
         }
         finally
         {

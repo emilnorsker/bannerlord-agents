@@ -323,7 +323,7 @@ public class AIDecisionHandler
 			context.EscalationState = "neutral";
 			string message = ((object)new TextObject(flag ? "{=AIInfluence_PersuasionSuccessWar}{npcName} grudgingly agrees to hold off, for now." : "{=AIInfluence_PersuasionSuccess}{npcName} calms down and agrees to avoid a fight.", new Dictionary<string, object> { { "npcName", npcName } })).ToString();
 			_behavior.ApplyRelationChangeWithDelay(npc, num3, ExtraColors.GreenAIInfluence, message);
-			_behavior.LogMessage($"[DEBUG] Persuasion successful with {npcName}. Trust: {context.TrustLevel:F2}, Scheduled relation increase by {num3} after 1s.");
+			_behavior.LogMessage($"[DEBUG] Persuasion successful with {npcName}. Trust: {context.TrustLevel:F2}, Scheduled relation increase by {num3} after 0.2s.");
 			_behavior.SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
 			MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", new TextObject(flag ? "{=AIInfluence_PersuasionResponseWar}I'll hold my blade... for now." : "{=AIInfluence_PersuasionResponse}Very well, let's keep the peace.", (Dictionary<string, object>)null), false);
 		}

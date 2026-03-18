@@ -878,14 +878,14 @@ public class DialogManager
 					{
 						PendingRelationChange pendingRelationChange = context.PendingRelationChange;
 						_behavior.ApplyRelationChangeWithDelay(npc, pendingRelationChange.RelationChange, pendingRelationChange.Color, pendingRelationChange.Message);
-						_behavior.LogMessage($"[DEBUG] Scheduled relation change for NPC {((MBObjectBase)npc).StringId} by {pendingRelationChange.RelationChange} in 4s.");
+						_behavior.LogMessage($"[DEBUG] Scheduled relation change for NPC {((MBObjectBase)npc).StringId} by {pendingRelationChange.RelationChange} in 0.2s.");
 						context.PendingRelationChange = null;
 					}
 					if (context.PendingLiePenalty != null)
 					{
 						PendingRelationChange pendingLiePenalty = context.PendingLiePenalty;
 						_behavior.ApplyRelationChangeWithDelay(npc, pendingLiePenalty.RelationChange, pendingLiePenalty.Color, pendingLiePenalty.Message);
-						_behavior.LogMessage($"[DEBUG] Scheduled lie penalty for NPC {((MBObjectBase)npc).StringId} by {pendingLiePenalty.RelationChange} in 4s.");
+						_behavior.LogMessage($"[DEBUG] Scheduled lie penalty for NPC {((MBObjectBase)npc).StringId} by {pendingLiePenalty.RelationChange} in 0.2s.");
 						context.PendingLiePenalty = null;
 					}
 					if (context.PendingWorkshopSale != null && !npc.IsPrisoner)
@@ -1587,14 +1587,14 @@ public class DialogManager
 					{
 						PendingRelationChange pendingRelationChange = context.PendingRelationChange;
 						_behavior.ApplyRelationChangeWithDelay(npc, pendingRelationChange.RelationChange, pendingRelationChange.Color, pendingRelationChange.Message);
-						_behavior.LogMessage($"[DEBUG] Scheduled relation change for NPC {((MBObjectBase)npc).StringId} by {pendingRelationChange.RelationChange} in 4s.");
+						_behavior.LogMessage($"[DEBUG] Scheduled relation change for NPC {((MBObjectBase)npc).StringId} by {pendingRelationChange.RelationChange} in 0.2s.");
 						context.PendingRelationChange = null;
 					}
 					if (context.PendingLiePenalty != null)
 					{
 						PendingRelationChange pendingLiePenalty = context.PendingLiePenalty;
 						_behavior.ApplyRelationChangeWithDelay(npc, pendingLiePenalty.RelationChange, pendingLiePenalty.Color, pendingLiePenalty.Message);
-						_behavior.LogMessage($"[DEBUG] Scheduled lie penalty for NPC {((MBObjectBase)npc).StringId} by {pendingLiePenalty.RelationChange} in 4s.");
+						_behavior.LogMessage($"[DEBUG] Scheduled lie penalty for NPC {((MBObjectBase)npc).StringId} by {pendingLiePenalty.RelationChange} in 0.2s.");
 						context.PendingLiePenalty = null;
 					}
 					if (context.PendingWorkshopSale != null && !npc.IsPrisoner)

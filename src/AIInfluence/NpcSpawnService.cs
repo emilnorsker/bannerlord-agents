@@ -32,10 +32,10 @@ public class NpcSpawnService
 		_log = log ?? (_ => { });
 	}
 
-	public SpawnResult Spawn(SpawnNpcData data)
+	public SpawnResult Spawn(SpawnPartyData data)
 	{
 		if (data == null)
-			return Fail("SpawnNpcData is null");
+			return Fail("SpawnPartyData is null");
 
 		bool hasName = !string.IsNullOrWhiteSpace(data.Name);
 
@@ -48,7 +48,7 @@ public class NpcSpawnService
 		return SpawnNpcHero(data);
 	}
 
-	private SpawnResult SpawnNpcHero(SpawnNpcData data)
+	private SpawnResult SpawnNpcHero(SpawnPartyData data)
 	{
 		Settlement settlement = ResolveSettlement(data.Settlement);
 		if (settlement == null)
@@ -106,7 +106,7 @@ public class NpcSpawnService
 		return new SpawnResult { Hero = hero, Party = party, Warning = warning };
 	}
 
-	private SpawnResult SpawnSimpleParty(SpawnNpcData data)
+	private SpawnResult SpawnSimpleParty(SpawnPartyData data)
 	{
 		Settlement settlement = ResolveSettlement(data.Settlement);
 		if (settlement == null)
@@ -134,7 +134,7 @@ public class NpcSpawnService
 		return new SpawnResult { Party = party };
 	}
 
-	private MobileParty SpawnLordParty(Hero hero, SpawnNpcData data, Settlement homeSettlement)
+	private MobileParty SpawnLordParty(Hero hero, SpawnPartyData data, Settlement homeSettlement)
 	{
 		string partyName = data.PartyName ?? $"{hero.Name}'s Party";
 		CampaignVec2 spawnPosition = homeSettlement.GatePosition;
@@ -275,7 +275,7 @@ public class NpcSpawnService
 		}
 	}
 
-	private void InitializeNpcContext(Hero hero, SpawnNpcData data)
+	private void InitializeNpcContext(Hero hero, SpawnPartyData data)
 	{
 		AIInfluenceBehavior behavior = AIInfluenceBehavior.Instance;
 		if (behavior == null)
@@ -292,7 +292,7 @@ public class NpcSpawnService
 			context.AIGeneratedPersonality = data.Personality;
 	}
 
-	private void ApplyEquipmentOverrides(Hero hero, SpawnNpcEquipment eq)
+	private void ApplyEquipmentOverrides(Hero hero, SpawnPartyEquipment eq)
 	{
 		int tier = eq.Tier.HasValue ? Math.Max(0, Math.Min(eq.Tier.Value, 6)) : -1;
 		TryEquipSlot(hero, EquipmentIndex.Weapon0, eq.Weapon, tier);
@@ -570,7 +570,7 @@ public class NpcSpawnService
 		return Occupation.Wanderer;
 	}
 
-	private static bool WantsParty(SpawnNpcData data)
+	private static bool WantsParty(SpawnPartyData data)
 	{
 		return !string.IsNullOrWhiteSpace(data.PartyName) || (data.PartySize.HasValue && data.PartySize.Value > 0);
 	}

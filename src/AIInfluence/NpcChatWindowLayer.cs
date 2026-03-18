@@ -16,6 +16,8 @@ public class NpcChatWindowLayer : GauntletLayer
 {
     private object _movie;
     private NpcChatWindowVM _viewModel;
+
+    internal NpcChatWindowVM ViewModel => _viewModel;
     /// <summary>
     /// Reads the mission camera offset from MCM settings. Map conversations
     /// use a separate tableau camera with its own MCM setting, applied via
