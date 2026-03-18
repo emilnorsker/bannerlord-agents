@@ -170,19 +170,20 @@ public class NpcChatWindowVM : ViewModel
     {
         const string Header = "#888888FF";
         const string QuestColor = "#D0A96BFF";
-        RightPanelItems.Add(new TextItemVM("QUEST", Header));
+        List<string> lines;
         if (context == null)
+            lines = new List<string>();
+        else
         {
-            RightPanelItems.Add(new TextItemVM("• No active quest with this character", Header));
-            return;
+            var questSources = new (IEnumerable<AIQuestInfo> source, Func<AIQuestInfo, string> format)[]
+            {
+                (OrEmpty(context.ActiveAIQuests), FormatActiveQuestLine),
+                (OrEmpty(context.IncomingAIQuests), FormatIncomingQuestLine)
+            };
+            var all = questSources.SelectMany(s => s.source.Where(IsValidQuest).Select(q => (quest: q, formatter: s.format)));
+            lines = all.GroupBy(x => x.quest.QuestId).Select(g => { var f = g.First(); return f.formatter(f.quest); }).ToList();
         }
-        var questSources = new (IEnumerable<AIQuestInfo> source, Func<AIQuestInfo, string> format)[]
-        {
-            (OrEmpty(context.ActiveAIQuests), FormatActiveQuestLine),
-            (OrEmpty(context.IncomingAIQuests), FormatIncomingQuestLine)
-        };
-        var all = questSources.SelectMany(s => s.source.Where(IsValidQuest).Select(q => (quest: q, formatter: s.format)));
-        var lines = all.GroupBy(x => x.quest.QuestId).Select(g => { var f = g.First(); return f.formatter(f.quest); }).ToList();
+        RightPanelItems.Add(new TextItemVM("QUEST", Header));
         if (lines.Count == 0)
             RightPanelItems.Add(new TextItemVM("• No active quest with this character", Header));
         else
@@ -252,7 +253,7 @@ public class NpcChatWindowVM : ViewModel
     {
         const string Header = "#888888FF";
         RightPanelItems.Add(new TextItemVM("CHARACTER", Header));
-        int rel = (int)npc.GetRelation(Hero.MainHero);
+        int rel = Hero.MainHero != null ? (int)npc.GetRelation(Hero.MainHero) : 0;
         RightPanelItems.Add(new TextItemVM($"Relation: {rel:+#;-#;0}", rel >= 0 ? "#6FCF6FFF" : "#CF6F6FFF"));
         RightPanelItems.Add(new TextItemVM($"Trust: {(context?.TrustLevel ?? 0f) * 100f:F0}%"));
         RightPanelItems.Add(new TextItemVM($"Interactions: {context?.InteractionCount ?? 0}"));
@@ -660,6 +661,7 @@ public class NpcChatWindowVM : ViewModel
                             catch (Exception ex) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] UpdateContextData failed: " + ex.Message); }
                             TtsLipSyncService.MainThreadQueue.Enqueue(() =>
                             {
+                                if (!NpcChatWindowManager.IsOpen) return;
                                 RefreshTraitOverlay(_npc, ctx);
                                 RefreshCharacterSection(_npc, ctx);
                             });
@@ -687,10 +689,22 @@ public class NpcChatWindowVM : ViewModel
                     doFinalize();
                 }
             }
-            else if (streamingItem != null)
+            else
             {
-                streamingRetired = true;
-                MessageList.Remove(streamingItem);
+                if (streamingItem != null)
+                {
+                    streamingRetired = true;
+                    MessageList.Remove(streamingItem);
+                }
+                NPCContext ctx = null;
+                try { ctx = AIInfluenceBehavior.Instance?.GetOrCreateNPCContext(_npc); } catch { }
+                if (ctx != null && AIInfluenceBehavior.Instance != null)
+                    TtsLipSyncService.MainThreadQueue.Enqueue(() =>
+                    {
+                        if (!NpcChatWindowManager.IsOpen) return;
+                        RefreshTraitOverlay(_npc, ctx);
+                        RefreshCharacterSection(_npc, ctx);
+                    });
             }
         }
         catch (Exception ex)
