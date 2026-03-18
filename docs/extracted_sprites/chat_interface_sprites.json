@@ -1,0 +1,86 @@
+{
+  "_comment": "Sprites used in ChatInterface.xml — from extract_sprite_regions.py --list-used",
+  "BlankWhiteSquare_9": {
+    "sheet_id": 3,
+    "x": 3552,
+    "y": 710,
+    "w": 25,
+    "h": 25,
+    "category": "ui_group1",
+    "usage": "backdrop, separators"
+  },
+  "BlankWhite": {
+    "note": "Engine procedural sprite (solid white), no sheet"
+  },
+  "chat_panel_bg": {
+    "note": "Custom ui_aiinfluence — replace with StdAssets\\Popup\\canvas_gradient"
+  },
+  "chat_msg_separator": {
+    "note": "Custom ui_aiinfluence — replace with StdAssets\\Popup\\divider"
+  },
+  "name_shadow_9": {
+    "sheet_id": 1,
+    "x": 2282,
+    "y": 4,
+    "w": 142,
+    "h": 65,
+    "category": "ui_conversation",
+    "part_name": "Conversation\\name_shadow",
+    "note": "Native equivalent exists; custom may override"
+  },
+  "frame_9": {
+    "sheet_id": 2,
+    "x": 2976,
+    "y": 4,
+    "w": 540,
+    "h": 673,
+    "category": "ui_group1",
+    "part_name": "StdAssets\\Popup\\frame",
+    "usage": "input bar frame, name input frame"
+  },
+  "General\\CharacterCreation\\character_creation_background_gradient": {
+    "sheet_id": 1,
+    "x": 4028,
+    "y": 2671,
+    "w": 32,
+    "h": 382,
+    "category": "ui_group1",
+    "usage": "input bar gradient"
+  },
+  "General\\CharacterCreation\\name_input_area": {
+    "sheet_id": 1,
+    "x": 1453,
+    "y": 1497,
+    "w": 397,
+    "h": 32,
+    "category": "ui_group1",
+    "usage": "text input background"
+  },
+  "StdAssets\\Popup\\canvas_gradient": {
+    "sheet_id": 2,
+    "x": 1048,
+    "y": 685,
+    "w": 512,
+    "h": 645,
+    "category": "ui_group1",
+    "usage": "built-in panel background (replacement for chat_panel_bg)"
+  },
+  "StdAssets\\Popup\\divider": {
+    "sheet_id": 2,
+    "x": 871,
+    "y": 3602,
+    "w": 521,
+    "h": 23,
+    "category": "ui_group1",
+    "usage": "built-in divider (replacement for chat_msg_separator)"
+  },
+  "StdAssets\\standart_popup": {
+    "sheet_id": 1,
+    "x": 4,
+    "y": 4,
+    "w": 1500,
+    "h": 960,
+    "category": "ui_group1",
+    "usage": "troop panel / party screen background"
+  }
+}
