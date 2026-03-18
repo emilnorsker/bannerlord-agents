@@ -31,6 +31,11 @@
     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
             DoNotAcceptEvents="false">
       <Children>
+        <!-- Full-screen opaque backdrop for center+right (ensures no transparency) -->
+        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                MarginLeft="!Frame.Start"
+                Sprite="BlankWhiteSquare_9" Color="#141414FF"
+                DoNotAcceptEvents="true" />
 
         <!-- ══ LEFT COLUMN — opaque backdrop ══ -->
         <Widget HorizontalAlignment="Left"

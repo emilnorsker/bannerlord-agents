@@ -24,7 +24,7 @@ public class NpcChatWindowLayer : GauntletLayer
     private static float MissionOffsetX => GlobalSettings<ModSettings>.Instance?.MissionCameraOffsetX ?? 0.9f;
 
     public NpcChatWindowLayer(Hero npc, NPCContext context, Action onReturn)
-        : base("NpcChatWindowLayer", 300, false)
+        : base("NpcChatWindowLayer", 500, false)
     {
         // Must be set before LoadMovie so AIInfluencePortraitWidget reads it on activation
         try
