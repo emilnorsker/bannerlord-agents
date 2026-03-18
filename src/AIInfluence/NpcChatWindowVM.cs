@@ -178,10 +178,12 @@ public class NpcChatWindowVM : ViewModel
         };
         var all = questSources.SelectMany(s => s.source.Where(IsValidQuest).Select(q => (quest: q, formatter: s.format)));
         var lines = all.GroupBy(x => x.quest.QuestId).Select(g => g.First().formatter(g.First().quest)).ToList();
-        if (lines.Count == 0) return;
         RightPanelItems.Add(new TextItemVM("QUEST", Header));
-        foreach (var line in lines)
-            RightPanelItems.Add(new TextItemVM(line, QuestColor));
+        if (lines.Count == 0)
+            RightPanelItems.Add(new TextItemVM("• No active quest with this character", Header));
+        else
+            foreach (var line in lines)
+                RightPanelItems.Add(new TextItemVM(line, QuestColor));
     }
 
     private static IEnumerable<AIQuestInfo> OrEmpty(IList<AIQuestInfo> list) => list ?? Enumerable.Empty<AIQuestInfo>();
