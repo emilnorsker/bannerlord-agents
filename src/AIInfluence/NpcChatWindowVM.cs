@@ -236,9 +236,17 @@ public class NpcChatWindowVM : ViewModel
     private const string SpeechTextColor  = "#E8DCC8FF";
     private const string NpcBubbleColor   = "#0D1118D0"; // dark blue-grey for NPC speech
     private const string PlayerBubbleColor = "#000000D0"; // darker for player speech
-    private const string EmoteColor         = "#9B59B6FF";  // purple
-    private const string ActionColor        = "#FFD700FF";  // golden
-    private const string ActionBubbleColor  = "#3D2E1AE8";  // dark gold tint
+    private const string EmoteColor           = "#9B59B6FF";  // purple
+    private const string ActionColor          = "#FFD700FF";  // golden (fallback)
+    private const string ActionBubbleColor    = "#3D2E1AE8";  // dark gold tint
+    private const string MoneyTransferColor   = "#E6B800FF";  // amber gold
+    private const string ItemTransferColor    = "#4CAF50FF";  // green
+    private const string TroopTransferColor   = "#78909CFF";  // steel blue-grey
+    private const string QuestActionColor     = "#26A69AFF";  // teal
+    private const string TechnicalActionColor = "#81C784FF";  // soft green
+    private const string RomanceActionColor   = "#E91E63FF";  // pink
+    private const string WorkshopActionColor  = "#FFB74DFF";  // trade orange
+    private const string KingdomActionColor   = "#5C6BC0FF";  // political purple
     private const string RelationMessageColor = "#5B9BD5FF";  // blue
     private const string RelationBubbleColor  = "#1A2D3DE8";  // dark blue tint
 
@@ -408,37 +416,34 @@ public class NpcChatWindowVM : ViewModel
         return toPlayer ? $"{npcName} gave you {list}" : $"You gave {list} to {npcName}";
     }
 
-    private static string BuildPlayerActionText(AIResponse r, string npcName)
+    private static IEnumerable<(string text, string textColor, string backColor)> BuildPlayerActionPills(AIResponse r, string npcName)
     {
-        if (r == null) return "";
-        var parts = new List<string>();
+        if (r == null) yield break;
         if (r.MoneyTransfer != null && r.MoneyTransfer.Amount != 0 && string.Equals(r.MoneyTransfer.Action, "receive", StringComparison.OrdinalIgnoreCase))
-            parts.Add($"You received {Math.Abs(r.MoneyTransfer.Amount)} gold from {npcName}");
+            yield return ($"You received {Math.Abs(r.MoneyTransfer.Amount)} gold from {npcName}", MoneyTransferColor, ActionBubbleColor);
         var takeTransfers = r.ItemTransfers?.Where(t => string.Equals(t.Action, "take", StringComparison.OrdinalIgnoreCase)).ToList();
         if (takeTransfers?.Count > 0)
         {
             var itemNames = takeTransfers.Select(t => $"{ResolveItemName(t.ItemId)} (x{t.Amount})");
-            parts.Add($"You gave {string.Join(", ", itemNames)} to {npcName}");
+            yield return ($"You gave {string.Join(", ", itemNames)} to {npcName}", ItemTransferColor, ActionBubbleColor);
         }
-        return string.Join(" ", parts);
     }
 
-    private static string BuildNpcActionText(AIResponse r, NPCContext ctx, string npcName)
+    private static IEnumerable<(string text, string textColor, string backColor)> BuildNpcActionPills(AIResponse r, NPCContext ctx, string npcName)
     {
-        if (r == null) return "";
-        var parts = new List<string>();
+        if (r == null) yield break;
         if (r.MoneyTransfer != null && r.MoneyTransfer.Amount != 0 && string.Equals(r.MoneyTransfer.Action, "give", StringComparison.OrdinalIgnoreCase))
-            parts.Add($"{npcName} gave you {Math.Abs(r.MoneyTransfer.Amount)} gold");
+            yield return ($"{npcName} gave you {Math.Abs(r.MoneyTransfer.Amount)} gold", MoneyTransferColor, ActionBubbleColor);
         var giveTransfers = r.ItemTransfers?.Where(t => string.Equals(t.Action, "give", StringComparison.OrdinalIgnoreCase)).ToList();
         if (giveTransfers?.Count > 0)
         {
             var itemNames = giveTransfers.Select(t => $"{ResolveItemName(t.ItemId)} (x{t.Amount})");
-            parts.Add($"{npcName} gave you {string.Join(", ", itemNames)}");
+            yield return ($"{npcName} gave you {string.Join(", ", itemNames)}", ItemTransferColor, ActionBubbleColor);
         }
         if (!string.IsNullOrEmpty(r.QuestAction?.Action))
-            parts.Add($"Quest: {r.QuestAction.Action}");
+            yield return ($"Quest: {r.QuestAction.Action}", QuestActionColor, ActionBubbleColor);
         if (!string.IsNullOrEmpty(r.Decision) && r.Decision != "none" && r.Decision != "none\n")
-            parts.Add(r.Decision.Trim());
+            yield return (r.Decision.Trim(), ActionColor, ActionBubbleColor);
         string techAction = ctx?.LastTechnicalActionForDisplay;
         if (!string.IsNullOrEmpty(techAction) && !techAction.Equals("none", StringComparison.OrdinalIgnoreCase))
         {
@@ -449,32 +454,29 @@ public class NpcChatWindowVM : ViewModel
                 string payload = segs.Length > 1 ? segs[1].Trim() : "";
                 bool isStop = payload.Equals("STOP", StringComparison.OrdinalIgnoreCase);
                 if (isStop)
-                    parts.Add($"Stopped {name}");
+                    yield return ($"Stopped {name}", TechnicalActionColor, ActionBubbleColor);
                 else if (name.Equals("follow_player", StringComparison.OrdinalIgnoreCase))
-                    parts.Add("Now following you");
+                    yield return ("Now following you", TechnicalActionColor, ActionBubbleColor);
                 else if (name.Equals("return_to_player", StringComparison.OrdinalIgnoreCase))
-                    parts.Add("Returning to you");
+                    yield return ("Returning to you", TechnicalActionColor, ActionBubbleColor);
                 else if (name.Equals("go_to_settlement", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(payload))
-                    parts.Add($"Traveling to {payload.Split(':')[0]}");
+                    yield return ($"Traveling to {payload.Split(':')[0]}", TechnicalActionColor, ActionBubbleColor);
                 else if (name.Equals("transfer_troops_and_prisoners", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(payload))
-                    parts.Add(FormatTroopTransferPill(payload, npcName));
+                    yield return (FormatTroopTransferPill(payload, npcName), TroopTransferColor, ActionBubbleColor);
                 else if (!string.IsNullOrEmpty(name))
-                    parts.Add(name);
+                    yield return (name, TechnicalActionColor, ActionBubbleColor);
             }
         }
         if (!string.IsNullOrEmpty(r.RomanceIntent) && !r.RomanceIntent.Equals("none", StringComparison.OrdinalIgnoreCase))
         {
             string ri = r.RomanceIntent.Trim().ToLowerInvariant();
-            if (ri == "flirt") parts.Add("Accepted your flirtation");
-            else if (ri == "romance") parts.Add("Accepted your courtship");
-            else if (ri == "proposal") parts.Add("Marriage proposal");
-            else parts.Add($"Romance: {r.RomanceIntent}");
+            string msg = ri == "flirt" ? "Accepted your flirtation" : ri == "romance" ? "Accepted your courtship" : ri == "proposal" ? "Marriage proposal" : $"Romance: {r.RomanceIntent}";
+            yield return (msg, RomanceActionColor, ActionBubbleColor);
         }
         if (!string.IsNullOrEmpty(r.WorkshopAction) && r.WorkshopAction.Equals("sell", StringComparison.OrdinalIgnoreCase))
-            parts.Add("Sold workshop to you");
+            yield return ("Sold workshop to you", WorkshopActionColor, ActionBubbleColor);
         if (!string.IsNullOrEmpty(r.KingdomAction) && !r.KingdomAction.Equals("none", StringComparison.OrdinalIgnoreCase))
-            parts.Add($"Kingdom: {r.KingdomAction}");
-        return string.Join(" ", parts);
+            yield return ($"Kingdom: {r.KingdomAction}", KingdomActionColor, ActionBubbleColor);
     }
 
     // ── Commands ──────────────────────────────────────────────────────────
@@ -603,8 +605,8 @@ public class NpcChatWindowVM : ViewModel
                 }
 
                 string tone = pendingResponse?.Tone ?? "";
-                string playerActionText = BuildPlayerActionText(pendingResponse, npcName);
-                string npcActionText = BuildNpcActionText(pendingResponse, ctx, npcName);
+                var playerPills = BuildPlayerActionPills(pendingResponse, npcName).ToList();
+                var npcPills = BuildNpcActionPills(pendingResponse, ctx, npcName).ToList();
                 string relMsg = GetRelationChangeMessage(pendingResponse, ctx, npcName);
 
                 // Swaps the streaming placeholder for the finalised message item and persists pills.
@@ -618,23 +620,28 @@ public class NpcChatWindowVM : ViewModel
                         if (streamingItem != null)
                             MessageList.Remove(streamingItem);
 
-                        if (!string.IsNullOrEmpty(playerActionText) && playerMessageItem != null)
-                            playerMessageItem.ContentSegments.Add(new ContentSegmentVM(playerActionText, ActionColor, ActionBubbleColor, true));
+                        if (playerPills.Count > 0 && playerMessageItem != null)
+                        {
+                            foreach (var (text, textColor, backColor) in playerPills)
+                                playerMessageItem.ContentSegments.Add(new ContentSegmentVM(text, textColor, backColor, true));
+                        }
 
                         var npcItem = ParseLine($"{npcName}: {reply}", tone);
-                        if (!string.IsNullOrEmpty(npcActionText))
-                            npcItem.ContentSegments.Add(new ContentSegmentVM(npcActionText, ActionColor, ActionBubbleColor, true));
+                        foreach (var (text, textColor, backColor) in npcPills)
+                            npcItem.ContentSegments.Add(new ContentSegmentVM(text, textColor, backColor, true));
                         if (!string.IsNullOrEmpty(relMsg))
                             npcItem.ContentSegments.Add(new ContentSegmentVM(relMsg, RelationMessageColor, RelationBubbleColor, true));
                         AddNewestMessage(npcItem);
 
                         if (ctx?.ConversationHistory != null)
                         {
+                            string playerActionText = string.Join(" · ", playerPills.Select(p => p.text));
                             if (!string.IsNullOrEmpty(playerActionText) && playerHistoryIdx >= 0 && playerHistoryIdx < ctx.ConversationHistory.Count)
                                 ctx.AppendActionToMessage(playerHistoryIdx, playerActionText);
                             int npcHistoryIdx = ctx.ConversationHistory.Count - 1;
                             if (npcHistoryIdx > playerHistoryIdx)
                             {
+                                string npcActionText = string.Join(" · ", npcPills.Select(p => p.text));
                                 if (!string.IsNullOrEmpty(npcActionText))
                                     ctx.AppendActionToMessage(npcHistoryIdx, npcActionText);
                                 if (!string.IsNullOrEmpty(relMsg))
