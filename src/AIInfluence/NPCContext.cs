@@ -92,7 +92,7 @@ public class NPCContext
 	[JsonProperty("KillerStringId")]
 	public string KillerStringId { get; set; }
 
-	public string OpposedActionType { get; set; }
+	public string OpposedAttribute { get; set; }
 
 	public string LastDynamicResponse { get; set; }
 

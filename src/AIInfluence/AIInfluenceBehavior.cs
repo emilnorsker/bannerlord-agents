@@ -2853,7 +2853,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage("[ROLEPLAY] Character " + npcName + " CAN be killed - all conditions met");
 				context.DeathReason = deathReason;
 				context.KillerStringId = killerStringId;
-				context.OpposedActionType = aiResult.CharacterDeath.OpposedActionType;
+				context.OpposedAttribute = aiResult.CharacterDeath.OpposedAttribute;
 				context.PendingDeath = "pending";
 				SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
 				if (Settlement.CurrentSettlement != null && Mission.Current != null)
@@ -3290,7 +3290,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			context.DeathReason = aiResult.CharacterDeath.DeathReason ?? "unknown causes";
 			context.KillerStringId = aiResult.CharacterDeath.KillerStringId;
-			context.OpposedActionType = aiResult.CharacterDeath.OpposedActionType;
+			context.OpposedAttribute = aiResult.CharacterDeath.OpposedAttribute;
 			context.PendingDeath = "pending";
 			bool isSettlementCombat = Settlement.CurrentSettlement != null && Mission.Current != null;
 			if (isSettlementCombat)
@@ -3325,7 +3325,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 								if (npc != null && !npc.IsDead)
 								{
 									Hero killer = string.IsNullOrEmpty(context.KillerStringId) ? null : Hero.FindFirst((Func<Hero, bool>)((Hero h) => h != null && ((MBObjectBase)h).StringId == context.KillerStringId));
-									KillCharacterHeroPublic(npc, killer, killedInAction: false, context.OpposedActionType);
+									KillCharacterHeroPublic(npc, killer, killedInAction: false, context.OpposedAttribute);
 								}
 								context.PendingDeath = null;
 								context.KillerStringId = null;
@@ -8155,12 +8155,12 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		return true;
 	}
 
-	public void KillCharacterHeroPublic(Hero hero, Hero killer, bool killedInAction, string opposedActionType = null)
+	public void KillCharacterHeroPublic(Hero hero, Hero killer, bool killedInAction, string opposedAttribute = null)
 	{
-		KillCharacterHero(hero, killer, killedInAction, opposedActionType);
+		KillCharacterHero(hero, killer, killedInAction, opposedAttribute);
 	}
 
-	private void KillCharacterHero(Hero hero, Hero killer, bool killedInAction, string opposedActionType = null)
+	private void KillCharacterHero(Hero hero, Hero killer, bool killedInAction, string opposedAttribute = null)
 	{
 		//IL_0178: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0192: Unknown result type (might be due to invalid IL or missing references)
@@ -8182,8 +8182,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage("[WARNING] Attempted to kill null or already dead hero");
 				return;
 			}
-			var actionType = OpposedSkillCheck.ParseActionType(opposedActionType);
-			if (killer == Hero.MainHero && !OpposedSkillCheck.PlayerWins(Hero.MainHero, hero, actionType))
+			var attr = OpposedSkillCheck.ParseAttribute(opposedAttribute);
+			if (killer == Hero.MainHero && !OpposedSkillCheck.PlayerWins(Hero.MainHero, hero, attr))
 			{
 				LogMessage($"[CHARACTER_DEATH] Opposed skill check failed - {hero.Name} survives");
 				InformationManager.DisplayMessage(new InformationMessage(((object)new TextObject("{=AIInfluence_LethalStrikeFailed}Your strike was not lethal. {npcName} survives.", new Dictionary<string, object> { { "npcName", hero.Name } })).ToString(), Colors.Yellow));

@@ -866,7 +866,7 @@ public class SettlementCombatManager
 						{
 							_logger.Log("Natural death (no killer)");
 						}
-						_behavior.KillCharacterHeroPublic(triggerNPC, val2, killedInAction: false, context?.OpposedActionType);
+						_behavior.KillCharacterHeroPublic(triggerNPC, val2, killedInAction: false, context?.OpposedAttribute);
 						_logger.Log($"Character {triggerNPC.Name} killed");
 						if (context != null)
 						{
