@@ -3072,7 +3072,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		if (aiResult.ItemTransfers != null && aiResult.ItemTransfers.Count > 0)
 		{
 			context.PendingItemTransfers = aiResult.ItemTransfers;
-			context.PendingItemTransfersOpposedAttribute = aiResult.ItemTransfersOpposedAttribute;
+			context.PendingItemTransfersOpposedAttribute = aiResult.ItemTransfersOpposedAttribute
+				?? aiResult.ItemTransfers.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.OpposedAttribute))?.OpposedAttribute;
 			LogMessage($"[ITEM_TRANSFER] Saved pending item transfers: {aiResult.ItemTransfers.Count} items for NPC {npc.Name}");
 		}
 		else if (aiResult.ItemTransfers != null)
@@ -3461,7 +3462,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			ProcessMoneyTransfer(npc, context, aiResult.MoneyTransfer);
 		if (aiResult.ItemTransfers != null && aiResult.ItemTransfers.Count > 0)
 		{
-			context.PendingItemTransfersOpposedAttribute = aiResult.ItemTransfersOpposedAttribute;
+			context.PendingItemTransfersOpposedAttribute = aiResult.ItemTransfersOpposedAttribute
+				?? aiResult.ItemTransfers.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.OpposedAttribute))?.OpposedAttribute;
 			ProcessItemTransfers(npc, context, aiResult.ItemTransfers);
 		}
 		if (!string.IsNullOrEmpty(aiResult.KingdomAction) && !aiResult.KingdomAction.Equals("none", StringComparison.OrdinalIgnoreCase))
