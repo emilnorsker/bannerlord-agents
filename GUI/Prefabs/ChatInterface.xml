@@ -31,10 +31,10 @@
     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
             DoNotAcceptEvents="false">
       <Children>
-        <!-- Full-screen opaque backdrop for center+right (ensures no transparency) -->
+        <!-- Full-screen backdrop: StdAssets\Popup\canvas (dark textured fill) -->
         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                 MarginLeft="!Frame.Start"
-                Sprite="BlankWhiteSquare_9" Color="#141414FF"
+                Sprite="StdAssets\Popup\canvas" Color="#141414FF"
                 DoNotAcceptEvents="true" />
 
         <!-- ══ LEFT COLUMN — opaque backdrop ══ -->
@@ -77,22 +77,21 @@
                 PositionXOffset="!Left.W"
                 Sprite="BlankWhiteSquare_9" Color="!SepColor" />
 
-        <!-- ══ CENTER + RIGHT — built-in StdAssets\Popup\canvas_gradient ════════════════ -->
-        <!-- MarginLeft=Frame.Start so the frame aligns after the left column -->
+        <!-- ══ CENTER + RIGHT — StdAssets\Popup\canvas (fills both panels) ════════════════ -->
         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                 MarginLeft="!Frame.Start"
-                Sprite="StdAssets\Popup\canvas_gradient" Color="#141414FF">
+                Sprite="StdAssets\Popup\canvas" Color="#141414FF">
           <!-- BlankWhite sprite required: Color alone has no effect on a bare Widget in Gauntlet -->
           <Children>
             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                     DoNotAcceptEvents="false">
               <Children>
 
-                <!-- Header: "Conversation Log" label + NPC name (Figma: Font/Body/Body2, #FFE38F) -->
+                <!-- Header: "Conversation Log" label + NPC name -->
                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
                         SuggestedHeight="!Header.H"
                         VerticalAlignment="Top"
-                        Sprite="StdAssets\Popup\canvas_gradient" Color="#141414FF">
+                        Sprite="StdAssets\Popup\canvas" Color="#141414FF">
                   <!-- BlankWhite sprite required: Color alone has no effect on a bare Widget in Gauntlet -->
                   <Children>
                     <!-- "Conversation Log" static label -->
@@ -120,9 +119,15 @@
                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                         MarginTop="!Header.H" MarginRight="!Frame.End">
                   <Children>
-                    <!-- Middle panel background: custom chat_panel_bg -->
+                    <!-- Middle panel background: canvas -->
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                            Sprite="StdAssets\Popup\canvas_gradient" AlphaFactor="1.0"
+                            Sprite="StdAssets\Popup\canvas" AlphaFactor="1.0"
+                            DoNotAcceptEvents="true" />
+
+                    <!-- Centered name_shadow_9 overlay for visual weight -->
+                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                            Sprite="name_shadow_9" AlphaFactor="0.25"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"
                             DoNotAcceptEvents="true" />
 
                     <!-- Message scroll area -->
@@ -156,8 +161,12 @@
                                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                         MarginTop="2" MarginBottom="1">
                                   <Children>
+                                    <!-- Message background: canvas_gradient -->
+                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                                            Sprite="StdAssets\Popup\canvas_gradient" AlphaFactor="0.9"
+                                            DoNotAcceptEvents="true" />
 
-                                    <!-- Separator line above each message group (Figma: organic gray gradient strip) -->
+                                    <!-- Separator line above each message group -->
                                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
                                             SuggestedHeight="16"
                                             VerticalAlignment="Top"
@@ -375,9 +384,9 @@
                         HeightSizePolicy="StretchToParent"
                         MarginTop="!Header.H">
                   <Children>
-                    <!-- Right column background: built-in canvas_gradient -->
+                    <!-- Right column background: canvas (matches middle) -->
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                            Sprite="StdAssets\Popup\canvas_gradient" Color="#141414FF" DoNotAcceptEvents="true" />
+                            Sprite="StdAssets\Popup\canvas" Color="#141414FF" DoNotAcceptEvents="true" />
 
                     <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
                                    SuggestedHeight="36"
