@@ -205,6 +205,7 @@
                                                     <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                                 Margin="4,2,4,2"
                                                                 Brush="Chat.Body.Text"
+                                                                TextHorizontalAlignment="Left"
                                                                 Text="@Text" />
                                                   </Children>
                                                 </Widget>
@@ -218,6 +219,7 @@
                                                                 Margin="4,2,4,2"
                                                                 Brush="Chat.Action.Text"
                                                                 Brush.FontColor="@TextColor"
+                                                                TextHorizontalAlignment="Left"
                                                                 Text="@Text" />
                                                   </Children>
                                                 </Widget>
@@ -460,15 +462,15 @@
 
               </Children>
             </Widget>
-
-            <!-- Frame border: SPGeneral\Frame1.Broken\frame -->
-            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                    Sprite="Frame1Broken_frame"
-                    ExtendLeft="32" ExtendRight="32" ExtendTop="32" ExtendBottom="32"
-                    DoNotAcceptEvents="true" />
           </Children>
         </Widget>
 
+        <!-- Frame border: wraps whole chat (left + center + right), inset to stay in bounds -->
+        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                MarginLeft="16" MarginRight="16" MarginTop="16" MarginBottom="16"
+                Sprite="Frame1Broken_frame"
+                ExtendLeft="24" ExtendRight="24" ExtendTop="24" ExtendBottom="24"
+                DoNotAcceptEvents="true" />
       </Children>
     </Widget>
   </Window>
