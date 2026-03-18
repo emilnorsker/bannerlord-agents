@@ -328,7 +328,7 @@
                                 SuggestedHeight="38"
                                 HorizontalAlignment="Left" VerticalAlignment="Center"
                                 MarginLeft="8" MarginRight="106"
-                                Sprite="General\CharacterCreation\name_input_area">
+                                Sprite="StdAssets\Popup\text_input">
                           <Children>
                             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                     Sprite="frame_9" ExtendLeft="3" ExtendTop="3" ExtendRight="3" ExtendBottom="3"
