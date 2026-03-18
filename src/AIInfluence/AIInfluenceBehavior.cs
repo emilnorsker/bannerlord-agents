@@ -1083,6 +1083,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					aiGenQuest.SpawnedPartyId = partyStringId;
 				}
 				questBase2?.AddTrackedObject((ITrackableCampaignObject)(object)spawnResult.Party);
+				spawnResult.Party.IsVisible = true;
 				InformationManager.DisplayMessage(new InformationMessage($"A party has appeared on the map!", ExtraColors.RedAIInfluence));
 			}
 			if (spawnResult.Success && spawnResult.Hero != null)
