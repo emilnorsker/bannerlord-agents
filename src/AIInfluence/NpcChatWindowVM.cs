@@ -172,15 +172,25 @@ public class NpcChatWindowVM : ViewModel
         const string QuestColor = "#D0A96BFF";
         var questSources = new (IEnumerable<AIQuestInfo> source, Func<AIQuestInfo, string> format)[]
         {
-            (context?.ActiveAIQuests ?? Enumerable.Empty<AIQuestInfo>(), q => q.ProgressTarget > 0 ? $"• {q.Title} ({q.ProgressCurrent}/{q.ProgressTarget})" : $"• {q.Title}"),
-            (context?.IncomingAIQuests ?? Enumerable.Empty<AIQuestInfo>(), q => $"• {q.Title} (deliver here)")
+            (OrEmpty(context?.ActiveAIQuests), FormatActiveQuestLine),
+            (OrEmpty(context?.IncomingAIQuests), FormatIncomingQuestLine)
         };
-        var lines = questSources.SelectMany(s => s.source.Where(q => !string.IsNullOrWhiteSpace(q?.Title)).Select(s.format)).ToList();
+        var lines = questSources.SelectMany(s => s.source.Where(HasTitle).Select(s.format)).ToList();
         if (lines.Count == 0) return;
         RightPanelItems.Add(new TextItemVM("QUEST", Header));
         foreach (var line in lines)
             RightPanelItems.Add(new TextItemVM(line, QuestColor));
     }
+
+    private static IEnumerable<AIQuestInfo> OrEmpty(List<AIQuestInfo> list) => list ?? Enumerable.Empty<AIQuestInfo>();
+    private static bool HasTitle(AIQuestInfo q) => !string.IsNullOrWhiteSpace(q?.Title);
+    private static string FormatActiveQuestLine(AIQuestInfo q)
+    {
+        if (q.ProgressTarget > 0)
+            return $"• {q.Title} ({q.ProgressCurrent}/{q.ProgressTarget})";
+        return $"• {q.Title}";
+    }
+    private static string FormatIncomingQuestLine(AIQuestInfo q) => $"• {q.Title} (deliver here)";
 
     private static IEnumerable<string> ResolveKnownInfo(NPCContext context, Hero npc)
     {
