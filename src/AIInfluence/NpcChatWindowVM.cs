@@ -231,7 +231,8 @@ public class NpcChatWindowVM : ViewModel
 
     // ── Segment parser ────────────────────────────────────────────────────
 
-    private static readonly Regex EmoteRegex = new Regex(@"\*([^*]+)\*", RegexOptions.Compiled);
+    // Matches *text* (complete) or *text at end (streaming); capture is text inside
+    private static readonly Regex EmoteRegex = new Regex(@"\*([^*]*)(?:\*|$)", RegexOptions.Compiled);
     private const string NameColor        = "#C6AC8DFF";
     private const string SpeechTextColor  = "#E8DCC8FF";
     private const string NpcBubbleColor   = "#0D1118D0"; // dark blue-grey for NPC speech
@@ -325,8 +326,9 @@ public class NpcChatWindowVM : ViewModel
                 if (!string.IsNullOrEmpty(speech))
                     item.ContentSegments.Add(new ContentSegmentVM(speech, SpeechTextColor, bubbleColor));
             }
-            string emoteText = m.Groups[1].Value;  // strip asterisks: *text* -> text
-            item.ContentSegments.Add(new ContentSegmentVM(emoteText, EmoteColor, bubbleColor, isPill: true));
+            string emoteText = m.Groups[1].Value;
+            if (!string.IsNullOrEmpty(emoteText))
+                item.ContentSegments.Add(new ContentSegmentVM(emoteText, EmoteColor, bubbleColor, isPill: true));
             pos = m.Index + m.Length;
         }
         if (pos < content.Length)
