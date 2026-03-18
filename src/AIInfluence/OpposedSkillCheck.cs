@@ -1,3 +1,4 @@
+using System;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.CharacterDevelopment;
 using TaleWorlds.Core;
@@ -6,19 +7,43 @@ namespace AIInfluence;
 
 public static class OpposedSkillCheck
 {
-	/// <summary>Parse AI attribute name to CharacterAttribute. Defaults to Vigor if invalid.</summary>
+	private static readonly (string Name, CharacterAttribute Attr)[] AttributeMap = new[]
+	{
+		("vigor", DefaultCharacterAttributes.Vigor),
+		("endurance", DefaultCharacterAttributes.Endurance),
+		("control", DefaultCharacterAttributes.Control),
+		("cunning", DefaultCharacterAttributes.Cunning),
+		("intelligence", DefaultCharacterAttributes.Intelligence),
+		("social", DefaultCharacterAttributes.Social)
+	};
+
+	/// <summary>Parse AI attribute name to CharacterAttribute. Fuzzy fallback for LLM typos. Defaults to Vigor if invalid.</summary>
 	public static CharacterAttribute ParseAttribute(string s)
 	{
 		if (string.IsNullOrWhiteSpace(s)) return DefaultCharacterAttributes.Vigor;
-		return s.Trim().ToLowerInvariant() switch
+		string key = s.Trim().ToLowerInvariant();
+		foreach (var (name, attr) in AttributeMap)
+			if (name == key) return attr;
+		int bestDist = int.MaxValue;
+		CharacterAttribute best = DefaultCharacterAttributes.Vigor;
+		foreach (var (name, attr) in AttributeMap)
 		{
-			"endurance" => DefaultCharacterAttributes.Endurance,
-			"control" => DefaultCharacterAttributes.Control,
-			"cunning" => DefaultCharacterAttributes.Cunning,
-			"intelligence" => DefaultCharacterAttributes.Intelligence,
-			"social" => DefaultCharacterAttributes.Social,
-			_ => DefaultCharacterAttributes.Vigor
-		};
+			int d = Levenshtein(key, name);
+			if (d < bestDist) { bestDist = d; best = attr; }
+		}
+		return bestDist <= 3 ? best : DefaultCharacterAttributes.Vigor;
+	}
+
+	private static int Levenshtein(string a, string b)
+	{
+		int n = a.Length, m = b.Length;
+		var d = new int[n + 1, m + 1];
+		for (int i = 0; i <= n; i++) d[i, 0] = i;
+		for (int j = 0; j <= m; j++) d[0, j] = j;
+		for (int i = 1; i <= n; i++)
+			for (int j = 1; j <= m; j++)
+				d[i, j] = a[i - 1] == b[j - 1] ? d[i - 1, j - 1] : 1 + Math.Min(Math.Min(d[i - 1, j], d[i, j - 1]), d[i - 1, j - 1]);
+		return d[n, m];
 	}
 
 	/// <summary>Ability score from single attribute. Scaled to 0–200 range.</summary>
