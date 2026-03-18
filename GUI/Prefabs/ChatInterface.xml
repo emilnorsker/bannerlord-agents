@@ -47,7 +47,7 @@
                                HorizontalAlignment="Left" VerticalAlignment="Top"
                                PositionXOffset="10" PositionYOffset="8"
                                Brush="Conversation.Relation.Text"
-                               Brush.FontSize="16" Color="@RelationColor"
+                               Brush.FontSize="32" Color="@RelationColor"
                                Text="@RelationText" IsDisabled="true" />
                 <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                HorizontalAlignment="Right" VerticalAlignment="Top"
@@ -173,7 +173,7 @@
                                                 <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                                             VerticalAlignment="Bottom" MarginLeft="8" MarginBottom="3"
                                                             Brush="SPScoreboard.Subtitle.Text"
-                                                            Brush.FontSize="13" Brush.FontColor="@TypeTagColor"
+                                                            Brush.FontSize="26" Brush.FontColor="@TypeTagColor"
                                                             Text="@TypeTag" />
                                               </Children>
                                             </ListPanel>
@@ -373,7 +373,7 @@
                                    VerticalAlignment="Top" HorizontalAlignment="Center"
                                    PositionYOffset="8"
                                    Brush="SPScoreboard.Subtitle.Text"
-                                   Brush.FontSize="18" Color="!Gold"
+                                   Brush.FontSize="36" Color="!Gold"
                                    Text="Diplomacy &amp; Relation" IsDisabled="true" />
 
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
@@ -408,7 +408,7 @@
                                   <Children>
                                     <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                    Brush="SPScoreboard.Subtitle.Text"
-                                                   Brush.FontSize="13" Color="@Color"
+                                                   Brush.FontSize="26" Color="@Color"
                                                    Text="@Text" IsDisabled="true" />
                                   </Children>
                                 </Widget>
