@@ -390,13 +390,13 @@ public class NpcChatWindowVM : ViewModel
     private static string ResolveItemName(string itemId)
     {
         var item = MBObjectManager.Instance?.GetObject<ItemObject>(itemId);
-        return item != null ? ((object)item.Name)?.ToString() ?? itemId : itemId;
+        return item?.Name?.ToString() ?? itemId ?? "";
     }
 
     private static string ResolveTroopName(string stringId)
     {
         var troop = MBObjectManager.Instance?.GetObject<CharacterObject>(stringId);
-        return troop != null ? ((object)troop.Name)?.ToString() ?? stringId : stringId;
+        return troop?.Name?.ToString() ?? stringId ?? "";
     }
 
     private static string FormatTroopTransferPill(string payload, string npcName)
