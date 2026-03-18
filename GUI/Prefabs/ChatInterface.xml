@@ -1,10 +1,10 @@
 <Prefab>
   <!--
     Layout — left-aligned, full height:
-      Left  (x=0..380)   : transparent — 3D conversation character shows through.
-                           Stat overlay (TopBanner) rendered on top of character.
-      Sep   (x=380..382) : thin separator
-      Frame (x=382..end) : dark backdrop + Encyclopedia.Frame wrapping center+right.
+      Left  (x=0..460)   : opaque dark backdrop (#141414).
+                           Stat overlay (TopBanner) at top.
+      Sep   (x=460..462) : thin separator
+      Frame (x=462..end) : opaque dark backdrop (#141414) wrapping center+right.
         Center: fills frame minus right column.
         Right : fixed 300px at right edge.
 
@@ -27,17 +27,18 @@
 
   <Window Id="ChatInterfaceWindow" Layer="Overlay">
 
-    <!-- Outer container: transparent, full screen, holds left + framed block side by side -->
+    <!-- Outer container: full screen, holds left + framed block side by side -->
     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
             DoNotAcceptEvents="false">
       <Children>
 
-        <!-- ══ LEFT COLUMN — transparent, character scene shows through ══ -->
+        <!-- ══ LEFT COLUMN — opaque backdrop ══ -->
         <Widget HorizontalAlignment="Left"
                 WidthSizePolicy="Fixed" SuggestedWidth="!Left.W"
-                HeightSizePolicy="StretchToParent">
+                HeightSizePolicy="StretchToParent"
+                Sprite="BlankWhite" Color="#141414FF">
           <Children>
-            <!-- Stat overlay at top — sits directly over the 3D character -->
+            <!-- Stat overlay at top of left column -->
             <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
                          SuggestedHeight="52"
                          VerticalAlignment="Top"
@@ -71,11 +72,11 @@
                 PositionXOffset="!Left.W"
                 Sprite="BlankWhiteSquare_9" Color="!SepColor" />
 
-        <!-- ══ CENTER + RIGHT — dark backdrop (Figma: #141414 at 80%) ════════════════ -->
-        <!-- MarginLeft=Frame.Start so the backdrop doesn't dim the character -->
+        <!-- ══ CENTER + RIGHT — opaque dark backdrop (#141414) ════════════════ -->
+        <!-- MarginLeft=Frame.Start so the frame aligns after the left column -->
         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                 MarginLeft="!Frame.Start"
-                Sprite="BlankWhite" Color="#141414CC">
+                Sprite="BlankWhite" Color="#141414FF">
           <!-- BlankWhite sprite required: Color alone has no effect on a bare Widget in Gauntlet -->
           <Children>
             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
@@ -86,7 +87,7 @@
                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
                         SuggestedHeight="!Header.H"
                         VerticalAlignment="Top"
-                        Sprite="BlankWhite" Color="#141414CC">
+                        Sprite="BlankWhite" Color="#141414FF">
                   <!-- BlankWhite sprite required: Color alone has no effect on a bare Widget in Gauntlet -->
                   <Children>
                     <!-- "Conversation Log" static label -->
@@ -98,9 +99,15 @@
                     <!-- NPC name -->
                     <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                    HorizontalAlignment="Left" VerticalAlignment="Bottom"
-                                   PositionXOffset="16" PositionYOffset="-10"
+                                   PositionXOffset="16" PositionYOffset="-28"
                                    Brush="Chat.Sender.Name"
                                    Text="@NpcName" IsDisabled="true" />
+                    <!-- NPC title (e.g. Lord of X, Wanderer) -->
+                    <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                                PositionXOffset="16" PositionYOffset="-10"
+                                Brush="SPScoreboard.Subtitle.Text"
+                                Brush.FontSize="12" Text="@NpcTitle" IsDisabled="true" />
                   </Children>
                 </Widget>
 
@@ -108,10 +115,10 @@
                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                         MarginTop="!Header.H" MarginRight="!Frame.End">
                   <Children>
-                    <!-- Middle panel background: dark texture (Figma: image fill 20% on #141414 base) -->
+                    <!-- Middle panel background: dark texture -->
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                             Sprite="chat_panel_bg"
-                            AlphaFactor="0.2"
+                            AlphaFactor="1.0"
                             DoNotAcceptEvents="true" />
 
                     <!-- Message scroll area -->
@@ -302,7 +309,7 @@
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
                             SuggestedHeight="!Input.H"
                             VerticalAlignment="Bottom"
-                            Sprite="BlankWhite" Color="#1A110CFF" AlphaFactor="0.9">
+                            Sprite="BlankWhite" Color="#1A110CFF">
                       <Children>
                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                 Sprite="frame_9" ExtendLeft="4" ExtendTop="4" ExtendRight="4" ExtendBottom="4"

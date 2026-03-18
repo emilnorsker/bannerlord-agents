@@ -58,11 +58,13 @@ public class NpcChatWindowVM : ViewModel
     // ── Right panel – flat list, section headers included as items ────────
     [DataSourceProperty] public MBBindingList<TextItemVM> RightPanelItems { get; } = new MBBindingList<TextItemVM>();
 
+    private int _characterSectionStartIndex;
+
     private void AddNewestMessage(ChatMessageItemVM item) => MessageList.Add(item);
 
     public NpcChatWindowVM(Hero npc, NPCContext context, Action onReturn)
     {
-        _npc = npc;
+        _npc = npc ?? throw new ArgumentNullException(nameof(npc));
         _onReturn = onReturn;
         PopulateHeader(npc);
         PopulateTraitOverlay(npc, context);
@@ -86,8 +88,18 @@ public class NpcChatWindowVM : ViewModel
         string label = relation >= 20 ? "Friendly" : relation >= 0 ? "Neutral" : relation >= -20 ? "Cautious" : "Hostile";
         RelationText = $"{label} ({relation:+#;-#;0})";
         RelationColor = relation >= 0 ? "#6FCF6FFF" : "#CF6F6FFF";
-        TrustLabel = context.TrustLevel >= 60 ? "High Trust" : context.TrustLevel >= 30 ? "Moderate Trust" : "Low Trust";
-        EmotionLabel = context.EmotionalState?.Mood ?? "";
+        float trust = context?.TrustLevel ?? 0f;
+        TrustLabel = trust >= 0.6f ? "High Trust" : trust >= 0.3f ? "Moderate Trust" : "Low Trust";
+        EmotionLabel = context?.EmotionalState?.Mood ?? "";
+    }
+
+    private void RefreshTraitOverlay(Hero npc, NPCContext context)
+    {
+        PopulateTraitOverlay(npc, context);
+        ((ViewModel)this).OnPropertyChangedWithValue<string>(RelationText, "RelationText");
+        ((ViewModel)this).OnPropertyChangedWithValue<string>(RelationColor, "RelationColor");
+        ((ViewModel)this).OnPropertyChangedWithValue<string>(TrustLabel, "TrustLabel");
+        ((ViewModel)this).OnPropertyChangedWithValue<string>(EmotionLabel, "EmotionLabel");
     }
 
     private void PopulateHistory(NPCContext context)
@@ -106,18 +118,7 @@ public class NpcChatWindowVM : ViewModel
         RightPanelItems.Add(new TextItemVM("WORLD EVENTS", Header));
         try
         {
-            List<DynamicEvent> LoadDiplomacy()
-            {
-                try { return new DiplomacyStorage().LoadDiplomaticEvents() ?? new List<DynamicEvent>(); }
-                catch (Exception ex) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] LoadDiplomaticEvents failed: " + ex.Message); return new List<DynamicEvent>(); }
-            }
-            var events = (DynamicEventsManager.Instance?.GetActiveEvents() ?? Enumerable.Empty<DynamicEvent>())
-                .Concat(LoadDiplomacy())
-                .Where(e => e != null && !string.IsNullOrEmpty(e.Id))
-                .GroupBy(e => e.Id)
-                .Select(g => g.First())
-                .OrderByDescending(e => e.CreationCampaignDays)
-                .Take(5);
+            var events = GetMergedEvents().OrderByDescending(e => e.CreationCampaignDays).Take(5);
             foreach (var e in events)
             {
                 string text = string.IsNullOrWhiteSpace(e.Title) ? e.Description : e.Title;
@@ -132,23 +133,100 @@ public class NpcChatWindowVM : ViewModel
 
         RightPanelItems.Add(new TextItemVM(" ", "#00000000"));
         RightPanelItems.Add(new TextItemVM("WHAT WE KNOW", Header));
+        bool hasWhatWeKnow = false;
         if (!string.IsNullOrWhiteSpace(context?.AIGeneratedPersonality))
+        {
             RightPanelItems.Add(new TextItemVM("• " + context.AIGeneratedPersonality));
+            hasWhatWeKnow = true;
+        }
         foreach (string q in context?.Quirks ?? new List<string>())
+        {
             if (!string.IsNullOrWhiteSpace(q))
+            {
                 RightPanelItems.Add(new TextItemVM("• " + q));
-        foreach (string info in context?.KnownInfo ?? new List<string>())
-            if (!string.IsNullOrWhiteSpace(info))
-                RightPanelItems.Add(new TextItemVM("• " + info));
+                hasWhatWeKnow = true;
+            }
+        }
+        if (!string.IsNullOrWhiteSpace(context?.AIGeneratedSpeechQuirks))
+        {
+            RightPanelItems.Add(new TextItemVM("• " + context.AIGeneratedSpeechQuirks));
+            hasWhatWeKnow = true;
+        }
+        foreach (var info in ResolveKnownInfo(context, npc))
+        {
+            RightPanelItems.Add(new TextItemVM("• " + info));
+            hasWhatWeKnow = true;
+        }
+        if (!hasWhatWeKnow)
+            RightPanelItems.Add(new TextItemVM("• Personality not yet discovered", "#888888FF"));
 
-        int rel = (int)npc.GetRelation(Hero.MainHero);
         RightPanelItems.Add(new TextItemVM(" ", "#00000000"));
+        _characterSectionStartIndex = RightPanelItems.Count;
+        AddCharacterSectionItems(npc, context);
+    }
+
+    private static IEnumerable<string> ResolveKnownInfo(NPCContext context, Hero npc)
+    {
+        if (context?.KnownInfo == null || !context.KnownInfo.Any()) yield break;
+        var infos = WorldInfoManager.InformationManager.Instance?.GetInfo();
+        if (infos == null) yield break;
+        string npcName = ((object)npc?.Name)?.ToString() ?? "";
+        foreach (var i in infos.Where(i => !string.IsNullOrEmpty(i?.Id) && context.KnownInfo.Contains(i.Id)))
+        {
+            if (string.IsNullOrWhiteSpace(i.Description)) continue;
+            yield return i.Description.Replace("{character}", npcName).Trim();
+        }
+    }
+
+    private static List<DynamicEvent> GetMergedEvents()
+    {
+        var list = DynamicEventsManager.Instance?.GetActiveEvents() ?? new List<DynamicEvent>();
+        List<DynamicEvent> diplomatic = new List<DynamicEvent>();
+        try
+        {
+            var storage = new DiplomacyStorage();
+            diplomatic = storage.LoadDiplomaticEvents() ?? new List<DynamicEvent>();
+        }
+        catch (Exception ex)
+        {
+            AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] LoadDiplomaticEvents failed: " + ex.Message);
+        }
+        var merged = new List<DynamicEvent>();
+        var seen = new HashSet<string>();
+        foreach (var e in list)
+        {
+            if (e == null) continue;
+            merged.Add(e);
+            if (!string.IsNullOrEmpty(e.Id)) seen.Add(e.Id);
+        }
+        foreach (var e in diplomatic)
+        {
+            if (e != null && !string.IsNullOrEmpty(e.Id) && !seen.Contains(e.Id))
+            {
+                merged.Add(e);
+                seen.Add(e.Id);
+            }
+        }
+        return merged;
+    }
+
+    private void AddCharacterSectionItems(Hero npc, NPCContext context)
+    {
+        const string Header = "#888888FF";
         RightPanelItems.Add(new TextItemVM("CHARACTER", Header));
+        int rel = (int)npc.GetRelation(Hero.MainHero);
         RightPanelItems.Add(new TextItemVM($"Relation: {rel:+#;-#;0}", rel >= 0 ? "#6FCF6FFF" : "#CF6F6FFF"));
-        RightPanelItems.Add(new TextItemVM($"Trust: {context?.TrustLevel:F0}"));
+        RightPanelItems.Add(new TextItemVM($"Trust: {(context?.TrustLevel ?? 0f) * 100f:F0}%"));
         RightPanelItems.Add(new TextItemVM($"Interactions: {context?.InteractionCount ?? 0}"));
         if (!string.IsNullOrWhiteSpace(context?.EmotionalState?.Mood))
             RightPanelItems.Add(new TextItemVM($"Mood: {context.EmotionalState.Mood}"));
+    }
+
+    private void RefreshCharacterSection(Hero npc, NPCContext context)
+    {
+        while (RightPanelItems.Count > _characterSectionStartIndex)
+            RightPanelItems.RemoveAt(RightPanelItems.Count - 1);
+        AddCharacterSectionItems(npc, context);
     }
 
     // ── Segment parser ────────────────────────────────────────────────────
@@ -360,7 +438,14 @@ public class NpcChatWindowVM : ViewModel
 
     // ── Commands ──────────────────────────────────────────────────────────
 
-    public void OnTextChanged(string newText) => _inputText = newText;
+    public void OnTextChanged(string newText)
+    {
+        if (newText != _inputText)
+        {
+            _inputText = newText ?? "";
+            ((ViewModel)this).OnPropertyChangedWithValue<string>(_inputText, "InputText");
+        }
+    }
 
     public async void ExecuteSendMessage()
     {
@@ -369,16 +454,16 @@ public class NpcChatWindowVM : ViewModel
 
         _isSending = true;
         ((ViewModel)this).OnPropertyChangedWithValue(false, "IsSendEnabled");
-        InputText = "";
 
         string playerName = ((object)Hero.MainHero?.Name)?.ToString() ?? "You";
 
         try
         {
+            if (AIInfluenceBehavior.Instance == null)
+                return;
+            InputText = "";
             var playerMessageItem = ParseLine($"{playerName}: {message}");
             AddNewestMessage(playerMessageItem);
-
-            if (AIInfluenceBehavior.Instance == null) return;
             string npcName = ((object)_npc?.Name)?.ToString() ?? "NPC";
 
             // Capture the slot index where ProcessChatInput will append the player message.
@@ -517,6 +602,18 @@ public class NpcChatWindowVM : ViewModel
                             try { AIInfluenceBehavior.Instance?.SaveNPCContext(((MBObjectBase)_npc).StringId, _npc, ctx); }
                             catch (Exception ex) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] SaveNPCContext after pill persist failed: " + ex.Message); }
                         }
+                        if (ctx != null && AIInfluenceBehavior.Instance != null)
+                        {
+                            try
+                            {
+                                AIInfluenceBehavior.Instance.UpdateContextData(ctx, _npc);
+                                try { AIInfluenceBehavior.Instance.SaveNPCContext(((MBObjectBase)_npc).StringId, _npc, ctx); }
+                                catch (Exception ex) { AIInfluenceBehavior.Instance.LogMessage("[NpcChatWindow] SaveNPCContext after UpdateContextData failed: " + ex.Message); }
+                            }
+                            catch (Exception ex) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] UpdateContextData failed: " + ex.Message); }
+                            RefreshTraitOverlay(_npc, ctx);
+                            RefreshCharacterSection(_npc, ctx);
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -545,6 +642,10 @@ public class NpcChatWindowVM : ViewModel
                 streamingRetired = true;
                 MessageList.Remove(streamingItem);
             }
+        }
+        catch (Exception ex)
+        {
+            AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] ExecuteSendMessage failed: " + ex.Message);
         }
         finally
         {
