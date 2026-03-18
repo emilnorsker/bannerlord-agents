@@ -1,0 +1,7 @@
+services:
+  gauntlet-ui:
+    image: nginx:1.29.6-alpine
+    volumes:
+      - ./scripts:/usr/share/nginx/html:ro
+    ports:
+      - "8080:80"
