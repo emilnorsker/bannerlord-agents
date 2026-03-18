@@ -162,7 +162,28 @@ public class NpcChatWindowVM : ViewModel
 
         RightPanelItems.Add(new TextItemVM(" ", "#00000000"));
         _characterSectionStartIndex = RightPanelItems.Count;
+        AddQuestSectionItems(context);
         AddCharacterSectionItems(npc, context);
+    }
+
+    private void AddQuestSectionItems(NPCContext context)
+    {
+        const string Header = "#888888FF";
+        const string QuestColor = "#D0A96BFF";
+        bool hasQuest = false;
+        foreach (var q in context?.ActiveAIQuests ?? new List<AIQuestInfo>())
+        {
+            if (string.IsNullOrWhiteSpace(q?.Title)) continue;
+            if (!hasQuest) { RightPanelItems.Add(new TextItemVM("QUEST", Header)); hasQuest = true; }
+            string progress = q.ProgressTarget > 0 ? $" ({q.ProgressCurrent}/{q.ProgressTarget})" : "";
+            RightPanelItems.Add(new TextItemVM($"• {q.Title}{progress}", QuestColor));
+        }
+        foreach (var q in context?.IncomingAIQuests ?? new List<AIQuestInfo>())
+        {
+            if (string.IsNullOrWhiteSpace(q?.Title)) continue;
+            if (!hasQuest) { RightPanelItems.Add(new TextItemVM("QUEST", Header)); hasQuest = true; }
+            RightPanelItems.Add(new TextItemVM($"• {q.Title} (deliver here)", QuestColor));
+        }
     }
 
     private static IEnumerable<string> ResolveKnownInfo(NPCContext context, Hero npc)
@@ -226,6 +247,7 @@ public class NpcChatWindowVM : ViewModel
     {
         while (RightPanelItems.Count > _characterSectionStartIndex)
             RightPanelItems.RemoveAt(RightPanelItems.Count - 1);
+        AddQuestSectionItems(context);
         AddCharacterSectionItems(npc, context);
     }
 
