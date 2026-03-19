@@ -8,8 +8,14 @@ using AIInfluence.DynamicEvents;
 using AIInfluence.Services;
 using MCM.Abstractions.Base.Global;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.CharacterDevelopment;
+using TaleWorlds.CampaignSystem.Extensions;
+using TaleWorlds.CampaignSystem.ViewModelCollection;
+using TaleWorlds.CampaignSystem.ViewModelCollection.Encyclopedia.Items;
 using TaleWorlds.Core;
+using TaleWorlds.Core.ViewModelCollection.Information;
 using TaleWorlds.Library;
+using TaleWorlds.Localization;
 using TaleWorlds.ObjectSystem;
 
 namespace AIInfluence;
@@ -25,7 +31,21 @@ public class NpcChatWindowVM : ViewModel
     [DataSourceProperty] public string NpcName { get; set; } = "";
     [DataSourceProperty] public string NpcTitle { get; set; } = "";
 
-    // ── Left panel trait overlay ──────────────────────────────────────────
+    // ── Encyclopedia-style hero strip (SandBox EncyclopediaHeroPage.xml) ──
+    [DataSourceProperty] public HeroViewModel HeroCharacter { get; private set; }
+    [DataSourceProperty] public bool IsInformationHidden { get; set; }
+    [DataSourceProperty] public string InfoHiddenReasonText { get; set; } = "";
+    [DataSourceProperty] public bool IsPregnant { get; set; }
+    [DataSourceProperty] public HintViewModel PregnantHint { get; private set; }
+    [DataSourceProperty] public MBBindingList<EncyclopediaTraitItemVM> Traits { get; } = new MBBindingList<EncyclopediaTraitItemVM>();
+    /// <summary>Encyclopedia skill grid; not named <c>Skills</c> to avoid shadowing <see cref="TaleWorlds.Core.Skills"/>.</summary>
+    [DataSourceProperty] public MBBindingList<EncyclopediaSkillVM> HeroSkillList { get; } = new MBBindingList<EncyclopediaSkillVM>();
+    [DataSourceProperty] public string SkillsText { get; set; } = "";
+    [DataSourceProperty] public bool HasAnySkills { get; set; }
+    [DataSourceProperty] public bool IsBookmarked { get; set; }
+    [DataSourceProperty] public HintViewModel BookmarkHint { get; private set; }
+
+    // ── Chat column header (relation / trust / mood) ─────────────────────
     [DataSourceProperty] public string RelationText { get; set; } = "";
     [DataSourceProperty] public string RelationColor { get; set; } = "#FFFFFFFF";
     [DataSourceProperty] public string TrustLabel { get; set; } = "";
@@ -69,9 +89,68 @@ public class NpcChatWindowVM : ViewModel
         _npc = npc ?? throw new ArgumentNullException(nameof(npc));
         _onReturn = onReturn;
         PopulateHeader(npc);
+        PopulateEncyclopediaHeroStrip(npc);
         PopulateTraitOverlay(npc, context);
         PopulateHistory(context);
         PopulateRightPanel(npc, context);
+    }
+
+    /// <summary>Releases tableau resources for <see cref="HeroCharacter"/>; call before clearing the view model reference.</summary>
+    public void FinalizeEncyclopediaHeroStrip()
+    {
+        try
+        {
+            HeroCharacter?.OnFinalize();
+        }
+        catch (Exception ex)
+        {
+            AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] HeroCharacter.OnFinalize failed: " + ex.Message);
+        }
+    }
+
+    private void PopulateEncyclopediaHeroStrip(Hero npc)
+    {
+        IsInformationHidden = false;
+        InfoHiddenReasonText = "";
+        PregnantHint = new HintViewModel(new TextObject("{=!}Pregnant"));
+        BookmarkHint = new HintViewModel(new TextObject("{=!}Bookmark"));
+        IsBookmarked = false;
+        IsPregnant = npc.IsPregnant;
+        try
+        {
+            var vm = new HeroViewModel();
+            vm.FillFrom(npc, -1, false, false);
+            HeroCharacter = vm;
+        }
+        catch (Exception ex)
+        {
+            AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] HeroViewModel.FillFrom failed: " + ex.Message);
+            HeroCharacter = new HeroViewModel();
+        }
+        Traits.Clear();
+        foreach (TraitObject trait in TraitObject.All)
+        {
+            if (trait == null)
+                continue;
+            int level = npc.GetTraitLevel(trait);
+            if (level != 0)
+                Traits.Add(new EncyclopediaTraitItemVM(trait, npc));
+        }
+        HeroSkillList.Clear();
+        foreach (SkillObject skill in Skills.All)
+        {
+            int v = (int)npc.GetSkillValue(skill);
+            if (v > 0)
+                HeroSkillList.Add(new EncyclopediaSkillVM(skill, v));
+        }
+        HasAnySkills = HeroSkillList.Count > 0;
+        SkillsText = new TextObject("{=!}Skills").ToString();
+    }
+
+    public void ExecuteSwitchBookmarkedState()
+    {
+        IsBookmarked = !IsBookmarked;
+        ((ViewModel)this).OnPropertyChangedWithValue(IsBookmarked, nameof(IsBookmarked));
     }
 
     // ── Populate ──────────────────────────────────────────────────────────

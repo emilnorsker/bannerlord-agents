@@ -50,6 +50,14 @@ public class NpcChatWindowLayer : GauntletLayer
 
     protected override void OnFinalize()
     {
+        try
+        {
+            _viewModel?.FinalizeEncyclopediaHeroStrip();
+        }
+        catch (Exception ex)
+        {
+            InformationManager.DisplayMessage(new InformationMessage("[NpcChatWindow] FinalizeEncyclopediaHeroStrip failed: " + ex.Message));
+        }
         if (_movie != null)
         {
             try

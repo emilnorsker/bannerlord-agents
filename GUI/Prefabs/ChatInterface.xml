@@ -1,476 +1,349 @@
 <Prefab>
   <!--
-    Hierarchy: Frame (stretches screen) → Content (inset) → Panels.
-    Layout — left-aligned, full height:
-      Left  (x=24..484)  : transparent, Stat overlay (TopBanner) at top.
-      Sep   (x=484..486)  : thin separator
-      Center+Right (x=486..end) : canvas_dark backdrop.
-        Center: fills minus right column.
-        Right : fixed 300px at right edge.
-
-    Sprites/brushes: confirmed from WorldEventsWindow.xml, AIInfluenceTextQueryPopup.xml,
-    SPConversation.xml, ConversationBrush.xml, NativeSpriteData.xml.
+    NPC chat = encyclopedia-first shell (SandBox EncyclopediaHeroPage.xml), not the old frame-first layout.
+    Root: Encyclopedia.Page.SoundBrush. Row: vanilla hero left strip (370) | conversation column | information column.
+    Bindings: NpcChatWindowVM — HeroCharacter, Traits, HeroSkillList, MessageList, RightPanelItems, etc.
   -->
   <Constants>
-    <Constant Name="Header.H"      Value="80" />
-    <Constant Name="Left.W"        Value="460" />
-    <Constant Name="Right.W"       Value="300" />
-    <Constant Name="Sep.W"         Value="2" />
-    <Constant Name="Input.H"       Value="52" />
-    <Constant Name="Bubble.W"      Value="430" />
-    <Constant Name="Msg.Margin"    Value="30" />
-    <Constant Name="Gold"          Value="#FFE6B685" />
-    <Constant Name="SubText"       Value="#9BA4B5FF" />
-    <Constant Name="SepColor"      Value="#FFFFFF22" />
-    <Constant Name="Frame.Start"   Value="486" />
-    <Constant Name="Frame.End"     Value="302" />
-    <Constant Name="Frame.Inset"   Value="24" />
+    <Constant Name="EncyLeft.W" Value="370" />
+    <Constant Name="Info.W" Value="300" />
+    <Constant Name="Sep.W" Value="2" />
+    <Constant Name="Inset" Value="20" />
+    <Constant Name="Header.H" Value="72" />
+    <Constant Name="Input.H" Value="52" />
+    <Constant Name="Msg.Margin" Value="30" />
+    <Constant Name="Gold" Value="#FFE6B685" />
+    <Constant Name="SepColor" Value="#FFFFFF22" />
   </Constants>
 
   <Window Id="ChatInterfaceWindow" Layer="Overlay">
-
-    <!-- Frame: root container, stretches to fill screen; panels are children inside -->
-    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-            Sprite="Frame1Broken_frame"
-            ExtendLeft="!Frame.Inset" ExtendRight="!Frame.Inset"
-            ExtendTop="!Frame.Inset" ExtendBottom="!Frame.Inset"
-            DoNotAcceptEvents="false">
+    <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                 DoNotAcceptEvents="true" Brush="Encyclopedia.Page.SoundBrush">
       <Children>
-        <!-- Content area: inside frame, inset so panels don't overlap border -->
         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                MarginLeft="!Frame.Inset" MarginRight="!Frame.Inset"
-                MarginTop="!Frame.Inset" MarginBottom="!Frame.Inset">
+                MarginLeft="!Inset" MarginRight="!Inset" MarginTop="!Inset" MarginBottom="!Inset"
+                DoNotAcceptEvents="false">
           <Children>
-            <!-- Backdrop: canvas_dark for center+right area -->
-            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                    MarginLeft="!Frame.Start"
-                    Sprite="StdAssets\Popup\canvas_dark" Color="#141414FF"
-                    DoNotAcceptEvents="true" />
-
-            <!-- ══ LEFT COLUMN — transparent (no background) ══ -->
-            <Widget HorizontalAlignment="Left"
-                    WidthSizePolicy="Fixed" SuggestedWidth="!Left.W"
-                    HeightSizePolicy="StretchToParent">
-          <Children>
-            <!-- Stat overlay at top of left column -->
-            <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
-                         SuggestedHeight="52"
-                         VerticalAlignment="Top"
-                         Brush="Encyclopedia.TopBanner">
-              <Children>
-                <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                               HorizontalAlignment="Left" VerticalAlignment="Top"
-                               PositionXOffset="10" PositionYOffset="8"
-                               Brush="Conversation.Relation.Text"
-                               Brush.FontSize="21" Color="@RelationColor"
-                               Text="@RelationText" IsDisabled="true" />
-                <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                               HorizontalAlignment="Right" VerticalAlignment="Top"
-                               PositionXOffset="-10" PositionYOffset="8"
-                               Brush="Conversation.Relation.Text"
-                               Text="@TrustLabel" IsDisabled="true" />
-                <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                               HorizontalAlignment="Left" VerticalAlignment="Bottom"
-                               PositionXOffset="10" PositionYOffset="-8"
-                               Brush="Conversation.Relation.Text"
-                               Text="@EmotionLabel" IsDisabled="true" />
-              </Children>
-            </BrushWidget>
-          </Children>
-        </Widget>
-
-        <!-- Left separator -->
-        <Widget HorizontalAlignment="Left"
-                WidthSizePolicy="Fixed" SuggestedWidth="!Sep.W"
-                HeightSizePolicy="StretchToParent"
-                PositionXOffset="!Left.W"
-                Sprite="BlankWhiteSquare_9" Color="!SepColor" />
-
-        <!-- ══ CENTER + RIGHT — canvas_dark backdrop ══ -->
-        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                MarginLeft="!Frame.Start"
-                Sprite="StdAssets\Popup\canvas_dark" Color="#141414FF">
-          <!-- BlankWhite sprite required: Color alone has no effect on a bare Widget in Gauntlet -->
-          <Children>
-            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                    DoNotAcceptEvents="false">
+            <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                       StackLayout.LayoutMethod="HorizontalLeftToRight" DoNotAcceptEvents="false">
               <Children>
 
-                <!-- Header: "Conversation Log" label + NPC name -->
-                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
-                        SuggestedHeight="!Header.H"
-                        VerticalAlignment="Top"
-                        Sprite="StdAssets\Popup\canvas_dark" Color="#141414FF">
-                  <!-- BlankWhite sprite required: Color alone has no effect on a bare Widget in Gauntlet -->
+                <!-- ══ Left: vanilla encyclopedia hero column (unchanged structure) ══ -->
+                <Widget HeightSizePolicy="StretchToParent" WidthSizePolicy="Fixed" SuggestedWidth="!EncyLeft.W"
+                        Sprite="General\CharacterCreation\character_creation_background_gradient">
                   <Children>
-                    <!-- "Conversation Log" static label -->
-                    <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                HorizontalAlignment="Left" VerticalAlignment="Top"
-                                PositionXOffset="16" PositionYOffset="10"
-                                Brush="Chat.Header.Label"
-                                Text="Conversation Log" IsDisabled="true" />
-                    <!-- NPC name -->
-                    <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                   HorizontalAlignment="Left" VerticalAlignment="Bottom"
-                                   PositionXOffset="16" PositionYOffset="-28"
-                                   Brush="Chat.Sender.Name"
-                                   Text="@NpcName" IsDisabled="true" />
-                    <!-- NPC title (e.g. Lord of X, Wanderer) -->
-                    <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                HorizontalAlignment="Left" VerticalAlignment="Bottom"
-                                PositionXOffset="16" PositionYOffset="-10"
-                                Brush="SPScoreboard.Subtitle.Text"
-                                Brush.FontSize="12" Text="@NpcTitle" IsDisabled="true" />
-                  </Children>
-                </Widget>
-
-                <!-- ── CENTER COLUMN: fills frame minus right panel ── -->
-                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                        MarginTop="!Header.H" MarginRight="!Frame.End">
-                  <Children>
-                    <!-- Middle panel background: same dark style as former left panel -->
-                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                            Sprite="BlankWhiteSquare_9" Color="#141414FF"
-                            DoNotAcceptEvents="true" />
-
-                    <!-- Message scroll area -->
-                    <ScrollablePanel Id="MsgScroll"
-                                     WidthSizePolicy="StretchToParent"
-                                     HeightSizePolicy="StretchToParent"
-                                     MarginTop="4" MarginBottom="!Input.H" MarginRight="24"
-                                     AutoHideScrollBars="true"
-                                     ClipRect="MsgClip"
-                                     InnerPanel="MsgClip\MsgList"
-                                     VerticalScrollbar="..\MsgScrollbar\Scrollbar">
+                    <Widget WidthSizePolicy="Fixed" SuggestedWidth="!EncyLeft.W" HeightSizePolicy="StretchToParent"
+                            HorizontalAlignment="Left" MarginBottom="1" VerticalAlignment="Center" IsEnabled="false" ClipContents="true">
                       <Children>
-                        <Widget Id="MsgClip"
-                                WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                                ClipContents="true">
-                          <Children>
-                                      <ListPanel Id="MsgList"
-                                       DataSource="{MessageList}"
-                                       WidthSizePolicy="StretchToParent"
-                                       HeightSizePolicy="CoverChildren"
-                                       StackLayout.LayoutMethod="VerticalBottomToTop"
-                                       Spacing="10"
-                                       MarginLeft="18" MarginRight="18"
-                                       MarginTop="6" MarginBottom="6">
-                              <ItemTemplate>
-                                <!--
-                                  Messenger layout: NPC left, player right.
-                                  IsVisible collapse confirmed: SPConversation.xml @IsPersuading.
-                                  ContentSegments preserves speech/emote/action order.
-                                -->
-                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                        MarginTop="2" MarginBottom="1">
-                                  <Children>
-                                    <!-- NPC side: left-aligned, 90% width -->
-                                    <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                               HorizontalAlignment="Left"
-                                               StackLayout.LayoutMethod="VerticalBottomToTop"
-                                               MarginLeft="!Msg.Margin" MarginRight="!Msg.Margin"
-                                               IsVisible="@IsNpc">
-                                      <Children>
-                                        <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                Sprite="name_shadow_9" AlphaFactor="0.7">
-                                          <Children>
-                                            <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                       StackLayout.LayoutMethod="HorizontalLeftToRight"
-                                                       MarginLeft="10" MarginTop="4" MarginBottom="4">
-                                              <Children>
-                                                <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                               Brush="Chat.Sender.Name"
-                                                               Text="@SenderName" IsDisabled="true" />
-                                                <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                            VerticalAlignment="Bottom" MarginLeft="8" MarginBottom="3"
-                                                            Brush="SPScoreboard.Subtitle.Text"
-                                                            Brush.FontSize="17" Brush.FontColor="@TypeTagColor"
-                                                            Text="@TypeTag" />
-                                              </Children>
-                                            </ListPanel>
-                                          </Children>
-                                        </Widget>
-                                        <!-- Ordered content segments -->
-                                        <ListPanel DataSource="{ContentSegments}"
-                                                   WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                   StackLayout.LayoutMethod="VerticalBottomToTop"
-                                                   Spacing="10">
-                                          <ItemTemplate>
-                                            <!-- Single root required by Gauntlet ItemTemplate (fix from main).
-                                                 StretchToParent so row fills width; body/pill align left within it. -->
-                                            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren">
-                                              <Children>
-                                                <!-- NPC body segment (90% width) -->
-                                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                        HorizontalAlignment="Left" IsVisible="@IsBody"
-                                                        MarginTop="2" MarginBottom="2">
-                                                  <Children>
-                                                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                                Margin="4,2,4,2"
-                                                                Brush="Chat.Body.Text"
-                                                                Brush.TextHorizontalAlignment="Left"
-                                                                Text="@Text" />
-                                                  </Children>
-                                                </Widget>
-                                                <!-- NPC pill segment -->
-                                                <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                        HorizontalAlignment="Left" IsVisible="@IsPill"
-                                                        MarginTop="2" MarginBottom="2">
-                                                  <Children>
-                                                    <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                                MaxWidth="540"
-                                                                Margin="4,2,4,2"
-                                                                Brush="Chat.Action.Text"
-                                                                Brush.FontColor="@TextColor"
-                                                                Brush.TextHorizontalAlignment="Left"
-                                                                Text="@Text" />
-                                                  </Children>
-                                                </Widget>
-                                              </Children>
-                                            </Widget>
-                                          </ItemTemplate>
-                                        </ListPanel>
-                                      </Children>
-                                    </ListPanel>
-
-                                    <!-- Player side: right-aligned, 90% width -->
-                                    <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                               StackLayout.LayoutMethod="VerticalBottomToTop"
-                                               MarginLeft="!Msg.Margin" MarginRight="!Msg.Margin"
-                                               HorizontalAlignment="Right"
-                                               IsVisible="@IsPlayer">
-                                      <Children>
-                                        <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                HorizontalAlignment="Right">
-                                          <Children>
-                                            <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                           HorizontalAlignment="Right"
-                                                           MarginRight="10" MarginTop="4" MarginBottom="4"
-                                                           Brush="Chat.Sender.Name"
-                                                           Text="@SenderName" IsDisabled="true" />
-                                          </Children>
-                                        </Widget>
-                                        <!-- Ordered content segments (right-aligned text) -->
-                                        <ListPanel DataSource="{ContentSegments}"
-                                                   WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                   StackLayout.LayoutMethod="VerticalBottomToTop"
-                                                   Spacing="10">
-                                          <ItemTemplate>
-                                            <!-- Single root required by Gauntlet ItemTemplate (fix from main).
-                                                 StretchToParent so row fills width; body/pill align right within it. -->
-                                            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren">
-                                              <Children>
-                                                <!-- Player body segment (90% width) -->
-                                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                        HorizontalAlignment="Right" IsVisible="@IsBody"
-                                                        MarginTop="2" MarginBottom="2">
-                                                  <Children>
-                                                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                                Margin="4,2,4,2"
-                                                                Brush="Chat.Body.Text"
-                                                                Brush.TextHorizontalAlignment="Right"
-                                                                Text="@Text" />
-                                                  </Children>
-                                                </Widget>
-                                                <!-- Player pill segment -->
-                                                <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                        HorizontalAlignment="Right" IsVisible="@IsPill"
-                                                        MarginTop="2" MarginBottom="2">
-                                                  <Children>
-                                                    <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                                MaxWidth="540"
-                                                                Margin="4,2,4,2"
-                                                                Brush="Chat.Action.Text"
-                                                                Brush.FontColor="@TextColor"
-                                                                Brush.TextHorizontalAlignment="Right"
-                                                                Text="@Text" />
-                                                  </Children>
-                                                </Widget>
-                                              </Children>
-                                            </Widget>
-                                          </ItemTemplate>
-                                        </ListPanel>
-                                      </Children>
-                                    </ListPanel>
-
-                                  </Children>
-                                </Widget>
-                              </ItemTemplate>
-                            </ListPanel>
-                          </Children>
-                        </Widget>
-                      </Children>
-                    </ScrollablePanel>
-
-                    <Standard.VerticalScrollbar Id="MsgScrollbar"
-                                                WidthSizePolicy="Fixed" SuggestedWidth="22"
-                                                HeightSizePolicy="StretchToParent"
-                                                HorizontalAlignment="Right"
-                                                MarginTop="4" MarginBottom="!Input.H"
-                                                MarginRight="2" />
-
-                    <!-- Separator above input -->
-                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
-                            SuggestedHeight="2"
-                            VerticalAlignment="Bottom" PositionYOffset="-52"
-                            Sprite="BlankWhiteSquare_9" Color="!SepColor" />
-
-                    <!-- Input bar -->
-                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
-                            SuggestedHeight="!Input.H"
-                            VerticalAlignment="Bottom"
-                            Sprite="BlankWhiteSquare_9" Color="#1A110CFF">
-                      <Children>
-                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                                Sprite="frame_9" ExtendLeft="4" ExtendTop="4" ExtendRight="4" ExtendBottom="4"
-                                AlphaFactor="0.34" IsEnabled="false" />
-                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                                Sprite="General\CharacterCreation\character_creation_background_gradient"
-                                Color="#2A1A11FF" AlphaFactor="0.2" IsEnabled="false" />
-                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
-                                SuggestedHeight="38"
-                                HorizontalAlignment="Left" VerticalAlignment="Center"
-                                MarginLeft="8" MarginRight="106"
-                                Sprite="StdAssets\Popup\text_input">
-                          <Children>
-                            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                                    Sprite="frame_9" ExtendLeft="3" ExtendTop="3" ExtendRight="3" ExtendBottom="3"
-                                    AlphaFactor="0.16" IsEnabled="false" />
-                            <EditableTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                                               HorizontalAlignment="Center" VerticalAlignment="Center"
-                                               Margin="10,4,10,4"
-                                               Brush="Review.NameInput.Text"
-                                               Text="@InputText"
-                                               Command.TextChanged="OnTextChanged" />
-                          </Children>
-                        </Widget>
-                        <ButtonWidget WidthSizePolicy="Fixed" SuggestedWidth="90"
-                                      HeightSizePolicy="Fixed" SuggestedHeight="38"
-                                      HorizontalAlignment="Right" VerticalAlignment="Center"
-                                      MarginRight="8"
-                                      IsEnabled="@IsSendEnabled"
-                                      Brush="Popup.Done.Button"
-                                      UpdateChildrenStates="true"
-                                      DoNotPassEventsToChildren="true"
-                                      Command.Click="ExecuteSendMessage">
-                          <Children>
-                            <TextWidget Text="Send"
-                                        WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
-                                        SuggestedHeight="22" VerticalAlignment="Center"
-                                        MarginLeft="20" MarginRight="20"
-                                        Brush="Popup.Button.Text" />
-                          </Children>
-                        </ButtonWidget>
+                        <EncyclopediaCharacterTableauWidget DataSource="{HeroCharacter}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                            BodyProperties="@BodyProperties" IsFemale="@IsFemale" EquipmentCode="@EquipmentCode" CharStringId="@CharStringId"
+                            StanceIndex="@StanceIndex" BannerCodeText="@BannerCodeText" MountCreationKey="@MountCreationKey" IsEnabled="false"
+                            IsDead="@IsDead" ArmorColor1="@ArmorColor1" ArmorColor2="@ArmorColor2" IdleAction="@IdleAction"
+                            IdleFaceAnim="@IdleFaceAnim" Race="@Race" IsHidden="@IsHidden"/>
+                        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="478" SuggestedHeight="666"
+                                HorizontalAlignment="Center" VerticalAlignment="Bottom" ValueFactor="20"
+                                Sprite="Encyclopedia\hero_silhouette" IsVisible="@IsInformationHidden"/>
+                        <ParallaxItemBrushWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="582" SuggestedHeight="380"
+                            Brush="Encyclopedia.Character.Smoke" OneDirectionDuration="5" OneDirectionDistance="100" InitialDirection="Right"
+                            IsEaseInOutEnabled="true" VerticalAlignment="Bottom" HorizontalAlignment="Center" PositionYOffset="1"/>
+                        <ParallaxItemBrushWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="582" SuggestedHeight="380"
+                            Brush="Encyclopedia.Character.Smoke2" OneDirectionDuration="5" OneDirectionDistance="100" InitialDirection="Left"
+                            IsEaseInOutEnabled="true" VerticalAlignment="Bottom" HorizontalAlignment="Center" PositionYOffset="1"/>
                       </Children>
                     </Widget>
-
+                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                Brush="Encyclopedia.SubPage.Info.Text" Brush.FontColor="#F4E1C4FF" Brush.TextHorizontalAlignment="Center"
+                                VerticalAlignment="Bottom" MarginBottom="25" IsVisible="@IsInformationHidden" Text="@InfoHiddenReasonText"/>
+                    <ListPanel HeightSizePolicy="CoverChildren" WidthSizePolicy="StretchToParent"
+                               StackLayout.LayoutMethod="VerticalBottomToTop" MarginLeft="20" MarginRight="20">
+                      <Children>
+                        <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="CoverChildren" SuggestedWidth="250" MaxHeight="150"
+                                    Brush="Encyclopedia.SubPage.Title.Text" HorizontalAlignment="Center"
+                                    Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Top" MarginTop="10" Text="@NpcName"/>
+                        <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                    Brush="Encyclopedia.SubPage.Info.Text" Brush.FontColor="#E1BE8FFF" Brush.TextHorizontalAlignment="Center" Text="@NpcTitle"/>
+                        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="34" SuggestedHeight="34" MarginTop="2"
+                                HorizontalAlignment="Center" Sprite="SPGeneral\Clan\Status\icon_pregnant" IsVisible="@IsPregnant">
+                          <Children>
+                            <HintWidget DataSource="{PregnantHint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                                        Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint"/>
+                          </Children>
+                        </Widget>
+                        <NavigationScopeTargeter ScopeID="NpcChatHeroTraitsScope" ScopeParent="..\NpcChatTraits" ScopeMovements="Horizontal"
+                            NavigateFromScopeEdges="true" UseDiscoveryAreaAsScopeEdges="true" ExtendDiscoveryAreaBottom="220"/>
+                        <NavigatableListPanel Id="NpcChatTraits" DataSource="{Traits}" WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed"
+                                              SuggestedHeight="75" HorizontalAlignment="Center" MarginTop="2">
+                          <ItemTemplate>
+                            <EncyclopediaHeroTraitVisualWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="74" SuggestedHeight="75"
+                                MarginLeft="-7" MarginRight="-7" TraitId="@TraitId" TraitValue="@Value"
+                                ExtendCursorAreaLeft="-10" ExtendCursorAreaRight="-10" ExtendCursorAreaTop="-10" ExtendCursorAreaBottom="-10">
+                              <Children>
+                                <HintWidget DataSource="{Hint}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                                            Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint"/>
+                              </Children>
+                            </EncyclopediaHeroTraitVisualWidget>
+                          </ItemTemplate>
+                        </NavigatableListPanel>
+                      </Children>
+                    </ListPanel>
+                    <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" VerticalAlignment="Bottom" MarginLeft="10"
+                               StackLayout.LayoutMethod="VerticalBottomToTop">
+                      <Children>
+                        <TextWidget HeightSizePolicy="CoverChildren" WidthSizePolicy="StretchToParent" Text="@SkillsText" HorizontalAlignment="Center"
+                                    ClipContents="false" IsVisible="@HasAnySkills"/>
+                        <NavigationScopeTargeter ScopeID="NpcChatHeroSkillsGridScope" ScopeParent="..\NpcChatSkillsGrid" ScopeMovements="Horizontal"
+                            AlternateScopeMovements="Vertical" DownNavigationScope="None" AlternateMovementStepSize="6"
+                            NavigateFromScopeEdges="true" UseDiscoveryAreaAsScopeEdges="true" ExtendDiscoveryAreaTop="220"/>
+                        <NavigatableGridWidget Id="NpcChatSkillsGrid" DataSource="{HeroSkillList}" WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                            DefaultCellWidth="55" HorizontalAlignment="Center" MarginLeft="10" MarginRight="10" DefaultCellHeight="70" ColumnCount="6"
+                            LayoutImp.VerticalLayoutMethod="TopToBottom">
+                          <ItemTemplate>
+                            <SkillIconVisualWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" SkillId="@SkillId"
+                                                   MarginBottom="20" UseSmallestVariation="true" MarginLeft="3" MarginRight="3">
+                              <Children>
+                                <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="20" IntText="@SkillValue"
+                                            VerticalAlignment="Bottom" HorizontalAlignment="Center" Brush="Encyclopedia.Skill.Text"
+                                            Brush.FontSize="20" PositionYOffset="20" ClipContents="false"/>
+                                <HintWidget DataSource="{Hint}" HeightSizePolicy="StretchToParent" WidthSizePolicy="StretchToParent"
+                                            Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint"/>
+                              </Children>
+                            </SkillIconVisualWidget>
+                          </ItemTemplate>
+                        </NavigatableGridWidget>
+                      </Children>
+                    </ListPanel>
+                    <Widget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="2" HorizontalAlignment="Right"
+                            Sprite="Encyclopedia\divider_vertical"/>
+                    <NavigationScopeTargeter ScopeID="NpcChatHeroBookmarkButtonScope" ScopeParent="..\NpcChatBookmarkButton" ScopeMovements="Horizontal"/>
+                    <ButtonWidget Id="NpcChatBookmarkButton" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="50" SuggestedHeight="50"
+                                  HorizontalAlignment="Left" VerticalAlignment="Top" MarginLeft="5" MarginTop="5" Brush="Encyclopedia.Bookmark.Button"
+                                  Command.Click="ExecuteSwitchBookmarkedState" IsSelected="@IsBookmarked" GamepadNavigationIndex="0">
+                      <Children>
+                        <HintWidget DataSource="{BookmarkHint}" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed"
+                                    Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint"/>
+                      </Children>
+                    </ButtonWidget>
                   </Children>
                 </Widget>
 
-                <!-- Right separator — PositionXOffset = -Right.W (fixed: was -280, now -300) -->
-                <Widget HorizontalAlignment="Right"
-                        WidthSizePolicy="Fixed" SuggestedWidth="!Sep.W"
-                        HeightSizePolicy="StretchToParent"
-                        PositionXOffset="-300"
-                        MarginTop="!Header.H"
-                        Sprite="BlankWhiteSquare_9" Color="!SepColor" />
+                <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Sep.W" HeightSizePolicy="StretchToParent"
+                        Sprite="BlankWhiteSquare_9" Color="!SepColor"/>
 
-                <!-- ── RIGHT COLUMN ── -->
-                <Widget HorizontalAlignment="Right"
-                        WidthSizePolicy="Fixed" SuggestedWidth="!Right.W"
-                        HeightSizePolicy="StretchToParent"
-                        MarginTop="!Header.H">
+                <!-- ══ Center: conversation (replaces encyclopedia’s main scroll body) ══ -->
+                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent">
                   <Children>
-                    <!-- Right column background: canvas_dark (matches middle) -->
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                            Sprite="StdAssets\Popup\canvas_dark" Color="#141414FF" DoNotAcceptEvents="true" />
-
-                    <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
-                                   SuggestedHeight="36"
-                                   VerticalAlignment="Top" HorizontalAlignment="Center"
-                                   PositionYOffset="8"
-                                   Brush="SPScoreboard.Subtitle.Text"
-                                   Brush.FontSize="23" Color="!Gold"
-                                   Text="Diplomacy &amp; Relation" IsDisabled="true" />
-
-                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
-                            SuggestedHeight="2"
-                            VerticalAlignment="Top" PositionYOffset="48"
-                            MarginLeft="8" MarginRight="8"
-                            Sprite="BlankWhiteSquare_9" Color="!SepColor" />
-
-                    <ScrollablePanel Id="RightScroll"
-                                     WidthSizePolicy="StretchToParent"
-                                     HeightSizePolicy="StretchToParent"
-                                     MarginTop="54" MarginBottom="50" MarginRight="24"
-                                     AutoHideScrollBars="true"
-                                     ClipRect="RightClip"
-                                     InnerPanel="RightClip\RightList"
-                                     VerticalScrollbar="..\RightScrollbar\Scrollbar">
+                            Sprite="BlankWhiteSquare_9" Color="#141414FF" DoNotAcceptEvents="true"/>
+                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" DoNotAcceptEvents="false">
                       <Children>
-                        <Widget Id="RightClip"
-                                WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                                ClipContents="true">
+                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="!Header.H" VerticalAlignment="Top"
+                                Sprite="BlankWhiteSquare_9" Color="#1A1A1AFF">
                           <Children>
-                            <NavigatableListPanel Id="RightList"
-                                                 DataSource="{RightPanelItems}"
-                                                 WidthSizePolicy="StretchToParent"
-                                                 HeightSizePolicy="CoverChildren"
-                                                 StackLayout.LayoutMethod="VerticalTopToBottom"
-                                                 Spacing="3"
-                                                 MarginLeft="8" MarginRight="8"
-                                                 MarginTop="4" MarginBottom="4">
+                            <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                        HorizontalAlignment="Left" VerticalAlignment="Top" PositionXOffset="14" PositionYOffset="8"
+                                        Brush="Chat.Header.Label" Text="Conversation" IsDisabled="true"/>
+                            <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                            HorizontalAlignment="Left" VerticalAlignment="Bottom" PositionXOffset="14" PositionYOffset="-36"
+                                            Brush="Encyclopedia.SubPage.Info.Text" Brush.FontSize="14" Color="@RelationColor"
+                                            Text="@RelationText" IsDisabled="true"/>
+                            <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                            HorizontalAlignment="Right" VerticalAlignment="Bottom" PositionXOffset="-14" PositionYOffset="-36"
+                                            Brush="Encyclopedia.SubPage.Info.Text" Brush.FontSize="14" Text="@TrustLabel" IsDisabled="true"/>
+                            <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                        HorizontalAlignment="Left" VerticalAlignment="Bottom" PositionXOffset="14" PositionYOffset="-14"
+                                        Brush="SPScoreboard.Subtitle.Text" Brush.FontSize="12" Text="@EmotionLabel" IsDisabled="true"/>
+                          </Children>
+                        </Widget>
+                        <ScrollablePanel Id="MsgScroll" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                                         MarginTop="!Header.H" MarginBottom="!Input.H" MarginRight="20" MarginLeft="4"
+                                         AutoHideScrollBars="true" ClipRect="MsgClip" InnerPanel="MsgClip\MsgList"
+                                         VerticalScrollbar="..\MsgScrollbar\Scrollbar">
+                          <Children>
+                            <Widget Id="MsgClip" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" ClipContents="true">
+                              <Children>
+                                <ListPanel Id="MsgList" DataSource="{MessageList}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                           StackLayout.LayoutMethod="VerticalBottomToTop" Spacing="10" MarginLeft="14" MarginRight="14" MarginTop="6" MarginBottom="6">
+                                  <ItemTemplate>
+                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginTop="2" MarginBottom="1">
+                                      <Children>
+                                        <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" HorizontalAlignment="Left"
+                                                   StackLayout.LayoutMethod="VerticalBottomToTop" MarginLeft="!Msg.Margin" MarginRight="!Msg.Margin" IsVisible="@IsNpc">
+                                          <Children>
+                                            <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" Sprite="name_shadow_9" AlphaFactor="0.7">
+                                              <Children>
+                                                <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                           StackLayout.LayoutMethod="HorizontalLeftToRight" MarginLeft="10" MarginTop="4" MarginBottom="4">
+                                                  <Children>
+                                                    <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                                    Brush="Chat.Sender.Name" Text="@SenderName" IsDisabled="true"/>
+                                                    <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                                VerticalAlignment="Bottom" MarginLeft="8" MarginBottom="3"
+                                                                Brush="SPScoreboard.Subtitle.Text" Brush.FontSize="17" Brush.FontColor="@TypeTagColor" Text="@TypeTag"/>
+                                                  </Children>
+                                                </ListPanel>
+                                              </Children>
+                                            </Widget>
+                                            <ListPanel DataSource="{ContentSegments}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                       StackLayout.LayoutMethod="VerticalBottomToTop" Spacing="10">
+                                              <ItemTemplate>
+                                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren">
+                                                  <Children>
+                                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" HorizontalAlignment="Left" IsVisible="@IsBody" MarginTop="2" MarginBottom="2">
+                                                      <Children>
+                                                        <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" Margin="4,2,4,2"
+                                                                    Brush="Chat.Body.Text" Brush.TextHorizontalAlignment="Left" Text="@Text"/>
+                                                      </Children>
+                                                    </Widget>
+                                                    <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" HorizontalAlignment="Left" IsVisible="@IsPill" MarginTop="2" MarginBottom="2">
+                                                      <Children>
+                                                        <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" MaxWidth="540" Margin="4,2,4,2"
+                                                                    Brush="Chat.Action.Text" Brush.FontColor="@TextColor" Brush.TextHorizontalAlignment="Left" Text="@Text"/>
+                                                      </Children>
+                                                    </Widget>
+                                                  </Children>
+                                                </Widget>
+                                              </ItemTemplate>
+                                            </ListPanel>
+                                          </Children>
+                                        </ListPanel>
+                                        <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" StackLayout.LayoutMethod="VerticalBottomToTop"
+                                                   MarginLeft="!Msg.Margin" MarginRight="!Msg.Margin" HorizontalAlignment="Right" IsVisible="@IsPlayer">
+                                          <Children>
+                                            <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" HorizontalAlignment="Right">
+                                              <Children>
+                                                <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" HorizontalAlignment="Right"
+                                                                MarginRight="10" MarginTop="4" MarginBottom="4" Brush="Chat.Sender.Name" Text="@SenderName" IsDisabled="true"/>
+                                              </Children>
+                                            </Widget>
+                                            <ListPanel DataSource="{ContentSegments}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                       StackLayout.LayoutMethod="VerticalBottomToTop" Spacing="10">
+                                              <ItemTemplate>
+                                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren">
+                                                  <Children>
+                                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" HorizontalAlignment="Right" IsVisible="@IsBody" MarginTop="2" MarginBottom="2">
+                                                      <Children>
+                                                        <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" Margin="4,2,4,2"
+                                                                    Brush="Chat.Body.Text" Brush.TextHorizontalAlignment="Right" Text="@Text"/>
+                                                      </Children>
+                                                    </Widget>
+                                                    <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" HorizontalAlignment="Right" IsVisible="@IsPill" MarginTop="2" MarginBottom="2">
+                                                      <Children>
+                                                        <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" MaxWidth="540" Margin="4,2,4,2"
+                                                                    Brush="Chat.Action.Text" Brush.FontColor="@TextColor" Brush.TextHorizontalAlignment="Right" Text="@Text"/>
+                                                      </Children>
+                                                    </Widget>
+                                                  </Children>
+                                                </Widget>
+                                              </ItemTemplate>
+                                            </ListPanel>
+                                          </Children>
+                                        </ListPanel>
+                                      </Children>
+                                    </Widget>
+                                  </ItemTemplate>
+                                </ListPanel>
+                              </Children>
+                            </Widget>
+                          </Children>
+                        </ScrollablePanel>
+                        <Standard.VerticalScrollbar Id="MsgScrollbar" WidthSizePolicy="Fixed" SuggestedWidth="22" HeightSizePolicy="StretchToParent"
+                                                    HorizontalAlignment="Right" MarginTop="!Header.H" MarginBottom="!Input.H" MarginRight="2"/>
+                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" VerticalAlignment="Bottom"
+                                PositionYOffset="-52" Sprite="BlankWhiteSquare_9" Color="!SepColor"/>
+                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="!Input.H" VerticalAlignment="Bottom"
+                                Sprite="BlankWhiteSquare_9" Color="#1A110CFF">
+                          <Children>
+                            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                                    Sprite="frame_9" ExtendLeft="4" ExtendTop="4" ExtendRight="4" ExtendBottom="4" AlphaFactor="0.34" IsEnabled="false"/>
+                            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                                    Sprite="General\CharacterCreation\character_creation_background_gradient" Color="#2A1A11FF" AlphaFactor="0.2" IsEnabled="false"/>
+                            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="38"
+                                    HorizontalAlignment="Left" VerticalAlignment="Center" MarginLeft="8" MarginRight="106" Sprite="StdAssets\Popup\text_input">
+                              <Children>
+                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                                        Sprite="frame_9" ExtendLeft="3" ExtendTop="3" ExtendRight="3" ExtendBottom="3" AlphaFactor="0.16" IsEnabled="false"/>
+                                <EditableTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                                                    HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10,4,10,4"
+                                                    Brush="Review.NameInput.Text" Text="@InputText" Command.TextChanged="OnTextChanged"/>
+                              </Children>
+                            </Widget>
+                            <ButtonWidget WidthSizePolicy="Fixed" SuggestedWidth="90" HeightSizePolicy="Fixed" SuggestedHeight="38"
+                                          HorizontalAlignment="Right" VerticalAlignment="Center" MarginRight="8" IsEnabled="@IsSendEnabled"
+                                          Brush="Popup.Done.Button" UpdateChildrenStates="true" DoNotPassEventsToChildren="true" Command.Click="ExecuteSendMessage">
+                              <Children>
+                                <TextWidget Text="Send" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="22"
+                                            VerticalAlignment="Center" MarginLeft="20" MarginRight="20" Brush="Popup.Button.Text"/>
+                              </Children>
+                            </ButtonWidget>
+                          </Children>
+                        </Widget>
+                      </Children>
+                    </Widget>
+                  </Children>
+                </Widget>
+
+                <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Sep.W" HeightSizePolicy="StretchToParent"
+                        Sprite="BlankWhiteSquare_9" Color="!SepColor"/>
+
+                <!-- ══ Right: information panel (encyclopedia-style scroll + shadow) ══ -->
+                <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Info.W" HeightSizePolicy="StretchToParent">
+                  <Children>
+                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                            Sprite="BlankWhiteSquare_9" Color="#141414FF" DoNotAcceptEvents="true"/>
+                    <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="36" VerticalAlignment="Top"
+                                    HorizontalAlignment="Center" PositionYOffset="8" Brush="SPScoreboard.Subtitle.Text"
+                                    Brush.FontSize="23" Color="!Gold" Text="Information" IsDisabled="true"/>
+                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" VerticalAlignment="Top"
+                            PositionYOffset="48" MarginLeft="8" MarginRight="8" Sprite="BlankWhiteSquare_9" Color="!SepColor"/>
+                    <ScrollablePanel Id="InfoScroll" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                                     MarginTop="54" MarginBottom="50" MarginRight="4" ClipRect="InfoRect" InnerPanel="InfoRect\InfoList"
+                                     MouseScrollAxis="Vertical" VerticalScrollbar="..\InfoScrollbar" AutoHideScrollBars="true">
+                      <Children>
+                        <Widget Id="InfoRect" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" DoNotAcceptEvents="true" ClipContents="true">
+                          <Children>
+                            <NavigatableListPanel Id="InfoList" DataSource="{RightPanelItems}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                  StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="3" MarginLeft="8" MarginRight="8" MarginTop="4" MarginBottom="4">
                               <ItemTemplate>
                                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren">
                                   <Children>
                                     <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                   Brush="SPScoreboard.Subtitle.Text"
-                                                   Brush.FontSize="17" Color="@Color"
-                                                   Text="@Text" IsDisabled="true" />
+                                                    Brush="Encyclopedia.SubPage.Info.Text" Brush.FontSize="17" Color="@Color" Text="@Text" IsDisabled="true"/>
                                   </Children>
                                 </Widget>
                               </ItemTemplate>
                             </NavigatableListPanel>
+                            <BrushWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="120"
+                                         VerticalAlignment="Bottom" HorizontalAlignment="Center" Brush="Encyclopedia.Scroll.Shadow" Brush.VerticalFlip="false"/>
                           </Children>
                         </Widget>
                       </Children>
                     </ScrollablePanel>
-
-                    <Standard.VerticalScrollbar Id="RightScrollbar"
-                                                WidthSizePolicy="Fixed" SuggestedWidth="22"
-                                                HeightSizePolicy="StretchToParent"
-                                                HorizontalAlignment="Right"
-                                                MarginTop="54" MarginBottom="50"
-                                                MarginRight="2" />
-
-                    <ButtonWidget WidthSizePolicy="Fixed" SuggestedWidth="130"
-                                  HeightSizePolicy="Fixed" SuggestedHeight="38"
-                                  HorizontalAlignment="Center" VerticalAlignment="Bottom"
-                                  MarginBottom="8"
-                                  Brush="Popup.Cancel.Button"
-                                  UpdateChildrenStates="true"
-                                  DoNotPassEventsToChildren="true"
-                                  Command.Click="ExecuteReturn">
+                    <ScrollbarWidget Id="InfoScrollbar" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent"
+                                     MarginRight="2" MarginBottom="54" MarginTop="54" AlignmentAxis="Vertical"
+                                     HorizontalAlignment="Right" VerticalAlignment="Center" Handle="InfoScrollbarHandle" MinValue="0" MaxValue="100">
                       <Children>
-                        <TextWidget Text="Close"
-                                    WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
-                                    SuggestedHeight="22" VerticalAlignment="Center"
-                                    MarginLeft="30" MarginRight="25"
-                                    Brush="Popup.Button.Text" />
+                        <BrushWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="2" HorizontalAlignment="Center"
+                                     Brush="Encyclopedia.Scrollbar.Flat.Bed"/>
+                        <BrushWidget Id="InfoScrollbarHandle" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="8" SuggestedHeight="50"
+                                     HorizontalAlignment="Center" Brush="Encyclopedia.Scrollbar.Flat.Handle"/>
+                      </Children>
+                    </ScrollbarWidget>
+                    <ButtonWidget WidthSizePolicy="Fixed" SuggestedWidth="130" HeightSizePolicy="Fixed" SuggestedHeight="38"
+                                  HorizontalAlignment="Center" VerticalAlignment="Bottom" MarginBottom="8"
+                                  Brush="Popup.Cancel.Button" UpdateChildrenStates="true" DoNotPassEventsToChildren="true" Command.Click="ExecuteReturn">
+                      <Children>
+                        <TextWidget Text="Close" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="22"
+                                    VerticalAlignment="Center" MarginLeft="30" MarginRight="25" Brush="Popup.Button.Text"/>
                       </Children>
                     </ButtonWidget>
-
                   </Children>
                 </Widget>
 
               </Children>
-            </Widget>
-          </Children>
-        </Widget>
-
+            </ListPanel>
           </Children>
         </Widget>
       </Children>
-    </Widget>
+    </BrushWidget>
   </Window>
 </Prefab>
