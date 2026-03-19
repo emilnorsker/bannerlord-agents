@@ -54,7 +54,8 @@ jobs:
           # world_secrets.json contains in-game lore (hidden NPC details), not credentials
           for f in world.txt world_info.json world_secrets.json cultural_traditions.json \
                    actionrules_description_EN.txt actionrules.txt eventsanalyzerrules.txt \
-                   eventsgeneratorrules.txt kingdomstatementrules.txt playerdescription.txt; do
+                   eventsgeneratorrules.txt kingdomstatementrules.txt playerdescription.txt \
+                   TECHNICAL_GUIDE.en.md TECHNICAL_GUIDE.zh.md; do
             [ -f "$f" ] && cp "$f" staging/AIInfluence/
           done
 
