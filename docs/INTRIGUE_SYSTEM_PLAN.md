@@ -160,12 +160,14 @@ Ambient “who might hear” cues (from the earlier interface concept) **stack**
 
 ## 11. Reference scenarios (for testing the design)
 
-- **Secret as hook** — Single lord, blackmail phases, escalation to rumor or exposure.
-- **Assassination chain** — Graph with partial knowledge per role; strike tied to travel/camp.
-- **Fabricated claim / coup** — Template gated by kingdom/clan state; diplomatic statements follow `event_id`.
-- **Companion as weak link** — Leak phase tied to battle loss or leaving companion in settlement.
+Short labels for QA / implementation checks:
 
-Use these to validate **phase tables**, **propagation**, and **prompt slices**.
+- **Blackmail** — You have real leverage on one lord; they push back or fold.
+- **Hunt / reprisal** — You win a fight; the other side does not forget.
+- **Quiet politics** — No battle; reputation and rumors move anyway.
+- **Broken battle + missing friend** — You lose badly; someone you care about is left behind.
+
+**Full walkthroughs** (written for a reader who has **not** read the rest of this doc) are in **§15 Appendix**.
 
 ---
 
@@ -195,6 +197,78 @@ Use these to validate **phase tables**, **propagation**, and **prompt slices**.
 - **Crusader Kings III** — Secrets, hooks, schemes as *state*.
 - **Dwarf Fortress** — Long-horizon plots and graphs.
 - **Disco Elysium** — Asymmetric information and voice under pressure.
+
+---
+
+## 15. Appendix — three walkthroughs (standalone)
+
+*No jargon required below. “The mod” means this intrigue + AI dialogue stack.*
+
+### 15.A — You won a battle; the other side is angry
+
+**What happened in the game recently**
+
+You fought a lord from another kingdom and won. You took him prisoner. Some of his soldiers got away. You work for a kingdom that is already feuding with theirs, so the border has felt dangerous for a while.
+
+**What you notice as a player**
+
+Tavern talk and the **world-events** list start mentioning tension—raids, shortages, people choosing sides. Not every rumor is true, but the *mood* matches the war. Lords on both sides may act like they already know your name.
+
+**What the mod is trying to simulate**
+
+The people who escaped are a simple, believable reason your enemies could **learn your habits**—which way you travel, where you sell prisoners, who marches with you. That can turn into: sharper encounters later, someone demanding ransom or concessions, or a ruler’s public statement that sounds aimed at *you*, not generic war talk.
+
+**Who is actually involved**
+
+Enemy lords (especially the faction you embarrassed), friendly lords who share your side of the story, merchants and notables in towns you use a lot. Your companions hear the same gossip you do.
+
+**How it can end**
+
+Nothing comes of it. Or you get hit again on the road. Or diplomacy shifts because their side **acts** on what they think they know. If you free the prisoner, pay someone off, or win a peace that resets tempers, the thread can go quiet. The save should remember what was learned so NPCs do not magically forget—unless a long time passes and events expire.
+
+---
+
+### 15.B — No war; you were just trading
+
+**What happened in the game recently**
+
+You have not fought anyone for days. You moved goods in a Vlandian town, visited twice, kept your head down. In the wider world, people whisper about succession and a trade fair made tariffs cheaper for a while.
+
+**What you notice as a player**
+
+At first, nothing dramatic. Then a **slow** rumor might appear: someone with your *name* is tied to a scandal, a blocked deal, or an insult to a local house. Friends go cold before you understand why.
+
+**What the mod is trying to simulate**
+
+Powerful people do not need a battle to hurt you. A lord who already dislikes you, or a guild protecting its charter, can **spread a story**. The game uses the same **world-events** and **diplomatic statements** machinery as war—just with social and economic labels instead of “army crushed.”
+
+**How it can end**
+
+You prove the story false, confront the source, bribe someone, or outlast the rumor as it **expires** and stops spreading. Your **chat UI** should distinguish **hearsay** from **something you proved in play** so you know what you can safely lean on in conversation.
+
+---
+
+### 15.C — You lost badly; a companion did not get out
+
+**What happened in the game recently**
+
+You fought a large battle and **lost**. You fled with a tiny group. One of your companions—call them **Ari**—was left behind in **enemy-held territory** (captured, separated, or trapped in a town after the defeat).
+
+**What you notice as a player**
+
+The world already treats the war as serious. Now you are weak, and someone you rely on is **on the wrong side of the line**. Enemy lords may act smug or offer “talks.” People in that town know things you do not.
+
+**What the mod is trying to simulate**
+
+The enemy wants **usable intelligence**: where you will recruit, whether your clan is broke, who might join you, when you move. Ari is a plausible weak point—not because the story must betray you, but because pressure exists: fear, injury, bribery, ideology, or simple mistake.
+
+**What you should see in the UI**
+
+Same **chat** window as always: trust, mood, relation—and **whether you have any real leverage** on the person you are talking to. You might have **no hook** on an interrogator while they have **time** with Ari. That mismatch is the emotional point: you are not omniscient; you choose your words **before** you know the full picture.
+
+**How it can end**
+
+Ari holds out; the enemy learns nothing useful. Or something leaks and you face harder fights or worse peace terms. You might rescue them, trade prisoners, or pay a brutal price. When the thread resolves, the game should **close** it in save data so you are not stuck in limbo forever.
 
 ---
 
