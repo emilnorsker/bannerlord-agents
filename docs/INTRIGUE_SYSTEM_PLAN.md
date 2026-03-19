@@ -200,75 +200,49 @@ Short labels for QA / implementation checks:
 
 ---
 
-## 15. Appendix — three walkthroughs (standalone)
+## 15. Appendix — three walkthroughs (narrative, technical detail inside the story)
 
-*No jargon required below. “The mod” means this intrigue + AI dialogue stack.*
+Each story below is written as continuous prose. Where the system matters, the text states **what is stored**, **what is shown**, and **what runs on a schedule**, in plain language.
 
-### 15.A — You won a battle; the other side is angry
+### 15.A — After you win a fight and some of them escape
 
-**What happened in the game recently**
+You fight a lord from another kingdom, you win, and you take him prisoner. Not everyone on his side dies or surrenders; a few riders break away and ride clear. Your kingdom and his were already at odds, so fighting in that region already felt normal.
 
-You fought a lord from another kingdom and won. You took him prisoner. Some of his soldiers got away. You work for a kingdom that is already feuding with theirs, so the border has felt dangerous for a while.
+The game records the war as a high-importance situation: which kingdoms are involved, that you were in the fight, and a number that says how fast word should spread to individual lords, merchants, and village leaders. Those characters each keep a list of situation ids they are allowed to know. The list grows over in-game days according to that spread number. When you talk to someone, the text assembled for that character’s dialogue includes only the situations and secrets that character’s file lists, so two people in the same town can answer differently because their lists differ.
 
-**What you notice as a player**
+The escaped riders give the design a clear reason for the enemy faction to add true details about you: the direction you left, how many you still had under your banner, where you might sell captives. None of that requires the dialogue system to add facts that are not already backed by a line in the save data; the game can advance a prepared sequence when the campaign day advances or when you enter certain settlements, and then apply normal Bannerlord outcomes—another battle on the road, a messenger demanding gold, a shift in relations—because those are actions the engine already supports.
 
-Tavern talk and the **world-events** list start mentioning tension—raids, shortages, people choosing sides. Not every rumor is true, but the *mood* matches the war. Lords on both sides may act like they already know your name.
+You read tavern dialogue and the scrolling list of what the world thinks is going on; some lines are false rumors, but many entries are tied to the same stored situation, so talk and the map stay aligned. A ruler can issue a public statement that references the same situation id as the rumor list, which is how a speech and a private chat stay about the same facts.
 
-**What the mod is trying to simulate**
+The conversation screen next to the log still shows that character’s relation to you and how much they trust you. If you have verified proof about *this* character stored in your save, the game shows that in the same place; if you only heard gossip and never confirmed it, that proof line stays empty even if you are angry.
 
-The people who escaped are a simple, believable reason your enemies could **learn your habits**—which way you travel, where you sell prisoners, who marches with you. That can turn into: sharper encounters later, someone demanding ransom or concessions, or a ruler’s public statement that sounds aimed at *you*, not generic war talk.
-
-**Who is actually involved**
-
-Enemy lords (especially the faction you embarrassed), friendly lords who share your side of the story, merchants and notables in towns you use a lot. Your companions hear the same gossip you do.
-
-**How it can end**
-
-Nothing comes of it. Or you get hit again on the road. Or diplomacy shifts because their side **acts** on what they think they know. If you free the prisoner, pay someone off, or win a peace that resets tempers, the thread can go quiet. The save should remember what was learned so NPCs do not magically forget—unless a long time passes and events expire.
+The situation stops when peace returns, you ransom or release the prisoner in a way that clears the flag, or enough campaign days pass that the entry is deleted from the global list and removed from each character’s list. Until then, the save keeps who learned what so nobody answers as if none of it happened.
 
 ---
 
-### 15.B — No war; you were just trading
+### 15.B — Days without a battle, only trade and town visits
 
-**What happened in the game recently**
+For several days you do not fight. You enter a town twice, sell and buy, and leave. Elsewhere in the same kingdom, people are already talking about who will follow an aging leader, and a fair has temporarily lowered tariffs on certain goods.
 
-You have not fought anyone for days. You moved goods in a Vlandian town, visited twice, kept your head down. In the wider world, people whisper about succession and a trade fair made tariffs cheaper for a while.
+The game does not need a battle to create a new situation. On a calendar check it can add a political or social entry with a lower spread number at first, so only a small set of characters receive the id on their personal list. Your name can appear in that entry as the accused party in a lie or half-truth tied to a lord who already dislikes you from an earlier failed quest. Friends turn cold because their files now include that situation id and the instructions for that character’s dialogue treat that entry as something they believe.
 
-**What you notice as a player**
+That same situation type can still be marked so rulers are allowed to react in public. The stored text of their statement links back to the same id as the entry on the rumor list, so you can see that the public line and the private insults are about one recorded object, not two unrelated stories.
 
-At first, nothing dramatic. Then a **slow** rumor might appear: someone with your *name* is tied to a scandal, a blocked deal, or an insult to a local house. Friends go cold before you understand why.
+When you open the dialogue chat, the game must draw a hard line in what it displays to you: text that exists only because rumor spread is not shown as verified proof. Verified proof is a separate list in your save that only grows when you complete an investigation step, see a document, or get an admission the game records as binding. That difference controls what you are allowed to threaten with in dialogue without the model guessing.
 
-**What the mod is trying to simulate**
-
-Powerful people do not need a battle to hurt you. A lord who already dislikes you, or a guild protecting its charter, can **spread a story**. The game uses the same **world-events** and **diplomatic statements** machinery as war—just with social and economic labels instead of “army crushed.”
-
-**How it can end**
-
-You prove the story false, confront the source, bribe someone, or outlast the rumor as it **expires** and stops spreading. Your **chat UI** should distinguish **hearsay** from **something you proved in play** so you know what you can safely lean on in conversation.
+If you disprove the accusation, pay off the right person, or wait until the situation reaches its stored day limit, the game removes the id from the global record and from each character. After removal, new conversations no longer receive that situation in the character’s context.
 
 ---
 
-### 15.C — You lost badly; a companion did not get out
+### 15.C — A large defeat and a companion left in a town the enemy holds
 
-**What happened in the game recently**
+You fight a large battle and lose. You leave the field with a handful of troops. One companion, Ari, does not travel with you; the game sets Ari’s location to a town controlled by the enemy and marks Ari as separated from your party after that battle.
 
-You fought a large battle and **lost**. You fled with a tiny group. One of your companions—call them **Ari**—was left behind in **enemy-held territory** (captured, separated, or trapped in a town after the defeat).
+The war entry is already marked as severe. The game can start or continue a sequence keyed to “major defeat” plus “named companion in enemy town.” The sequence has steps that advance on campaign days and on certain player actions, not on whatever wording you type in chat. Each step decides whether enemy characters gain new situation ids on their lists, whether Ari’s character file gains a flag that means “questioned,” and whether any fact about your plans is copied from Ari’s knowledge into an enemy lord’s list. The dialogue model does not get to declare those copies by itself; only a validated change to the save does that.
 
-**What you notice as a player**
+You walk into a negotiation. The conversation screen shows relation, trust, and emotion the same as always. It also shows, only when your save contains a verified damaging fact tied to this exact lord, that you have that fact. If you are speaking to a jailer or a marshal who has no such entry in your save, the proof section stays blank even though they spent the last days in the same building as Ari. You choose your next sentence without the game telling you whether Ari already answered questions.
 
-The world already treats the war as serious. Now you are weak, and someone you rely on is **on the wrong side of the line**. Enemy lords may act smug or offer “talks.” People in that town know things you do not.
-
-**What the mod is trying to simulate**
-
-The enemy wants **usable intelligence**: where you will recruit, whether your clan is broke, who might join you, when you move. Ari is a plausible weak point—not because the story must betray you, but because pressure exists: fear, injury, bribery, ideology, or simple mistake.
-
-**What you should see in the UI**
-
-Same **chat** window as always: trust, mood, relation—and **whether you have any real leverage** on the person you are talking to. You might have **no hook** on an interrogator while they have **time** with Ari. That mismatch is the emotional point: you are not omniscient; you choose your words **before** you know the full picture.
-
-**How it can end**
-
-Ari holds out; the enemy learns nothing useful. Or something leaks and you face harder fights or worse peace terms. You might rescue them, trade prisoners, or pay a brutal price. When the thread resolves, the game should **close** it in save data so you are not stuck in limbo forever.
+If Ari never gives them anything they can verify, their lists never gain your travel plans, and later fights and peace offers stay unchanged by that branch. If a step runs that copies information out of Ari’s file into theirs, the same stored facts can feed the next battle setup or the terms offered when truce is discussed. When you free Ari, trade prisoners, or a set number of days passes with a recorded outcome, the game writes the sequence as finished so that defeat does not start the same sequence over from the beginning.
 
 ---
 
