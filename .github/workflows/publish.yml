@@ -44,6 +44,8 @@ jobs:
           cp "$DLL" staging/AIInfluence/bin/Win64_Shipping_Client/
           cp SubModule.xml staging/AIInfluence/
           cp -r GUI staging/AIInfluence/
+          [ -d Assets ] && cp -r Assets staging/AIInfluence/
+          [ -d AssetSources ] && cp -r AssetSources staging/AIInfluence/
           cp bin/Win64_Shipping_Client/OggVorbisEncoder.dll staging/AIInfluence/bin/Win64_Shipping_Client/
           cp bin/Win64_Shipping_Client/System.Buffers.dll staging/AIInfluence/bin/Win64_Shipping_Client/
           cp bin/Win64_Shipping_Client/System.Memory.dll staging/AIInfluence/bin/Win64_Shipping_Client/

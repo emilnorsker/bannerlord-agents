@@ -1,11 +1,11 @@
 <Prefab>
   <!--
+    Hierarchy: Frame (stretches screen) → Content (inset) → Panels.
     Layout — left-aligned, full height:
-      Left  (x=0..460)   : opaque dark backdrop (#141414).
-                           Stat overlay (TopBanner) at top.
-      Sep   (x=460..462) : thin separator
-      Frame (x=462..end) : opaque dark backdrop (#141414) wrapping center+right.
-        Center: fills frame minus right column.
+      Left  (x=24..484)  : transparent, Stat overlay (TopBanner) at top.
+      Sep   (x=484..486)  : thin separator
+      Center+Right (x=486..end) : canvas_dark backdrop.
+        Center: fills minus right column.
         Right : fixed 300px at right edge.
 
     Sprites/brushes: confirmed from WorldEventsWindow.xml, AIInfluenceTextQueryPopup.xml,
@@ -17,28 +17,40 @@
     <Constant Name="Right.W"       Value="300" />
     <Constant Name="Sep.W"         Value="2" />
     <Constant Name="Input.H"       Value="52" />
-    <Constant Name="ChatPanel.W"   Value="600" />
-    <Constant Name="Bubble.W"      MultiplyResult="0.9" Value="!ChatPanel.W" />
-    <Constant Name="Pill.W"        MultiplyResult="0.9" Value="!ChatPanel.W" />
+    <Constant Name="Bubble.W"      Value="430" />
+    <Constant Name="Msg.Margin"    Value="30" />
     <Constant Name="Gold"          Value="#FFE6B685" />
     <Constant Name="SubText"       Value="#9BA4B5FF" />
     <Constant Name="SepColor"      Value="#FFFFFF22" />
-    <Constant Name="Frame.Start"   Value="462" />
+    <Constant Name="Frame.Start"   Value="486" />
     <Constant Name="Frame.End"     Value="302" />
+    <Constant Name="Frame.Inset"   Value="24" />
   </Constants>
 
   <Window Id="ChatInterfaceWindow" Layer="Overlay">
 
-    <!-- Outer container: full screen, holds left + framed block side by side -->
+    <!-- Frame: root container, stretches to fill screen; panels are children inside -->
     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+            Sprite="Frame1Broken_frame"
+            ExtendLeft="!Frame.Inset" ExtendRight="!Frame.Inset"
+            ExtendTop="!Frame.Inset" ExtendBottom="!Frame.Inset"
             DoNotAcceptEvents="false">
       <Children>
+        <!-- Content area: inside frame, inset so panels don't overlap border -->
+        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                MarginLeft="!Frame.Inset" MarginRight="!Frame.Inset"
+                MarginTop="!Frame.Inset" MarginBottom="!Frame.Inset">
+          <Children>
+            <!-- Backdrop: canvas_dark for center+right area -->
+            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                    MarginLeft="!Frame.Start"
+                    Sprite="StdAssets\Popup\canvas_dark" Color="#141414FF"
+                    DoNotAcceptEvents="true" />
 
-        <!-- ══ LEFT COLUMN — opaque backdrop ══ -->
-        <Widget HorizontalAlignment="Left"
-                WidthSizePolicy="Fixed" SuggestedWidth="!Left.W"
-                HeightSizePolicy="StretchToParent"
-                Sprite="BlankWhite" Color="#141414FF">
+            <!-- ══ LEFT COLUMN — transparent (no background) ══ -->
+            <Widget HorizontalAlignment="Left"
+                    WidthSizePolicy="Fixed" SuggestedWidth="!Left.W"
+                    HeightSizePolicy="StretchToParent">
           <Children>
             <!-- Stat overlay at top of left column -->
             <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
@@ -50,7 +62,7 @@
                                HorizontalAlignment="Left" VerticalAlignment="Top"
                                PositionXOffset="10" PositionYOffset="8"
                                Brush="Conversation.Relation.Text"
-                               Brush.FontSize="16" Color="@RelationColor"
+                               Brush.FontSize="21" Color="@RelationColor"
                                Text="@RelationText" IsDisabled="true" />
                 <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                HorizontalAlignment="Right" VerticalAlignment="Top"
@@ -74,22 +86,21 @@
                 PositionXOffset="!Left.W"
                 Sprite="BlankWhiteSquare_9" Color="!SepColor" />
 
-        <!-- ══ CENTER + RIGHT — opaque dark backdrop (#141414) ════════════════ -->
-        <!-- MarginLeft=Frame.Start so the frame aligns after the left column -->
+        <!-- ══ CENTER + RIGHT — canvas_dark backdrop ══ -->
         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                 MarginLeft="!Frame.Start"
-                Sprite="BlankWhite" Color="#141414FF">
+                Sprite="StdAssets\Popup\canvas_dark" Color="#141414FF">
           <!-- BlankWhite sprite required: Color alone has no effect on a bare Widget in Gauntlet -->
           <Children>
             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                     DoNotAcceptEvents="false">
               <Children>
 
-                <!-- Header: "Conversation Log" label + NPC name (Figma: Font/Body/Body2, #FFE38F) -->
+                <!-- Header: "Conversation Log" label + NPC name -->
                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
                         SuggestedHeight="!Header.H"
                         VerticalAlignment="Top"
-                        Sprite="BlankWhite" Color="#141414FF">
+                        Sprite="StdAssets\Popup\canvas_dark" Color="#141414FF">
                   <!-- BlankWhite sprite required: Color alone has no effect on a bare Widget in Gauntlet -->
                   <Children>
                     <!-- "Conversation Log" static label -->
@@ -117,10 +128,9 @@
                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                         MarginTop="!Header.H" MarginRight="!Frame.End">
                   <Children>
-                    <!-- Middle panel background: dark texture -->
+                    <!-- Middle panel background: same dark style as former left panel -->
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                            Sprite="chat_panel_bg"
-                            AlphaFactor="1.0"
+                            Sprite="BlankWhiteSquare_9" Color="#141414FF"
                             DoNotAcceptEvents="true" />
 
                     <!-- Message scroll area -->
@@ -154,19 +164,11 @@
                                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                         MarginTop="2" MarginBottom="1">
                                   <Children>
-
-                                    <!-- Separator line above each message group (Figma: organic gray gradient strip) -->
-                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
-                                            SuggestedHeight="16"
-                                            VerticalAlignment="Top"
-                                            Sprite="chat_msg_separator"
-                                            AlphaFactor="0.85"
-                                            DoNotAcceptEvents="true" />
-
-                                    <!-- NPC side: left-aligned, constrained right -->
+                                    <!-- NPC side: left-aligned, 90% width -->
                                     <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                               HorizontalAlignment="Left"
                                                StackLayout.LayoutMethod="VerticalBottomToTop"
-                                               MarginLeft="12" MarginRight="160"
+                                               MarginLeft="!Msg.Margin" MarginRight="!Msg.Margin"
                                                IsVisible="@IsNpc">
                                       <Children>
                                         <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
@@ -182,7 +184,7 @@
                                                 <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                                             VerticalAlignment="Bottom" MarginLeft="8" MarginBottom="3"
                                                             Brush="SPScoreboard.Subtitle.Text"
-                                                            Brush.FontSize="13" Brush.FontColor="@TypeTagColor"
+                                                            Brush.FontSize="17" Brush.FontColor="@TypeTagColor"
                                                             Text="@TypeTag" />
                                               </Children>
                                             </ListPanel>
@@ -195,32 +197,32 @@
                                                    Spacing="10">
                                           <ItemTemplate>
                                             <!-- Single root required by Gauntlet ItemTemplate (fix from main).
-                                                 Body/pill visibility toggled via IsVisible; Sprite+Color for bubble/pill backgrounds. -->
-                                            <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren">
+                                                 StretchToParent so row fills width; body/pill align left within it. -->
+                                            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren">
                                               <Children>
-                                                <!-- NPC body segment -->
-                                                <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Bubble.W" HeightSizePolicy="CoverChildren"
+                                                <!-- NPC body segment (90% width) -->
+                                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                         HorizontalAlignment="Left" IsVisible="@IsBody"
-                                                        MarginTop="2" MarginBottom="2"
-                                                        Sprite="General\CharacterCreation\name_input_area" Color="@BackColor">
+                                                        MarginTop="2" MarginBottom="2">
                                                   <Children>
                                                     <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                                 Margin="4,2,4,2"
                                                                 Brush="Chat.Body.Text"
+                                                                Brush.TextHorizontalAlignment="Left"
                                                                 Text="@Text" />
                                                   </Children>
                                                 </Widget>
-                                                <!-- NPC pill segment: shrink to content, wrap at 540px (native MaxWidth uses literals) -->
+                                                <!-- NPC pill segment -->
                                                 <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                                         HorizontalAlignment="Left" IsVisible="@IsPill"
-                                                        MarginTop="2" MarginBottom="2"
-                                                        Sprite="name_shadow_9" Color="@BackColor">
+                                                        MarginTop="2" MarginBottom="2">
                                                   <Children>
                                                     <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                                                 MaxWidth="540"
                                                                 Margin="4,2,4,2"
                                                                 Brush="Chat.Action.Text"
                                                                 Brush.FontColor="@TextColor"
+                                                                Brush.TextHorizontalAlignment="Left"
                                                                 Text="@Text" />
                                                   </Children>
                                                 </Widget>
@@ -231,10 +233,10 @@
                                       </Children>
                                     </ListPanel>
 
-                                    <!-- Player side: right-aligned, constrained left -->
+                                    <!-- Player side: right-aligned, 90% width -->
                                     <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                StackLayout.LayoutMethod="VerticalBottomToTop"
-                                               MarginLeft="160" MarginRight="12"
+                                               MarginLeft="!Msg.Margin" MarginRight="!Msg.Margin"
                                                HorizontalAlignment="Right"
                                                IsVisible="@IsPlayer">
                                       <Children>
@@ -255,34 +257,32 @@
                                                    Spacing="10">
                                           <ItemTemplate>
                                             <!-- Single root required by Gauntlet ItemTemplate (fix from main).
-                                                 Body/pill visibility toggled via IsVisible; Sprite+Color for bubble/pill backgrounds. -->
-                                            <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" HorizontalAlignment="Right">
+                                                 StretchToParent so row fills width; body/pill align right within it. -->
+                                            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren">
                                               <Children>
-                                                <!-- Player body segment -->
-                                                <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Bubble.W" HeightSizePolicy="CoverChildren"
+                                                <!-- Player body segment (90% width) -->
+                                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                         HorizontalAlignment="Right" IsVisible="@IsBody"
-                                                        MarginTop="2" MarginBottom="2"
-                                                        Sprite="General\CharacterCreation\name_input_area" Color="@BackColor">
+                                                        MarginTop="2" MarginBottom="2">
                                                   <Children>
                                                     <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                                 Margin="4,2,4,2"
                                                                 Brush="Chat.Body.Text"
-                                                                TextHorizontalAlignment="Right"
+                                                                Brush.TextHorizontalAlignment="Right"
                                                                 Text="@Text" />
                                                   </Children>
                                                 </Widget>
-                                                <!-- Player pill segment: shrink to content, wrap at 540px (native MaxWidth uses literals) -->
+                                                <!-- Player pill segment -->
                                                 <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                                         HorizontalAlignment="Right" IsVisible="@IsPill"
-                                                        MarginTop="2" MarginBottom="2"
-                                                        Sprite="name_shadow_9" Color="@BackColor">
+                                                        MarginTop="2" MarginBottom="2">
                                                   <Children>
                                                     <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                                                 MaxWidth="540"
                                                                 Margin="4,2,4,2"
                                                                 Brush="Chat.Action.Text"
                                                                 Brush.FontColor="@TextColor"
-                                                                TextHorizontalAlignment="Right"
+                                                                Brush.TextHorizontalAlignment="Right"
                                                                 Text="@Text" />
                                                   </Children>
                                                 </Widget>
@@ -319,7 +319,7 @@
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
                             SuggestedHeight="!Input.H"
                             VerticalAlignment="Bottom"
-                            Sprite="BlankWhite" Color="#1A110CFF">
+                            Sprite="BlankWhiteSquare_9" Color="#1A110CFF">
                       <Children>
                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                 Sprite="frame_9" ExtendLeft="4" ExtendTop="4" ExtendRight="4" ExtendBottom="4"
@@ -331,7 +331,7 @@
                                 SuggestedHeight="38"
                                 HorizontalAlignment="Left" VerticalAlignment="Center"
                                 MarginLeft="8" MarginRight="106"
-                                Sprite="General\CharacterCreation\name_input_area">
+                                Sprite="StdAssets\Popup\text_input">
                           <Children>
                             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                     Sprite="frame_9" ExtendLeft="3" ExtendTop="3" ExtendRight="3" ExtendBottom="3"
@@ -381,13 +381,16 @@
                         HeightSizePolicy="StretchToParent"
                         MarginTop="!Header.H">
                   <Children>
+                    <!-- Right column background: canvas_dark (matches middle) -->
+                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                            Sprite="StdAssets\Popup\canvas_dark" Color="#141414FF" DoNotAcceptEvents="true" />
 
                     <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
                                    SuggestedHeight="36"
                                    VerticalAlignment="Top" HorizontalAlignment="Center"
                                    PositionYOffset="8"
                                    Brush="SPScoreboard.Subtitle.Text"
-                                   Brush.FontSize="18" Color="!Gold"
+                                   Brush.FontSize="23" Color="!Gold"
                                    Text="Diplomacy &amp; Relation" IsDisabled="true" />
 
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
@@ -422,7 +425,7 @@
                                   <Children>
                                     <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                    Brush="SPScoreboard.Subtitle.Text"
-                                                   Brush.FontSize="13" Color="@Color"
+                                                   Brush.FontSize="17" Color="@Color"
                                                    Text="@Text" IsDisabled="true" />
                                   </Children>
                                 </Widget>
@@ -465,6 +468,8 @@
           </Children>
         </Widget>
 
+          </Children>
+        </Widget>
       </Children>
     </Widget>
   </Window>
