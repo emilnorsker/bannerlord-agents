@@ -6,11 +6,23 @@
 
 ---
 
+## Two LLM completion paths (precision, not “the model”)
+
+AIInfluence does **not** have one generic brain. It has **two named families of LLM calls**, and any BLGM design must say which path you mean (or both, with different rules).
+
+**NPC Chat path** — Completions driven by **player↔NPC dialogue**: chat window, messenger-style prompts, conversation-scoped JSON, prompts keyed to a **specific hero** and their `NPCContext`. If this path is ever allowed to emit BLGM plans, the snapshot and allowlist must match **that character’s** situation (prisoner, clan, kingdom role), not a free-floating narrator.
+
+**World Events path** — Completions driven by **campaign- and diplomacy-scale** work: dynamic events, kingdom/ruler statements, diplomatic analysis, and similar prompts built from **world aggregates** rather than a single interlocutor. The same serializer and observation channel may apply, but the **injected snapshot** is world-shaped; **policy** (which commands are legal from this path) may legitimately differ from NPC Chat.
+
+In the rest of this document, **plan** means **structured output from whichever path is active** for that request. We avoid the phrase “the model” where it would blur these two.
+
+---
+
 ## What we are actually building
 
 BLGM is not a second simulation. It is a **large, documented console** over TaleWorlds’ campaign: commands follow `gm.<category>.<command>` with positional and `name:value` arguments, plus a **query** subsystem for finding heroes, clans, kingdoms, settlements, items, troops, and more. The player-facing wiki and the published developer API reference are the authoritative catalog; as of the wiki snapshot we used, the surface is on the order of **nine command families** and **~139 commands** ([wiki API reference](https://github.com/SolWayward/Bannerlord.GameMaster/wiki), [developer API docs](https://solwayward.github.io/Bannerlord.GameMaster/api/index)).
 
-An “agent” in our sense is a loop: the model proposes **plans**, the game executes **effects**, and only **effects** may change save state. The model must never be the source of truth for whether a command worked.
+An “agent” loop here means: **the active completion path (NPC Chat or World Events) proposes a structured plan**, the host executes **effects** on the main thread, and only **effects** may change save state. Neither path’s raw assistant text may be treated as proof that a command ran or what it returned.
 
 ---
 
@@ -24,11 +36,11 @@ That does **not** mean blocking on the LLM. Network and inference stay asynchron
 
 ## “Observations” (plain language)
 
-When we say **observations must not be authored by the model**, we mean something very concrete.
+When we say **observations must not be authored by the completion**, we mean something very concrete.
 
-The model only ever produces **assistant** text. If the transcript contains a line that claims to be the **result of running a command**, and that line was **written by the model in the same breath** as its plan, the model can **confabulate** success or failure. The fix is to insert the next context item from **your runtime**: the string returned by BLGM (or your wrapper), optionally wrapped as a small JSON envelope (`source`, `stdout`, `stderr`, `error_code`) if that helps logging. **Provenance matters more than format.** In API terms this is the same slot as a **tool result** in OpenAI-style chat: the server attaches it; the model does not invent it.
+Whichever path ran—**NPC Chat** or **World Events**—only **assistant** completions come from the weights. If the transcript contains a line that claims to be the **result of running a command**, and that line was **written by the same completion** as its plan, the system can **confabulate** success or failure. The fix is to insert the next context item from **your runtime**: the string returned by BLGM (or your wrapper), optionally wrapped as a small JSON envelope (`source`, `stdout`, `stderr`, `error_code`) if that helps logging. **Provenance matters more than format.** In API terms this is the same slot as a **tool result** in OpenAI-style chat: the server attaches it; the completion does not invent it.
 
-Structured outputs govern **plans**; BLGM governs **effects**.
+Structured outputs govern **plans** from the active path; BLGM governs **effects**.
 
 ---
 
@@ -38,7 +50,7 @@ TaleWorlds’ console has picky rules: **single quotes** for multi-word tokens (
 
 You can validate those rules in a **local preflight** and return deterministic error strings—and you should still enforce **policy** (allowlists, rate limits, scope checks) regardless of how perfect the JSON is.
 
-The cleaner long-term approach is: the model emits a **structured plan** (command identifier, positional fields, named pairs, explicit “needs quoting” strings). **Your code** serializes that into the exact BLGM line. Then spacing and colon rules are **not** something the weights need to learn; they are **one serializer** you test once. Vendor “structured outputs” / schema-constrained decoding is how you keep the plan parseable; it does not replace server-side policy.
+The cleaner long-term approach is: **the active completion path** emits a **structured plan** (command identifier, positional fields, named pairs, explicit “needs quoting” strings). **Your code** serializes that into the exact BLGM line. Then spacing and colon rules are **not** something the weights need to learn; they are **one serializer** you test once. Vendor “structured outputs” / schema-constrained decoding is how you keep the plan parseable; it does not replace server-side policy.
 
 ---
 
@@ -46,7 +58,7 @@ The cleaner long-term approach is: the model emits a **structured plan** (comman
 
 This is the architecture we converged on. It scales across the whole library without writing a short story per command.
 
-**First — inject a structured world snapshot.** Your code derives this from `Campaign` (and related objects): player hero, clan id and tier, whether the clan has a kingdom, ruler vs vassal vs mercenary vs independent, relevant string ids, maybe a compact settlement or party summary when the task needs it. The model should not guess membership or authority; it should **read** the snapshot each turn or when state changes. Tooling stacks increasingly separate **LLM-visible context** from **local runtime state**; the snapshot is the bridge you choose to show.
+**First — inject a structured snapshot.** Your code derives this from `Campaign` (and related objects). For **NPC Chat**, bias the snapshot toward the **current NPC** (and player): their hero id, clan, kingdom role, prisoner state, party. For **World Events**, bias toward **factions, events, and aggregates** the prompt already uses. In both cases the completion must not guess membership or authority; it **reads** the snapshot each request or when state changes. Tooling stacks increasingly separate **LLM-visible context** from **local runtime state**; the snapshot is the bridge you choose to show.
 
 **Second — route intent to a BLGM family using tags and state.** BLGM already organizes commands into families (hero, clan, kingdom, settlement, bandit, caravan, troop, item, query). Maintain a **machine index** of commands enriched with tags: primary entity type, preconditions (`requires_kingdom`, `requires_ruler`, settlement scope, etc.). Filter that index against the snapshot **before** suggesting lines. This generalizes the “clan vs kingdom” confusion: the same pattern applies whenever a verb belongs to settlement vs party vs hero.
 
@@ -54,7 +66,7 @@ This is the architecture we converged on. It scales across the whole library wit
 
 **Fourth — default to query and help before destructive mutates.** BLGM’s own docs describe a workflow: find entities, verify, modify, confirm. Running a command **without required arguments** is supposed to surface **help**—that should be standard operating procedure when arity is uncertain. This especially reduces bad kingdom- or ruler-scoped calls.
 
-**Fifth — execute and append only runtime-returned text as the next context item.** After `CallFunction` (or equivalent), append what the engine actually returned. The model’s next turn must treat that block as ground truth.
+**Fifth — execute and append only runtime-returned text as the next context item.** After `CallFunction` (or equivalent), append what the engine actually returned. The **next** call on the same path (or the next message in the thread) must treat that block as ground truth—not as optional flavor text.
 
 **Sixth — let structured outputs govern the plan while BLGM governs the effect.** The schema should encode **control flow** (`continue`, `stop`, `probe_help`, `query_only`, `mutate`) and **targets** (ids, family), not English improvisation for execution.
 
