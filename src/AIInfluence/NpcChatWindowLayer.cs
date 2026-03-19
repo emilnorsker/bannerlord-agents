@@ -1,10 +1,7 @@
 using System;
 using System.Reflection;
-using AIInfluence.UI;
 using MCM.Abstractions.Base.Global;
 using TaleWorlds.CampaignSystem;
-using TaleWorlds.CampaignSystem.ViewModelCollection;
-using TaleWorlds.Core.ImageIdentifiers;
 using TaleWorlds.Engine.GauntletUI;
 using TaleWorlds.Library;
 using TaleWorlds.MountAndBlade;
@@ -28,20 +25,6 @@ public class NpcChatWindowLayer : GauntletLayer
     public NpcChatWindowLayer(Hero npc, NPCContext context, Action onReturn)
         : base("NpcChatWindowLayer", 500, false)
     {
-        // Must be set before LoadMovie so AIInfluencePortraitWidget reads it on activation
-        try
-        {
-            if (npc?.CharacterObject != null)
-            {
-                var code = CampaignUIHelper.GetCharacterCode(npc.CharacterObject, false);
-                AIInfluencePortraitWidget.PendingCharacterCode = code?.Code;
-            }
-        }
-        catch (Exception)
-        {
-            AIInfluencePortraitWidget.PendingCharacterCode = null;
-        }
-
         _viewModel = new NpcChatWindowVM(npc, context, onReturn);
         _movie = base.LoadMovie("ChatInterface", (ViewModel)(object)_viewModel);
         ((ScreenLayer)this).InputRestrictions.SetInputRestrictions(true, (InputUsageMask)7);
