@@ -92,6 +92,14 @@ Some kingdom-scoped commands may exist in the catalog while the **player’s cha
 
 ---
 
+## Out of scope for now (explicit deferrals)
+
+**MissionGM** — A separate idea worth exploring later: an operator that runs **during** or **against** mission state (agents, equipment, spawn, scene logic) with the same “plan → execute → observation” discipline, but using **mission-native** APIs rather than campaign console commands. That is **not** part of the current BLGM-on-campaign design; conflating the two early guarantees the wrong abstraction. Settlement-combat LLM completions today are narrative/gameplay-shaped; any world fix they imply should stay **queued until campaign is authoritative again** until a real MissionGM exists.
+
+**Death history (`history_gen`)** and similar **pure prose** paths do not get GM agent access.
+
+---
+
 ## References (external)
 
 - BLGM repository and wiki: <https://github.com/SolWayward/Bannerlord.GameMaster>  
