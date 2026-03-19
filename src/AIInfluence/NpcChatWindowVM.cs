@@ -20,8 +20,8 @@ public class NpcChatWindowVM : ViewModel
     private readonly Action _onReturn;
     private string _inputText = "";
     private bool _isSending;
-    private string _suggestedReplyOneText = "Can you tell me more?";
-    private string _suggestedReplyTwoText = "What should I do next?";
+    private string _suggestedReplyOneText = "Tell me more.";
+    private string _suggestedReplyTwoText = "Farewell.";
 
     // ── Header ────────────────────────────────────────────────────────────
     [DataSourceProperty] public string NpcName { get; set; } = "";
@@ -843,10 +843,8 @@ public class NpcChatWindowVM : ViewModel
 
     private void UpdateSuggestedReplies(string npcReply, AIResponse aiResponse)
     {
-        string focus = string.IsNullOrWhiteSpace(npcReply) ? "that" : npcReply.Trim();
-        if (focus.Length > 36) focus = focus.Substring(0, 36).TrimEnd(' ', '.', ',', ';', ':', '!', '?');
-        string fallbackOne = $"Can you explain {focus}?";
-        string fallbackTwo = $"What should I do next about {focus}?";
+        string fallbackOne = "Tell me more.";
+        string fallbackTwo = "Farewell.";
         SuggestedReplyOneText = NormalizeSuggestedReply(aiResponse?.SuggestedReplyOne, fallbackOne);
         SuggestedReplyTwoText = NormalizeSuggestedReply(aiResponse?.SuggestedReplyTwo, fallbackTwo);
     }
