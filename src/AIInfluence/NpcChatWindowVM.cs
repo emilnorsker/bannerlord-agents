@@ -20,6 +20,8 @@ public class NpcChatWindowVM : ViewModel
     private readonly Action _onReturn;
     private string _inputText = "";
     private bool _isSending;
+    private string _suggestedReplyOneText = "Can you tell me more?";
+    private string _suggestedReplyTwoText = "What should I do next?";
 
     // ── Header ────────────────────────────────────────────────────────────
     [DataSourceProperty] public string NpcName { get; set; } = "";
@@ -55,6 +57,34 @@ public class NpcChatWindowVM : ViewModel
         set { }
     }
 
+    [DataSourceProperty]
+    public string SuggestedReplyOneText
+    {
+        get => _suggestedReplyOneText;
+        set
+        {
+            if (value != _suggestedReplyOneText)
+            {
+                _suggestedReplyOneText = value ?? "";
+                ((ViewModel)this).OnPropertyChangedWithValue<string>(_suggestedReplyOneText, "SuggestedReplyOneText");
+            }
+        }
+    }
+
+    [DataSourceProperty]
+    public string SuggestedReplyTwoText
+    {
+        get => _suggestedReplyTwoText;
+        set
+        {
+            if (value != _suggestedReplyTwoText)
+            {
+                _suggestedReplyTwoText = value ?? "";
+                ((ViewModel)this).OnPropertyChangedWithValue<string>(_suggestedReplyTwoText, "SuggestedReplyTwoText");
+            }
+        }
+    }
+
     // ── Right panel – flat list, section headers included as items ────────
     [DataSourceProperty] public MBBindingList<TextItemVM> RightPanelItems { get; } = new MBBindingList<TextItemVM>();
 
@@ -72,6 +102,7 @@ public class NpcChatWindowVM : ViewModel
         PopulateTraitOverlay(npc, context);
         PopulateHistory(context);
         PopulateRightPanel(npc, context);
+        UpdateSuggestedReplies(null);
     }
 
     // ── Populate ──────────────────────────────────────────────────────────
@@ -695,6 +726,7 @@ public class NpcChatWindowVM : ViewModel
                         if (!string.IsNullOrEmpty(relMsg))
                             npcItem.ContentSegments.Add(new ContentSegmentVM(relMsg, RelationMessageColor, RelationBubbleColor, true));
                         AddNewestMessage(npcItem);
+                        UpdateSuggestedReplies(reply);
 
                         if (ctx?.ConversationHistory != null)
                         {
@@ -783,4 +815,26 @@ public class NpcChatWindowVM : ViewModel
     }
 
     public void ExecuteReturn() => _onReturn?.Invoke();
+
+    public void ExecuteSuggestedReplyOne()
+    {
+        if (_isSending || string.IsNullOrWhiteSpace(SuggestedReplyOneText)) return;
+        InputText = SuggestedReplyOneText;
+        ExecuteSendMessage();
+    }
+
+    public void ExecuteSuggestedReplyTwo()
+    {
+        if (_isSending || string.IsNullOrWhiteSpace(SuggestedReplyTwoText)) return;
+        InputText = SuggestedReplyTwoText;
+        ExecuteSendMessage();
+    }
+
+    private void UpdateSuggestedReplies(string npcReply)
+    {
+        string focus = string.IsNullOrWhiteSpace(npcReply) ? "that" : npcReply.Trim();
+        if (focus.Length > 36) focus = focus.Substring(0, 36).TrimEnd(' ', '.', ',', ';', ':', '!', '?');
+        SuggestedReplyOneText = $"Can you explain {focus}?";
+        SuggestedReplyTwoText = $"What should I do next about {focus}?";
+    }
 }

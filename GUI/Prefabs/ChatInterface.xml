@@ -17,6 +17,7 @@
     <Constant Name="Right.W"       Value="300" />
     <Constant Name="Sep.W"         Value="2" />
     <Constant Name="Input.H"       Value="52" />
+    <Constant Name="Suggest.H"     Value="46" />
     <Constant Name="ChatPanel.W"   Value="600" />
     <Constant Name="Bubble.W"      MultiplyResult="0.9" Value="!ChatPanel.W" />
     <Constant Name="Pill.W"        MultiplyResult="0.9" Value="!ChatPanel.W" />
@@ -127,7 +128,7 @@
                     <ScrollablePanel Id="MsgScroll"
                                      WidthSizePolicy="StretchToParent"
                                      HeightSizePolicy="StretchToParent"
-                                     MarginTop="4" MarginBottom="!Input.H" MarginRight="24"
+                                     MarginTop="4" MarginBottom="98" MarginRight="24"
                                      AutoHideScrollBars="true"
                                      ClipRect="MsgClip"
                                      InnerPanel="MsgClip\MsgList"
@@ -306,14 +307,53 @@
                                                 WidthSizePolicy="Fixed" SuggestedWidth="22"
                                                 HeightSizePolicy="StretchToParent"
                                                 HorizontalAlignment="Right"
-                                                MarginTop="4" MarginBottom="!Input.H"
+                                                MarginTop="4" MarginBottom="98"
                                                 MarginRight="2" />
 
                     <!-- Separator above input -->
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
                             SuggestedHeight="2"
-                            VerticalAlignment="Bottom" PositionYOffset="-52"
+                            VerticalAlignment="Bottom" PositionYOffset="-98"
                             Sprite="BlankWhiteSquare_9" Color="!SepColor" />
+
+                    <!-- Suggested replies -->
+                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
+                            SuggestedHeight="!Suggest.H"
+                            VerticalAlignment="Bottom" PositionYOffset="-52"
+                            Sprite="BlankWhite" Color="#171717FF">
+                      <Children>
+                        <ButtonWidget WidthSizePolicy="Fixed" SuggestedWidth="280" HeightSizePolicy="Fixed"
+                                      SuggestedHeight="34"
+                                      HorizontalAlignment="Left"
+                                      MarginLeft="8" MarginTop="6" MarginBottom="6"
+                                      IsEnabled="@IsSendEnabled"
+                                      Brush="Popup.Done.Button"
+                                      Command.Click="ExecuteSuggestedReplyOne">
+                          <Children>
+                            <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                        VerticalAlignment="Center"
+                                        MarginLeft="12" MarginRight="12"
+                                        Brush="Popup.Button.Text"
+                                        Text="@SuggestedReplyOneText" />
+                          </Children>
+                        </ButtonWidget>
+                        <ButtonWidget WidthSizePolicy="Fixed" SuggestedWidth="280" HeightSizePolicy="Fixed"
+                                      SuggestedHeight="34"
+                                      HorizontalAlignment="Right"
+                                      MarginRight="8" MarginTop="6" MarginBottom="6"
+                                      IsEnabled="@IsSendEnabled"
+                                      Brush="Popup.Cancel.Button"
+                                      Command.Click="ExecuteSuggestedReplyTwo">
+                          <Children>
+                            <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                        VerticalAlignment="Center"
+                                        MarginLeft="12" MarginRight="12"
+                                        Brush="Popup.Button.Text"
+                                        Text="@SuggestedReplyTwoText" />
+                          </Children>
+                        </ButtonWidget>
+                      </Children>
+                    </Widget>
 
                     <!-- Input bar -->
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
