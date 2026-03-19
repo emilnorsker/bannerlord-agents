@@ -21,12 +21,9 @@ using TaleWorlds.ObjectSystem;
 namespace AIInfluence;
 
 /// <summary>
-/// NPC chat Gauntlet root VM. The encyclopedia-style column uses the same data patterns as
-/// <c>EncyclopediaHeroPageVM</c> (hero tableau, traits, skills, campaign bookmarks). The message list + pills stay custom.
-/// Bookmarks call into the campaign <c>EncyclopediaManager</c> (via <see cref="EncyclopediaBookmarkHelper"/>): they add the hero
-/// to the player’s encyclopedia bookmark list for quick reopening from the campaign encyclopedia UI. They do not navigate away from
-/// this layer — the chat window stays until <c>ExecuteReturn</c>. If the player opens the full encyclopedia from elsewhere, returning
-/// is the same as vanilla (close encyclopedia / back out); the chat layer is unchanged unless your flow closed it.
+/// NPC chat Gauntlet root VM. The encyclopedia-style column mirrors <c>EncyclopediaHeroPageVM</c> visuals (tableau, traits, skills).
+/// Message list, segment pills, and input are mod-specific. Encyclopedia bookmark UI is omitted — see <c>docs/UPCOMING_FEATURES.md</c>
+/// for a possible future “Conversations” encyclopedia integration.
 /// </summary>
 public class NpcChatWindowVM : ViewModel
 {
@@ -50,8 +47,6 @@ public class NpcChatWindowVM : ViewModel
     [DataSourceProperty] public MBBindingList<EncyclopediaSkillVM> HeroSkillList { get; } = new MBBindingList<EncyclopediaSkillVM>();
     [DataSourceProperty] public string SkillsText { get; set; } = "";
     [DataSourceProperty] public bool HasAnySkills { get; set; }
-    [DataSourceProperty] public bool IsBookmarked { get; set; }
-    [DataSourceProperty] public HintViewModel BookmarkHint { get; private set; }
 
     // ── Chat column header (relation / trust / mood) ─────────────────────
     [DataSourceProperty] public string RelationText { get; set; } = "";
@@ -153,26 +148,6 @@ public class NpcChatWindowVM : ViewModel
         SkillsText = new TextObject("{=Y7qbwrWE}")
             .SetTextVariable("HERO_NAME", npc.Name)
             .ToString();
-        IsBookmarked = EncyclopediaBookmarkHelper.TryIsBookmarked(npc);
-        RefreshBookmarkHint();
-    }
-
-    private void RefreshBookmarkHint()
-    {
-        string id = IsBookmarked ? "BV5exuPf" : "d8jrv3nA";
-        BookmarkHint = new HintViewModel(new TextObject("{" + "=" + id + "}"));
-        ((ViewModel)this).OnPropertyChangedWithValue(BookmarkHint, nameof(BookmarkHint));
-    }
-
-    public void ExecuteSwitchBookmarkedState()
-    {
-        if (IsBookmarked)
-            EncyclopediaBookmarkHelper.TrySetBookmarked(_npc, add: false);
-        else
-            EncyclopediaBookmarkHelper.TrySetBookmarked(_npc, add: true);
-        IsBookmarked = EncyclopediaBookmarkHelper.TryIsBookmarked(_npc);
-        ((ViewModel)this).OnPropertyChangedWithValue(IsBookmarked, nameof(IsBookmarked));
-        RefreshBookmarkHint();
     }
 
     // ── Populate ──────────────────────────────────────────────────────────

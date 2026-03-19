@@ -3,7 +3,6 @@
     NPC chat = encyclopedia-first shell (SandBox EncyclopediaHeroPage.xml), not the old frame-first layout.
     Root: Encyclopedia.Page.SoundBrush. Row: vanilla hero left strip (370) | conversation column | information column.
     Bindings: NpcChatWindowVM — HeroCharacter, Traits, HeroSkillList, MessageList, RightPanelItems, etc.
-    Bookmark button: syncs with campaign encyclopedia bookmarks (same list as vanilla hero page); chat layer stays until Close.
   -->
   <Constants>
     <Constant Name="EncyLeft.W" Value="370" />
@@ -115,15 +114,6 @@
                     </ListPanel>
                     <Widget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="2" HorizontalAlignment="Right"
                             Sprite="Encyclopedia\divider_vertical"/>
-                    <NavigationScopeTargeter ScopeID="NpcChatHeroBookmarkButtonScope" ScopeParent="..\NpcChatBookmarkButton" ScopeMovements="Horizontal"/>
-                    <ButtonWidget Id="NpcChatBookmarkButton" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="50" SuggestedHeight="50"
-                                  HorizontalAlignment="Left" VerticalAlignment="Top" MarginLeft="5" MarginTop="5" Brush="Encyclopedia.Bookmark.Button"
-                                  Command.Click="ExecuteSwitchBookmarkedState" IsSelected="@IsBookmarked" GamepadNavigationIndex="0">
-                      <Children>
-                        <HintWidget DataSource="{BookmarkHint}" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed"
-                                    Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint"/>
-                      </Children>
-                    </ButtonWidget>
                   </Children>
                 </Widget>
 
