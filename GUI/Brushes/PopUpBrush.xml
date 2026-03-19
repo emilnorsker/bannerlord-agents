@@ -5,55 +5,55 @@
     </Styles>
   </Brush>
 
-  <!-- "Conversation Log" header label — Figma: Font/Body/Body2 12px, #FFE38F -->
+  <!-- "Conversation Log" header label — Figma: 12px +30% = 16 -->
   <Brush Name="Chat.Header.Label">
     <Styles>
-      <Style Name="Default" FontColor="#FFE38FFF" FontSize="12" />
+      <Style Name="Default" FontColor="#FFE38FFF" FontSize="16" />
     </Styles>
   </Brush>
 
-  <!-- NPC name in header — Figma spec: #BBAE92 -->
+  <!-- NPC name in header — Figma spec: 15px +30% = 20 -->
   <Brush Name="Chat.Sender.Name">
     <Styles>
-      <Style Name="Default" FontColor="#BBAE92FF" FontSize="15" />
+      <Style Name="Default" FontColor="#BBAE92FF" FontSize="20" />
     </Styles>
   </Brush>
 
-  <!-- Message body text — Figma spec: #A1A1A1 -->
+  <!-- Message body text — Figma spec: 14px +30% = 18 -->
   <Brush Name="Chat.Body.Text">
     <Styles>
-      <Style Name="Default" FontColor="#A1A1A1FF" FontSize="14" />
+      <Style Name="Default" FontColor="#A1A1A1FF" FontSize="18" />
     </Styles>
   </Brush>
 
-  <!-- Player action text — orange-red italic (Figma: #FF7451, filter2_d) -->
+  <!-- Player action text — orange-red italic: 14px +30% = 18 -->
   <Brush Name="Chat.Action.Text">
     <Styles>
-      <Style Name="Default" FontColor="#FF7451FF" FontSize="14" IsItalic="true" />
+      <Style Name="Default" FontColor="#FF7451FF" FontSize="18" IsItalic="true" />
     </Styles>
   </Brush>
 
-  <!-- Outcome text — warm gold (Figma: #E7C678, filter3_d — "John was attacked...") -->
+  <!-- Outcome text — warm gold: 14px +30% = 18 -->
   <!-- TODO: wire up in ContentSegmentVM outcome pill once IsOutcome segment type is added -->
   <Brush Name="Chat.Outcome.Text">
     <Styles>
-      <Style Name="Default" FontColor="#E7C678FF" FontSize="14" />
+      <Style Name="Default" FontColor="#E7C678FF" FontSize="18" />
     </Styles>
   </Brush>
 
-  <!-- System event line — dimmed, centered -->
+  <!-- System event line — dimmed, centered: 12px +30% = 16 -->
   <!-- TODO: wire up in ChatInterface.xml ItemTemplate once IsEvent segment type is added -->
   <Brush Name="Chat.Event.Text">
     <Styles>
-      <Style Name="Default" FontColor="#787880FF" FontSize="12" />
+      <Style Name="Default" FontColor="#787880FF" FontSize="16" />
     </Styles>
   </Brush>
 
-  <!-- Item grant notification text — purple (Figma: #E1ACEE) -->
+  <!-- Item grant notification text — purple: 13px +30% = 17 -->
   <!-- TODO: wire up in ChatInterface.xml ItemTemplate once IsItemGrant segment type is added -->
   <Brush Name="Chat.ItemGrant.Text">
     <Styles>
-      <Style Name="Default" FontColor="#E1ACEEEF" FontSize="13" />
+      <Style Name="Default" FontColor="#E1ACEEEF" FontSize="17" />
     </Styles>
   </Brush>
 </Brushes>

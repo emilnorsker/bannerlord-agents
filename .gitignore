@@ -5,11 +5,3 @@ logs/
 mod_log.txt
 _game_folder/
 
-# Audit/research docs - not for commit
-RIGHT_PANEL_AUDIT.md
-RIGHT_PANEL_RESEARCH.md
-docs/CHAT_PANEL_CHANGES_REVIEW.md
-docs/CHAT_PANEL_WIREFRAME.md
-docs/CHAT_HARDCORE_REVIEW.md
-docs/OPPOSED_SKILLCHECK_CRITICAL_REVIEW.md
-docs/CHARACTER_DEATH_OVERVIEW.md
