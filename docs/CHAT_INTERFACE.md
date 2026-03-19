@@ -33,6 +33,10 @@ These use other prefabs / layers and must not be confused with NPC chat:
 - **Portrait preload on chat open:** `NpcChatWindowLayer` no longer sets `AIInfluencePortraitWidget.PendingCharacterCode`. The chat prefab uses **`EncyclopediaCharacterTableauWidget`** + `HeroViewModel`, not `AIInfluencePortraitWidget`.
 - **Encyclopedia bookmark button:** Removed from `ChatInterface.xml` and VM; see `UPCOMING_FEATURES.md`.
 
+## Segment VM
+
+- **`ContentSegmentVM`**: single-arg ctor = body speech (Gauntlet `Chat.Body.Text` only). Two-arg ctor `(text, pillTextColor)` = pill (`Brush.FontColor="@TextColor"`). No unused `BackColor` / per-body text color on the VM.
+
 ## Optional follow-ups
 
 - `GUI/Brushes/PopUpBrush.xml` TODOs reference future segment types (`IsEvent`, `IsItemGrant`) in `ChatInterface.xml`; current template only uses **body / pill** (`IsBody` / `IsPill`).

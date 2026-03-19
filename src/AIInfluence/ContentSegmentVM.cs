@@ -4,7 +4,8 @@ namespace AIInfluence;
 
 /// <summary>
 /// One segment within a conversation turn — speech, emote, or action.
-/// Ordered correctly because the list preserves insertion order.
+/// Body lines use <see cref="Text"/> only (Gauntlet uses <c>Chat.Body.Text</c>).
+/// Pills use <see cref="Text"/> + <see cref="TextColor"/> (<c>Brush.FontColor="@TextColor"</c>).
 /// </summary>
 public class ContentSegmentVM : ViewModel
 {
@@ -25,16 +26,18 @@ public class ContentSegmentVM : ViewModel
     }
 
     [DataSourceProperty] public string TextColor { get; set; } = "#E8DCC8FF";
-    [DataSourceProperty] public string BackColor { get; set; } = "#00000000";
-    [DataSourceProperty] public bool IsPill      { get; set; } = false;
-    [DataSourceProperty] public bool IsBody      => !IsPill;
-    // Note: IsPill/IsBody are set only in the constructor — do not mutate after construction.
+    [DataSourceProperty] public bool IsPill { get; set; }
+    [DataSourceProperty] public bool IsBody => !IsPill;
 
-    public ContentSegmentVM(string text, string textColor, string backColor, bool isPill = false)
+    public ContentSegmentVM(string text)
     {
-        Text      = text;
-        TextColor = textColor;
-        BackColor = backColor;
-        IsPill    = isPill;
+        Text = text;
+    }
+
+    public ContentSegmentVM(string text, string pillTextColor)
+    {
+        Text = text;
+        TextColor = pillTextColor;
+        IsPill = true;
     }
 }

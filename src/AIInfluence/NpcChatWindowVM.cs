@@ -369,13 +369,8 @@ public class NpcChatWindowVM : ViewModel
 
     // Matches *text* (complete) or *text at end (streaming); capture is text inside
     private static readonly Regex EmoteRegex = new Regex(@"\*([^*]*)(?:\*|$)", RegexOptions.Compiled);
-    private const string NameColor        = "#C6AC8DFF";
-    private const string SpeechTextColor  = "#E8DCC8FF";
-    private const string NpcBubbleColor   = "#0D1118D0"; // dark blue-grey for NPC speech
-    private const string PlayerBubbleColor = "#000000D0"; // darker for player speech
     private const string EmoteColor           = "#9B59B6FF";  // purple
     private const string ActionColor          = "#FFD700FF";  // golden (fallback)
-    private const string ActionBubbleColor    = "#3D2E1AE8";  // dark gold tint
     private const string MoneyTransferColor   = "#E6B800FF";  // amber gold
     private const string ItemTransferColor    = "#4CAF50FF";  // green
     private const string TroopTransferColor   = "#78909CFF";  // steel blue-grey
@@ -385,7 +380,6 @@ public class NpcChatWindowVM : ViewModel
     private const string WorkshopActionColor  = "#FFB74DFF";  // trade orange
     private const string KingdomActionColor   = "#5C6BC0FF";  // political purple
     private const string RelationMessageColor = "#5B9BD5FF";  // blue
-    private const string RelationBubbleColor  = "#1A2D3DE8";  // dark blue tint
 
     private bool IsPlayerSender(string sender)
     {
@@ -448,13 +442,11 @@ public class NpcChatWindowVM : ViewModel
         string sender  = colonIdx > 0 ? line.Substring(0, colonIdx) : "";
         string content = colonIdx > 0 ? line.Substring(colonIdx + 2) : line;
 
-        bool   isPlayer    = IsPlayerSender(sender);
-        string bubbleColor = isPlayer ? PlayerBubbleColor : NpcBubbleColor;
+        bool isPlayer = IsPlayerSender(sender);
 
         var item = new ChatMessageItemVM
         {
             SenderName  = sender,
-            SenderColor = NameColor,
             TypeTag     = isPlayer ? "" : typeTag,
             TypeTagColor = isPlayer ? "#00000000" : ResolveTypeTagColor(typeTag),
             IsPlayer    = isPlayer
@@ -468,24 +460,24 @@ public class NpcChatWindowVM : ViewModel
             {
                 string speech = content.Substring(pos, m.Index - pos).Trim();
                 if (!string.IsNullOrEmpty(speech))
-                    item.ContentSegments.Add(new ContentSegmentVM(speech, SpeechTextColor, bubbleColor));
+                    item.ContentSegments.Add(new ContentSegmentVM(speech));
             }
             string emoteText = m.Groups[1].Value;
             if (!string.IsNullOrEmpty(emoteText))
-                item.ContentSegments.Add(new ContentSegmentVM(emoteText, EmoteColor, bubbleColor, isPill: true));
+                item.ContentSegments.Add(new ContentSegmentVM(emoteText, EmoteColor));
             pos = m.Index + m.Length;
         }
         if (pos < content.Length)
         {
             string remainder = content.Substring(pos).Trim();
             if (!string.IsNullOrEmpty(remainder))
-                item.ContentSegments.Add(new ContentSegmentVM(remainder, SpeechTextColor, bubbleColor));
+                item.ContentSegments.Add(new ContentSegmentVM(remainder));
         }
 
         if (!string.IsNullOrEmpty(actionSuffix))
-            item.ContentSegments.Add(new ContentSegmentVM(actionSuffix, ActionColor, ActionBubbleColor, isPill: true));
+            item.ContentSegments.Add(new ContentSegmentVM(actionSuffix, ActionColor));
         if (!string.IsNullOrEmpty(relSuffix))
-            item.ContentSegments.Add(new ContentSegmentVM(relSuffix, RelationMessageColor, RelationBubbleColor, isPill: true));
+            item.ContentSegments.Add(new ContentSegmentVM(relSuffix, RelationMessageColor));
 
         return item;
     }
@@ -499,7 +491,7 @@ public class NpcChatWindowVM : ViewModel
         foreach (var segment in parsed.ContentSegments)
             targetItem.ContentSegments.Add(segment);
         if (targetItem.ContentSegments.Count == 0)
-            targetItem.ContentSegments.Add(new ContentSegmentVM("", SpeechTextColor, NpcBubbleColor));
+            targetItem.ContentSegments.Add(new ContentSegmentVM(""));
     }
 
     private const string ActionDelim   = "\n---\n";
@@ -555,34 +547,34 @@ public class NpcChatWindowVM : ViewModel
         return toPlayer ? $"{npcName} gave you {list}" : $"You gave {list} to {npcName}";
     }
 
-    private static IEnumerable<(string text, string textColor, string backColor)> BuildPlayerActionPills(AIResponse r, string npcName)
+    private static IEnumerable<(string text, string textColor)> BuildPlayerActionPills(AIResponse r, string npcName)
     {
         if (r == null) yield break;
         if (r.MoneyTransfer != null && r.MoneyTransfer.Amount != 0 && string.Equals(r.MoneyTransfer.Action, "receive", StringComparison.OrdinalIgnoreCase))
-            yield return ($"• You received {Math.Abs(r.MoneyTransfer.Amount)} gold from {npcName}", MoneyTransferColor, ActionBubbleColor);
+            yield return ($"• You received {Math.Abs(r.MoneyTransfer.Amount)} gold from {npcName}", MoneyTransferColor);
         var takeTransfers = r.ItemTransfers?.Where(t => string.Equals(t.Action, "take", StringComparison.OrdinalIgnoreCase)).ToList();
         if (takeTransfers?.Count > 0)
         {
             var itemNames = takeTransfers.Select(t => $"{ResolveItemName(t.ItemId)} (x{t.Amount})");
-            yield return ($"• You gave {string.Join(", ", itemNames)} to {npcName}", ItemTransferColor, ActionBubbleColor);
+            yield return ($"• You gave {string.Join(", ", itemNames)} to {npcName}", ItemTransferColor);
         }
     }
 
-    private static IEnumerable<(string text, string textColor, string backColor)> BuildNpcActionPills(AIResponse r, NPCContext ctx, string npcName)
+    private static IEnumerable<(string text, string textColor)> BuildNpcActionPills(AIResponse r, NPCContext ctx, string npcName)
     {
         if (r == null) yield break;
         if (r.MoneyTransfer != null && r.MoneyTransfer.Amount != 0 && string.Equals(r.MoneyTransfer.Action, "give", StringComparison.OrdinalIgnoreCase))
-            yield return ($"• {npcName} gave you {Math.Abs(r.MoneyTransfer.Amount)} gold", MoneyTransferColor, ActionBubbleColor);
+            yield return ($"• {npcName} gave you {Math.Abs(r.MoneyTransfer.Amount)} gold", MoneyTransferColor);
         var giveTransfers = r.ItemTransfers?.Where(t => string.Equals(t.Action, "give", StringComparison.OrdinalIgnoreCase)).ToList();
         if (giveTransfers?.Count > 0)
         {
             var itemNames = giveTransfers.Select(t => $"{ResolveItemName(t.ItemId)} (x{t.Amount})");
-            yield return ($"• {npcName} gave you {string.Join(", ", itemNames)}", ItemTransferColor, ActionBubbleColor);
+            yield return ($"• {npcName} gave you {string.Join(", ", itemNames)}", ItemTransferColor);
         }
         if (!string.IsNullOrEmpty(r.QuestAction?.Action))
-            yield return ($"• Quest: {r.QuestAction.Action}", QuestActionColor, ActionBubbleColor);
+            yield return ($"• Quest: {r.QuestAction.Action}", QuestActionColor);
         if (!string.IsNullOrEmpty(r.Decision) && r.Decision != "none" && r.Decision != "none\n")
-            yield return ($"• {r.Decision.Trim()}", ActionColor, ActionBubbleColor);
+            yield return ($"• {r.Decision.Trim()}", ActionColor);
         string techAction = ctx?.LastTechnicalActionForDisplay;
         if (!string.IsNullOrEmpty(techAction) && !techAction.Equals("none", StringComparison.OrdinalIgnoreCase))
         {
@@ -593,29 +585,29 @@ public class NpcChatWindowVM : ViewModel
                 string payload = segs.Length > 1 ? segs[1].Trim() : "";
                 bool isStop = payload.Equals("STOP", StringComparison.OrdinalIgnoreCase);
                 if (isStop)
-                    yield return ($"• Stopped {name}", TechnicalActionColor, ActionBubbleColor);
+                    yield return ($"• Stopped {name}", TechnicalActionColor);
                 else if (name.Equals("follow_player", StringComparison.OrdinalIgnoreCase))
-                    yield return ("• Now following you", TechnicalActionColor, ActionBubbleColor);
+                    yield return ("• Now following you", TechnicalActionColor);
                 else if (name.Equals("return_to_player", StringComparison.OrdinalIgnoreCase))
-                    yield return ("• Returning to you", TechnicalActionColor, ActionBubbleColor);
+                    yield return ("• Returning to you", TechnicalActionColor);
                 else if (name.Equals("go_to_settlement", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(payload))
-                    yield return ($"• Traveling to {payload.Split(':')[0]}", TechnicalActionColor, ActionBubbleColor);
+                    yield return ($"• Traveling to {payload.Split(':')[0]}", TechnicalActionColor);
                 else if (name.Equals("transfer_troops_and_prisoners", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(payload))
-                    yield return ("• " + FormatTroopTransferPill(payload, npcName), TroopTransferColor, ActionBubbleColor);
+                    yield return ("• " + FormatTroopTransferPill(payload, npcName), TroopTransferColor);
                 else if (!string.IsNullOrEmpty(name))
-                    yield return ($"• {name}", TechnicalActionColor, ActionBubbleColor);
+                    yield return ($"• {name}", TechnicalActionColor);
             }
         }
         if (!string.IsNullOrEmpty(r.RomanceIntent) && !r.RomanceIntent.Equals("none", StringComparison.OrdinalIgnoreCase))
         {
             string ri = r.RomanceIntent.Trim().ToLowerInvariant();
             string msg = ri == "flirt" ? "Accepted your flirtation" : ri == "romance" ? "Accepted your courtship" : ri == "proposal" ? "Marriage proposal" : $"Romance: {r.RomanceIntent}";
-            yield return ($"• {msg}", RomanceActionColor, ActionBubbleColor);
+            yield return ($"• {msg}", RomanceActionColor);
         }
         if (!string.IsNullOrEmpty(r.WorkshopAction) && r.WorkshopAction.Equals("sell", StringComparison.OrdinalIgnoreCase))
-            yield return ("• Sold workshop to you", WorkshopActionColor, ActionBubbleColor);
+            yield return ("• Sold workshop to you", WorkshopActionColor);
         if (!string.IsNullOrEmpty(r.KingdomAction) && !r.KingdomAction.Equals("none", StringComparison.OrdinalIgnoreCase))
-            yield return ($"• Kingdom: {r.KingdomAction}", KingdomActionColor, ActionBubbleColor);
+            yield return ($"• Kingdom: {r.KingdomAction}", KingdomActionColor);
     }
 
     // ── Commands ──────────────────────────────────────────────────────────
@@ -669,7 +661,7 @@ public class NpcChatWindowVM : ViewModel
             if (useOpenRouterStreaming)
             {
                 streamingItem = ParseLine($"{npcName}: ", "");
-                streamingItem.ContentSegments.Add(new ContentSegmentVM("", SpeechTextColor, NpcBubbleColor));
+                streamingItem.ContentSegments.Add(new ContentSegmentVM(""));
                 AddNewestMessage(streamingItem);
                 streamPumpStep = () =>
                 {
@@ -761,15 +753,15 @@ public class NpcChatWindowVM : ViewModel
 
                         if (playerPills.Count > 0 && playerMessageItem != null)
                         {
-                            foreach (var (text, textColor, backColor) in playerPills)
-                                playerMessageItem.ContentSegments.Add(new ContentSegmentVM(text, textColor, backColor, true));
+                            foreach (var (text, textColor) in playerPills)
+                                playerMessageItem.ContentSegments.Add(new ContentSegmentVM(text, textColor));
                         }
 
                         var npcItem = ParseLine($"{npcName}: {reply}", tone);
-                        foreach (var (text, textColor, backColor) in npcPills)
-                            npcItem.ContentSegments.Add(new ContentSegmentVM(text, textColor, backColor, true));
+                        foreach (var (text, textColor) in npcPills)
+                            npcItem.ContentSegments.Add(new ContentSegmentVM(text, textColor));
                         if (!string.IsNullOrEmpty(relMsg))
-                            npcItem.ContentSegments.Add(new ContentSegmentVM(relMsg, RelationMessageColor, RelationBubbleColor, true));
+                            npcItem.ContentSegments.Add(new ContentSegmentVM(relMsg, RelationMessageColor));
                         AddNewestMessage(npcItem);
 
                         if (ctx?.ConversationHistory != null)
