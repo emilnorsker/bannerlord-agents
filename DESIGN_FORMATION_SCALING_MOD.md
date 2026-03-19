@@ -342,6 +342,7 @@ for (int i = 0; i < 20; i++)
 ### Phase 6: Battle UI
 - 20-formation UI
 - Deployment screen extension
+- **Formation hotkey selection by type** (not by index) – see §16
 
 ### Phase 7: Reinforcements
 - One formation per wave
@@ -377,3 +378,35 @@ NextFormationId: (PartyBase, CharacterObject) → int  [or derived from max exis
 - Formation patching details: `DESIGN_FORMATION_PATCHING.md`
 - FormationClass: TaleWorlds.Core
 - Team, Formation: TaleWorlds.MountAndBlade
+
+---
+
+## 16. Formation Hotkey Selection (Type-Based)
+
+**Goal:** Remove index-based formation hotkeys (F1 = formation 0, F2 = formation 1, …). Use type-based selection instead.
+
+### 16.1 Hotkey Mapping
+
+| Key | Selection Type | Logic |
+|-----|----------------|-------|
+| 1 | All | `SelectAllFormations()` |
+| 2 | Infantry | Formations where `LogicalClass` ∈ {Infantry, HeavyInfantry} |
+| 3 | Archers | Formations where `LogicalClass` ∈ {Ranged, Skirmisher} |
+| 4 | Horse melee | Formations where `LogicalClass` ∈ {Cavalry, HeavyCavalry, LightCavalry} (melee cav) |
+| 5 | Horse archers | Formations where `LogicalClass` == HorseArcher |
+| 6 | Mixed infantry | Formations with `SecondaryLogicalClasses` containing both infantry and ranged |
+| 7 | Mixed cavalry | Formations with `SecondaryLogicalClasses` containing both cavalry and horse archer |
+| 8 | Bodyguards | Player’s formation: `Team.BodyGuardFormation` (index 9) |
+
+### 16.2 Implementation
+
+- **Patch target:** Mission order UI / hotkey handler that currently calls `SelectFormation(formation)` by index.
+- **Vanilla flow:** `SelectFormation` network message sends `formationIndex`; server selects `FormationsIncludingEmpty.SingleOrDefault(f => f.Index == message.FormationIndex)`.
+- **New flow:** Hotkey handler maps key → selection type (e.g. “Infantry”) → collect matching formations from `Team.FormationsIncludingEmpty` (or `FormationsIncludingSpecialAndEmpty`) → `ClearSelectedFormations()` then `SelectFormation(f)` for each match.
+- **Formation.LogicalClass** and **Formation.SecondaryLogicalClasses** (from `FormationQuerySystem`) determine type.
+- **Bodyguard:** `Team.BodyGuardFormation` (index 9) – player’s personal formation.
+
+### 16.3 Key Bindings
+
+- Reuse existing keys (F1–F8 or D1–D8) from `MissionOrderHotkeyCategory`.
+- Map: `SelectOrder1` / `Group0Hear` → All, `SelectOrder2` / `Group1Hear` → Infantry, etc. (exact mapping TBD from vanilla UI).
