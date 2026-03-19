@@ -57,6 +57,8 @@ Triggers (time, battle, travel, diplomacy, …)
 | **Plot participants** | Roles: mastermind, lieutenant, pawn, target; map to game entities + optional anonymity flags |
 | **Knowledge sync** | Per NPC: which plot **roles** they know about; which **secrets**; which **event ids** in `DynamicEvents` |
 | **Pressure** | Per NPC (or per NPC–plot): small structured block updated by analysis or rules |
+| **Hook** (player- or NPC-held) | First-class leverage object: `id`, `target_hero_id` (or clan), `basis` (`secret_id` and/or `evidence_event_id`), **`strength`** (`weak` / `strong`), optional `decay_campaign_days` or use limits. **Strong** = defensible proof, hard to deny, large relation / diplomatic / coercion range. **Weak** = hearsay, single witness, forged or partial—usable but may **backfire**, be **disputed**, or **burn** on use. Hooks are **not** free-text; the LLM role-plays around **committed** hook state. |
+| **Player knowledge** | Track what the **player** has verified: `PlayerKnownSecretIds`, `PlayerHooks` (owned hooks only). Distinguish **verified secret** (entered ledger by investigation, document, confession, reliable chain) from **rumor** (only `world_info` / unconfirmed events in UI). |
 
 **Attachment to living events** — Prefer `dynamic_events` entries that carry or reference `plot_id`, so intrigue **rises and falls** with the same propagation and diplomacy hooks described in `TECHNICAL_GUIDE.en.md` (`type`, `importance`, `kingdoms_involved`, `spread_speed`, `expiration_campaign_days`, `allows_diplomatic_response`, etc.).
 
@@ -114,12 +116,47 @@ Triggers (time, battle, travel, diplomacy, …)
 | Pass | Input | Output | Commit |
 |------|--------|--------|--------|
 | **A — World beat** | Snapshot + active plots/events + diplomacy context | 0–k structured **event/plot** proposals | Merge into `dynamic_events` / plot ledger after validation |
-| **B — Dialogue** | NPC slice (`KnownSecrets`, `KnownInfo`, `DynamicEvents`, plot obfuscation by role) + pressure | Natural language only | Conversation history only; **no** silent state change unless a separate **explicit** tool/patch path exists |
+| **B — Dialogue** | NPC slice + pressure + **player-owned** hooks/secrets that apply to this interlocutor (same facts the **leverage strip** shows) | Natural language only | Conversation history only; **no** silent state change unless a separate **explicit** tool/patch path exists |
 | **Optional — Propagation narrative** | Edge (A learned event E) | Short “why they heard” string | Debug / flavor; **not** source of truth for propagation rules |
 
 ---
 
-## 10. Reference scenarios (for testing the design)
+## 10. Player-facing interface — hooks, verified secrets, paranoia
+
+**Goal:** The player **learns the mechanics** by seeing **durable game objects** at the moment of talk, and stays **a little paranoid** about context—without dumping internal plot phase names by default.
+
+### 10.1 Conversation header (current interlocutor)
+
+When the player opens dialogue with hero **H**, show a compact **leverage strip** (icons + short labels, tooltips for detail):
+
+| Indicator | When shown | What it teaches |
+|-----------|------------|-----------------|
+| **Verified secret** | `secret_id` ∈ `PlayerKnownSecretIds` and secret **implicates** or **applies to** H (tag, subject, or explicit link) | You hold **truth** usable in negotiation; not the same as tavern gossip. |
+| **Hook (strong)** | Player owns a `Hook` with `target_hero_id == H`, `strength == strong` | High-stakes leverage; system will weight coercion / compliance in prompts and outcomes. |
+| **Hook (weak)** | Same, `strength == weak` | You can push, but **risk** of denial, counter-reveal, or burned hook—UI tooltip says so. |
+| **No hook / no verified secret** | — | Either you have nothing solid on **this** character, or only rumors (see world events / encyclopedia). |
+
+**Copy discipline:** Labels use in-world words where possible (“You have proof of…” / “You could press them on…”); **strong/weak** can appear as **stamina-bar style** or **metal vs rope** metaphor if you want full diegesis, with strength exposed in tooltip.
+
+**Rumor vs secret:** If the player only has a **rumor** (dynamic event or `world_info`, not verified), show **no** verified-secret badge; optional muted “Rumor (unconfirmed)” if you want to teach the distinction without granting mechanical hook power.
+
+### 10.2 Hook list & detail (inventory screen or encyclopedia subpage)
+
+- List all **player-owned hooks**: target name, **basis** one-liner (which secret/event), **strong/weak**, optional expiry.
+- Click → short **mechanical reminder**: what strong vs weak means for **burn risk** and **AI behavior** (one paragraph, not a novel).
+
+### 10.3 MCM
+
+- Toggle: show **hook strength** as explicit words vs purely diegetic.
+- Toggle: show **verified secret** strip in conversation (on by default for learnability).
+
+### 10.4 Paranoia without obscurity
+
+Ambient “who might hear” cues (from the earlier interface concept) **stack** with the strip: the player sees **both** “I have a **weak** hook” and “**Public** setting”—i.e. using it here may be **risky**. Strong hooks might still be **dangerous** socially even if hard to deny.
+
+---
+
+## 11. Reference scenarios (for testing the design)
 
 - **Secret as hook** — Single lord, blackmail phases, escalation to rumor or exposure.
 - **Assassination chain** — Graph with partial knowledge per role; strike tied to travel/camp.
@@ -130,18 +167,20 @@ Use these to validate **phase tables**, **propagation**, and **prompt slices**.
 
 ---
 
-## 11. Phased delivery
+## 12. Phased delivery
 
 1. **Schema + persistence** — Plot records and optional `plot_id` / metadata on dynamic events; migration-safe saves.
-2. **Tick + validation** — Triggers invoke pipeline; only **enum-safe** effects at first.
-3. **Secret–plot links** — Leverage, hook flags, phase unlocks from known secrets.
-4. **LLM Pass A** — Structured world-beat generation wired to existing dynamic event creation path.
-5. **Pressure + Pass B** — Per-NPC pressure updates; dialogue prompts use slices only.
-6. **Polish** — Caps on concurrent plots, MCM intensity, logging and replay checks.
+2. **Hooks + player knowledge** — `PlayerHooks` (with `weak` / `strong`), `PlayerKnownSecretIds`, rules for creating/burning hooks from verified secrets or evidence events.
+3. **Tick + validation** — Triggers invoke pipeline; only **enum-safe** effects at first.
+4. **Secret–plot links** — Leverage, hook flags, phase unlocks from known secrets.
+5. **LLM Pass A** — Structured world-beat generation wired to existing dynamic event creation path.
+6. **Pressure + Pass B** — Per-NPC pressure updates; dialogue prompts use slices only; Pass B receives **player hook/secret context** only when UI shows it (same source of truth).
+7. **Interface** — Conversation leverage strip + hook inventory + MCM toggles.
+8. **Polish** — Caps on concurrent plots, MCM intensity, logging and replay checks.
 
 ---
 
-## 12. Non-goals and risks
+## 13. Non-goals and risks
 
 - **Non-goal** — Fully simulated court politics inside the LLM with no save-backed state.
 - **Risk** — Unbounded LLM freedom → inconsistent saves; mitigated by **patches only** for durable changes.
@@ -149,7 +188,7 @@ Use these to validate **phase tables**, **propagation**, and **prompt slices**.
 
 ---
 
-## 13. Inspirational references (outside the mod)
+## 14. Inspirational references (outside the mod)
 
 - **Crusader Kings III** — Secrets, hooks, schemes as *state*.
 - **Dwarf Fortress** — Long-horizon plots and graphs.
