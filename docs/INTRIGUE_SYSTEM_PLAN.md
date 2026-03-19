@@ -125,9 +125,11 @@ Triggers (time, battle, travel, diplomacy, …)
 
 **Goal:** The player **learns the mechanics** by seeing **durable game objects** at the moment of talk, and stays **a little paranoid** about context—without dumping internal plot phase names by default.
 
-### 10.1 Conversation header (current interlocutor)
+### 10.1 Chat UI — leverage strip (current interlocutor)
 
-When the player opens dialogue with hero **H**, show a compact **leverage strip** (icons + short labels, tooltips for detail):
+**Requirement:** Verified secrets and hooks (**strong** / **weak**) **must** appear on the **same chat surface** the player uses for AI dialogue—not only encyclopedia or inventory. Concretely: extend **`GUI/Prefabs/ChatInterface.xml`** (`ChatInterfaceWindow`), in the **left stat banner** (with `@RelationText` / `@TrustLabel` / `@EmotionLabel`) **and/or** the **center header** (below `@NpcName` / title), so leverage is visible **while typing and reading messages**.
+
+When the player talks to hero **H**, show a compact **leverage strip** there (icons + short labels, tooltips for detail):
 
 | Indicator | When shown | What it teaches |
 |-----------|------------|-----------------|
@@ -175,7 +177,7 @@ Use these to validate **phase tables**, **propagation**, and **prompt slices**.
 4. **Secret–plot links** — Leverage, hook flags, phase unlocks from known secrets.
 5. **LLM Pass A** — Structured world-beat generation wired to existing dynamic event creation path.
 6. **Pressure + Pass B** — Per-NPC pressure updates; dialogue prompts use slices only; Pass B receives **player hook/secret context** only when UI shows it (same source of truth).
-7. **Interface** — Conversation leverage strip + hook inventory + MCM toggles.
+7. **Interface** — **Chat UI** leverage strip in `ChatInterface.xml` (with optional hook inventory page) + MCM toggles.
 8. **Polish** — Caps on concurrent plots, MCM intensity, logging and replay checks.
 
 ---
