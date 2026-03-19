@@ -3,6 +3,7 @@
     NPC chat = encyclopedia-first shell (SandBox EncyclopediaHeroPage.xml), not the old frame-first layout.
     Root: Encyclopedia.Page.SoundBrush. Row: vanilla hero left strip (370) | conversation column | information column.
     Bindings: NpcChatWindowVM — HeroCharacter, Traits, HeroSkillList, MessageList, RightPanelItems, etc.
+    Bookmark button: syncs with campaign encyclopedia bookmarks (same list as vanilla hero page); chat layer stays until Close.
   -->
   <Constants>
     <Constant Name="EncyLeft.W" Value="370" />
