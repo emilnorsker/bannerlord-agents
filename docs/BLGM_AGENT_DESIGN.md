@@ -34,6 +34,14 @@ That does **not** mean blocking on the LLM. Network and inference stay asynchron
 
 ---
 
+## First-order implementation: threading and queue discipline
+
+“Main thread” does **not** mean there is no concurrency. On Bannerlord, **UI, dialogue, and tick callbacks** can still interleave on that thread while **HTTP completions** usually finish on **thread-pool threads**. If the completion handler mutates shared queue state without a thread-safe queue (or equivalent), you race. **Practical rule:** use a **concurrent queue** for pending GM work; **produce** from the async completion path (or any worker); **consume** only from a **known drain site** that already runs each frame on the simulation/UI thread—e.g. **`SubModule.OnApplicationTick` → `AIInfluenceBehavior.Tick`**—not from arbitrary callbacks. Do **not** block the main thread waiting on the network; do **not** run unbounded `CallFunction` batches in a single drain pass if you care about frame time.
+
+**Correlation:** each enqueued batch should carry an id so observations can be matched to the right session when multiple completions are in flight (chat vs world pipeline). Without that, ground-truth text can land on the wrong prompt.
+
+---
+
 ## “Observations” (plain language)
 
 When we say **observations must not be authored by the completion**, we mean something very concrete.
@@ -52,6 +60,8 @@ You can validate those rules in a **local preflight** and return deterministic e
 
 The cleaner long-term approach is: **the active completion path** emits a **structured plan** (command identifier, positional fields, named pairs, explicit “needs quoting” strings). **Your code** serializes that into the exact BLGM line. Then spacing and colon rules are **not** something the weights need to learn; they are **one serializer** you test once. Vendor “structured outputs” / schema-constrained decoding is how you keep the plan parseable; it does not replace server-side policy.
 
+**Backend direction (implementation, not this doc’s POC scope):** the mod currently supports several AI backends; **schema guarantees differ by gateway**. The intended end state is to **standardize on OpenRouter** (or a single provider that exposes reliable JSON Schema / tool-style constraints) for any code path that emits BLGM plans. Trimming legacy backends for those paths belongs in the same bucket as other future implementation work (cf. MissionGM)—not a requirement to solve every adapter on day one.
+
 ---
 
 ## The general program (six layers)
@@ -60,11 +70,11 @@ This is the architecture we converged on. It scales across the whole library wit
 
 **First — inject a structured snapshot.** Your code derives this from `Campaign` (and related objects). For **NPC Chat**, bias the snapshot toward the **current NPC** (and player): their hero id, clan, kingdom role, prisoner state, party. For **World Events**, bias toward **factions, events, and aggregates** the prompt already uses. In both cases the completion must not guess membership or authority; it **reads** the snapshot each request or when state changes. Tooling stacks increasingly separate **LLM-visible context** from **local runtime state**; the snapshot is the bridge you choose to show.
 
-**Second — route intent to a BLGM family using tags and state.** BLGM already organizes commands into families (hero, clan, kingdom, settlement, bandit, caravan, troop, item, query). Maintain a **machine index** of commands enriched with tags: primary entity type, preconditions (`requires_kingdom`, `requires_ruler`, settlement scope, etc.). Filter that index against the snapshot **before** suggesting lines. This generalizes the “clan vs kingdom” confusion: the same pattern applies whenever a verb belongs to settlement vs party vs hero.
+**Second — route intent using a full index plus a hazard index.** BLGM organizes commands into families (hero, clan, kingdom, settlement, bandit, caravan, troop, item, query). Maintain a **machine index** of all commands with tags (primary entity, rough scope). **Separately**, maintain a **curated hazard index**: commands that are often wrong in practice (kingdom policy, ruler-only actions, ownership transfers, diplomacy, mass spawn, destroy/remove). Those entries carry **explicit preconditions** derived from `Hero` / `Clan` / `Kingdom` / settlement APIs—not prose from the wiki. The prompt (or tool text) should steer the completion to **consult the hazard index first** when the task touches those areas; the serializer still validates every line regardless.
 
 **Third — enforce syntax and allowlists locally.** Even with a serializer, keep a gate: allowed prefixes (`gm.` only), max length, rate limits, and “this command is disabled for automation.” Log **schema validation failures** separately from **BLGM execution failures**; they are different bugs.
 
-**Fourth — default to query and help before destructive mutates.** BLGM’s own docs describe a workflow: find entities, verify, modify, confirm. Running a command **without required arguments** is supposed to surface **help**—that should be standard operating procedure when arity is uncertain. This especially reduces bad kingdom- or ruler-scoped calls.
+**Fourth — default to query and help before destructive mutates.** BLGM’s own docs describe a workflow: find entities, verify, modify, confirm. Running a command **without required arguments** is supposed to surface **help**—that should be standard operating procedure when arity is uncertain. We accept **mod-stack risk**: a badly behaved command could theoretically mutate on a “help” probe. Mitigation is **operational**, not formal verification: **log every GM interaction end-to-end** (proposed structured plan, serialized line, raw return string from `CallFunction`, timestamp, completion path id) so a bad probe is diagnosable from `mod_log` or a dedicated GM log file.
 
 **Fifth — execute and append only runtime-returned text as the next context item.** After `CallFunction` (or equivalent), append what the engine actually returned. The **next** call on the same path (or the next message in the thread) must treat that block as ground truth—not as optional flavor text.
 
@@ -88,7 +98,11 @@ Retrieval over the full wiki is **useful after a POC** for rare flags and exampl
 
 ## Accepted risks (for now)
 
-Some kingdom-scoped commands may exist in the catalog while the **player’s character is not authorized** in fiction or in hidden game rules. Help-first and honest error text reduce but do not eliminate that. Accept residual edge cases until telemetry shows otherwise.
+Some kingdom-scoped commands may exist in the catalog while the **player’s character is not authorized** in fiction or in hidden game rules. Help-first, hazard-index preconditions, and honest error text reduce but do not eliminate that. Accept residual edge cases until telemetry shows otherwise.
+
+**Product choice:** we are **not** specifying a separate security / capability matrix (tiers, per-day caps, audit hashes) for an initial version; treat GM as a trusted mod feature like BLGM itself.
+
+**Automated testing:** a full serializer golden suite and mock-`CallFunction` integration grid is **not** a gate for the first delivery; reliance is on **logging**, manual smoke tests, and incremental hardening. Revisit if the surface stabilizes.
 
 ---
 
@@ -97,6 +111,8 @@ Some kingdom-scoped commands may exist in the catalog while the **player’s cha
 **MissionGM** — A separate idea worth exploring later: an operator that runs **during** or **against** mission state (agents, equipment, spawn, scene logic) with the same “plan → execute → observation” discipline, but using **mission-native** APIs rather than campaign console commands. That is **not** part of the current BLGM-on-campaign design; conflating the two early guarantees the wrong abstraction. Settlement-combat LLM completions today are narrative/gameplay-shaped; any world fix they imply should stay **queued until campaign is authoritative again** until a real MissionGM exists.
 
 **Death history (`history_gen`)** and similar **pure prose** paths do not get GM agent access.
+
+**Campaign lifecycle and pending queues** — Behavior when `Campaign.Current` is null, during **save load**, at **mission boundaries**, or on teardown (flush vs cancel vs persist queued GM work) is **out of scope for the initial implementation**. **Future TODO:** define a single policy (e.g. cancel all pending on load; gate `CallFunction` on “campaign ready”; optionally persist queue with save version) before shipping wide.
 
 ---
 
