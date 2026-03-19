@@ -84,18 +84,32 @@ Agent → (PartyBase, CharacterObject, int formationId)
 
 ### 4.2 On Agent Death (Real-Time)
 
-Use `OnAgentRemoved` or equivalent:
+Use `OnAgentRemoved` – **only decrement when `agentState == AgentState.Killed || agentState == AgentState.Unconscious`**.
 
-1. Look up `(party, char, formationId) = agentMap[agent]`.
-2. `effectiveCount = storage[(party, char, formationId)]`.
-3. `effectiveCount -= 1`.
-4. If `effectiveCount < 0.5`:
+Do **not** decrement for:
+- `AgentState.Routed` (fled)
+- Other states (e.g. `Deleted` without being killed)
+
+Fleeing agents leave the battlefield but return to the party; they are not casualties.
+
+**Flow:**
+1. In `OnAgentRemoved`, check `agentState == Killed || agentState == Unconscious`. If not, return (do not decrement).
+2. Look up `(party, char, formationId) = agentMap[agent]`.
+3. `effectiveCount = storage[(party, char, formationId)]`.
+4. `effectiveCount -= 1`.
+5. If `effectiveCount < 0.5`:
    - `roster.AddToCounts(char, -1)`
    - Delete `storage[(party, char, formationId)]`
-   - Remove agent from map (no index shift needed for other agents)
-5. Remove agent from map (whether or not formation was removed).
+6. Remove agent from map.
 
-### 4.3 Sync Rule
+### 4.3 Fleeing Units
+
+- **OnAgentFleeing**: Fires when agent starts fleeing. Do **not** decrement – they survive.
+- **OnAgentRemoved** with `agentState == Routed`: Agent fled off the map. Do **not** decrement.
+- Fleeing agents remain in the formation’s effective count; they return when the battle ends.
+- Visual flee behavior is vanilla (retreat order, running off map).
+
+### 4.4 Sync Rule
 
 When `effectiveCount < 0.5`, treat the formation as dead:
 
@@ -195,6 +209,42 @@ Same style as the upgrade dropdown (e.g. chevron/arrow):
 - Total War style: one formation at a time.
 - Use Bannerlord’s reinforcement system.
 - Each wave = one formation from our storage.
+
+### 8.4 Reinforcement Assignment to Correct Formation
+
+When reinforcements spawn, they must be assigned to the correct formation and tracked for casualties.
+
+**Flow:**
+1. **Battle start**: Build mapping `FormationIndex (10–19) → (PartyBase, CharacterObject, formationId)` for our formations. E.g. FormationIndex 10 = first Levy Spearman formation (formationId 0), FormationIndex 11 = second, etc.
+2. **GetReinforcementAssignments** (or our override): Returns `(origin, formationIndex)` for each reinforcement. Use our formation selection (one formation per wave) and return the correct `formationIndex` (10–19).
+3. **On spawn** (initial + reinforcement): When agent spawns with `formationIndex` 10–19, look up `(party, char, formationId)` from our mapping. Record `Agent → (party, char, formationId)`.
+4. **MissionReinforcementsHelper** patch: Extend `_reinforcementFormationsData[team, formationIndex]` to support formationIndex 10–19 (already in patch list: 8 → 20).
+
+**Reinforcement formation selection:**
+- Pick next formation from our storage (e.g. by formationId or by troop type).
+- Ensure `GetReinforcementAssignments` returns `formationIndex` that matches our mapping.
+- Vanilla `MissionReinforcementsHelper.GetReinforcementAssignments` iterates `FormationsIncludingEmpty` and picks by troop class; after our Team patch, formations 10–19 are included and will be considered.
+
+---
+
+## 8.5 Fleeing and Reinforcement – End-to-End Flow
+
+### Fleeing
+
+1. **During battle**: Units receive retreat order (e.g. when morale breaks). They run toward flee positions / map boundary.
+2. **OnAgentFleeing**: Fires when agent starts fleeing. No casualty decrement.
+3. **Agent leaves map**: May trigger `OnAgentRemoved` with `agentState == Routed`. Do **not** decrement.
+4. **Battle end**: Fleeing agents are counted as survivors. Their `effectiveCount` was never reduced.
+5. **Visual**: Vanilla retreat behavior (MovementOrderRetreat, flee positions). No mod change needed.
+
+### Reinforcement Loading
+
+1. **Wave trigger**: Our logic or vanilla timer triggers next reinforcement wave.
+2. **Formation selection**: Pick next formation from storage (e.g. formationId order, or by troop type). Map to `FormationIndex` 10–19.
+3. **GetReinforcementAssignments**: Return `(origin, formationIndex)` for each troop in the wave. `formationIndex` = our FormationIndex (10–19) for that formation.
+4. **Spawn**: Mission spawns agents. Each agent is assigned to `team.FormationsIncludingEmpty[formationIndex]`.
+5. **Agent mapping**: On spawn, record `Agent → (party, char, formationId)` using our FormationIndex→formationId mapping.
+6. **Subsequent deaths**: Same as initial spawn – `OnAgentRemoved` (Killed/Unconscious only) decrements the correct formation’s effectiveCount.
 
 ---
 
