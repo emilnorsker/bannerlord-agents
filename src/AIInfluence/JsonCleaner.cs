@@ -377,6 +377,8 @@ public static class JsonCleaner
 			"CharacterBackstory" => "character_backstory", 
 			"CharacterSpeechQuirks" => "character_speech_quirks", 
 			"AllowsLettersFromNPC" => "allows_letters", 
+			"SuggestedReplyOne" => "suggested_reply_one",
+			"SuggestedReplyTwo" => "suggested_reply_two",
 			_ => fieldName.ToLower(), 
 		};
 	}

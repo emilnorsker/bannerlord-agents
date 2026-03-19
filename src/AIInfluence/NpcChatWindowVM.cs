@@ -102,7 +102,7 @@ public class NpcChatWindowVM : ViewModel
         PopulateTraitOverlay(npc, context);
         PopulateHistory(context);
         PopulateRightPanel(npc, context);
-        UpdateSuggestedReplies(null);
+        UpdateSuggestedReplies(null, null);
     }
 
     // ── Populate ──────────────────────────────────────────────────────────
@@ -726,7 +726,7 @@ public class NpcChatWindowVM : ViewModel
                         if (!string.IsNullOrEmpty(relMsg))
                             npcItem.ContentSegments.Add(new ContentSegmentVM(relMsg, RelationMessageColor, RelationBubbleColor, true));
                         AddNewestMessage(npcItem);
-                        UpdateSuggestedReplies(reply);
+                        UpdateSuggestedReplies(reply, pendingResponse);
 
                         if (ctx?.ConversationHistory != null)
                         {
@@ -830,11 +830,24 @@ public class NpcChatWindowVM : ViewModel
         ExecuteSendMessage();
     }
 
-    private void UpdateSuggestedReplies(string npcReply)
+    private static string NormalizeSuggestedReply(string rawReply, string fallback)
+    {
+        string text = (rawReply ?? "").Replace('\n', ' ').Replace('\r', ' ').Trim();
+        if (string.IsNullOrWhiteSpace(text)) text = fallback;
+        int end = text.IndexOfAny(new[] { '.', '!', '?' });
+        if (end >= 0) text = text.Substring(0, end + 1);
+        if (text.Length > 120) text = text.Substring(0, 120).TrimEnd();
+        if (!text.EndsWith(".") && !text.EndsWith("!") && !text.EndsWith("?")) text += ".";
+        return text;
+    }
+
+    private void UpdateSuggestedReplies(string npcReply, AIResponse aiResponse)
     {
         string focus = string.IsNullOrWhiteSpace(npcReply) ? "that" : npcReply.Trim();
         if (focus.Length > 36) focus = focus.Substring(0, 36).TrimEnd(' ', '.', ',', ';', ':', '!', '?');
-        SuggestedReplyOneText = $"Can you explain {focus}?";
-        SuggestedReplyTwoText = $"What should I do next about {focus}?";
+        string fallbackOne = $"Can you explain {focus}?";
+        string fallbackTwo = $"What should I do next about {focus}?";
+        SuggestedReplyOneText = NormalizeSuggestedReply(aiResponse?.SuggestedReplyOne, fallbackOne);
+        SuggestedReplyTwoText = NormalizeSuggestedReply(aiResponse?.SuggestedReplyTwo, fallbackTwo);
     }
 }

@@ -96,4 +96,10 @@ public class AIResponse
 
 	[JsonProperty("quest_action")]
 	public QuestActionData QuestAction { get; set; }
+
+	[JsonProperty("suggested_reply_one")]
+	public string SuggestedReplyOne { get; set; }
+
+	[JsonProperty("suggested_reply_two")]
+	public string SuggestedReplyTwo { get; set; }
 }

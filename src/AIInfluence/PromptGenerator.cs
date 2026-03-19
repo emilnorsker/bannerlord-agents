@@ -959,7 +959,7 @@ public static class PromptGenerator
 		obj8[7] = (isMessengerMode ? "" : "- `technical_action`: (string) \"ACTION_NAME\" to start, \"ACTION_NAME:STOP\" to stop. **Omit if no action change.**\n");
 		obj8[8] = ((!isMessengerMode && CanNPCBeKilledThroughRoleplay(npc)) ? "- `character_death`: (object) {\"should_die\": true, \"death_reason\": \"...\", \"killer_string_id\": \"...\", \"opposed_attribute\": \"vigor\"|\"endurance\"|\"control\"|\"cunning\"|\"intelligence\"|\"social\"} for permanent death. Use player's ID if they killed you (e.g., \"lord_1_1\"), null for natural/unknown. **opposed_attribute** REQUIRED when killer is player: ONE attribute that best fits HOW they killed you (vigor=strength/combat, cunning=deception/poison, control=precision, etc). When set, the game rolls dice; if player wins, death occurs; if they lose, you survive. Omit if killer is null. Valid death_reason: lethal attacks, suicide, assassination, natural death, sacrifice. If set, `decision` MUST be 'none'. **Omit if not dying.**\n" : "");
 		obj8[9] = (GlobalSettings<ModSettings>.Instance.PromptEnableQuests ? GetQuestJsonFieldDescription(npc, context, isMessengerMode) : "");
-		obj8[10] = "\n";
+		obj8[10] = (isMessengerMode ? "\n" : "- `suggested_reply_one`, `suggested_reply_two`: (string) Two DIFFERENT single-sentence player replies the player could click/send next. Write from the player's voice to you. Keep each under 120 chars.\n\n");
 		stringBuilder.Append(string.Concat(obj8));
 		if (flag2 || flag3 || flag4)
 		{
@@ -3089,6 +3089,8 @@ public static class PromptGenerator
 		{
 			list.Add("\"tts_instructions\": \"Speak with a neutral and calm tone\"");
 		}
+		list.Add("\"suggested_reply_one\": \"Can we discuss your plan in more detail?\"");
+		list.Add("\"suggested_reply_two\": \"What should I focus on first to help you?\"");
 		return "{" + string.Join(", ", list) + "}";
 	}
 
