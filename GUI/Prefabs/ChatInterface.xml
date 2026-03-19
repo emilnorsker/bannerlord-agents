@@ -208,7 +208,7 @@
                                                     <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                                 Margin="4,2,4,2"
                                                                 Brush="Chat.Body.Text"
-                                                                TextHorizontalAlignment="Left"
+                                                                Brush.TextHorizontalAlignment="Left"
                                                                 Text="@Text" />
                                                   </Children>
                                                 </Widget>
@@ -222,7 +222,7 @@
                                                                 Margin="4,2,4,2"
                                                                 Brush="Chat.Action.Text"
                                                                 Brush.FontColor="@TextColor"
-                                                                TextHorizontalAlignment="Left"
+                                                                Brush.TextHorizontalAlignment="Left"
                                                                 Text="@Text" />
                                                   </Children>
                                                 </Widget>
@@ -268,7 +268,7 @@
                                                     <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                                 Margin="4,2,4,2"
                                                                 Brush="Chat.Body.Text"
-                                                                TextHorizontalAlignment="Right"
+                                                                Brush.TextHorizontalAlignment="Right"
                                                                 Text="@Text" />
                                                   </Children>
                                                 </Widget>
@@ -282,7 +282,7 @@
                                                                 Margin="4,2,4,2"
                                                                 Brush="Chat.Action.Text"
                                                                 Brush.FontColor="@TextColor"
-                                                                TextHorizontalAlignment="Right"
+                                                                Brush.TextHorizontalAlignment="Right"
                                                                 Text="@Text" />
                                                   </Children>
                                                 </Widget>

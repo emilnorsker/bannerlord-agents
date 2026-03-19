@@ -92,7 +92,21 @@ public enum HorizontalAlignment
 
 Uninitialized enum fields default to 0 (`Left`). XML/prefab parsing may override this.
 
-## 5. Fix rationale
+## 5. TextWidget/RichTextWidget — Brush wins over widget attribute
+
+**File:** `TaleWorlds.GauntletUI.BaseTypes/TextWidget.cs` (decompiled)
+
+```csharp
+protected void RefreshTextParameters()
+{
+    _text.HorizontalAlignment = base.ReadOnlyBrush.TextHorizontalAlignment;
+    // ...
+}
+```
+
+**Implication:** Text alignment comes from the brush, not from a widget attribute. Use `Brush.TextHorizontalAlignment="Left"` or `Brush.TextHorizontalAlignment="Right"` on the TextWidget to override the brush default.
+
+## 6. Fix rationale
 
 The ContentSegments `ItemTemplate` root had `WidthSizePolicy="CoverChildren"`:
 - Child measured to content width.
@@ -103,4 +117,15 @@ Changing to `WidthSizePolicy="StretchToParent"`:
 - Child gets full row width from the measure spec.
 - `MeasuredSize.X` = full width.
 - `Widget.SetLayout`: for Left, `Left = left` and `Size.X = MeasuredSize.X` → child spans full width.
-- Inner `TextWidget` with `TextHorizontalAlignment="Left"` or `"Right"` then aligns text within that full-width area.
+- Inner `TextWidget` with `Brush.TextHorizontalAlignment="Left"` or `"Right"` then aligns text within that full-width area.
+
+## Checklist: Keep NPC left, Player right
+
+| Layer | NPC (left) | Player (right) |
+|-------|------------|----------------|
+| `ListPanel` | `HorizontalAlignment="Left"` | `HorizontalAlignment="Right"` |
+| ContentSegments `ItemTemplate` root | `WidthSizePolicy="StretchToParent"` | `WidthSizePolicy="StretchToParent"` |
+| Body/pill container | `HorizontalAlignment="Left"` | `HorizontalAlignment="Right"` |
+| `TextWidget` | `Brush.TextHorizontalAlignment="Left"` | `Brush.TextHorizontalAlignment="Right"` |
+
+The brush must be overridden: `TextWidget` uses `ReadOnlyBrush.TextHorizontalAlignment`, so the widget attribute must be `Brush.TextHorizontalAlignment="Left"` (not `TextHorizontalAlignment="Left"`).
