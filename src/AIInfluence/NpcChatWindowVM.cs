@@ -193,11 +193,13 @@ public class NpcChatWindowVM : ViewModel
         const string headerMuted = "#888888FF";
         const string questGold = "#D0A96BFF";
         InfoSections.Clear();
-        InfoSections.Add(BuildNpcPartySection(npc));
-        InfoSections.Add(BuildQuestSection(context, headerMuted, questGold));
-        InfoSections.Add(BuildWorldEventsSection(headerMuted));
-        InfoSections.Add(BuildWhatWeKnowSection(npc, context, headerMuted));
+        // InfoList uses VerticalBottomToTop: first Add = bottom of scroll, last Add = top. Add in reverse so
+        // reading top→bottom is NPC party → Quests → World events → What we know → Character.
         InfoSections.Add(BuildCharacterSection(npc, context));
+        InfoSections.Add(BuildWhatWeKnowSection(npc, context, headerMuted));
+        InfoSections.Add(BuildWorldEventsSection(headerMuted));
+        InfoSections.Add(BuildQuestSection(context, headerMuted, questGold));
+        InfoSections.Add(BuildNpcPartySection(npc));
     }
 
     private static InfoSectionVM BuildNpcPartySection(Hero npc)
@@ -220,6 +222,7 @@ public class NpcChatWindowVM : ViewModel
         section.PartyFoodText = NpcPartyFoodSupply.FormatNarrative(days, leaderName);
         section.PartyFoodColor = col;
         section.ShowPartyFood = true;
+        section.HasStandardTextLines = false;
         return section;
     }
 
@@ -248,6 +251,18 @@ public class NpcChatWindowVM : ViewModel
         return all.GroupBy(x => x.quest.QuestId).Select(g => { var f = g.First(); return f.formatter(f.quest); }).ToList();
     }
 
+    /// <summary>Show title + description when both exist (avoids dropping the body when title is non-empty).</summary>
+    private static string FormatWorldEventDisplayText(DynamicEvent e)
+    {
+        if (e == null) return "";
+        string t = (e.Title ?? "").Trim();
+        string d = (e.Description ?? "").Trim();
+        if (string.IsNullOrEmpty(t)) return d;
+        if (string.IsNullOrEmpty(d)) return t;
+        if (d.StartsWith(t, StringComparison.OrdinalIgnoreCase)) return d;
+        return $"{t} — {d}";
+    }
+
     private InfoSectionVM BuildWorldEventsSection(string headerMuted)
     {
         var section = new InfoSectionVM { HeaderText = "World events" };
@@ -255,7 +270,7 @@ public class NpcChatWindowVM : ViewModel
         {
             foreach (var e in GetMergedEvents().OrderByDescending(ev => ev.CreationCampaignDays).Take(5))
             {
-                string text = string.IsNullOrWhiteSpace(e.Title) ? e.Description : e.Title;
+                string text = FormatWorldEventDisplayText(e);
                 if (string.IsNullOrWhiteSpace(text))
                     continue;
                 string type = e.Type;

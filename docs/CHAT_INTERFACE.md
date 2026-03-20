@@ -26,7 +26,7 @@ This module exposes **one** in-game Gauntlet conversation UI for AI NPC chat.
 | Title underline | `Widget` | — | `BlankWhiteSquare_9` `!SepColor` |
 | Scroll | `ScrollablePanel` `InfoScroll` | `ClipRect` / `InnerPanel` → `InfoRect\InfoList` | Vertical scrollbar `InfoScrollbar` |
 | Clip | `Widget` `InfoRect` | — | `ClipContents="true"` |
-| **Section list** | `NavigatableListPanel` `InfoList` | `DataSource="{InfoSections}"` | **`StackLayout.LayoutMethod="VerticalBottomToTop"`** (same stacking direction as center `MsgList`). |
+| **Section list** | `NavigatableListPanel` `InfoList` | `DataSource="{InfoSections}"` | **`VerticalBottomToTop`**: first VM in the list sits at the **bottom** of the scroll, last at the **top**. `RebuildInfoPanelSections` adds sections so **top→bottom** reads: NPC party → Quests → World events → What we know → Character. |
 | Section row (template) | `Widget` | — | One per `InfoSectionVM` |
 | Section header | `ButtonWidget` | `Command.Click="ExecuteToggle"` on `InfoSectionVM` | `Encyclopedia.TopBanner` + `Color="#0F141FFF"` |
 | Header row layout | `ListPanel` | — | `HorizontalLeftToRight` |
