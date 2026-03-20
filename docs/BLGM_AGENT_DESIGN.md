@@ -130,7 +130,7 @@ Some kingdom-scoped commands may exist in the catalog while the **player’s cha
 
 `SubModule.xml` lists **Bannerlord.GameMaster** in `DependedModules` with `LoadBeforeThis` so `gm.*` commands exist before AIInfluence runs. Players must install [Bannerlord.GameMaster](https://github.com/SolWayward/Bannerlord.GameMaster) alongside this mod.
 
-**Compile-time:** `AIInfluence.csproj` references `ref/Bannerlord.GameMaster-v1.3.14.11/Bannerlord.GameMaster.dll` (from release **v1.3.14.11**) with `<Private>false</Private>` so the runtime DLL still comes from the player’s **Modules** folder, not a duplicate copy in AIInfluence output.
+**Compile-time:** `AIInfluence.csproj` references `ref/Bannerlord.GameMaster-v1.3.14.11/Bannerlord.GameMaster.dll` (from release **v1.3.14.11**; **DLL/XML are gitignored** — copy locally or use the **`random_logs`** branch archive) with `<Private>false</Private>` so the runtime DLL still comes from the player’s **Modules** folder, not a duplicate copy in AIInfluence output.
 
 ---
 

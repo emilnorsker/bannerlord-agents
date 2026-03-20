@@ -1,9 +1,11 @@
 # Bannerlord.GameMaster reference assembly (compile-time)
 
+**These binaries are not committed to `main` / feature branches.** Copy them locally to build:
+
 - **Version:** v1.3.14.11  
 - **Source:** [GitHub release zip](https://github.com/SolWayward/Bannerlord.GameMaster/releases/download/v1.3.14.11/Bannerlord.GameMaster-v1.3.14.11.zip)  
-- **Extracted:** `Bannerlord.GameMaster/bin/Win64_Shipping_Client/Bannerlord.GameMaster.dll` (+ `.xml` for IDE docs)
+- **Extract:** `Bannerlord.GameMaster/bin/Win64_Shipping_Client/Bannerlord.GameMaster.dll` and `.xml` into **this folder** next to this README.
 
-`AIInfluence.csproj` references this DLL with `<Private>false</Private>` so the game still loads the mod’s own copy from the **Modules** folder at runtime; this copy is only for **building** against BLGM’s public API.
+**Archived copies** (same paths) live on the **`random_logs`** branch for team reference — not for shipping in application repos.
 
-To refresh after a new BLGM release, replace the DLL/XML in this folder and update the path / `SubModule.xml` dependency notes if the module id changes.
+`AIInfluence.csproj` references `../ref/Bannerlord.GameMaster-v1.3.14.11/Bannerlord.GameMaster.dll` with `<Private>false</Private>` so the **game** still loads BLGM from the player’s **Modules** folder at runtime.

@@ -5,3 +5,7 @@ logs/
 mod_log.txt
 _game_folder/
 
+# Bannerlord.GameMaster compile-time refs (do not commit binaries — see ref/.../README.md and random_logs branch)
+ref/Bannerlord.GameMaster-v1.3.14.11/*.dll
+ref/Bannerlord.GameMaster-v1.3.14.11/*.xml
+
