@@ -9,9 +9,10 @@ This module exposes **one** in-game Gauntlet conversation UI for AI NPC chat.
 | `GUI/Prefabs/ChatInterface.xml` | Gauntlet prefab (`Window` id `ChatInterfaceWindow`). Encyclopedia-style shell + custom message list / pills / input. |
 | `NpcChatWindowLayer` | `GauntletLayer` that loads movie name **`ChatInterface`**. |
 | `NpcChatWindowManager` | Show / close / `IsOpen`; only owner of the layer. |
-| `NpcChatWindowVM` | Root datasource: hero strip, `MessageList`, `RightPanelItems`, commands. |
+| `NpcChatWindowVM` | Root datasource: hero strip, `MessageList`, `InfoSections` (collapsible blocks), commands. |
 | `ChatMessageItemVM` / `ContentSegmentVM` | Per-turn rows and speech / pill segments. |
-| `TextItemVM` | Right “Information” column lines. |
+| `TextItemVM` | Lines inside each `InfoSectionVM` (`TextLines`). |
+| `InfoSectionVM` / `PartyTroopRowVM` | Collapsible right-panel sections; party rows use `InventoryImageIdentifierWidget` + formation label + count. |
 
 ## Entry points
 

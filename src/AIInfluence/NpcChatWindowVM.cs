@@ -9,6 +9,7 @@ using AIInfluence.Services;
 using MCM.Abstractions.Base.Global;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.CharacterDevelopment;
+using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Extensions;
 using TaleWorlds.CampaignSystem.ViewModelCollection;
 using TaleWorlds.CampaignSystem.ViewModelCollection.Encyclopedia.Items;
@@ -78,12 +79,8 @@ public class NpcChatWindowVM : ViewModel
         set { }
     }
 
-    // ── Right panel – flat list, section headers included as items ────────
-    [DataSourceProperty] public MBBindingList<TextItemVM> RightPanelItems { get; } = new MBBindingList<TextItemVM>();
-
-    /// <summary>Index into RightPanelItems where the refreshable section (QUEST + CHARACTER) begins.
-    /// RefreshCharacterSection removes items from this index onwards and re-adds them.</summary>
-    private int _characterSectionStartIndex;
+    // ── Right panel – collapsible sections (clan-style) + NPC party strip ──
+    [DataSourceProperty] public MBBindingList<InfoSectionVM> InfoSections { get; } = new MBBindingList<InfoSectionVM>();
 
     private void AddNewestMessage(ChatMessageItemVM item) => MessageList.Add(item);
 
@@ -189,86 +186,130 @@ public class NpcChatWindowVM : ViewModel
             AddNewestMessage(ParseLine(line));
     }
 
-    private void PopulateRightPanel(Hero npc, NPCContext context)
-    {
-        const string Header = "#888888FF";
+    private void PopulateRightPanel(Hero npc, NPCContext context) => RebuildInfoPanelSections(npc, context);
 
-        RightPanelItems.Add(new TextItemVM("WORLD EVENTS", Header));
+    private void RebuildInfoPanelSections(Hero npc, NPCContext context)
+    {
+        const string headerMuted = "#888888FF";
+        const string questGold = "#D0A96BFF";
+        InfoSections.Clear();
+        InfoSections.Add(BuildNpcPartySection(npc));
+        InfoSections.Add(BuildQuestSection(context, headerMuted, questGold));
+        InfoSections.Add(BuildWorldEventsSection(headerMuted));
+        InfoSections.Add(BuildWhatWeKnowSection(npc, context, headerMuted));
+        InfoSections.Add(BuildCharacterSection(npc, context));
+    }
+
+    private static InfoSectionVM BuildNpcPartySection(Hero npc)
+    {
+        var section = new InfoSectionVM { HeaderText = "NPC party info" };
+        MobileParty party = npc.PartyBelongedTo;
+        if (party == null)
+        {
+            section.TextLines.Add(new TextItemVM("Not in a party on the map.", "#888888FF"));
+            section.HasTroopRows = false;
+            section.ShowPartyFood = false;
+            return section;
+        }
+        foreach (var row in PartyTroopFormationHelper.AggregateTroopFormations(party))
+            section.TroopRows.Add(new PartyTroopRowVM(row.formation, row.count, row.sample));
+        section.HasTroopRows = section.TroopRows.Count > 0;
+        float days = party.GetNumDaysForFoodToLast();
+        var (_, col) = NpcPartyFoodSupply.Classify(days);
+        section.PartyFoodText = NpcPartyFoodSupply.FormatLine(days);
+        section.PartyFoodColor = col;
+        section.ShowPartyFood = true;
+        return section;
+    }
+
+    private static InfoSectionVM BuildQuestSection(NPCContext context, string headerMuted, string questGold)
+    {
+        var section = new InfoSectionVM { HeaderText = "Quests" };
+        List<string> lines = CollectQuestLines(context);
+        if (lines.Count == 0)
+            section.TextLines.Add(new TextItemVM("• No active quest with this character", headerMuted));
+        else
+            foreach (string line in lines)
+                section.TextLines.Add(new TextItemVM(line, questGold));
+        return section;
+    }
+
+    private static List<string> CollectQuestLines(NPCContext context)
+    {
+        if (context == null)
+            return new List<string>();
+        var questSources = new (IEnumerable<AIQuestInfo> source, Func<AIQuestInfo, string> format)[]
+        {
+            (OrEmpty(context.ActiveAIQuests), FormatActiveQuestLine),
+            (OrEmpty(context.IncomingAIQuests), FormatIncomingQuestLine)
+        };
+        var all = questSources.SelectMany(s => s.source.Where(IsValidQuest).Select(q => (quest: q, formatter: s.format)));
+        return all.GroupBy(x => x.quest.QuestId).Select(g => { var f = g.First(); return f.formatter(f.quest); }).ToList();
+    }
+
+    private InfoSectionVM BuildWorldEventsSection(string headerMuted)
+    {
+        var section = new InfoSectionVM { HeaderText = "World events" };
         try
         {
-            var events = GetMergedEvents().OrderByDescending(e => e.CreationCampaignDays).Take(5);
-            foreach (var e in events)
+            foreach (var e in GetMergedEvents().OrderByDescending(ev => ev.CreationCampaignDays).Take(5))
             {
                 string text = string.IsNullOrWhiteSpace(e.Title) ? e.Description : e.Title;
                 if (!string.IsNullOrWhiteSpace(text))
-                    RightPanelItems.Add(new TextItemVM("• " + text));
+                    section.TextLines.Add(new TextItemVM("• " + text));
             }
         }
         catch (Exception ex)
         {
-            AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] PopulateRightPanel DynamicEvents failed: " + ex.Message);
+            AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] BuildWorldEventsSection failed: " + ex.Message);
         }
+        if (section.TextLines.Count == 0)
+            section.TextLines.Add(new TextItemVM("• None", headerMuted));
+        return section;
+    }
 
-        RightPanelItems.Add(new TextItemVM(" ", "#00000000"));
-        RightPanelItems.Add(new TextItemVM("WHAT WE KNOW", Header));
-        bool hasWhatWeKnow = false;
+    private InfoSectionVM BuildWhatWeKnowSection(Hero npc, NPCContext context, string headerMuted)
+    {
+        var section = new InfoSectionVM { HeaderText = "What we know" };
+        bool any = false;
         if (!string.IsNullOrWhiteSpace(context?.AIGeneratedPersonality))
         {
-            RightPanelItems.Add(new TextItemVM("• " + context.AIGeneratedPersonality));
-            hasWhatWeKnow = true;
+            section.TextLines.Add(new TextItemVM("• " + context.AIGeneratedPersonality));
+            any = true;
         }
         foreach (string q in context?.Quirks ?? new List<string>())
         {
             if (!string.IsNullOrWhiteSpace(q))
             {
-                RightPanelItems.Add(new TextItemVM("• " + q));
-                hasWhatWeKnow = true;
+                section.TextLines.Add(new TextItemVM("• " + q));
+                any = true;
             }
         }
         if (!string.IsNullOrWhiteSpace(context?.AIGeneratedSpeechQuirks))
         {
-            RightPanelItems.Add(new TextItemVM("• " + context.AIGeneratedSpeechQuirks));
-            hasWhatWeKnow = true;
+            section.TextLines.Add(new TextItemVM("• " + context.AIGeneratedSpeechQuirks));
+            any = true;
         }
         foreach (var info in ResolveKnownInfo(context, npc))
         {
-            RightPanelItems.Add(new TextItemVM("• " + info));
-            hasWhatWeKnow = true;
+            section.TextLines.Add(new TextItemVM("• " + info));
+            any = true;
         }
-        if (!hasWhatWeKnow)
-            RightPanelItems.Add(new TextItemVM("• Personality not yet discovered", "#888888FF"));
-
-        RightPanelItems.Add(new TextItemVM(" ", "#00000000"));
-        _characterSectionStartIndex = RightPanelItems.Count;
-        AddQuestSectionItems(context);
-        AddCharacterSectionItems(npc, context);
+        if (!any)
+            section.TextLines.Add(new TextItemVM("• Personality not yet discovered", headerMuted));
+        return section;
     }
 
-    /// <summary>Adds QUEST section to RightPanelItems. Builds quest lines first, then adds header + content,
-    /// so a throw during build does not leave a partial QUEST section.</summary>
-    private void AddQuestSectionItems(NPCContext context)
+    private static InfoSectionVM BuildCharacterSection(Hero npc, NPCContext context)
     {
-        const string Header = "#888888FF";
-        const string QuestColor = "#D0A96BFF";
-        List<string> lines;
-        if (context == null)
-            lines = new List<string>();
-        else
-        {
-            var questSources = new (IEnumerable<AIQuestInfo> source, Func<AIQuestInfo, string> format)[]
-            {
-                (OrEmpty(context.ActiveAIQuests), FormatActiveQuestLine),
-                (OrEmpty(context.IncomingAIQuests), FormatIncomingQuestLine)
-            };
-            var all = questSources.SelectMany(s => s.source.Where(IsValidQuest).Select(q => (quest: q, formatter: s.format)));
-            lines = all.GroupBy(x => x.quest.QuestId).Select(g => { var f = g.First(); return f.formatter(f.quest); }).ToList();
-        }
-        RightPanelItems.Add(new TextItemVM("QUEST", Header));
-        if (lines.Count == 0)
-            RightPanelItems.Add(new TextItemVM("• No active quest with this character", Header));
-        else
-            foreach (var line in lines)
-                RightPanelItems.Add(new TextItemVM(line, QuestColor));
+        var section = new InfoSectionVM { HeaderText = "Character" };
+        int rel = Hero.MainHero != null ? (int)npc.GetRelation(Hero.MainHero) : 0;
+        section.TextLines.Add(new TextItemVM($"Relation: {rel:+#;-#;0}", rel >= 0 ? "#6FCF6FFF" : "#CF6F6FFF"));
+        section.TextLines.Add(new TextItemVM($"Trust: {(context?.TrustLevel ?? 0f) * 100f:F0}%"));
+        section.TextLines.Add(new TextItemVM($"Interactions: {context?.InteractionCount ?? 0}"));
+        if (!string.IsNullOrWhiteSpace(context?.EmotionalState?.Mood))
+            section.TextLines.Add(new TextItemVM($"Mood: {context.EmotionalState.Mood}"));
+        return section;
     }
 
     private static IEnumerable<AIQuestInfo> OrEmpty(IList<AIQuestInfo> list) => list ?? Enumerable.Empty<AIQuestInfo>();
@@ -336,32 +377,15 @@ public class NpcChatWindowVM : ViewModel
         return merged;
     }
 
-    private void AddCharacterSectionItems(Hero npc, NPCContext context)
-    {
-        const string Header = "#888888FF";
-        RightPanelItems.Add(new TextItemVM("CHARACTER", Header));
-        int rel = Hero.MainHero != null ? (int)npc.GetRelation(Hero.MainHero) : 0;
-        RightPanelItems.Add(new TextItemVM($"Relation: {rel:+#;-#;0}", rel >= 0 ? "#6FCF6FFF" : "#CF6F6FFF"));
-        RightPanelItems.Add(new TextItemVM($"Trust: {(context?.TrustLevel ?? 0f) * 100f:F0}%"));
-        RightPanelItems.Add(new TextItemVM($"Interactions: {context?.InteractionCount ?? 0}"));
-        if (!string.IsNullOrWhiteSpace(context?.EmotionalState?.Mood))
-            RightPanelItems.Add(new TextItemVM($"Mood: {context.EmotionalState.Mood}"));
-    }
-
-    /// <summary>Removes items from _characterSectionStartIndex onwards and re-adds QUEST + CHARACTER sections.</summary>
     private void RefreshCharacterSection(Hero npc, NPCContext context)
     {
-        while (RightPanelItems.Count > _characterSectionStartIndex)
-            RightPanelItems.RemoveAt(RightPanelItems.Count - 1);
         try
         {
-            AddQuestSectionItems(context);
-            AddCharacterSectionItems(npc, context);
+            RebuildInfoPanelSections(npc, context);
         }
         catch (Exception ex)
         {
             AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] RefreshCharacterSection failed: " + ex.Message);
-            try { AddCharacterSectionItems(npc, context); } catch (Exception ex2) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] RefreshCharacterSection fallback failed: " + ex2.Message); }
         }
     }
 
