@@ -235,6 +235,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			LogMessage("[SEND_AI_REQUEST] Отправляем запрос типа '" + requestType + "' к ИИ backend '" + backend + "'");
 			LogMessage(string.Format("[SEND_AI_REQUEST] Длина промта: {0} символов{1}", prompt.Length, (cachePrefixLength > 0) ? $", кэш-префикс: {cachePrefixLength}" : ""));
+			prompt = GameMasterPromptAppendix.MaybeAppendForBackendRequest(prompt, requestType, backend);
 			string response = await AIClient.GetRawTextResponseWithBackend(prompt, backend, cachePrefixLength);
 			LogMessage($"[SEND_AI_REQUEST] Получен ответ от ИИ для '{requestType}': {response?.Length ?? 0} символов");
 			if (string.IsNullOrEmpty(response))
@@ -2803,6 +2804,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			prompt = PromptGenerator.GeneratePrompt(npc, context);
 		}
+		ModSettings modSettingsGmNpc = GlobalSettings<ModSettings>.Instance;
+		if (modSettingsGmNpc != null && modSettingsGmNpc.GameMasterNpcChatBlgmEnabled && string.Equals(modSettingsGmNpc.AIBackend?.SelectedValue, "OpenRouter", StringComparison.OrdinalIgnoreCase))
+		{
+			prompt += GameMasterPromptAppendix.NpcChatBlgmInstructions(npc, context);
+		}
 		LogMessage("[PROMPT] For " + npcName + ": " + prompt);
 		context.LastInteractionTime = CampaignTime.Now;
 		string aiResponse = null;
@@ -2892,6 +2898,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				Decision = "none"
 			};
 		}
+		GameMasterPlanExecutor.TryEnqueueFromNpcChat(aiResult.BlgmPlan, context.StringId, npc, GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue);
 		if (!string.IsNullOrEmpty(aiResult.RomanceIntent) && aiResult.RomanceIntent != "none")
 		{
 			CampaignTime now = CampaignTime.Now;
@@ -3318,6 +3325,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		context.PendingRelationChange = null;
 		context.PendingLiePenalty = null;
 		string prompt = PromptGenerator.GeneratePrompt(npc, context);
+		ModSettings modSettingsGmNpcChat = GlobalSettings<ModSettings>.Instance;
+		if (modSettingsGmNpcChat != null && modSettingsGmNpcChat.GameMasterNpcChatBlgmEnabled && string.Equals(modSettingsGmNpcChat.AIBackend?.SelectedValue, "OpenRouter", StringComparison.OrdinalIgnoreCase))
+		{
+			prompt += GameMasterPromptAppendix.NpcChatBlgmInstructions(npc, context);
+		}
 		StringBuilder streamJsonBuilder = (onPartialResponse == null) ? null : new StringBuilder();
 		string lastStreamPreview = "";
 		Action<string> streamCallback = (onPartialResponse == null) ? null : (Action<string>)delegate(string streamDelta)
@@ -3377,6 +3389,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 		if (aiResult == null)
 			return "";
+		GameMasterPlanExecutor.TryEnqueueFromNpcChat(aiResult.BlgmPlan, context.StringId, npc, GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue);
 		string reply = aiResult.Response ?? "";
 		context.LastInteractionTime = CampaignTime.Now;
 		context.InteractionCount++;

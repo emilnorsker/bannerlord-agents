@@ -2476,6 +2476,11 @@ public class DynamicEventsGenerator
 			text = text.Trim();
 			DynamicEventsResponse dynamicEventsResponse = JsonConvert.DeserializeObject<DynamicEventsResponse>(text);
 			DynamicEventsLogger.Instance.Log($"[DYNAMIC_EVENTS_GEN] Successfully parsed {(dynamicEventsResponse?.Events?.Count).GetValueOrDefault()} events from AI response");
+			if (dynamicEventsResponse?.BlgmPlan != null)
+			{
+				string dynBackend = GlobalSettings<ModSettings>.Instance?.DynamicEventsAIBackend?.SelectedValue ?? "";
+				GameMasterPlanExecutor.TryEnqueueFromDynamicEvents(dynamicEventsResponse.BlgmPlan, "dyn_" + DateTime.UtcNow.Ticks, dynBackend);
+			}
 			return dynamicEventsResponse;
 		}
 		catch (Exception ex)

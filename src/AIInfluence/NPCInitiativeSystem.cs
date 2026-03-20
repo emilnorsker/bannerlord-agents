@@ -970,6 +970,10 @@ public class NPCInitiativeSystem
 			}
 			string cleanedResponse = JsonCleaner.CleanJsonResponse(aiResponse);
 			AIResponse response = JsonConvert.DeserializeObject<AIResponse>(cleanedResponse);
+			if (response != null)
+			{
+				GameMasterPlanExecutor.TryEnqueueFromNpcChat(response.BlgmPlan, request.Context?.StringId ?? "", request.NPC, GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue);
+			}
 			string message = response?.Response ?? "The messenger failed to deliver the message.";
 			message = UnescapeFormatting(message);
 			request.Context.LastAIResponseJson = cleanedResponse;
@@ -1093,18 +1097,28 @@ public class NPCInitiativeSystem
 		}
 	}
 
+	private static string AppendGmNpcBlgmInstructionsIfEnabled(string prompt, Hero npc, NPCContext context)
+	{
+		ModSettings modSettings = GlobalSettings<ModSettings>.Instance;
+		if (modSettings?.GameMasterNpcChatBlgmEnabled != true || !string.Equals(modSettings.AIBackend?.SelectedValue, "OpenRouter", StringComparison.OrdinalIgnoreCase))
+		{
+			return prompt;
+		}
+		return prompt + GameMasterPromptAppendix.NpcChatBlgmInstructions(npc, context);
+	}
+
 	private string GenerateMessengerPrompt(Hero npc, NPCContext context)
 	{
 		string text = PromptGenerator.GeneratePrompt(npc, context, false, isMessengerMode: true);
 		string text2 = "\n\n=== SPECIAL SITUATION: YOU INITIATED CONTACT ===\nYou decided to reach out to this person by sending them a messenger with a written message.\nIMPORTANT: This is a WRITTEN MESSAGE, not a live conversation. Do NOT use **asterisks** for actions.\nCRITICAL: You are SENDING a message TO the player.\nDo NOT mention receiving any letter or message from them - you initiated this contact yourself.\n\n**CRITICAL INSTRUCTIONS:**\n- Pay attention to your recent conversations with the player (check your conversation history above)\n- You can write about recent events, your relationship, current situation, or anything relevant\n- Be specific and personal - avoid generic greetings\n- DO NOT repeat topics from your previous conversations\n- Make this message feel natural and motivated by recent events or your relationship\n- Keep the tone appropriate to your relationship (friendly/romantic/business-like/concerned)\n" + $"- Your message should be at least {GlobalSettings<ModSettings>.Instance.PromptMinResponseLength} characters and not exceed {GlobalSettings<ModSettings>.Instance.PromptMaxResponseLength} characters\n" + "- NEVER mention receiving a letter or message from the player - you are the one sending the message\n";
-		return text + text2;
+		return AppendGmNpcBlgmInstructionsIfEnabled(text + text2, npc, context);
 	}
 
 	public string GeneratePartyInitiativePrompt(Hero npc, NPCContext context)
 	{
 		string text = PromptGenerator.GeneratePrompt(npc, context);
 		string text2 = ((string.IsNullOrEmpty(context.AdditionalContext) || !context.AdditionalContext.Contains("returned to the player after completing a task")) ? ("\n\n=== SPECIAL SITUATION: YOU INITIATED CONVERSATION ===\nYOU approached the player and started this conversation yourself. The player agreed to talk.\n\n**CRITICAL INSTRUCTIONS:**\n- Pay attention to your recent conversations with the player (check your conversation history above)\n- You can talk about recent events, your relationship, current situation, or anything relevant\n- Be specific and personal - avoid generic greetings like \"Hello, how are you?\"\n- DO NOT repeat topics from your previous conversations\n- Make this conversation feel natural and motivated by recent events or your relationship\n- Keep the tone appropriate to your relationship (friendly/romantic/concerned/business-like)\n" + $"- Your opening should be at least {GlobalSettings<ModSettings>.Instance.PromptMinResponseLength} characters and not exceed {GlobalSettings<ModSettings>.Instance.PromptMaxResponseLength} characters\n") : ("\n\n=== SPECIAL SITUATION: YOU RETURNED TO THE PLAYER ===\nYOU have just returned to the player. The player agreed to talk.\n\n**CRITICAL INSTRUCTIONS:**\n- Pay attention to your recent conversations with the player (check your conversation history above)\n- Say something relevant based on your relationship and recent interactions\n- Keep the tone appropriate to your relationship with the player\n" + $"- Your opening should be at least {GlobalSettings<ModSettings>.Instance.PromptMinResponseLength} characters and not exceed {GlobalSettings<ModSettings>.Instance.PromptMaxResponseLength} characters\n"));
-		return text + text2;
+		return AppendGmNpcBlgmInstructionsIfEnabled(text + text2, npc, context);
 	}
 
 	private void OnAcceptPartyMemberTalk(NPCInitiativeRequest request)
@@ -1533,6 +1547,7 @@ public class NPCInitiativeSystem
 			try
 			{
 				response = JsonConvert.DeserializeObject<AIResponse>(cleanedResponse);
+				GameMasterPlanExecutor.TryEnqueueFromNpcChat(response?.BlgmPlan, context.StringId, npc, GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue);
 				LogMessage("[NPC_MESSENGER_DEBUG] Parsed response from " + npcName + ":");
 				LogMessage("  - response: " + (response?.Response?.Substring(0, Math.Min(100, (response?.Response?.Length).GetValueOrDefault())) ?? "null") + "...");
 				LogMessage("  - technical_action: " + (response?.TechnicalAction ?? "null"));
@@ -1608,7 +1623,7 @@ public class NPCInitiativeSystem
 		string text = PromptGenerator.GeneratePrompt(npc, context, false, isMessengerMode: true);
 		string text2 = ((object)Hero.MainHero.Name).ToString();
 		string text3 = "\n\n=== SPECIAL SITUATION: YOU RECEIVED A LETTER ===\nYou have received a letter from " + text2 + " via messenger.\n\n**THE PLAYER'S LETTER:**\n\"" + playerMessage + "\"\n\n**YOUR OPTIONS:**\n1. **Reply** - Write a response letter. Set `response` to your reply message.\n2. **No Reply** - If you don't want to respond, set `response` to \"null\" or \"no_response\". NO letter will be sent back.\n\n**AVAILABLE ACTIONS:**\nUse `technical_action` ONLY if the player EXPLICITLY asks you to do one of these:\n- `go_to_settlement:<settlement_id>:<days>` - Travel to a settlement. Use exact settlement_id from the list above or from Nearby/Mentioned Settlements.\n- `wait_near_settlement:<settlement_id>:<days>` - Wait near a settlement. Use exact settlement_id.\n- `follow_player` - Come to the player and follow them.\nIf the player doesn't ask you to go somewhere or come to them, set `technical_action` to null.\n\n**CRITICAL INSTRUCTIONS:**\n- This is a WRITTEN MESSAGE. Do NOT use **asterisks** for actions.\n- Consider your relationship with the player and your character when deciding whether to reply.\n- Only perform actions if the player EXPLICITLY requests it in their letter.\n- If you don't want to reply (annoyed, busy, hostile), set response to \"null\".\n" + $"- Your response should be at least {GlobalSettings<ModSettings>.Instance.PromptMinResponseLength} characters (if you reply).\n" + $"- Do not exceed {GlobalSettings<ModSettings>.Instance.PromptMaxResponseLength} characters.\n";
-		return text + text3;
+		return AppendGmNpcBlgmInstructionsIfEnabled(text + text3, npc, context);
 	}
 
 	private void ProcessLetterTechnicalAction(Hero npc, string technicalAction)
@@ -1981,6 +1996,7 @@ public class NPCInitiativeSystem
 				MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", "I have nothing to say to you.", false);
 				return;
 			}
+			GameMasterPlanExecutor.TryEnqueueFromNpcChat(response?.BlgmPlan, context.StringId, npc, GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue);
 			string message = response?.Response ?? "...";
 			message = UnescapeFormatting(message);
 			context.LastAIResponseJson = cleanedResponse;
@@ -2145,7 +2161,7 @@ public class NPCInitiativeSystem
 	{
 		string text = PromptGenerator.GeneratePrompt(npc, context);
 		string text2 = "\n\n=== SPECIAL SITUATION: YOU INTERCEPTED THE PLAYER (HOSTILE) ===\nYou are hostile to the player. You have successfully intercepted/caught them on the map.\nYou are stronger than them and have the advantage.\nYou initiated this conversation to threaten, demand something, or attack.\n\n**CRITICAL INSTRUCTIONS:**\n- Be aggressive and dominant.\n- State your demands or intent clearly.\n- Do NOT be polite.\n" + $"- Your message should be at least {GlobalSettings<ModSettings>.Instance.PromptMinResponseLength} characters and not exceed {GlobalSettings<ModSettings>.Instance.PromptMaxResponseLength} characters\n";
-		return text + text2;
+		return AppendGmNpcBlgmInstructionsIfEnabled(text + text2, npc, context);
 	}
 
 	public async Task GenerateNeutralInitiativeResponse(Hero npc)
@@ -2197,6 +2213,7 @@ public class NPCInitiativeSystem
 				MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", "I have nothing to say right now.", false);
 				return;
 			}
+			GameMasterPlanExecutor.TryEnqueueFromNpcChat(response?.BlgmPlan, context.StringId, npc, GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue);
 			string message = response?.Response ?? "...";
 			message = UnescapeFormatting(message);
 			context.LastAIResponseJson = cleanedResponse;

@@ -96,4 +96,7 @@ public class AIResponse
 
 	[JsonProperty("quest_action")]
 	public QuestActionData QuestAction { get; set; }
+
+	[JsonProperty("blgm_plan")]
+	public BlgmPlanDto BlgmPlan { get; set; }
 }

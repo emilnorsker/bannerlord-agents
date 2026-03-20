@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AIInfluence.API;
 using AIInfluence.Services;
+using MCM.Abstractions.Base.Global;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.Library;
 
@@ -19,7 +20,7 @@ public static class GameMasterPocQueue
 
 	public static readonly ConcurrentQueue<Action> Queue = new ConcurrentQueue<Action>();
 
-	private const string OpenRouterGmPlanPrompt = "Return ONLY a single compact JSON object, no markdown, no explanation.\r\nSchema: {\"gm_command\": string (must start with gm.), \"args\": string[] }\r\nExample: {\"gm_command\":\"gm.query.kingdom\",\"args\":[]}\r\nTask: fill the JSON for a safe read-only query that lists kingdoms (use gm.query.kingdom with empty args).";
+	private const string OpenRouterGmPlanPrompt = "Return ONLY one JSON object, no markdown.\r\nKeys: gm_command (string, must start with gm.), args (string array), intent (query|mutate|probe_help), probe_help_first (boolean).\r\nTask: safe read-only kingdom listing — use gm.query.kingdom with empty args, intent=query, probe_help_first=false.\r\nExample: {\"gm_command\":\"gm.query.kingdom\",\"args\":[],\"intent\":\"query\",\"probe_help_first\":false}";
 
 	public static Guid EnqueueReadOnlyKingdomQueryProbe()
 	{
@@ -33,7 +34,7 @@ public static class GameMasterPocQueue
 		return jobId;
 	}
 
-	public static void EnqueueExecuteLine(Guid jobId, string line)
+	public static void EnqueueExecuteLine(Guid jobId, string line, GameMasterGmJobAuditInfo? audit = null)
 	{
 		if (string.IsNullOrWhiteSpace(line))
 		{
@@ -43,9 +44,10 @@ public static class GameMasterPocQueue
 		AIInfluenceBehavior.Instance?.LogMessage("[GM_POC] job " + jobId + " enqueued: " + line);
 		Guid captured = jobId;
 		string lineCopy = line;
+		GameMasterGmJobAuditInfo? auditCopy = audit;
 		Queue.Enqueue(delegate
 		{
-			ExecuteGmLine(captured, lineCopy);
+			ExecuteGmLine(captured, lineCopy, auditCopy);
 		});
 	}
 
@@ -85,7 +87,10 @@ public static class GameMasterPocQueue
 		{
 			try
 			{
-				string raw = await AIClient.GetRawTextResponseWithBackend(OpenRouterGmPlanPrompt, "OpenRouter", 0);
+				bool strict = GlobalSettings<ModSettings>.Instance != null && GlobalSettings<ModSettings>.Instance.GameMasterOpenRouterGmPlanStrictSchema;
+				string raw = strict
+					? await AIClient.GetOpenRouterRawForGmPlanWithOptionalSchema(OpenRouterGmPlanPrompt, strictSchema: true)
+					: await AIClient.GetRawTextResponseWithBackend(OpenRouterGmPlanPrompt, "OpenRouter", 0);
 				if (string.IsNullOrEmpty(raw) || raw.StartsWith("Error:", StringComparison.OrdinalIgnoreCase))
 				{
 					string msg = raw ?? "empty";
@@ -119,7 +124,7 @@ public static class GameMasterPocQueue
 		});
 	}
 
-	private static void ExecuteGmLine(Guid jobId, string line)
+	private static void ExecuteGmLine(Guid jobId, string line, GameMasterGmJobAuditInfo? audit = null)
 	{
 		AIInfluenceBehavior.Instance?.LogMessage("[GM_POC] job " + jobId + " drain (executing)");
 		if (Campaign.Current == null)
@@ -127,6 +132,10 @@ public static class GameMasterPocQueue
 			string msg = "observation skipped: Campaign.Current is null";
 			AIInfluenceBehavior.Instance?.LogMessage("[GM_POC] job " + jobId + " " + msg);
 			GameMasterPocDiagnostics.Record(jobId.ToString(), line, msg);
+			if (audit.HasValue)
+			{
+				GameMasterAuditLog.Append(audit.Value.CompletionPath, audit.Value.CorrelationId, jobId, line, audit.Value.PlanJson, "complete", msg);
+			}
 			return;
 		}
 		AIInfluenceBehavior.Instance?.LogMessage("[GM_POC] job " + jobId + " line: " + line);
@@ -134,6 +143,10 @@ public static class GameMasterPocQueue
 		if (array.Length == 0)
 		{
 			GameMasterPocDiagnostics.Record(jobId.ToString(), line, "(empty after split)");
+			if (audit.HasValue)
+			{
+				GameMasterAuditLog.Append(audit.Value.CompletionPath, audit.Value.CorrelationId, jobId, line, audit.Value.PlanJson, "complete", "(empty after split)");
+			}
 			return;
 		}
 		string command = array[0].ToLowerInvariant();
@@ -145,17 +158,29 @@ public static class GameMasterPocQueue
 				string msg2 = "command '" + command + "' not registered (Bannerlord.GameMaster not loaded?)";
 				AIInfluenceBehavior.Instance?.LogMessage("[GM_POC] job " + jobId + " observation: " + msg2);
 				GameMasterPocDiagnostics.Record(jobId.ToString(), line, msg2);
+				if (audit.HasValue)
+				{
+					GameMasterAuditLog.Append(audit.Value.CompletionPath, audit.Value.CorrelationId, jobId, line, audit.Value.PlanJson, "complete", msg2);
+				}
 				return;
 			}
 			string text = CommandLineFunctionality.CallFunction(command, args, out bool _);
 			AIInfluenceBehavior.Instance?.LogMessage("[GM_POC] job " + jobId + " observation (runtime): " + text);
 			GameMasterPocDiagnostics.Record(jobId.ToString(), line, text);
+			if (audit.HasValue)
+			{
+				GameMasterAuditLog.Append(audit.Value.CompletionPath, audit.Value.CorrelationId, jobId, line, audit.Value.PlanJson, "complete", text ?? "");
+			}
 		}
 		catch (Exception ex)
 		{
 			string msg3 = "exception: " + ex.Message;
 			AIInfluenceBehavior.Instance?.LogMessage("[GM_POC] job " + jobId + " observation (exception): " + ex.Message);
 			GameMasterPocDiagnostics.Record(jobId.ToString(), line, msg3);
+			if (audit.HasValue)
+			{
+				GameMasterAuditLog.Append(audit.Value.CompletionPath, audit.Value.CorrelationId, jobId, line, audit.Value.PlanJson, "complete", msg3);
+			}
 		}
 	}
 }

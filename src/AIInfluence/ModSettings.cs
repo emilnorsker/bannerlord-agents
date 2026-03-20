@@ -126,6 +126,22 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 
 	private int _gameMasterPocMaxDrainsPerTick = 1;
 
+	private bool _gameMasterNpcChatBlgmEnabled = false;
+
+	private bool _gameMasterDynamicEventsBlgmEnabled = false;
+
+	private bool _gameMasterDiplomacyBlgmEnabled = false;
+
+	private bool _gameMasterWorldEventsBlgmQueryOnly = true;
+
+	private bool _gameMasterDiplomacyBlgmQueryOnly = true;
+
+	private bool _gameMasterAuditLogEnabled = false;
+
+	private bool _gameMasterHazardIndexEnforce = true;
+
+	private bool _gameMasterOpenRouterGmPlanStrictSchema = false;
+
 	private bool _allowRomanceWithMarried = false;
 
 	private float _intimacyConceptionChance = 0.15f;
@@ -4409,6 +4425,150 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 			InformationManager.DisplayMessage(new InformationMessage("[AIInfluence] Error fixing dialog: " + ex.Message, Colors.Red));
 		}
 	};
+
+	[SettingPropertyGroup("Game Master (BLGM agent)", GroupOrder = 5)]
+	[SettingPropertyBool("NPC Chat: allow blgm_plan (OpenRouter only)", Order = 0, RequireRestart = false, HintText = "Slice 9: dialogue JSON may include optional blgm_plan; executed on main thread via GM queue. Requires main AI backend OpenRouter.")]
+	public bool GameMasterNpcChatBlgmEnabled
+	{
+		get
+		{
+			return _gameMasterNpcChatBlgmEnabled;
+		}
+		set
+		{
+			if (_gameMasterNpcChatBlgmEnabled != value)
+			{
+				_gameMasterNpcChatBlgmEnabled = value;
+				this.OnSettingChanged?.Invoke("GameMasterNpcChatBlgmEnabled", value);
+			}
+		}
+	}
+
+	[SettingPropertyGroup("Game Master (BLGM agent)", GroupOrder = 5)]
+	[SettingPropertyBool("World Events: allow blgm_plan (OpenRouter only)", Order = 1, RequireRestart = false, HintText = "Slice 10: dynamic-events JSON may include blgm_plan when Dynamic Events AI backend is OpenRouter.")]
+	public bool GameMasterDynamicEventsBlgmEnabled
+	{
+		get
+		{
+			return _gameMasterDynamicEventsBlgmEnabled;
+		}
+		set
+		{
+			if (_gameMasterDynamicEventsBlgmEnabled != value)
+			{
+				_gameMasterDynamicEventsBlgmEnabled = value;
+				this.OnSettingChanged?.Invoke("GameMasterDynamicEventsBlgmEnabled", value);
+			}
+		}
+	}
+
+	[SettingPropertyGroup("Game Master (BLGM agent)", GroupOrder = 5)]
+	[SettingPropertyBool("World Events: query-only blgm_plan", Order = 2, RequireRestart = false, HintText = "When enabled, only gm.query.* plans are accepted from the dynamic-events path.")]
+	public bool GameMasterWorldEventsBlgmQueryOnly
+	{
+		get
+		{
+			return _gameMasterWorldEventsBlgmQueryOnly;
+		}
+		set
+		{
+			if (_gameMasterWorldEventsBlgmQueryOnly != value)
+			{
+				_gameMasterWorldEventsBlgmQueryOnly = value;
+				this.OnSettingChanged?.Invoke("GameMasterWorldEventsBlgmQueryOnly", value);
+			}
+		}
+	}
+
+	[SettingPropertyGroup("Game Master (BLGM agent)", GroupOrder = 5)]
+	[SettingPropertyBool("Diplomacy: allow blgm_plan (OpenRouter only)", Order = 3, RequireRestart = false, HintText = "Slice 10: kingdom/player diplomatic analysis JSON may include blgm_plan when Diplomacy AI backend is OpenRouter.")]
+	public bool GameMasterDiplomacyBlgmEnabled
+	{
+		get
+		{
+			return _gameMasterDiplomacyBlgmEnabled;
+		}
+		set
+		{
+			if (_gameMasterDiplomacyBlgmEnabled != value)
+			{
+				_gameMasterDiplomacyBlgmEnabled = value;
+				this.OnSettingChanged?.Invoke("GameMasterDiplomacyBlgmEnabled", value);
+			}
+		}
+	}
+
+	[SettingPropertyGroup("Game Master (BLGM agent)", GroupOrder = 5)]
+	[SettingPropertyBool("Diplomacy: query-only blgm_plan", Order = 4, RequireRestart = false, HintText = "When enabled, only gm.query.* plans are accepted from diplomacy completions.")]
+	public bool GameMasterDiplomacyBlgmQueryOnly
+	{
+		get
+		{
+			return _gameMasterDiplomacyBlgmQueryOnly;
+		}
+		set
+		{
+			if (_gameMasterDiplomacyBlgmQueryOnly != value)
+			{
+				_gameMasterDiplomacyBlgmQueryOnly = value;
+				this.OnSettingChanged?.Invoke("GameMasterDiplomacyBlgmQueryOnly", value);
+			}
+		}
+	}
+
+	[SettingPropertyGroup("Game Master (BLGM agent)", GroupOrder = 5)]
+	[SettingPropertyBool("GM audit log (logs/gm_audit.log)", Order = 5, RequireRestart = false, HintText = "Slice 13: append tab-separated GM plan/execution rows next to mod_log.")]
+	public bool GameMasterAuditLogEnabled
+	{
+		get
+		{
+			return _gameMasterAuditLogEnabled;
+		}
+		set
+		{
+			if (_gameMasterAuditLogEnabled != value)
+			{
+				_gameMasterAuditLogEnabled = value;
+				this.OnSettingChanged?.Invoke("GameMasterAuditLogEnabled", value);
+			}
+		}
+	}
+
+	[SettingPropertyGroup("Game Master (BLGM agent)", GroupOrder = 5)]
+	[SettingPropertyBool("Enforce hazard preconditions", Order = 6, RequireRestart = false, HintText = "Slice 11: block some gm.kingdom / troop / bandit lines when campaign roles do not match.")]
+	public bool GameMasterHazardIndexEnforce
+	{
+		get
+		{
+			return _gameMasterHazardIndexEnforce;
+		}
+		set
+		{
+			if (_gameMasterHazardIndexEnforce != value)
+			{
+				_gameMasterHazardIndexEnforce = value;
+				this.OnSettingChanged?.Invoke("GameMasterHazardIndexEnforce", value);
+			}
+		}
+	}
+
+	[SettingPropertyGroup("Game Master (BLGM agent)", GroupOrder = 5)]
+	[SettingPropertyBool("OpenRouter POC: strict JSON Schema for gm plan", Order = 7, RequireRestart = false, HintText = "Slice 17: MCM 'GM POC OpenRouter plan' uses json_schema response_format when supported by the model.")]
+	public bool GameMasterOpenRouterGmPlanStrictSchema
+	{
+		get
+		{
+			return _gameMasterOpenRouterGmPlanStrictSchema;
+		}
+		set
+		{
+			if (_gameMasterOpenRouterGmPlanStrictSchema != value)
+			{
+				_gameMasterOpenRouterGmPlanStrictSchema = value;
+				this.OnSettingChanged?.Invoke("GameMasterOpenRouterGmPlanStrictSchema", value);
+			}
+		}
+	}
 
 	[SettingPropertyGroup("{=AIInfluence_Group_Debug}Debug & Fixes", GroupOrder = 99)]
 	[SettingPropertyInteger("GM POC: max queue drains per tick", 1, 50, "0 drains", Order = 1, RequireRestart = false, HintText = "Test setup (slice 3): how many GM POC jobs to run per application tick. Default 1 spreads work across frames; raise to drain backlog faster.")]

@@ -1,3 +1,4 @@
+using AIInfluence;
 using Newtonsoft.Json;
 
 namespace AIInfluence.Diplomacy;
@@ -37,4 +38,7 @@ internal class DiplomaticStatementResponse
 
 	[JsonProperty("quarantine_duration_days")]
 	public int QuarantineDurationDays { get; set; }
+
+	[JsonProperty("blgm_plan")]
+	public BlgmPlanDto BlgmPlan { get; set; }
 }

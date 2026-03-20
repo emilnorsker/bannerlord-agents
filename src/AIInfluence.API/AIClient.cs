@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using AIInfluence;
 using AIInfluence.Services;
 using AIInfluence.Util;
 using MCM.Abstractions.Base.Global;
@@ -332,7 +333,13 @@ public static class AIClient
 		}
 	}
 
-	private static async Task<string> GetOpenRouterRawResponse(string prompt, int cachePrefixLength = 0)
+	public static async Task<string> GetOpenRouterRawForGmPlanWithOptionalSchema(string prompt, bool strictSchema)
+	{
+		JObject fmt = strictSchema ? GameMasterCommandSerializer.BuildOpenRouterGmPlanResponseFormat() : null;
+		return await GetOpenRouterRawResponse(prompt, 0, fmt);
+	}
+
+	private static async Task<string> GetOpenRouterRawResponse(string prompt, int cachePrefixLength = 0, JObject responseFormat = null)
 	{
 		if (string.IsNullOrEmpty(GlobalSettings<ModSettings>.Instance?.ApiKey))
 		{
@@ -372,6 +379,10 @@ public static class AIClient
 			["model"] = (JToken)(GlobalSettings<ModSettings>.Instance.AIModel),
 			["messages"] = (JToken)(object)messages
 		};
+		if (responseFormat != null)
+		{
+			requestBody["response_format"] = responseFormat;
+		}
 		string json = ((JToken)requestBody).ToString((Formatting)0, Array.Empty<JsonConverter>());
 		StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
 		httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GlobalSettings<ModSettings>.Instance.ApiKey);

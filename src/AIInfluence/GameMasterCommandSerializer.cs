@@ -11,6 +11,38 @@ namespace AIInfluence;
 /// </summary>
 public static class GameMasterCommandSerializer
 {
+	/// <summary>Slice 17: OpenRouter <c>response_format</c> for the tiny gm-plan JSON (POC / plan-only calls).</summary>
+	public static JObject BuildOpenRouterGmPlanResponseFormat()
+	{
+		JObject schema = new JObject
+		{
+			["type"] = "object",
+			["additionalProperties"] = false,
+			["properties"] = new JObject
+			{
+				["gm_command"] = new JObject { ["type"] = "string" },
+				["args"] = new JObject
+				{
+					["type"] = "array",
+					["items"] = new JObject { ["type"] = "string" }
+				},
+				["intent"] = new JObject { ["type"] = "string" },
+				["probe_help_first"] = new JObject { ["type"] = "boolean" }
+			},
+			["required"] = new JArray("gm_command", "args", "intent", "probe_help_first")
+		};
+		return new JObject
+		{
+			["type"] = "json_schema",
+			["json_schema"] = new JObject
+			{
+				["name"] = "gm_plan",
+				["strict"] = true,
+				["schema"] = schema
+			}
+		};
+	}
+
 	public static string SerializeLine(string commandToken, IReadOnlyList<string> positionalArgs)
 	{
 		if (string.IsNullOrWhiteSpace(commandToken))

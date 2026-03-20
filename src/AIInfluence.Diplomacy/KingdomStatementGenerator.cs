@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using AIInfluence;
 using AIInfluence.Diseases;
 using AIInfluence.DynamicEvents;
 using AIInfluence.Util;
@@ -1908,6 +1909,12 @@ public class KingdomStatementGenerator
 			text2 = FixJsonQuotes(text);
 			DiplomaticStatementResponse diplomaticStatementResponse = JsonConvert.DeserializeObject<DiplomaticStatementResponse>(text2);
 			DiplomacyLogger.Instance.Log($"[STATEMENT_GEN] Successfully parsed statement from AI response for {kingdom.Name}");
+			if (diplomaticStatementResponse?.BlgmPlan != null)
+			{
+				string dipBackend = GlobalSettings<ModSettings>.Instance?.DiplomacyAIBackend?.SelectedValue ?? GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue ?? "";
+				string corrDip = diplomaticEvent.Id + "_" + ((MBObjectBase)kingdom).StringId;
+				GameMasterPlanExecutor.TryEnqueueFromDiplomacyStatement(diplomaticStatementResponse.BlgmPlan, corrDip, dipBackend);
+			}
 			if (diplomaticStatementResponse == null || string.IsNullOrEmpty(diplomaticStatementResponse.Statement))
 			{
 				DiplomacyLogger.Instance.Log($"[STATEMENT_GEN] Failed to parse AI response for {kingdom.Name}");

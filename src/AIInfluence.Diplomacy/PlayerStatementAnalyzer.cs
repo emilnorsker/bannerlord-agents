@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AIInfluence.Diseases;
+using AIInfluence;
 using AIInfluence.DynamicEvents;
 using MCM.Abstractions.Base.Global;
 using Newtonsoft.Json;
@@ -469,6 +470,11 @@ public class PlayerStatementAnalyzer
 				return null;
 			}
 			DiplomacyLogger.Instance.Log($"[PLAYER_ANALYZER] JSON parsed: action={response.Action}, target={response.TargetKingdomId}, targets={response.TargetKingdomIds?.Count ?? 0}, tone={response.Tone}");
+			if (response.BlgmPlan != null)
+			{
+				string dipBackend2 = GlobalSettings<ModSettings>.Instance?.DiplomacyAIBackend?.SelectedValue ?? GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue ?? "";
+				GameMasterPlanExecutor.TryEnqueueFromPlayerStatementAnalysis(response.BlgmPlan, ((MBObjectBase)playerKingdom).StringId, dipBackend2);
+			}
 			List<DiplomaticAction> list = ParseMultipleActions(response.Action);
 			DiplomaticAction action = list.FirstOrDefault();
 			DiplomacyLogger.Instance.Log(string.Format("[PLAYER_ANALYZER] Parsed {0} actions: {1}", list.Count, string.Join(", ", list)));

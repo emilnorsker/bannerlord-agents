@@ -140,7 +140,7 @@ Some kingdom-scoped commands may exist in the catalog while the **player’s cha
 
 ## Implementation slices (POC → full)
 
-Ordered steps. Later slices assume earlier ones unless noted. **Slices 1–8** are implemented (`GameMasterPocQueue`, `GameMasterCommandSerializer`, `GameMasterPocDiagnostics`, MCM Debug buttons).
+Ordered steps. Later slices assume earlier ones unless noted. **Slices 1–8** are the original POC queue/serializer/diagnostics; **9–17** add path wiring, hazard/audit, OpenRouter gating, and optional strict schema for the POC OpenRouter button (see table).
 
 | # | Slice | Outcome |
 |---|--------|--------|
@@ -152,15 +152,15 @@ Ordered steps. Later slices assume earlier ones unless noted. **Slices 1–8** a
 | **6** | **Serializer v1** | C# DTO / record (positional + named-arg fields + “needs single quotes”) → one exact BLGM string. Validate locally before `CallFunction`. **Status: done** — `GameMasterCommandSerializer` (`SerializeLine`, `TryParseOpenRouterJson`). |
 | **7** | **Debug OpenRouter hop** | Dev-only: one completion (OpenRouter) with a frozen system prompt returning **JSON** matching the DTO; parse → serialize → enqueue → observe in log. Proves LLM → game loop with no NPC Chat UI yet. **Status: done** — MCM **GM POC OpenRouter plan**. |
 | **8** | **Observation visibility** | Surface last observation in-game (MCM readonly text, debug overlay, or message) so testers see the loop without `mod_log` only. **Status: done** — `GameMasterPocDiagnostics` + MCM **GM POC last observation**. |
-| **9** | **NPC Chat path (opt-in)** | Gated setting: completion path for dialogue may emit the plan schema; snapshot = current NPC + player; correlation tied to conversation / `NPCContext` id. |
-| **10** | **World Events path (opt-in)** | Same executor; **world-shaped** snapshot + stricter or different allowlist table for dynamic/diplomatic prompts. |
-| **11** | **Hazard index v1** | Curated list of error-prone commands with **preconditions** derived from `Hero` / `Clan` / `Kingdom` / settlement APIs; host rejects or warns before execution; prompt tells the completion to **consult this list first** for those verbs. |
-| **12** | **Full tagged command index** | Cover ~139 commands with machine tags (family, scope, rough risk); filter or document for the model; ideally **generated** from a pinned BLGM wiki/API export so version drift is visible. |
-| **13** | **Dedicated GM audit log** | Append-only file (or structured log channel): plan JSON, serialized lines, raw returns, path id, timestamps—supplements `[GM_POC]` for incident review (includes help-probe accidents). |
-| **14** | **Help-before-mutate workflow** | Plan schema supports `probe_help` / arity-unknown; optional automatic no-arg help line with logging; accept residual mod risk. |
-| **15** | **No UI disambiguation** | Harmony or BLGM fork path: ambiguous entity match returns **text** for the agent instead of opening an interactive picker. |
-| **16** | **OpenRouter-only for GM plans** | Restrict structured-plan completions to OpenRouter (or one schema-capable gateway); other backends unchanged for normal chat until trimmed intentionally. |
-| **17** | **Schema-constrained plans** | Use provider JSON Schema / strict output for the plan DTO where supported; keep validate-and-reject on the host. |
+| **9** | **NPC Chat path (opt-in)** | **Status: done** — MCM **NPC Chat: allow blgm_plan**; prompt appendix with NPC/player snapshot; `AIResponse.blgm_plan`; enqueue after dialogue + chat-window + initiative/messenger/letter paths; correlation = `NPCContext.StringId`. |
+| **10** | **World Events path (opt-in)** | **Status: done** — MCM toggles for **World Events** and **Diplomacy** + **query-only** flags; prompt appendix injected in `SendAIRequestWithBackend` for dynamic/diplomatic request types; `blgm_plan` on `DynamicEventsResponse`, `DiplomaticStatementResponse`, `PlayerStatementAnalysisResponse`. |
+| **11** | **Hazard index v1** | **Status: done (v1 subset)** — `GameMasterHazardIndex`: `gm.kingdom.*` requires player kingdom + ruler; blocks `gm.troop.*` / `gm.bandit.*` for automation; MCM **Enforce hazard preconditions**. |
+| **12** | **Full tagged command index** | **Status: partial** — `GameMasterTaggedCommandIndex.BuildPromptAppendix()` documents families/tags in prompts; full ~139-command generated table still future work. |
+| **13** | **Dedicated GM audit log** | **Status: done** — MCM **GM audit log** → `logs/gm_audit.log` (tab-separated); enqueue + complete rows when audit enabled. |
+| **14** | **Help-before-mutate workflow** | **Status: done** — `BlgmPlanDto`: `intent` + `probe_help_first`; `probe_help` intent → no-arg line; `probe_help_first` on non-query → help line then primary line. |
+| **15** | **No UI disambiguation** | **Status: deferred** — `GameMasterNoUiDisambiguationDeferralPatch` (Harmony `Prepare` false) marks intent; no engine hook yet. |
+| **16** | **OpenRouter-only for GM plans** | **Status: done** — `GameMasterPlanExecutor` ignores `blgm_plan` unless backend name is **OpenRouter** (per path: main AI, Dynamic Events AI, or Diplomacy AI as applicable). |
+| **17** | **Schema-constrained plans** | **Status: partial** — MCM **OpenRouter POC: strict JSON Schema for gm plan** uses `response_format` json_schema on the **MCM POC OpenRouter** path; full dialogue response schema not merged. |
 | **18** | **RAG (optional)** | After the loop is stable: retrieve wiki paragraphs for rare flags; never replace hazard index + serializer. |
 | **19** | **Campaign lifecycle** | Define policy for pending queue on save load, mission transition, teardown (cancel, flush, or persist with version). Previously deferred. |
 | **20** | **MissionGM** | Separate operator for mission-time APIs; do not overload campaign `gm.*` queue. |
