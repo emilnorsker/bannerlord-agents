@@ -167,7 +167,7 @@
                                                                                      DataSource="{DeclarationList}"
                                                                                      WidthSizePolicy="StretchToParent"
                                                                                      HeightSizePolicy="CoverChildren"
-                                                                                     StackLayout.LayoutMethod="VerticalBottomToTop"
+                                                                                     StackLayout.LayoutMethod="VerticalTopToBottom"
                                                                                      Spacing="10">
                                                                     <ItemTemplate>
                                                                         <ListPanel WidthSizePolicy="StretchToParent"

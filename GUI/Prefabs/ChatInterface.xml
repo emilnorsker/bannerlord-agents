@@ -153,12 +153,12 @@
                             <Widget Id="MsgClip" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" ClipContents="true">
                               <Children>
                                 <ListPanel Id="MsgList" DataSource="{MessageList}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                           StackLayout.LayoutMethod="VerticalBottomToTop" Spacing="10" MarginLeft="14" MarginRight="14" MarginTop="6" MarginBottom="6">
+                                           StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="10" MarginLeft="14" MarginRight="14" MarginTop="6" MarginBottom="6">
                                   <ItemTemplate>
                                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginTop="2" MarginBottom="1">
                                       <Children>
                                         <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" HorizontalAlignment="Left"
-                                                   StackLayout.LayoutMethod="VerticalBottomToTop" MarginLeft="!Msg.Margin" MarginRight="!Msg.Margin" IsVisible="@IsNpc">
+                                                   StackLayout.LayoutMethod="VerticalTopToBottom" MarginLeft="!Msg.Margin" MarginRight="!Msg.Margin" IsVisible="@IsNpc">
                                           <Children>
                                             <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" Sprite="name_shadow_9" AlphaFactor="0.7">
                                               <Children>
@@ -175,7 +175,7 @@
                                               </Children>
                                             </Widget>
                                             <ListPanel DataSource="{ContentSegments}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                       StackLayout.LayoutMethod="VerticalBottomToTop" Spacing="10">
+                                                       StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="10">
                                               <ItemTemplate>
                                                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren">
                                                   <Children>
@@ -197,7 +197,7 @@
                                             </ListPanel>
                                           </Children>
                                         </ListPanel>
-                                        <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" StackLayout.LayoutMethod="VerticalBottomToTop"
+                                        <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" StackLayout.LayoutMethod="VerticalTopToBottom"
                                                    MarginLeft="!Msg.Margin" MarginRight="!Msg.Margin" HorizontalAlignment="Right" IsVisible="@IsPlayer">
                                           <Children>
                                             <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" HorizontalAlignment="Right">
@@ -207,7 +207,7 @@
                                               </Children>
                                             </Widget>
                                             <ListPanel DataSource="{ContentSegments}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                       StackLayout.LayoutMethod="VerticalBottomToTop" Spacing="10">
+                                                       StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="10">
                                               <ItemTemplate>
                                                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren">
                                                   <Children>
@@ -339,7 +339,7 @@
                                                StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="4" MarginLeft="0" MarginRight="0" MarginTop="0" MarginBottom="2">
                                       <Children>
                                         <ListPanel DataSource="{WorldEventLines}" IsVisible="@HasWorldEventLines" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                   StackLayout.LayoutMethod="VerticalBottomToTop" Spacing="10" MarginLeft="4" MarginRight="4" MarginTop="4" MarginBottom="2">
+                                                   StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="10" MarginLeft="4" MarginRight="4" MarginTop="4" MarginBottom="2">
                                           <ItemTemplate>
                                             <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                        StackLayout.LayoutMethod="HorizontalLeftToRight" MarginLeft="2" MarginRight="2">
@@ -355,7 +355,7 @@
                                           </ItemTemplate>
                                         </ListPanel>
                                         <ListPanel DataSource="{TextLines}" IsVisible="@HasStandardTextLines" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                   StackLayout.LayoutMethod="VerticalBottomToTop" Spacing="10" MarginLeft="8" MarginRight="4" MarginTop="4" MarginBottom="2">
+                                                   StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="10" MarginLeft="8" MarginRight="4" MarginTop="4" MarginBottom="2">
                                           <ItemTemplate>
                                             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren">
                                               <Children>
@@ -366,7 +366,7 @@
                                           </ItemTemplate>
                                         </ListPanel>
                                         <ListPanel DataSource="{TroopRows}" IsVisible="@HasTroopRows" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                   StackLayout.LayoutMethod="VerticalBottomToTop" Spacing="10" MarginLeft="4" MarginRight="4" MarginTop="2" MarginBottom="4">
+                                                   StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="10" MarginLeft="4" MarginRight="4" MarginTop="2" MarginBottom="4">
                                           <ItemTemplate>
                                             <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="32"
                                                        StackLayout.LayoutMethod="HorizontalLeftToRight" MarginLeft="4" MarginRight="4">
