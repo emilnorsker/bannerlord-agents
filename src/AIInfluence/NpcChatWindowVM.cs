@@ -192,14 +192,25 @@ public class NpcChatWindowVM : ViewModel
     {
         const string headerMuted = "#888888FF";
         const string questGold = "#D0A96BFF";
+        const string stripeA = "#121820F0";
+        const string stripeB = "#1E1810F0";
         InfoSections.Clear();
         // InfoList uses VerticalBottomToTop: first Add = bottom of scroll, last Add = top. Add in reverse so
         // reading top→bottom is NPC party → Quests → World events → What we know → Character.
-        InfoSections.Add(BuildCharacterSection(npc, context));
-        InfoSections.Add(BuildWhatWeKnowSection(npc, context, headerMuted));
-        InfoSections.Add(BuildWorldEventsSection(headerMuted));
-        InfoSections.Add(BuildQuestSection(context, headerMuted, questGold));
-        InfoSections.Add(BuildNpcPartySection(npc));
+        var built = new[]
+        {
+            BuildCharacterSection(npc, context),
+            BuildWhatWeKnowSection(npc, context, headerMuted),
+            BuildWorldEventsSection(headerMuted),
+            BuildQuestSection(context, headerMuted, questGold),
+            BuildNpcPartySection(npc)
+        };
+        for (var i = 0; i < built.Length; i++)
+        {
+            var visualFromTop = built.Length - 1 - i;
+            built[i].SectionPanelColor = (visualFromTop % 2 == 0) ? stripeA : stripeB;
+            InfoSections.Add(built[i]);
+        }
     }
 
     private static InfoSectionVM BuildNpcPartySection(Hero npc)

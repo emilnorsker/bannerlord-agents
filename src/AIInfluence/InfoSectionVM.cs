@@ -9,6 +9,21 @@ public class InfoSectionVM : ViewModel
     private string _headerText = "";
     private string _partyFoodText = "";
     private string _partyFoodColor = "#C6AC8DFF";
+    private string _sectionPanelColor = "#121820F0";
+
+    /// <summary>Background tint for this section block (alternates top→bottom when the info panel is rebuilt).</summary>
+    [DataSourceProperty]
+    public string SectionPanelColor
+    {
+        get => _sectionPanelColor;
+        set
+        {
+            if (value == _sectionPanelColor)
+                return;
+            _sectionPanelColor = value ?? "#121820F0";
+            OnPropertyChangedWithValue(_sectionPanelColor, "SectionPanelColor");
+        }
+    }
 
     [DataSourceProperty]
     public string HeaderText

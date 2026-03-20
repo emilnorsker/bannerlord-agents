@@ -92,13 +92,13 @@ Window ChatInterfaceWindow (Layer=Overlay)
             │
             └── Widget [right ~Info.W]
                 ├── Widget — column fill.
-                ├── RichTextWidget …
+                ├── BrushWidget [Encyclopedia.TopBanner] — fixed “Information” title (not collapsible).
                 ├── Widget [title underline]
                 ├── BrushWidget [Encyclopedia.Frame] — framed scroll region.
                 │   └── ScrollablePanel Id=InfoScroll — InnerPanel InfoRect\InfoList; VerticalScrollbar ..\..\InfoScrollbar.
                 │       └── Widget Id=InfoRect — clip; holds list + bottom shadow.
                 │           ├── NavigatableListPanel Id=InfoList {InfoSections} [VerticalBottomToTop]
-                │           │   └── ItemTemplate: ListPanel — one collapsible section.
+                │           │   └── ItemTemplate: Widget [@SectionPanelColor stripe] → ListPanel — one collapsible section.
                 │           │       ├── ButtonWidget ExecuteToggle [Encyclopedia.TopBanner]
                 │           │       │   └── ListPanel [Horizontal] — @HeaderText + @ExpandGlyph (text widgets).
                 │           │       └── ListPanel @IsExpanded
@@ -128,19 +128,20 @@ Window ChatInterfaceWindow (Layer=Overlay)
 
 | Order in XML (outside → in) | Gauntlet widget | Data / command | Brushes / notes |
 |----------------------------|-----------------|----------------|-----------------|
-| Column shell | `Widget` (fixed `!Info.W`, **430px**) | — | `BlankWhiteSquare_9` fill `#141414FF` |
-| Panel title | `RichTextWidget` | `Text="Information"` (literal) | `SPScoreboard.Subtitle.Text`, `Color="!Gold"` |
+| Column shell | `Widget` (fixed `!Info.W`, **540px**) | — | `BlankWhiteSquare_9` fill `#141414FF` |
+| Panel title (fixed, not collapsible) | `BrushWidget` | — | `Encyclopedia.TopBanner` + `Color="#0F141FFF"`; child `RichTextWidget` `Text="Information"` |
 | Title underline | `Widget` | — | `BlankWhiteSquare_9` `!SepColor` |
 | Scroll | `BrushWidget` `Encyclopedia.Frame` → `ScrollablePanel` `InfoScroll` | `ClipRect` / `InnerPanel` → `InfoRect\InfoList` | Same frame pattern as `WorldEventsWindow` list area; scrollbar path `..\..\InfoScrollbar` (nested under frame). |
 | Clip | `Widget` `InfoRect` | — | `ClipContents="true"` |
 | **Section list** | `NavigatableListPanel` `InfoList` | `DataSource="{InfoSections}"` | **`VerticalBottomToTop`**: first VM in the list sits at the **bottom** of the scroll, last at the **top**. `RebuildInfoPanelSections` adds sections so **top→bottom** reads: NPC party → Quests → World events → What we know → Character. |
+| **Section stripe** | `Widget` | `Sprite="BlankWhiteSquare_9"`, `Color="@SectionPanelColor"` | Alternating tints (`#121820F0` / `#1E1810F0`) by visual index from top; wraps each collapsible block. |
 | **Section row** | `ListPanel` `VerticalTopToBottom` | Header `ButtonWidget` then body `ListPanel` | **Do not** use a plain `Widget` for multiple children — Gauntlet stacks list panels; bare `Widget` overlays children (caused header/body overlap before this fix). |
-| Section row (template) | `Widget` | — | One per `InfoSectionVM` |
+| Section row (template) | `ListPanel` | — | One per `InfoSectionVM`, inside stripe `Widget` |
 | Section header | `ButtonWidget` | `Command.Click="ExecuteToggle"` on `InfoSectionVM` | `Encyclopedia.TopBanner` + `Color="#0F141FFF"` |
 | Header row layout | `ListPanel` | — | `HorizontalLeftToRight` |
 | Header title | `RichTextWidget` | `@HeaderText` | `Encyclopedia.SubPage.Title.Text` |
 | Expand/collapse | `TextWidget` | `@ExpandGlyph` | `Encyclopedia.SubPage.Info.Text` |
-| Expanded block | `Widget` | `IsVisible="@IsExpanded"` | — |
+| Expanded block | `ListPanel` | `IsVisible="@IsExpanded"` | — |
 | World event lines (optional) | `ListPanel` | `IsVisible="@HasWorldEventLines"`, `DataSource="{WorldEventLines}"` | `SkillIconVisualWidget` + `RichTextWidget`; type→skill: military→Tactics, political→Charm, economic→Trade, social→Leadership, mysterious→Roguery, disease→Medicine, news/other→Scouting |
 | Body lines | `ListPanel` | `IsVisible="@HasStandardTextLines"`, `DataSource="{TextLines}"` (`TextItemVM`) | `VerticalTopToBottom` |
 | Body line | `RichTextWidget` | `@Text`, `@Color` | `Encyclopedia.SubPage.Info.Text` |

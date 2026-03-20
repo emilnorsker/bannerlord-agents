@@ -6,7 +6,7 @@
   -->
   <Constants>
     <Constant Name="EncyLeft.W" Value="370" />
-    <Constant Name="Info.W" Value="430" />
+    <Constant Name="Info.W" Value="540" />
     <Constant Name="Sep.W" Value="2" />
     <Constant Name="Inset" Value="20" />
     <Constant Name="Header.H" Value="72" />
@@ -273,18 +273,24 @@
                 <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Sep.W" HeightSizePolicy="StretchToParent"
                         Sprite="BlankWhiteSquare_9" Color="!SepColor"/>
 
-                <!-- ══ Right: information panel (encyclopedia-style scroll + shadow) ══ -->
+                <!-- ══ Right: information panel (fixed title band | framed scroll | close) ══ -->
                 <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Info.W" HeightSizePolicy="StretchToParent">
                   <Children>
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                             Sprite="BlankWhiteSquare_9" Color="#141414FF" DoNotAcceptEvents="true"/>
-                    <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="36" VerticalAlignment="Top"
-                                    HorizontalAlignment="Center" PositionYOffset="8" Brush="SPScoreboard.Subtitle.Text"
-                                    Brush.FontSize="23" Color="!Gold" Text="Information" IsDisabled="true"/>
+                    <!-- Non-collapsible title strip (vanilla encyclopedia banner; distinct from per-section headers inside the scroll). -->
+                    <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="46" VerticalAlignment="Top"
+                                 MarginLeft="4" MarginRight="4" MarginTop="4" Brush="Encyclopedia.TopBanner" Color="#0F141FFF" DoNotAcceptEvents="true">
+                      <Children>
+                        <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                        HorizontalAlignment="Center" VerticalAlignment="Center" Brush="SPScoreboard.Subtitle.Text"
+                                        Brush.FontSize="23" Color="!Gold" Text="Information" IsDisabled="true"/>
+                      </Children>
+                    </BrushWidget>
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" VerticalAlignment="Top"
-                            PositionYOffset="48" MarginLeft="8" MarginRight="8" Sprite="BlankWhiteSquare_9" Color="!SepColor"/>
+                            PositionYOffset="52" MarginLeft="8" MarginRight="8" Sprite="BlankWhiteSquare_9" Color="!SepColor"/>
                     <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                                 MarginTop="54" MarginBottom="50" MarginLeft="4" MarginRight="4"
+                                 MarginTop="58" MarginBottom="50" MarginLeft="4" MarginRight="4"
                                  Brush="Encyclopedia.Frame" DoNotAcceptEvents="true">
                       <Children>
                         <ScrollablePanel Id="InfoScroll" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
@@ -297,8 +303,12 @@
                             <NavigatableListPanel Id="InfoList" DataSource="{InfoSections}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                   StackLayout.LayoutMethod="VerticalBottomToTop" Spacing="8" MarginLeft="4" MarginRight="4" MarginTop="4" MarginBottom="4">
                               <ItemTemplate>
+                                <!-- Section shell: native BlankWhiteSquare_9 + VM tint; each row is collapsible (▼ header) + body. -->
+                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" Sprite="BlankWhiteSquare_9" Color="@SectionPanelColor"
+                                        MarginLeft="0" MarginRight="0" MarginBottom="4">
+                                  <Children>
                                 <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                           StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="0" MarginLeft="2" MarginRight="2" MarginBottom="6">
+                                           StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="0" MarginLeft="2" MarginRight="2" MarginBottom="0">
                                   <Children>
                                     <ButtonWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="36"
                                                   Brush="Encyclopedia.TopBanner" Color="#0F141FFF" Command.Click="ExecuteToggle"
@@ -371,6 +381,8 @@
                                     </ListPanel>
                                   </Children>
                                 </ListPanel>
+                                  </Children>
+                                </Widget>
                               </ItemTemplate>
                             </NavigatableListPanel>
                             <BrushWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="120"
