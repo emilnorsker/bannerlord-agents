@@ -11,7 +11,8 @@ This module exposes **one** in-game Gauntlet conversation UI for AI NPC chat.
 | `NpcChatWindowManager` | Show / close / `IsOpen`; only owner of the layer. |
 | `NpcChatWindowVM` | Root datasource: hero strip, `MessageList`, `InfoSections` (collapsible blocks), commands. |
 | `ChatMessageItemVM` / `ContentSegmentVM` | Per-turn rows and speech / pill segments. |
-| `TextItemVM` | Lines inside each `InfoSectionVM` (`TextLines`). |
+| `TextItemVM` | Lines inside each `InfoSectionVM` (`TextLines`) when `HasStandardTextLines` is true. |
+| `WorldEventLineVM` | World events only: `SkillIconVisualWidget` + text; skill from `DynamicEvent.Type` via `WorldEventSkillMapper` → `DefaultSkills` IDs (same as encyclopedia). |
 | `InfoSectionVM` / `PartyTroopRowVM` | Collapsible right-panel sections; party rows use `InventoryImageIdentifierWidget` + formation label + count. |
 
 ## Information panel (right column) — components
@@ -32,7 +33,8 @@ This module exposes **one** in-game Gauntlet conversation UI for AI NPC chat.
 | Header title | `RichTextWidget` | `@HeaderText` | `Encyclopedia.SubPage.Title.Text` |
 | Expand/collapse | `TextWidget` | `@ExpandGlyph` | `Encyclopedia.SubPage.Info.Text` |
 | Expanded block | `Widget` | `IsVisible="@IsExpanded"` | — |
-| Body lines | `ListPanel` | `DataSource="{TextLines}"` (`TextItemVM`) | `VerticalTopToBottom` |
+| World event lines (optional) | `ListPanel` | `IsVisible="@HasWorldEventLines"`, `DataSource="{WorldEventLines}"` | `SkillIconVisualWidget` + `RichTextWidget`; type→skill: military→Tactics, political→Charm, economic→Trade, social→Leadership, mysterious→Roguery, disease→Medicine, news/other→Scouting |
+| Body lines | `ListPanel` | `IsVisible="@HasStandardTextLines"`, `DataSource="{TextLines}"` (`TextItemVM`) | `VerticalTopToBottom` |
 | Body line | `RichTextWidget` | `@Text`, `@Color` | `Encyclopedia.SubPage.Info.Text` |
 | Party rows | `ListPanel` | `DataSource="{TroopRows}"`, `IsVisible="@HasTroopRows"` | `VerticalTopToBottom` |
 | Party row | `ListPanel` (horizontal) | — | `PartyTroopRowVM` |

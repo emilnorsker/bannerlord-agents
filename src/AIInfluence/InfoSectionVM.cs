@@ -41,6 +41,11 @@ public class InfoSectionVM : ViewModel
 
     [DataSourceProperty] public MBBindingList<TextItemVM> TextLines { get; } = new MBBindingList<TextItemVM>();
     [DataSourceProperty] public MBBindingList<PartyTroopRowVM> TroopRows { get; } = new MBBindingList<PartyTroopRowVM>();
+    [DataSourceProperty] public MBBindingList<WorldEventLineVM> WorldEventLines { get; } = new MBBindingList<WorldEventLineVM>();
+
+    /// <summary>When false, only <c>WorldEventLines</c> is shown (world events with skill icons).</summary>
+    [DataSourceProperty] public bool HasStandardTextLines { get; set; } = true;
+    [DataSourceProperty] public bool HasWorldEventLines { get; set; }
 
     [DataSourceProperty] public bool HasTroopRows { get; set; }
     [DataSourceProperty] public bool ShowPartyFood { get; set; }

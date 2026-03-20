@@ -256,16 +256,28 @@ public class NpcChatWindowVM : ViewModel
             foreach (var e in GetMergedEvents().OrderByDescending(ev => ev.CreationCampaignDays).Take(5))
             {
                 string text = string.IsNullOrWhiteSpace(e.Title) ? e.Description : e.Title;
-                if (!string.IsNullOrWhiteSpace(text))
-                    section.TextLines.Add(new TextItemVM("• " + text));
+                if (string.IsNullOrWhiteSpace(text))
+                    continue;
+                string type = e.Type;
+                if (e.IsDiseaseEvent)
+                    type = "disease_outbreak";
+                string skillId = WorldEventSkillMapper.GetSkillIdForEventType(type);
+                section.WorldEventLines.Add(new WorldEventLineVM(skillId, "• " + text));
             }
         }
         catch (Exception ex)
         {
             AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] BuildWorldEventsSection failed: " + ex.Message);
         }
-        if (section.TextLines.Count == 0)
+        if (section.WorldEventLines.Count > 0)
+        {
+            section.HasWorldEventLines = true;
+            section.HasStandardTextLines = false;
+        }
+        else
+        {
             section.TextLines.Add(new TextItemVM("• None", headerMuted));
+        }
         return section;
     }
 
