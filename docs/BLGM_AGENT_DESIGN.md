@@ -60,7 +60,9 @@ You can validate those rules in a **local preflight** and return deterministic e
 
 The cleaner long-term approach is: **the active completion path** emits a **structured plan** (command identifier, positional fields, named pairs, explicit “needs quoting” strings). **Your code** serializes that into the exact BLGM line. Then spacing and colon rules are **not** something the weights need to learn; they are **one serializer** you test once. Vendor “structured outputs” / schema-constrained decoding is how you keep the plan parseable; it does not replace server-side policy.
 
-**Backend direction (implementation, not this doc’s POC scope):** the mod currently supports several AI backends; **schema guarantees differ by gateway**. The intended end state is to **standardize on OpenRouter** (or a single provider that exposes reliable JSON Schema / tool-style constraints) for any code path that emits BLGM plans. Trimming legacy backends for those paths belongs in the same bucket as other future implementation work (cf. MissionGM)—not a requirement to solve every adapter on day one.
+**Backend direction — OpenRouter only for GM work:** all **new** BLGM agent features (plans, observation injection, strict schemas, snapshots tuned for automation) are specified and implemented **only against OpenRouter**. Other AI backends remain for **non-GM** dialogue and analysis until intentionally retired; they must **not** receive new GM-specific prompt plumbing or plan execution paths. This keeps one gateway contract, one set of `response_format` behaviors, and one place to debug.
+
+**Backend direction (legacy note):** the mod still ships multiple backends for general chat; **schema guarantees differ by gateway**. For **GM plans**, treat **OpenRouter as the sole supported provider** going forward.
 
 ---
 
@@ -79,6 +81,10 @@ This is the architecture we converged on. It scales across the whole library wit
 **Fifth — execute and append only runtime-returned text as the next context item.** After `CallFunction` (or equivalent), append what the engine actually returned. The **next** call on the same path (or the next message in the thread) must treat that block as ground truth—not as optional flavor text.
 
 **Sixth — let structured outputs govern the plan while BLGM governs the effect.** The schema should encode **control flow** (`continue`, `stop`, `probe_help`, `query_only`, `mutate`) and **targets** (ids, family), not English improvisation for execution.
+
+**Schema validation vs BLGM execution (two different failures):** **Schema validation** means “did we get parseable JSON with the fields we expect?” For NPC Chat, that is the usual **`AIResponse` JSON** (fields like `response`, `decision`, `blgm_plan`, etc.) after `JsonCleaner` and `JsonConvert.DeserializeObject<AIResponse>` — there is no file named `chat.json`; it is the **same structured dialogue payload** the mod already uses. **BLGM execution failure** means “the serialized line was rejected or `CommandLineFunctionality.CallFunction` returned an error string or threw.” Log and surface these **separately**: a bad JSON shape is a **prompt/schema bug**; a bad command is a **game policy or BLGM semantics bug**.
+
+**NPC authority vs extra social context:** “This NPC’s authority” (clan/kingdom/ruler alignment) is enough for **permission fiction**. Optional **hard rules** for richer snapshots: (1) **bounded** — never more than a few lines of GM-specific context so prompts stay stable; (2) **facts only** — relation/trust/influence numbers come from **campaign APIs** (`Hero.GetRelation`, influence if exposed, etc.), not from the model; (3) **same hero** — stats must refer to **this** `Hero` and **MainHero**, not a generic narrator. **Skill checks:** destructive or high-impact GM mutates (freeing prisoners, mass troop moves, kingdom acts) may require a **successful opposed skill check** (reuse the mod’s existing opposed-check flow) before enqueueing the mutate line; queries and help probes stay unchecked unless you explicitly want “risky recon.”
 
 ---
 
@@ -158,11 +164,25 @@ Ordered steps. Later slices assume earlier ones unless noted. **Slices 1–8** a
 | **12** | **Full tagged command index** | **Status: partial** — `GameMasterTaggedCommandIndex.BuildPromptAppendix()` documents families/tags in prompts; full ~139-command generated table still future work. |
 | **13** | **Dedicated GM audit log** | **Status: done** — MCM **GM audit log** → `logs/gm_audit.log` (tab-separated); enqueue + complete rows when audit enabled. |
 | **14** | **Help-before-mutate workflow** | **Status: done** — `BlgmPlanDto`: `intent` + `probe_help_first`; `probe_help` intent → no-arg line; `probe_help_first` on non-query → help line then primary line. |
-| **15** | **No UI disambiguation** | **Status: deferred** — `GameMasterNoUiDisambiguationDeferralPatch` (Harmony `Prepare` false) marks intent; no engine hook yet. |
+| **15** | **No UI disambiguation (stub)** | **Status: stub only** — no-op Harmony patch documents intent. **Real implementation: slice 26.** |
 | **16** | **OpenRouter-only for GM plans** | **Status: done** — `GameMasterPlanExecutor` ignores `blgm_plan` unless backend name is **OpenRouter** (per path: main AI, Dynamic Events AI, or Diplomacy AI as applicable). |
-| **17** | **Schema-constrained plans** | **Status: partial** — MCM **OpenRouter POC: strict JSON Schema for gm plan** uses `response_format` json_schema on the **MCM POC OpenRouter** path; full dialogue response schema not merged. |
+| **17** | **Schema-constrained plans** | **Status: partial** — see **“When to use json_schema vs json_object”** below. |
 | **18** | **RAG (optional)** | After the loop is stable: retrieve wiki paragraphs for rare flags; never replace hazard index + serializer. |
 | **19** | **Campaign lifecycle** | Define policy for pending queue on save load, mission transition, teardown (cancel, flush, or persist with version). Previously deferred. |
 | **20** | **MissionGM** | Separate operator for mission-time APIs; do not overload campaign `gm.*` queue. |
+| **21** | **Observation loop (tool results)** | After each `CallFunction`, persist last **N** observations per **correlation** (NPC `StringId`, event/kingdom id, etc.); **inject** that block into the **next** OpenRouter completion for that path so the model sees ground truth, not only logs. |
+| **22** | **Host allowlist policy (layer 3)** | Enforce before enqueue: **`gm.` prefix only**, **max serialized line length**, **rate limits** (e.g. max `blgm_plan` executions per in-game day or per real-time window), optional **max queue depth**; log **policy rejections** with a dedicated tag vs schema vs BLGM runtime. |
+| **23** | **Hazard index v2** | Replace blanket `gm.kingdom.*` / `gm.troop.*` / `gm.bandit.*` rules with **per-command or per-family entries** where possible; use **`Hero` (interlocutor + MainHero)** for NPC-path preconditions; remove or implement the unused interlocutor parameter; align with wiki/API semantics so safe subcommands are not rejected blindly. |
+| **24** | **NPC GM appendix v2 (social stats)** | Optional bounded lines: relation / trust / influence (API-backed) for NPC ↔ player when `blgm_plan` is enabled — complements authority; still OpenRouter-only. |
+| **25** | **Skill-check gates for mutates (optional)** | Before selected **mutate** lines, require passing the mod’s **opposed skill check** (configurable per hazard tier); queries and read-only plans skip checks unless explicitly enabled. |
+| **26** | **No UI disambiguation (real implementation)** | **Future** — replace the deferred Harmony stub: ambiguous console entity resolution returns **text** to the agent instead of opening an in-game picker (engine/BLGM hook TBD). **Does not replace** slice **15** row history; slice **15** remains the POC placeholder until this lands. |
 
-**Review:** After slice **10**, pause for playtesting; slices **11–17** are where reliability and ops mature; **18–20** are scale and future scope.
+### When to use `json_schema` vs `json_object` (OpenRouter)
+
+- **`json_object`** (what **`GetOpenRouterResponse`** uses for **non-streaming** NPC chat today): tells the provider “return a single JSON object.” It does **not** pin every field of `AIResponse`; the model can omit or add keys subject to your cleaner. Use for **full dialogue JSON** when you want flexibility and already validate in C#.
+
+- **`json_schema` with `strict: true`** (what the **MCM “GM POC OpenRouter plan”** path can use): constrains the **small standalone object** `{ gm_command, args, intent, probe_help_first }` to an exact shape. Use when the **only** purpose of the request is to emit a **plan DTO** (dev button, or a future **plan-only** micro-call).
+
+- **Full dialogue + strict schema for the entire `AIResponse`:** only practical if you maintain a **large** JSON Schema and accept provider limits; otherwise keep **`blgm_plan` as an optional nested object** validated in the host and use **`json_object`** for the outer message, or split **two OpenRouter calls** (dialogue vs plan) — product choice.
+
+**Review:** After slice **10**, pause for playtesting; slices **11–17** are where reliability and ops mature; **18–20** are scale and future scope; **21–26** extend the loop, policy, and UX hardening (**OpenRouter-only** for new GM slices unless explicitly excepted).
