@@ -6,7 +6,7 @@
   -->
   <Constants>
     <Constant Name="EncyLeft.W" Value="370" />
-    <Constant Name="Info.W" Value="300" />
+    <Constant Name="Info.W" Value="430" />
     <Constant Name="Sep.W" Value="2" />
     <Constant Name="Inset" Value="20" />
     <Constant Name="Header.H" Value="72" />
@@ -286,16 +286,22 @@
                                     Brush.FontSize="23" Color="!Gold" Text="Information" IsDisabled="true"/>
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" VerticalAlignment="Top"
                             PositionYOffset="48" MarginLeft="8" MarginRight="8" Sprite="BlankWhiteSquare_9" Color="!SepColor"/>
-                    <ScrollablePanel Id="InfoScroll" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                                     MarginTop="54" MarginBottom="50" MarginRight="4" ClipRect="InfoRect" InnerPanel="InfoRect\InfoList"
-                                     MouseScrollAxis="Vertical" VerticalScrollbar="..\InfoScrollbar" AutoHideScrollBars="true">
+                    <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                                 MarginTop="54" MarginBottom="50" MarginLeft="4" MarginRight="4"
+                                 Brush="Encyclopedia.Frame" DoNotAcceptEvents="true">
                       <Children>
+                        <ScrollablePanel Id="InfoScroll" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                                         MarginTop="4" MarginBottom="4" MarginLeft="8" MarginRight="8"
+                                         ClipRect="InfoRect" InnerPanel="InfoRect\InfoList"
+                                         MouseScrollAxis="Vertical" VerticalScrollbar="..\..\InfoScrollbar" AutoHideScrollBars="true">
+                          <Children>
                         <Widget Id="InfoRect" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" DoNotAcceptEvents="true" ClipContents="true">
                           <Children>
                             <NavigatableListPanel Id="InfoList" DataSource="{InfoSections}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                   StackLayout.LayoutMethod="VerticalBottomToTop" Spacing="8" MarginLeft="4" MarginRight="4" MarginTop="4" MarginBottom="4">
                               <ItemTemplate>
-                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren">
+                                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                           StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="0" MarginLeft="2" MarginRight="2" MarginBottom="6">
                                   <Children>
                                     <ButtonWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="36"
                                                   Brush="Encyclopedia.TopBanner" Color="#0F141FFF" Command.Click="ExecuteToggle"
@@ -314,7 +320,8 @@
                                         </ListPanel>
                                       </Children>
                                     </ButtonWidget>
-                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" IsVisible="@IsExpanded">
+                                    <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" IsVisible="@IsExpanded"
+                                               StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="4" MarginLeft="0" MarginRight="0" MarginTop="0" MarginBottom="2">
                                       <Children>
                                         <ListPanel DataSource="{WorldEventLines}" IsVisible="@HasWorldEventLines" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                    StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="6" MarginLeft="4" MarginRight="4" MarginTop="4" MarginBottom="2">
@@ -364,17 +371,19 @@
                                                         MarginLeft="8" MarginBottom="4" Brush="Encyclopedia.SubPage.Info.Text" Brush.FontSize="15"
                                                         Color="@PartyFoodColor" Text="@PartyFoodText" IsDisabled="true"/>
                                       </Children>
-                                    </Widget>
+                                    </ListPanel>
                                   </Children>
-                                </Widget>
+                                </ListPanel>
                               </ItemTemplate>
                             </NavigatableListPanel>
                             <BrushWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="120"
                                          VerticalAlignment="Bottom" HorizontalAlignment="Center" Brush="Encyclopedia.Scroll.Shadow" Brush.VerticalFlip="false"/>
                           </Children>
                         </Widget>
+                          </Children>
+                        </ScrollablePanel>
                       </Children>
-                    </ScrollablePanel>
+                    </BrushWidget>
                     <ScrollbarWidget Id="InfoScrollbar" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent"
                                      MarginRight="2" MarginBottom="54" MarginTop="54" AlignmentAxis="Vertical"
                                      HorizontalAlignment="Right" VerticalAlignment="Center" Handle="InfoScrollbarHandle" MinValue="0" MaxValue="100">

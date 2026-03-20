@@ -21,12 +21,13 @@ This module exposes **one** in-game Gauntlet conversation UI for AI NPC chat.
 
 | Order in XML (outside → in) | Gauntlet widget | Data / command | Brushes / notes |
 |----------------------------|-----------------|----------------|-----------------|
-| Column shell | `Widget` (fixed `!Info.W`) | — | `BlankWhiteSquare_9` fill `#141414FF` |
+| Column shell | `Widget` (fixed `!Info.W`, **430px**) | — | `BlankWhiteSquare_9` fill `#141414FF` |
 | Panel title | `RichTextWidget` | `Text="Information"` (literal) | `SPScoreboard.Subtitle.Text`, `Color="!Gold"` |
 | Title underline | `Widget` | — | `BlankWhiteSquare_9` `!SepColor` |
-| Scroll | `ScrollablePanel` `InfoScroll` | `ClipRect` / `InnerPanel` → `InfoRect\InfoList` | Vertical scrollbar `InfoScrollbar` |
+| Scroll | `BrushWidget` `Encyclopedia.Frame` → `ScrollablePanel` `InfoScroll` | `ClipRect` / `InnerPanel` → `InfoRect\InfoList` | Same frame pattern as `WorldEventsWindow` list area; scrollbar path `..\..\InfoScrollbar` (nested under frame). |
 | Clip | `Widget` `InfoRect` | — | `ClipContents="true"` |
 | **Section list** | `NavigatableListPanel` `InfoList` | `DataSource="{InfoSections}"` | **`VerticalBottomToTop`**: first VM in the list sits at the **bottom** of the scroll, last at the **top**. `RebuildInfoPanelSections` adds sections so **top→bottom** reads: NPC party → Quests → World events → What we know → Character. |
+| **Section row** | `ListPanel` `VerticalTopToBottom` | Header `ButtonWidget` then body `ListPanel` | **Do not** use a plain `Widget` for multiple children — Gauntlet stacks list panels; bare `Widget` overlays children (caused header/body overlap before this fix). |
 | Section row (template) | `Widget` | — | One per `InfoSectionVM` |
 | Section header | `ButtonWidget` | `Command.Click="ExecuteToggle"` on `InfoSectionVM` | `Encyclopedia.TopBanner` + `Color="#0F141FFF"` |
 | Header row layout | `ListPanel` | — | `HorizontalLeftToRight` |
