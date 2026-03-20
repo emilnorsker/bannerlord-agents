@@ -10,6 +10,7 @@ namespace AIInfluence;
 /// <summary>
 /// POC: thread-safe enqueue, single consumer in <see cref="AIInfluenceBehavior.Tick"/>.
 /// Slice 2: each job has a <see cref="Guid"/>; all log lines for that job include it.
+/// Slice 3: drain budget is <see cref="ModSettings.GameMasterPocMaxDrainsPerTick"/> (MCM Debug).
 /// </summary>
 public static class GameMasterPocQueue
 {

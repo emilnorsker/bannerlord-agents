@@ -477,8 +477,14 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			_npcInitiativeSystem.Tick(dt);
 		}
-		if (GameMasterPocQueue.Queue.TryDequeue(out Action gmPocAction))
+		ModSettings modSettingsForGmPoc = GlobalSettings<ModSettings>.Instance;
+		int gmPocDrainBudget = ((modSettingsForGmPoc != null && modSettingsForGmPoc.GameMasterPocMaxDrainsPerTick > 0) ? Math.Min(50, modSettingsForGmPoc.GameMasterPocMaxDrainsPerTick) : 1);
+		for (int gmPocDrainN = 0; gmPocDrainN < gmPocDrainBudget; gmPocDrainN++)
 		{
+			if (!GameMasterPocQueue.Queue.TryDequeue(out Action gmPocAction))
+			{
+				break;
+			}
 			try
 			{
 				gmPocAction();

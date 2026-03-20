@@ -124,6 +124,8 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 
 	private int _romanceDecayAmount = 2;
 
+	private int _gameMasterPocMaxDrainsPerTick = 1;
+
 	private bool _allowRomanceWithMarried = false;
 
 	private float _intimacyConceptionChance = 0.15f;
@@ -4409,7 +4411,26 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 	};
 
 	[SettingPropertyGroup("{=AIInfluence_Group_Debug}Debug & Fixes", GroupOrder = 99)]
-	[SettingPropertyButton("GM POC: enqueue read-only query", -1, true, "", Content = "GM POC (query kingdoms)", Order = 2, RequireRestart = false, HintText = "POC slice 1: enqueues gm.query.kingdom (requires Bannerlord.GameMaster). Drains on next application ticks; read mod_log for [GM_POC] observation lines.")]
+	[SettingPropertyInteger("GM POC: max queue drains per tick", 1, 50, "0 drains", Order = 1, RequireRestart = false, HintText = "Test setup (slice 3): how many GM POC jobs to run per application tick. Default 1 spreads work across frames; raise to drain backlog faster.")]
+	public int GameMasterPocMaxDrainsPerTick
+	{
+		get
+		{
+			return _gameMasterPocMaxDrainsPerTick;
+		}
+		set
+		{
+			int num = Math.Max(1, Math.Min(50, value));
+			if (_gameMasterPocMaxDrainsPerTick != num)
+			{
+				_gameMasterPocMaxDrainsPerTick = num;
+				this.OnSettingChanged?.Invoke("GameMasterPocMaxDrainsPerTick", num);
+			}
+		}
+	}
+
+	[SettingPropertyGroup("{=AIInfluence_Group_Debug}Debug & Fixes", GroupOrder = 99)]
+	[SettingPropertyButton("GM POC: enqueue read-only query", -1, true, "", Content = "GM POC (query kingdoms)", Order = 2, RequireRestart = false, HintText = "POC: enqueues gm.query.kingdom (Bannerlord.GameMaster). Each click = one job with correlation id in mod_log. Respect \"max drains per tick\" above.")]
 	public Action EnqueueGameMasterPocProbe { get; set; } = delegate
 	{
 		try
