@@ -137,7 +137,7 @@ Ordered steps. Later slices assume earlier ones unless noted. **Slice 1** is alr
 | # | Slice | Outcome |
 |---|--------|--------|
 | **1** | **Fixed read-only probe + queue + drain** | `ConcurrentQueue`, drain **one** item per application tick in `AIInfluenceBehavior.Tick` (before lip-sync queue). MCM button enqueues `gm.query.kingdom`. **Log-only** observations (`[GM_POC]`). No LLM. **Status: done.** |
-| **2** | **Correlation id** | Every enqueue receives a **Guid**; enqueue, each serialized line, and each `CallFunction` return log under that id so parallel completions can be untangled later. |
+| **2** | **Correlation id** | Every enqueue receives a **Guid**; enqueue, each serialized line, and each `CallFunction` return log under that id so parallel completions can be untangled later. **Status: done.** |
 | **3** | **Drain budget** | MCM or const: max **N** queue actions per tick (default 1); prevents multi-line jobs from stalling one frame once slices add batches. |
 | **4** | **Async producer stress** | Enqueue from `Task.Run` (or a stub “LLM completed” callback on a thread-pool thread) to prove the queue + logging behave under the same pattern real HTTP uses. |
 | **5** | **Batch enqueue lock** | When one plan maps to **multiple** lines, `lock` while enqueueing the whole batch so two concurrent completions cannot interleave lines. |

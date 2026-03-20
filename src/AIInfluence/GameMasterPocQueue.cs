@@ -8,26 +8,34 @@ using TaleWorlds.Library;
 namespace AIInfluence;
 
 /// <summary>
-/// POC slice 1: thread-safe enqueue, single consumer in <see cref="AIInfluenceBehavior.Tick"/>.
-/// No LLM — proves BLGM + <see cref="CommandLineFunctionality"/> + log-only observations.
+/// POC: thread-safe enqueue, single consumer in <see cref="AIInfluenceBehavior.Tick"/>.
+/// Slice 2: each job has a <see cref="Guid"/>; all log lines for that job include it.
 /// </summary>
 public static class GameMasterPocQueue
 {
 	public static readonly ConcurrentQueue<Action> Queue = new ConcurrentQueue<Action>();
 
-	public static void EnqueueReadOnlyKingdomQueryProbe()
+	public static Guid EnqueueReadOnlyKingdomQueryProbe()
 	{
-		Queue.Enqueue(ExecuteReadOnlyKingdomQueryProbe);
+		Guid jobId = Guid.NewGuid();
+		AIInfluenceBehavior.Instance?.LogMessage("[GM_POC] job " + jobId + " enqueued (gm.query.kingdom)");
+		Queue.Enqueue(delegate
+		{
+			ExecuteReadOnlyKingdomQueryProbe(jobId);
+		});
+		return jobId;
 	}
 
-	private static void ExecuteReadOnlyKingdomQueryProbe()
+	private static void ExecuteReadOnlyKingdomQueryProbe(Guid jobId)
 	{
+		AIInfluenceBehavior.Instance?.LogMessage("[GM_POC] job " + jobId + " drain (executing)");
 		if (Campaign.Current == null)
 		{
-			AIInfluenceBehavior.Instance?.LogMessage("[GM_POC] observation skipped: Campaign.Current is null");
+			AIInfluenceBehavior.Instance?.LogMessage("[GM_POC] job " + jobId + " observation skipped: Campaign.Current is null");
 			return;
 		}
 		const string line = "gm.query.kingdom";
+		AIInfluenceBehavior.Instance?.LogMessage("[GM_POC] job " + jobId + " line: " + line);
 		string[] array = line.Split(new char[1] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 		if (array.Length == 0)
 		{
@@ -39,15 +47,15 @@ public static class GameMasterPocQueue
 		{
 			if (!CommandLineFunctionality.HasFunctionForCommand(command))
 			{
-				AIInfluenceBehavior.Instance?.LogMessage("[GM_POC] observation: command '" + command + "' not registered (Bannerlord.GameMaster not loaded?)");
+				AIInfluenceBehavior.Instance?.LogMessage("[GM_POC] job " + jobId + " observation: command '" + command + "' not registered (Bannerlord.GameMaster not loaded?)");
 				return;
 			}
 			string text = CommandLineFunctionality.CallFunction(command, args, out bool _);
-			AIInfluenceBehavior.Instance?.LogMessage("[GM_POC] observation (runtime): " + text);
+			AIInfluenceBehavior.Instance?.LogMessage("[GM_POC] job " + jobId + " observation (runtime): " + text);
 		}
 		catch (Exception ex)
 		{
-			AIInfluenceBehavior.Instance?.LogMessage("[GM_POC] observation (exception): " + ex.Message);
+			AIInfluenceBehavior.Instance?.LogMessage("[GM_POC] job " + jobId + " observation (exception): " + ex.Message);
 		}
 	}
 }

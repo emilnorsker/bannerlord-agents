@@ -4419,8 +4419,8 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 				InformationManager.DisplayMessage(new InformationMessage("[GM_POC] Start a campaign first.", Colors.Yellow));
 				return;
 			}
-			GameMasterPocQueue.EnqueueReadOnlyKingdomQueryProbe();
-			InformationManager.DisplayMessage(new InformationMessage("[GM_POC] Queued gm.query.kingdom — check mod_log.", Colors.Green));
+			Guid gmPocJobId = GameMasterPocQueue.EnqueueReadOnlyKingdomQueryProbe();
+			InformationManager.DisplayMessage(new InformationMessage("[GM_POC] Queued job " + gmPocJobId + " (gm.query.kingdom) — see mod_log.", Colors.Green));
 		}
 		catch (Exception ex)
 		{
