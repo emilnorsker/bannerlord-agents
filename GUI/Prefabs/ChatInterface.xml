@@ -148,7 +148,7 @@
                         <ScrollablePanel Id="MsgScroll" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                          MarginTop="!Header.H" MarginBottom="!Input.H" MarginRight="8" MarginLeft="4"
                                          ClipRect="MsgClip" InnerPanel="MsgClip\MsgList"
-                                         MouseScrollAxis="Vertical" VerticalScrollbar="..\MsgScrollbar" AutoHideScrollBars="true">
+                                         VerticalScrollbar="..\MsgScrollbar\Scrollbar" AutoHideScrollBars="true">
                           <Children>
                             <Widget Id="MsgClip" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" ClipContents="true">
                               <Children>
@@ -237,16 +237,9 @@
                             </Widget>
                           </Children>
                         </ScrollablePanel>
-                        <ScrollbarWidget Id="MsgScrollbar" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent"
-                                         MarginTop="!Header.H" MarginBottom="!Input.H" MarginRight="8" AlignmentAxis="Vertical"
-                                         HorizontalAlignment="Right" VerticalAlignment="Center" Handle="MsgScrollbarHandle" MinValue="0" MaxValue="100">
-                          <Children>
-                            <BrushWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="2" HorizontalAlignment="Center"
-                                         Brush="Encyclopedia.Scrollbar.Flat.Bed"/>
-                            <BrushWidget Id="MsgScrollbarHandle" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="8" SuggestedHeight="50"
-                                         HorizontalAlignment="Center" Brush="Encyclopedia.Scrollbar.Flat.Handle"/>
-                          </Children>
-                        </ScrollbarWidget>
+                        <Standard.VerticalScrollbar Id="MsgScrollbar" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent"
+                                                    SuggestedWidth="22" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                    MarginTop="!Header.H" MarginBottom="!Input.H" MarginRight="8"/>
                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" VerticalAlignment="Bottom"
                                 PositionYOffset="-52" Sprite="BlankWhiteSquare_9" Color="!SepColor" DoNotAcceptEvents="true"/>
                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="!Input.H" VerticalAlignment="Bottom"
@@ -307,7 +300,7 @@
                         <ScrollablePanel Id="InfoScroll" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                          MarginTop="4" MarginBottom="4" MarginLeft="8" MarginRight="8"
                                          ClipRect="InfoRect" InnerPanel="InfoRect\InfoList"
-                                         MouseScrollAxis="Vertical" VerticalScrollbar="..\..\InfoScrollbar" AutoHideScrollBars="true">
+                                         VerticalScrollbar="..\..\InfoScrollbar\Scrollbar" AutoHideScrollBars="true">
                           <Children>
                         <Widget Id="InfoRect" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" DoNotAcceptEvents="false" ClipContents="true">
                           <Children>
@@ -396,16 +389,9 @@
                         </ScrollablePanel>
                       </Children>
                     </BrushWidget>
-                    <ScrollbarWidget Id="InfoScrollbar" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent"
-                                     MarginRight="2" MarginBottom="54" MarginTop="54" AlignmentAxis="Vertical"
-                                     HorizontalAlignment="Right" VerticalAlignment="Center" Handle="InfoScrollbarHandle" MinValue="0" MaxValue="100">
-                      <Children>
-                        <BrushWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="2" HorizontalAlignment="Center"
-                                     Brush="Encyclopedia.Scrollbar.Flat.Bed"/>
-                        <BrushWidget Id="InfoScrollbarHandle" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="8" SuggestedHeight="50"
-                                     HorizontalAlignment="Center" Brush="Encyclopedia.Scrollbar.Flat.Handle"/>
-                      </Children>
-                    </ScrollbarWidget>
+                    <Standard.VerticalScrollbar Id="InfoScrollbar" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent"
+                                                SuggestedWidth="22" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                MarginRight="2" MarginBottom="54" MarginTop="54"/>
                     <ButtonWidget WidthSizePolicy="Fixed" SuggestedWidth="130" HeightSizePolicy="Fixed" SuggestedHeight="38"
                                   HorizontalAlignment="Center" VerticalAlignment="Bottom" MarginBottom="8"
                                   Brush="Popup.Cancel.Button" UpdateChildrenStates="true" DoNotPassEventsToChildren="true" Command.Click="ExecuteReturn">
