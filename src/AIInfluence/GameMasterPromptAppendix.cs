@@ -66,11 +66,7 @@ public static class GameMasterPromptAppendix
 			sb.AppendLine("POLICY: only gm.query.* commands are allowed from this path; omit blgm_plan otherwise.");
 		}
 		sb.Append(GameMasterTaggedCommandIndex.BuildPromptAppendix());
-		if (requestType == "dynamic_event_generation" || requestType == "dynamic_events" || requestType == "kingdom_destruction_event")
-		{
-			sb.Append(GameMasterObservationStore.FormatInjectionBlock("World|DynamicEvents"));
-		}
-		else if (requestType == "diplomacy_statement" || requestType == "player_statement_analysis")
+		if (requestType == "diplomacy_statement" || requestType == "player_statement_analysis")
 		{
 			sb.Append(GameMasterObservationStore.FormatInjectionBlock((requestType == "player_statement_analysis") ? "Dip|PlayerAnalysis" : "Dip|Global"));
 		}
@@ -87,14 +83,6 @@ public static class GameMasterPromptAppendix
 		if (s == null)
 		{
 			return prompt;
-		}
-		if (requestType == "dynamic_event_generation" || requestType == "dynamic_events" || requestType == "kingdom_destruction_event")
-		{
-			if (!s.GameMasterDynamicEventsBlgmEnabled)
-			{
-				return prompt;
-			}
-			return prompt + WorldEventsBlgmInstructions(s.GameMasterWorldEventsBlgmQueryOnly, requestType);
 		}
 		if (requestType == "diplomacy_statement" || requestType == "player_statement_analysis")
 		{

@@ -2133,10 +2133,6 @@ public class DynamicEventsGenerator
 			stringBuilder.AppendLine("  - Example: \"FACT CHECK: Empire vs Vlandia at war, Qalit under siege. REASONING: Planned military event, but Override Rules forbid military. Will create political event instead.\"");
 		}
 		stringBuilder.AppendLine("- `events` (array): Generated event(s) based on analysis above.");
-		if (GlobalSettings<ModSettings>.Instance?.GameMasterDynamicEventsBlgmEnabled == true)
-		{
-			stringBuilder.AppendLine("- `blgm_plan` (object, REQUIRED): gm_command (starts with gm.), args (string array), intent (query|mutate|probe_help), probe_help_first (bool), story_intent (string). Prefer intent=query and gm.query.*. Same top-level JSON object as internal_thoughts/events.");
-		}
 		stringBuilder.AppendLine();
 		stringBuilder.AppendLine("**CRITICAL RULES:**");
 		stringBuilder.AppendLine("- **MANDATORY:** internal_thoughts starts with 'FACT CHECK:' + facts from CURRENT WORLD DATA");
@@ -2481,11 +2477,6 @@ public class DynamicEventsGenerator
 			text = text.Trim();
 			DynamicEventsResponse dynamicEventsResponse = JsonConvert.DeserializeObject<DynamicEventsResponse>(text);
 			DynamicEventsLogger.Instance.Log($"[DYNAMIC_EVENTS_GEN] Successfully parsed {(dynamicEventsResponse?.Events?.Count).GetValueOrDefault()} events from AI response");
-			if (dynamicEventsResponse?.BlgmPlan != null)
-			{
-				string dynBackend = GlobalSettings<ModSettings>.Instance?.DynamicEventsAIBackend?.SelectedValue ?? "";
-				GameMasterPlanExecutor.TryEnqueueFromDynamicEvents(dynamicEventsResponse.BlgmPlan, "dyn_" + DateTime.UtcNow.Ticks, dynBackend);
-			}
 			return dynamicEventsResponse;
 		}
 		catch (Exception ex)

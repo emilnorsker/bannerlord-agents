@@ -10,7 +10,6 @@ namespace AIInfluence;
 public enum GameMasterCompletionPath
 {
 	NpcChat,
-	DynamicEvents,
 	DiplomacyStatement,
 	PlayerStatementAnalysis
 }
@@ -21,13 +20,6 @@ public static class GameMasterPlanExecutor
 	public static void TryEnqueueFromNpcChat(BlgmPlanDto plan, string npcStringId, Hero npc, string backendName)
 	{
 		TryEnqueue(plan, GameMasterCompletionPath.NpcChat, npcStringId ?? "", backendName, npc, false);
-	}
-
-	public static void TryEnqueueFromDynamicEvents(BlgmPlanDto plan, string correlationId, string backendName)
-	{
-		ModSettings s = GlobalSettings<ModSettings>.Instance;
-		bool queryOnly = s != null && s.GameMasterWorldEventsBlgmQueryOnly;
-		TryEnqueue(plan, GameMasterCompletionPath.DynamicEvents, correlationId ?? "dyn", backendName, null, queryOnly);
 	}
 
 	public static void TryEnqueueFromDiplomacyStatement(BlgmPlanDto plan, string correlationId, string backendName)
@@ -49,10 +41,6 @@ public static class GameMasterPlanExecutor
 		if (path == GameMasterCompletionPath.NpcChat)
 		{
 			return "NpcChat|" + (correlationId ?? "");
-		}
-		if (path == GameMasterCompletionPath.DynamicEvents)
-		{
-			return "World|DynamicEvents";
 		}
 		if (path == GameMasterCompletionPath.DiplomacyStatement)
 		{
@@ -172,7 +160,6 @@ public static class GameMasterPlanExecutor
 		return path switch
 		{
 			GameMasterCompletionPath.NpcChat => s.GameMasterNpcChatBlgmEnabled, 
-			GameMasterCompletionPath.DynamicEvents => s.GameMasterDynamicEventsBlgmEnabled, 
 			GameMasterCompletionPath.DiplomacyStatement => s.GameMasterDiplomacyBlgmEnabled, 
 			GameMasterCompletionPath.PlayerStatementAnalysis => s.GameMasterDiplomacyBlgmEnabled, 
 			_ => false

@@ -128,11 +128,7 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 
 	private bool _gameMasterNpcChatBlgmEnabled = false;
 
-	private bool _gameMasterDynamicEventsBlgmEnabled = false;
-
 	private bool _gameMasterDiplomacyBlgmEnabled = false;
-
-	private bool _gameMasterWorldEventsBlgmQueryOnly = true;
 
 	private bool _gameMasterDiplomacyBlgmQueryOnly = true;
 
@@ -4462,42 +4458,6 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 			{
 				_gameMasterNpcChatBlgmEnabled = value;
 				this.OnSettingChanged?.Invoke("GameMasterNpcChatBlgmEnabled", value);
-			}
-		}
-	}
-
-	[SettingPropertyGroup("Game Master (BLGM agent)", GroupOrder = 5)]
-	[SettingPropertyBool("World Events: allow blgm_plan (OpenRouter only)", Order = 1, RequireRestart = false, HintText = "Slice 10: dynamic-events JSON may include blgm_plan when Dynamic Events AI backend is OpenRouter.")]
-	public bool GameMasterDynamicEventsBlgmEnabled
-	{
-		get
-		{
-			return _gameMasterDynamicEventsBlgmEnabled;
-		}
-		set
-		{
-			if (_gameMasterDynamicEventsBlgmEnabled != value)
-			{
-				_gameMasterDynamicEventsBlgmEnabled = value;
-				this.OnSettingChanged?.Invoke("GameMasterDynamicEventsBlgmEnabled", value);
-			}
-		}
-	}
-
-	[SettingPropertyGroup("Game Master (BLGM agent)", GroupOrder = 5)]
-	[SettingPropertyBool("World Events: query-only blgm_plan", Order = 2, RequireRestart = false, HintText = "When enabled, only gm.query.* plans are accepted from the dynamic-events path.")]
-	public bool GameMasterWorldEventsBlgmQueryOnly
-	{
-		get
-		{
-			return _gameMasterWorldEventsBlgmQueryOnly;
-		}
-		set
-		{
-			if (_gameMasterWorldEventsBlgmQueryOnly != value)
-			{
-				_gameMasterWorldEventsBlgmQueryOnly = value;
-				this.OnSettingChanged?.Invoke("GameMasterWorldEventsBlgmQueryOnly", value);
 			}
 		}
 	}
