@@ -216,7 +216,8 @@ public class NpcChatWindowVM : ViewModel
         section.HasTroopRows = section.TroopRows.Count > 0;
         float days = party.GetNumDaysForFoodToLast();
         var (_, col) = NpcPartyFoodSupply.Classify(days);
-        section.PartyFoodText = NpcPartyFoodSupply.FormatLine(days);
+        string leaderName = ((object)npc.Name)?.ToString() ?? "";
+        section.PartyFoodText = NpcPartyFoodSupply.FormatNarrative(days, leaderName);
         section.PartyFoodColor = col;
         section.ShowPartyFood = true;
         return section;
