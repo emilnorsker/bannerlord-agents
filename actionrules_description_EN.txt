@@ -170,8 +170,9 @@ NPCs can combine actions with commas, creating a sequence of tasks that will be 
 
 5.2. create_rp_item
 -------------------
-**What it does**: Create a roleplay (RP) item (letter, document, note, sign, etc.) and automatically give it to the player
-**When used**: When the NPC wants to give the player a physical item for roleplay purposes (letters, documents, notes, etc.)
+**What it does**: Create a roleplay (RP) item (letter, document, note, sign, sack, package, trophy, proof object, etc.) and automatically give it to the player
+**When used**: When the NPC gives the player any concrete narrative object (paper or physical prop), including when the player picks it up, asks to take it, or says they stow it — not only letters and documents — but only if the player does not already have that item in inventory (no duplicates)
+**Not when**: The player takes the object by force or against the NPC's will — use `item_transfers` with `item_transfers_opposed_attribute` (opposed skill check), not create_rp_item
 **Important**: The item is automatically given to the player upon creation. Before creating an item, check the player's inventory to verify they don't already have an item with the same name or description. Creating duplicate items is forbidden.
 
 
@@ -493,9 +494,11 @@ If NPC creates duplicate items or uses create_rp_item incorrectly:
 ```
 - NPC should ALWAYS check the "CRITICAL - Player's Inventory (UNKNOWN TO YOU)" section BEFORE using create_rp_item action. If the player already has an item with the same name or description, NPC must NOT create a duplicate.
 
-- NPC should use create_rp_item ONLY when physically giving an item to the player (letters, documents, notes, etc.). Do NOT use it for items that are just mentioned in conversation.
+- NPC should use create_rp_item when physically giving an item to the player (letters, documents, notes, sacks, packages, trophies, proof material, etc.) **and** the player does not already have that item in inventory. Do NOT use it for items that are only mentioned hypothetically with no handoff or pickup in the scene.
 
-- NPC should NOT use item_transfers for RP items. RP items are automatically given to the player upon creation.
+- NPC should **not** use create_rp_item when the player **takes** something by force, theft, or intimidation (contested acquisition). In those cases use `item_transfers` with **`item_transfers_opposed_attribute`** as a TOP-LEVEL JSON field (alongside `item_transfers`) so the game rolls an opposed skill check; if the player wins, the transfer succeeds. create_rp_item is for consensual handoff or pickup the NPC allows.
+
+- For voluntary handoffs of narrative-only objects, use create_rp_item (not item_transfers). For contested taking of items that exist in the NPC's inventory (real item IDs), use item_transfers + opposed attribute, not create_rp_item.
 
 - NPC should verify the item name and description are appropriate and match what they're actually giving to the player in the dialogue.
 ```
