@@ -293,7 +293,7 @@
                         <Widget Id="InfoRect" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" DoNotAcceptEvents="true" ClipContents="true">
                           <Children>
                             <NavigatableListPanel Id="InfoList" DataSource="{InfoSections}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                  StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="8" MarginLeft="4" MarginRight="4" MarginTop="4" MarginBottom="4">
+                                                  StackLayout.LayoutMethod="VerticalBottomToTop" Spacing="8" MarginLeft="4" MarginRight="4" MarginTop="4" MarginBottom="4">
                               <ItemTemplate>
                                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren">
                                   <Children>

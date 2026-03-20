@@ -14,6 +14,49 @@ This module exposes **one** in-game Gauntlet conversation UI for AI NPC chat.
 | `TextItemVM` | Lines inside each `InfoSectionVM` (`TextLines`). |
 | `InfoSectionVM` / `PartyTroopRowVM` | Collapsible right-panel sections; party rows use `InventoryImageIdentifierWidget` + formation label + count. |
 
+## Information panel (right column) — components
+
+**Prefab:** `GUI/Prefabs/ChatInterface.xml` (right column only). **Root VM field:** `NpcChatWindowVM.InfoSections` (`MBBindingList<InfoSectionVM>`).
+
+| Order in XML (outside → in) | Gauntlet widget | Data / command | Brushes / notes |
+|----------------------------|-----------------|----------------|-----------------|
+| Column shell | `Widget` (fixed `!Info.W`) | — | `BlankWhiteSquare_9` fill `#141414FF` |
+| Panel title | `RichTextWidget` | `Text="Information"` (literal) | `SPScoreboard.Subtitle.Text`, `Color="!Gold"` |
+| Title underline | `Widget` | — | `BlankWhiteSquare_9` `!SepColor` |
+| Scroll | `ScrollablePanel` `InfoScroll` | `ClipRect` / `InnerPanel` → `InfoRect\InfoList` | Vertical scrollbar `InfoScrollbar` |
+| Clip | `Widget` `InfoRect` | — | `ClipContents="true"` |
+| **Section list** | `NavigatableListPanel` `InfoList` | `DataSource="{InfoSections}"` | **`StackLayout.LayoutMethod="VerticalBottomToTop"`** (same stacking direction as center `MsgList`). |
+| Section row (template) | `Widget` | — | One per `InfoSectionVM` |
+| Section header | `ButtonWidget` | `Command.Click="ExecuteToggle"` on `InfoSectionVM` | `Encyclopedia.TopBanner` + `Color="#0F141FFF"` |
+| Header row layout | `ListPanel` | — | `HorizontalLeftToRight` |
+| Header title | `RichTextWidget` | `@HeaderText` | `Encyclopedia.SubPage.Title.Text` |
+| Expand/collapse | `TextWidget` | `@ExpandGlyph` | `Encyclopedia.SubPage.Info.Text` |
+| Expanded block | `Widget` | `IsVisible="@IsExpanded"` | — |
+| Body lines | `ListPanel` | `DataSource="{TextLines}"` (`TextItemVM`) | `VerticalTopToBottom` |
+| Body line | `RichTextWidget` | `@Text`, `@Color` | `Encyclopedia.SubPage.Info.Text` |
+| Party rows | `ListPanel` | `DataSource="{TroopRows}"`, `IsVisible="@HasTroopRows"` | `VerticalTopToBottom` |
+| Party row | `ListPanel` (horizontal) | — | `PartyTroopRowVM` |
+| Troop portrait | `InventoryImageIdentifierWidget` | `@Portrait` (`ImageIdentifier`) | Vanilla party/inventory screens use the same widget name. |
+| Formation label | `RichTextWidget` | `@FormationName` | `Encyclopedia.SubPage.Info.Text` |
+| Count | `TextWidget` | `@CountLabel` | `Encyclopedia.SubPage.Info.Text` |
+| Food narrative | `RichTextWidget` | `IsVisible="@ShowPartyFood"`, `@PartyFoodText`, `@PartyFoodColor` | `Encyclopedia.SubPage.Info.Text` |
+| Scroll shadow | `BrushWidget` (bottom of clip) | — | `Encyclopedia.Scroll.Shadow` |
+| Scrollbar | `ScrollbarWidget` `InfoScrollbar` | `Handle` → `InfoScrollbarHandle` | `Encyclopedia.Scrollbar.Flat.Bed` / `Flat.Handle` |
+| Close | `ButtonWidget` | `Command.Click="ExecuteReturn"` | `Popup.Cancel.Button` + `Popup.Button.Text` |
+
+### Where to match vanilla (game install, not this repo)
+
+Under `…/Mount & Blade II Bannerlord/`:
+
+| Look here | What to grep / open |
+|-----------|----------------------|
+| `Modules/SandBox/GUI/Prefabs/` | `Encyclopedia`, `Clan`, `Kingdom`, `Party` in filenames — encyclopedia pages, clan management, party UI. |
+| `Modules/Native/GUI/Prefabs/` | Core overlays, common widgets. |
+| `Modules/StoryMode/GUI/Prefabs/` | Story-mode-only screens (if needed). |
+| `Modules/SandBox/GUI/Brushes/` (and `Native` / module `GUI/Brushes`) | Definitions for `Brush="Encyclopedia...."` names used above. |
+
+**Decompiled reference (optional):** branch `random_logs`, folders like `decompiled/SandBox.ViewModelCollection/` — class names only; art source is still the XML in the install.
+
 ## Entry points
 
 - **`DialogManager`** opens chat via `NpcChatWindowManager.Show(...)`.
