@@ -51,7 +51,6 @@ public class DelayedTaskManager
 			try
 			{
 				item.Action?.Invoke();
-				_behavior.LogMessage($"[DEBUG] Executed delayed task at {currentTime:yyyy-MM-dd HH:mm:ss}.");
 			}
 			catch (Exception ex)
 			{
