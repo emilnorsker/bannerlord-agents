@@ -147,7 +147,8 @@
                         </Widget>
                         <ScrollablePanel Id="MsgScroll" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                          MarginTop="!Header.H" MarginBottom="!Input.H" MarginRight="8" MarginLeft="4"
-                                         ClipRect="MsgClip" InnerPanel="MsgClip\MsgList">
+                                         ClipRect="MsgClip" InnerPanel="MsgClip\MsgList"
+                                         MouseScrollAxis="Vertical" VerticalScrollbar="..\MsgScrollbar" AutoHideScrollBars="true">
                           <Children>
                             <Widget Id="MsgClip" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" ClipContents="true">
                               <Children>
@@ -236,6 +237,16 @@
                             </Widget>
                           </Children>
                         </ScrollablePanel>
+                        <ScrollbarWidget Id="MsgScrollbar" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent"
+                                         MarginTop="!Header.H" MarginBottom="!Input.H" MarginRight="8" AlignmentAxis="Vertical"
+                                         HorizontalAlignment="Right" VerticalAlignment="Center" Handle="MsgScrollbarHandle" MinValue="0" MaxValue="100">
+                          <Children>
+                            <BrushWidget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="2" HorizontalAlignment="Center"
+                                         Brush="Encyclopedia.Scrollbar.Flat.Bed"/>
+                            <BrushWidget Id="MsgScrollbarHandle" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="8" SuggestedHeight="50"
+                                         HorizontalAlignment="Center" Brush="Encyclopedia.Scrollbar.Flat.Handle"/>
+                          </Children>
+                        </ScrollbarWidget>
                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" VerticalAlignment="Bottom"
                                 PositionYOffset="-52" Sprite="BlankWhiteSquare_9" Color="!SepColor"/>
                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="!Input.H" VerticalAlignment="Bottom"
