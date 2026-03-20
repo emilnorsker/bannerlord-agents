@@ -52,10 +52,10 @@ jobs:
           [ -f bin/Win64_Shipping_Client/rhubarb.exe ] && cp bin/Win64_Shipping_Client/rhubarb.exe staging/AIInfluence/bin/Win64_Shipping_Client/
           cp -r bin/Win64_Shipping_Client/res staging/AIInfluence/bin/Win64_Shipping_Client/
           # world_secrets.json contains in-game lore (hidden NPC details), not credentials
+          # TECHNICAL_GUIDE.*.md stay in the repo for contributors; not bundled in the release 7z
           for f in world.txt world_info.json world_secrets.json cultural_traditions.json \
                    actionrules_description_EN.txt actionrules.txt eventsanalyzerrules.txt \
-                   eventsgeneratorrules.txt kingdomstatementrules.txt playerdescription.txt \
-                   TECHNICAL_GUIDE.en.md TECHNICAL_GUIDE.zh.md; do
+                   eventsgeneratorrules.txt kingdomstatementrules.txt playerdescription.txt; do
             [ -f "$f" ] && cp "$f" staging/AIInfluence/
           done
 
