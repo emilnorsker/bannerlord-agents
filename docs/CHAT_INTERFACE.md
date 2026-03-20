@@ -97,12 +97,13 @@ Prompt / schema (`PromptGenerator`): **`none`** or **`sell`** only. There is **n
 ### `kingdom_action` + `kingdom_action_reason`
 
 - **`kingdom_action`**: must be `none` or one of many strings from **`GetKingdomActionsSection`** in `PromptGenerator` (war/peace, alliance, trade, tribute, reparations, fief grant/receive, hire/dismiss mercenary, vassalage, join clan/kingdom, kick, `transfer_kingdom`, … — **context-dependent**; the prompt only lists what the NPC *may* use).
-- **Pill (NPC row):** `Kingdom: {kingdom_action}` (raw; **reason is not shown** in the pill).
+- **`kingdom_action_reason`**: brief justification (prompt: required when action ≠ `none`). Also fed into `InformationManager` toasts as `{REASON}`.
+- **Pill (NPC row):** `Kingdom: {action}` if reason empty; otherwise `Kingdom: {action} — {reason}` (reason whitespace collapsed to single spaces).
 - **`ExecuteKingdomAction`** runs the real diplomacy.
 
 ### Fields with **no** chat pill (examples)
 
-Still applied or stored elsewhere; not rendered as structured pills: `internal_thoughts`, `claimed_*`, `threat_level`, `escalation_state`, `kingdom_action_reason`, `workshop_string_id` / `workshop_price` (used for sale, not pill text), `character_death`, `character_personality` / backstory / quirks (context + UI panels), `tts_instructions`, `settlement_id` alone, `item_transfers_opposed_attribute` (affects roll only), etc.
+Still applied or stored elsewhere; not rendered as structured pills: `internal_thoughts`, `claimed_*`, `threat_level`, `escalation_state`, `workshop_string_id` / `workshop_price` (used for sale, not pill text), `character_death`, `character_personality` / backstory / quirks (context + UI panels), `tts_instructions`, `settlement_id` alone, `item_transfers_opposed_attribute` (affects roll only), etc.
 
 ### Relation / narrative pills (history string)
 

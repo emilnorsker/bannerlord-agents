@@ -623,7 +623,16 @@ public class NpcChatWindowVM : ViewModel
         if (!string.IsNullOrEmpty(r.WorkshopAction) && r.WorkshopAction.Equals("sell", StringComparison.OrdinalIgnoreCase))
             yield return ("• Sold workshop to you", WorkshopActionColor);
         if (!string.IsNullOrEmpty(r.KingdomAction) && !r.KingdomAction.Equals("none", StringComparison.OrdinalIgnoreCase))
-            yield return ($"• Kingdom: {r.KingdomAction}", KingdomActionColor);
+        {
+            string action = r.KingdomAction.Trim();
+            string reason = string.IsNullOrWhiteSpace(r.KingdomActionReason)
+                ? null
+                : Regex.Replace(r.KingdomActionReason.Trim(), @"\s+", " ");
+            string kingdomPill = string.IsNullOrEmpty(reason)
+                ? $"• Kingdom: {action}"
+                : $"• Kingdom: {action} — {reason}";
+            yield return (kingdomPill, KingdomActionColor);
+        }
     }
 
     // ── Commands ──────────────────────────────────────────────────────────
