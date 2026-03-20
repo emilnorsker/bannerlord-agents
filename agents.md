@@ -6,6 +6,21 @@ This mod targets **Bannerlord v1.3.x**. Do not reference or worry about v1.0–v
 
 ---
 
+## TaleWorlds decompiled sources (`random_logs` branch)
+
+Bulk **ILSpy-style decompiled C#** for Bannerlord managed assemblies lives on the **`random_logs`** branch only, under **`decompiled/`** at the repo root (SandBox, StoryMode, TaleWorlds.*, NavalDLC, etc.).
+
+- **Do not** commit or push large decompiled trees to feature branches or `main`. Use `random_logs` for archaeology, binding traces, and comparing widget/VM code to Gauntlet XML.
+- **CI / compile** still uses the small DLL set in **`.github/workflows/dlls/`** (referenced by the build). Those are not a full decompile; they exist so agents can verify symbols without checking out `random_logs`.
+- **Finding types:** search under `decompiled/` for `HeroViewModel.cs`, `EncyclopediaCharacterTableauWidget.cs`, `CharacterViewModel.cs`, etc. Paths are assembly-rooted (e.g. `decompiled/TaleWorlds.CampaignSystem.ViewModelCollection/.../HeroViewModel.cs`).
+- **Regenerating** (optional): install `ilspycmd`, then e.g.  
+  `ilspycmd -p --nested-directories -r .github/workflows/dlls -o decompiled/<AssemblyName> .github/workflows/dlls/<AssemblyName>.dll`  
+  Prefer doing that on a branch dedicated to reference dumps (e.g. `random_logs`), not on PR branches.
+
+See also **`decompiled/README.md`** on `random_logs` for the same pointers.
+
+---
+
 ## Bannerlord API Verification Protocol
 
 **Every Bannerlord API call in new code MUST be verified against the official v1.3.4 docs before committing.**
