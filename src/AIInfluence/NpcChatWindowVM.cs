@@ -734,7 +734,6 @@ public class NpcChatWindowVM : ViewModel
                 playerHistoryIdx = preCtx?.ConversationHistory?.Count ?? -1;
             }
             catch (Exception) { }
-            bool useOpenRouterStreaming = true;
             ChatMessageItemVM streamingItem = null;
             bool streamingRetired = false;
             string streamingTargetText = "";
@@ -744,52 +743,49 @@ public class NpcChatWindowVM : ViewModel
             // Set by the reply handler; the pump calls this once the typewriter animation reaches
             // the final target text so the message is only swapped out after the full animation.
             Action finalizeNpcMessage = null;
-            if (useOpenRouterStreaming)
+            streamingItem = ParseLine($"{npcName}: ", "");
+            streamingItem.ContentSegments.Add(new ContentSegmentVM(""));
+            AddNewestMessage(streamingItem);
+            streamPumpStep = () =>
             {
-                streamingItem = ParseLine($"{npcName}: ", "");
-                streamingItem.ContentSegments.Add(new ContentSegmentVM(""));
-                AddNewestMessage(streamingItem);
-                streamPumpStep = () =>
+                if (streamingRetired || streamingItem == null)
                 {
-                    if (streamingRetired || streamingItem == null)
+                    streamPumpActive = false;
+                    return;
+                }
+                if (streamingVisibleText.Length < streamingTargetText.Length)
+                {
+                    streamingVisibleText = streamingTargetText.Substring(0, streamingVisibleText.Length + 1);
+                    ReplaceStreamingSegments(streamingItem, npcName, streamingVisibleText);
+                    DelayedTaskManager taskManager = AIInfluenceBehavior.Instance?.GetDelayedTaskManager();
+                    if (taskManager != null)
                     {
-                        streamPumpActive = false;
-                        return;
+                        double revealInterval = Math.Max(0.005f, GlobalSettings<ModSettings>.Instance?.ChatStreamCharacterInterval ?? 0.05f);
+                        taskManager.AddTask(revealInterval, streamPumpStep);
                     }
-                    if (streamingVisibleText.Length < streamingTargetText.Length)
-                    {
-                        streamingVisibleText = streamingTargetText.Substring(0, streamingVisibleText.Length + 1);
-                        ReplaceStreamingSegments(streamingItem, npcName, streamingVisibleText);
-                        DelayedTaskManager taskManager = AIInfluenceBehavior.Instance?.GetDelayedTaskManager();
-                        if (taskManager != null)
-                        {
-                            double revealInterval = Math.Max(0.005f, GlobalSettings<ModSettings>.Instance?.ChatStreamCharacterInterval ?? 0.05f);
-                            taskManager.AddTask(revealInterval, streamPumpStep);
-                        }
-                        else
-                        {
-                            streamingVisibleText = streamingTargetText;
-                            ReplaceStreamingSegments(streamingItem, npcName, streamingVisibleText);
-                            streamPumpActive = false;
-                            Action fin = finalizeNpcMessage;
-                            finalizeNpcMessage = null;
-                            fin?.Invoke();
-                        }
-                    }
-                    else if (streamingVisibleText.Length > streamingTargetText.Length)
+                    else
                     {
                         streamingVisibleText = streamingTargetText;
                         ReplaceStreamingSegments(streamingItem, npcName, streamingVisibleText);
-                    }
-                    else // visible == target: animation complete
-                    {
                         streamPumpActive = false;
                         Action fin = finalizeNpcMessage;
                         finalizeNpcMessage = null;
                         fin?.Invoke();
                     }
-                };
-            }
+                }
+                else if (streamingVisibleText.Length > streamingTargetText.Length)
+                {
+                    streamingVisibleText = streamingTargetText;
+                    ReplaceStreamingSegments(streamingItem, npcName, streamingVisibleText);
+                }
+                else // visible == target: animation complete
+                {
+                    streamPumpActive = false;
+                    Action fin = finalizeNpcMessage;
+                    finalizeNpcMessage = null;
+                    fin?.Invoke();
+                }
+            };
             string reply = await AIInfluenceBehavior.Instance.ProcessChatInput(_npc, message, partial =>
             {
                 MainThreadDispatcher.Queue.Enqueue(() =>
@@ -890,7 +886,7 @@ public class NpcChatWindowVM : ViewModel
                     }
                 };
 
-                if (useOpenRouterStreaming && streamingItem != null)
+                if (streamingItem != null)
                 {
                     // Let the typewriter pump finish animating to the full reply, then finalize.
                     finalizeNpcMessage = doFinalize;

@@ -99,7 +99,7 @@ public class Player2UsageTracker
 	{
 	}
 
-	public bool CanSwitchBackend()
+	public bool IsUnlockSatisfied()
 	{
 		return true;
 	}
@@ -146,7 +146,7 @@ public class Player2UsageTracker
 
 	private void LogSwitchStatus(bool canSwitch, double hours, int interactions)
 	{
-		string text = $"[P2_TRACKER] CanSwitchBackend: {canSwitch} (Hours: {hours:F2}/{_a1}, Interactions: {interactions}/{_a2})";
+		string text = $"[P2_TRACKER] IsUnlockSatisfied: {canSwitch} (Hours: {hours:F2}/{_a1}, Interactions: {interactions}/{_a2})";
 		if (!(text != _lastCanSwitchLogMessage))
 		{
 			return;
@@ -163,12 +163,12 @@ public class Player2UsageTracker
 		}
 	}
 
-	private bool CheckBackendAvailability()
+	private bool CheckTrackerAvailability()
 	{
 		return _data != null && _isInGame;
 	}
 
-	private bool ValidateBackendSwitch()
+	private bool ValidateSwitchIntegrity()
 	{
 		return PerformSecurityChecks();
 	}
@@ -186,14 +186,14 @@ public class Player2UsageTracker
 		return (hoursPlayed: item, interactions: _data.TotalInteractions);
 	}
 
-	public bool TryChangeBackend(string newBackend)
+	public bool TryNotifyProviderChange(string _)
 	{
 		return true;
 	}
 
-	private bool ProcessBackendSwitch(string newBackend)
+	private bool ProcessSwitchGate(string _)
 	{
-		MethodInfo method = typeof(Player2UsageTracker).GetMethod("CanSwitchBackend", BindingFlags.Instance | BindingFlags.Public);
+		MethodInfo method = typeof(Player2UsageTracker).GetMethod("IsUnlockSatisfied", BindingFlags.Instance | BindingFlags.Public);
 		if (method != null)
 		{
 			if (!(bool)method.Invoke(this, null))
@@ -202,7 +202,7 @@ public class Player2UsageTracker
 				return false;
 			}
 		}
-		else if (!CanSwitchBackend())
+		else if (!IsUnlockSatisfied())
 		{
 			ShowRestrictionMessage();
 			return false;
@@ -210,7 +210,7 @@ public class Player2UsageTracker
 		return true;
 	}
 
-	public void ForcePlayer2Backend()
+	public void OnDailyResetHook()
 	{
 	}
 
@@ -247,7 +247,7 @@ public class Player2UsageTracker
 			_data.TotalPlaytimeSeconds += totalSeconds;
 			_sessionStartTime = now;
 			SaveData();
-			if (CanSwitchBackend() && !_data.UnlockMessageShown)
+			if (IsUnlockSatisfied() && !_data.UnlockMessageShown)
 			{
 				ShowUnlockMessage();
 				_data.UnlockMessageShown = true;
@@ -310,7 +310,7 @@ public class Player2UsageTracker
 		SaveData();
 		if (_isInGame)
 		{
-			ForcePlayer2Backend();
+			OnDailyResetHook();
 		}
 		try
 		{
@@ -366,7 +366,7 @@ public class Player2UsageTracker
 	{
 		try
 		{
-			MethodInfo method = typeof(Player2UsageTracker).GetMethod("CanSwitchBackend", BindingFlags.Instance | BindingFlags.Public);
+			MethodInfo method = typeof(Player2UsageTracker).GetMethod("IsUnlockSatisfied", BindingFlags.Instance | BindingFlags.Public);
 			MethodInfo method2 = typeof(Player2UsageTracker).GetMethod("EvaluateUnlockCriteria", BindingFlags.Instance | BindingFlags.NonPublic);
 			MethodInfo method3 = typeof(Player2UsageTracker).GetMethod("ValidateSecurityContext", BindingFlags.Instance | BindingFlags.NonPublic);
 			if (method == null || method2 == null || method3 == null)

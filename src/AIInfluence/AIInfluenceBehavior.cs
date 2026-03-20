@@ -229,19 +229,19 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 	}
 
-	public async Task<string> SendAIRequestWithBackend(string prompt, string requestType, string backend, int cachePrefixLength = 0)
+	public async Task<string> SendAIRequestForFeature(string prompt, string requestType, int cachePrefixLength = 0)
 	{
 		try
 		{
-			LogMessage("[SEND_AI_REQUEST] Отправляем запрос типа '" + requestType + "' к ИИ backend '" + backend + "'");
+			LogMessage("[SEND_AI_REQUEST] Отправляем запрос типа '" + requestType + "' к ИИ (OpenRouter)");
 			LogMessage(string.Format("[SEND_AI_REQUEST] Длина промта: {0} символов{1}", prompt.Length, (cachePrefixLength > 0) ? $", кэш-префикс: {cachePrefixLength}" : ""));
-			string response = await AIClient.GetRawTextResponseWithBackend(prompt, backend, cachePrefixLength);
+			string response = await AIClient.GetRawTextResponse(prompt, cachePrefixLength);
 			LogMessage($"[SEND_AI_REQUEST] Получен ответ от ИИ для '{requestType}': {response?.Length ?? 0} символов");
 			if (string.IsNullOrEmpty(response))
 			{
-				string error = "Error: Empty response from backend '" + backend + "'";
-				LogMessage("[SEND_AI_REQUEST_ERROR] " + error + " для " + requestType);
-				return error + " for " + requestType;
+				string error = "Error: Empty response from OpenRouter for " + requestType;
+				LogMessage("[SEND_AI_REQUEST_ERROR] " + error);
+				return error;
 			}
 			if (response.StartsWith("Error:"))
 			{
@@ -270,8 +270,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			LogMessage($"[SEND_AI_REQUEST_RAW] Получен ответ от ИИ: {response?.Length ?? 0} символов");
 			if (string.IsNullOrEmpty(response))
 			{
-				LogMessage("[SEND_AI_REQUEST_RAW_ERROR] Error: Empty response from backend");
-				return "Error: Empty response from backend";
+				LogMessage("[SEND_AI_REQUEST_RAW_ERROR] Error: Empty response from OpenRouter");
+				return "Error: Empty response from OpenRouter";
 			}
 			if (response.StartsWith("Error:"))
 			{
@@ -489,10 +489,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage("[MainThread] Queued action error: " + ex.Message);
 			}
 		}
-	}
-
-	public static void CheckAndEnforcePlayer2Backend()
-	{
 	}
 
 	private async void OnTick(float dt)

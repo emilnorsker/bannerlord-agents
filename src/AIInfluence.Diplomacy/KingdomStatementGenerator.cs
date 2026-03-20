@@ -1812,9 +1812,8 @@ public class KingdomStatementGenerator
 				DiplomacyLogger.Instance.Log("[STATEMENT_GEN] AIInfluenceBehavior instance not found");
 				return null;
 			}
-			string diplomacyBackend = ModSettings.OpenRouterBackendId;
 			DiplomacyLogger.Instance.Log($"[STATEMENT_GEN] Sending prompt to AI for {kingdom.Name}");
-			string aiResponse = await aiBehavior.SendAIRequestWithBackend(prompt, "diplomacy_statement", diplomacyBackend, cachePrefixLength);
+			string aiResponse = await aiBehavior.SendAIRequestForFeature(prompt, "diplomacy_statement", cachePrefixLength);
 			if (string.IsNullOrEmpty(aiResponse))
 			{
 				DiplomacyLogger.Instance.Log($"[STATEMENT_GEN] Empty AI response for {kingdom.Name}");

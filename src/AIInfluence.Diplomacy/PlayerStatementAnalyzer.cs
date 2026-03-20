@@ -34,13 +34,12 @@ public class PlayerStatementAnalyzer
 		try
 		{
 			string prompt = GenerateAnalysisPrompt(playerText, playerKingdom, activeDiplomaticEvents);
-			string diplomacyBackend = ModSettings.OpenRouterBackendId;
 			DiplomacyLogger.Instance.Log($"[PLAYER_ANALYZER] Sending analysis request to AI (prompt length: {prompt.Length})");
 			DiplomacyLogger.Instance.Log("[PLAYER_ANALYZER] PROMPT SENT TO AI:");
 			DiplomacyLogger.Instance.Log("[PLAYER_ANALYZER] -------------------");
 			DiplomacyLogger.Instance.Log("[PLAYER_ANALYZER] " + prompt);
 			DiplomacyLogger.Instance.Log("[PLAYER_ANALYZER] -------------------");
-			string aiResponse = await AIInfluenceBehavior.Instance.SendAIRequestWithBackend(prompt, "player_statement_analysis", diplomacyBackend);
+			string aiResponse = await AIInfluenceBehavior.Instance.SendAIRequestForFeature(prompt, "player_statement_analysis");
 			if (string.IsNullOrEmpty(aiResponse))
 			{
 				DiplomacyLogger.Instance.Log("[PLAYER_ANALYZER] Empty AI response");

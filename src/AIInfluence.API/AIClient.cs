@@ -31,20 +31,7 @@ public static class AIClient
 		}
 	}
 
-	public static async Task<string> GetRawTextResponse(string prompt)
-	{
-		try
-		{
-			return await GetOpenRouterRawResponse(prompt);
-		}
-		catch (Exception ex)
-		{
-			AIInfluenceBehavior.Instance?.LogMessage("[ERROR] Raw AI request failed for OpenRouter: " + ex.Message);
-			return "Error: AI request failed: " + ex.Message;
-		}
-	}
-
-	public static async Task<string> GetRawTextResponseWithBackend(string prompt, string backend, int cachePrefixLength = 0)
+	public static async Task<string> GetRawTextResponse(string prompt, int cachePrefixLength = 0)
 	{
 		try
 		{
@@ -52,9 +39,8 @@ public static class AIClient
 		}
 		catch (Exception ex)
 		{
-			Exception ex2 = ex;
-			AIInfluenceBehavior.Instance?.LogMessage("[ERROR] Raw AI request failed for OpenRouter: " + ex2.Message);
-			return "Error: AI request failed: " + ex2.Message;
+			AIInfluenceBehavior.Instance?.LogMessage("[ERROR] Raw AI request failed for OpenRouter: " + ex.Message);
+			return "Error: AI request failed: " + ex.Message;
 		}
 	}
 
@@ -275,11 +261,6 @@ public static class AIClient
 	private static void LogWarning(string message)
 	{
 		AIInfluenceBehavior.Instance?.LogMessage("[WARNING] AIClient: " + message);
-	}
-
-	public static async Task<bool> TestCurrentBackendConnection()
-	{
-		return await TestOpenRouterConnection();
 	}
 
 	public static async Task<bool> TestOpenRouterConnection()
