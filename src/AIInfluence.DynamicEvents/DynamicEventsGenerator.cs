@@ -225,7 +225,7 @@ public class DynamicEventsGenerator
 					DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS_GEN] AIInfluenceBehavior instance not found");
 					return;
 				}
-				string dialogueAiResponse = await dialogueBehavior.SendAIRequestWithBackend(dialoguePrompt, "dynamic_event_generation", GlobalSettings<ModSettings>.Instance.DynamicEventsAIBackend.SelectedValue);
+				string dialogueAiResponse = await dialogueBehavior.SendAIRequestWithBackend(dialoguePrompt, "dynamic_event_generation", ModSettings.OpenRouterBackendId);
 				if (string.IsNullOrEmpty(dialogueAiResponse))
 				{
 					DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS_GEN] AI returned empty response for dialogue-only generation - API may be unavailable");
@@ -286,7 +286,7 @@ public class DynamicEventsGenerator
 				DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS_GEN] AIInfluenceBehavior instance not found");
 				return;
 			}
-			string aiResponse = await behavior.SendAIRequestWithBackend(prompt, "dynamic_event_generation", GlobalSettings<ModSettings>.Instance.DynamicEventsAIBackend.SelectedValue);
+			string aiResponse = await behavior.SendAIRequestWithBackend(prompt, "dynamic_event_generation", ModSettings.OpenRouterBackendId);
 			if (string.IsNullOrEmpty(aiResponse))
 			{
 				DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS_GEN] AI returned empty response - API may be unavailable");
@@ -1810,7 +1810,7 @@ public class DynamicEventsGenerator
 				DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS_GEN] AIInfluenceBehavior instance not found");
 				return;
 			}
-			string aiResponse = await behavior.SendAIRequestWithBackend(prompt, "dynamic_events", GlobalSettings<ModSettings>.Instance.DynamicEventsAIBackend.SelectedValue);
+			string aiResponse = await behavior.SendAIRequestWithBackend(prompt, "dynamic_events", ModSettings.OpenRouterBackendId);
 			if (string.IsNullOrEmpty(aiResponse))
 			{
 				DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS_GEN] Empty AI response for dialogue analysis - API may be unavailable");
@@ -4130,7 +4130,7 @@ public class DynamicEventsGenerator
 				DynamicEventsLogger.Instance.Log("[KINGDOM_DESTRUCTION] AIInfluenceBehavior instance not found");
 				return;
 			}
-			string aiResponse = await behavior.SendAIRequestWithBackend(prompt, "kingdom_destruction_event", GlobalSettings<ModSettings>.Instance.DynamicEventsAIBackend.SelectedValue);
+			string aiResponse = await behavior.SendAIRequestWithBackend(prompt, "kingdom_destruction_event", ModSettings.OpenRouterBackendId);
 			if (string.IsNullOrEmpty(aiResponse))
 			{
 				DynamicEventsLogger.Instance.Log("[KINGDOM_DESTRUCTION] AI returned empty response for kingdom destruction event");

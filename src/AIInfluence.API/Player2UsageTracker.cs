@@ -5,7 +5,6 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using MCM.Abstractions.Base.Global;
 using Newtonsoft.Json;
 
 namespace AIInfluence.API;
@@ -190,12 +189,6 @@ public class Player2UsageTracker
 	public bool TryChangeBackend(string newBackend)
 	{
 		return true;
-	}
-
-	private bool IsSwitchingFromPlayer2(string newBackend)
-	{
-		string selectedValue = GlobalSettings<ModSettings>.Instance.AIBackend.SelectedValue;
-		return selectedValue == "Player2" && newBackend != "Player2";
 	}
 
 	private bool ProcessBackendSwitch(string newBackend)

@@ -25,6 +25,8 @@ namespace AIInfluence;
 
 public class ModSettings : AttributeGlobalSettings<ModSettings>
 {
+	public const string OpenRouterBackendId = "OpenRouter";
+
 	private DateTime _lastForceGenerateEventTime = DateTime.MinValue;
 
 	private bool _enableModification = true;

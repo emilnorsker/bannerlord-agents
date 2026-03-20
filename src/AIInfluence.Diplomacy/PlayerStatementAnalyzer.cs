@@ -34,8 +34,8 @@ public class PlayerStatementAnalyzer
 		try
 		{
 			string prompt = GenerateAnalysisPrompt(playerText, playerKingdom, activeDiplomaticEvents);
-			string diplomacyBackend = GlobalSettings<ModSettings>.Instance?.DiplomacyAIBackend?.SelectedValue ?? GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue ?? "OpenRouter";
-			DiplomacyLogger.Instance.Log($"[PLAYER_ANALYZER] Sending analysis request to AI via backend '{diplomacyBackend}' (prompt length: {prompt.Length})");
+			string diplomacyBackend = ModSettings.OpenRouterBackendId;
+			DiplomacyLogger.Instance.Log($"[PLAYER_ANALYZER] Sending analysis request to AI (prompt length: {prompt.Length})");
 			DiplomacyLogger.Instance.Log("[PLAYER_ANALYZER] PROMPT SENT TO AI:");
 			DiplomacyLogger.Instance.Log("[PLAYER_ANALYZER] -------------------");
 			DiplomacyLogger.Instance.Log("[PLAYER_ANALYZER] " + prompt);

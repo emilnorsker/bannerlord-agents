@@ -734,7 +734,7 @@ public class NpcChatWindowVM : ViewModel
                 playerHistoryIdx = preCtx?.ConversationHistory?.Count ?? -1;
             }
             catch (Exception) { }
-            bool useOpenRouterStreaming = string.Equals(GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue, "OpenRouter", StringComparison.Ordinal);
+            bool useOpenRouterStreaming = true;
             ChatMessageItemVM streamingItem = null;
             bool streamingRetired = false;
             string streamingTargetText = "";

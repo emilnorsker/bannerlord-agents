@@ -4689,13 +4689,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			ShowNPCEraseWindow();
 			return;
 		}
-		if (settingName == "AIBackend")
-		{
-			string arg = GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue;
-			int num = GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedIndex ?? (-1);
-			LogMessage($"[SETTINGS] AI Backend change detected. New value: {arg} (index: {num})");
-			return;
-		}
 		if (settingName == "DebugGenerateQuestFromPrompt" && (bool)value)
 		{
 			DebugGenerateQuestFromPrompt();
