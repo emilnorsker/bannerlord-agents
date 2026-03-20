@@ -42,7 +42,7 @@
   </Brush>
 
   <!-- System event line — dimmed, centered: 12px +30% = 16 -->
-  <!-- TODO: wire up in ChatInterface.xml ItemTemplate once IsEvent segment type is added -->
+  <!-- TODO: extend ChatInterface ContentSegments ItemTemplate if ContentSegmentVM gains IsEvent (not used yet; only IsBody/IsPill) -->
   <Brush Name="Chat.Event.Text">
     <Styles>
       <Style Name="Default" FontColor="#787880FF" FontSize="16" />
@@ -50,7 +50,7 @@
   </Brush>
 
   <!-- Item grant notification text — purple: 13px +30% = 17 -->
-  <!-- TODO: wire up in ChatInterface.xml ItemTemplate once IsItemGrant segment type is added -->
+  <!-- TODO: extend ChatInterface ContentSegments ItemTemplate if ContentSegmentVM gains IsItemGrant -->
   <Brush Name="Chat.ItemGrant.Text">
     <Styles>
       <Style Name="Default" FontColor="#E1ACEEEF" FontSize="17" />
