@@ -1101,7 +1101,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			}
 			questBase2?.AddTrackedObject((ITrackableCampaignObject)(object)spawnResult.Party);
 			spawnResult.Party.IsVisible = true;
-			InformationManager.DisplayMessage(new InformationMessage("A party has appeared on the map!", ExtraColors.RedAIInfluence));
+			bool hostileParty = string.Equals(spawnData.Alignment, "hostile", StringComparison.OrdinalIgnoreCase);
+			InformationManager.DisplayMessage(new InformationMessage(hostileParty ? "An enemy party has appeared on the map!" : "A party has appeared on the map!", hostileParty ? ExtraColors.RedAIInfluence : ExtraColors.GreenAIInfluence));
 		}
 		if (spawnResult.Success && spawnResult.Hero != null)
 		{
@@ -1111,9 +1112,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				SaveNPCContext(((MBObjectBase)spawnResult.Hero).StringId, spawnResult.Hero, spawnedContext);
 			}
 		}
-		else if (spawnResult.Error != null)
+		if (!spawnResult.Success)
 		{
-			LogMessage("[QUEST] spawn_party failed: " + spawnResult.Error);
+			string err = spawnResult.Error ?? "Quest party spawn failed.";
+			LogMessage("[QUEST] spawn_party failed: " + err);
+			InformationManager.DisplayMessage(new InformationMessage("Quest spawn failed: " + err, ExtraColors.RedAIInfluence));
 		}
 		SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
 	}
