@@ -166,3 +166,5 @@ Ordered steps. Later slices assume earlier ones unless noted. **Slices 1–8** a
 | **20** | **MissionGM** | Separate operator for mission-time APIs; do not overload campaign `gm.*` queue. |
 
 **Review:** After slice **10**, pause for playtesting; slices **11–17** are where reliability and ops mature; **18–20** are scale and future scope.
+
+**Manual QA:** See [GM_POC_TEST_SPEC.md](./GM_POC_TEST_SPEC.md) (test cases TC-01–TC-11, prerequisites, sign-off checklist).
