@@ -195,20 +195,18 @@ public class NpcChatWindowVM : ViewModel
         const string stripeA = "#121820F0";
         const string stripeB = "#1E1810F0";
         InfoSections.Clear();
-        // InfoList uses VerticalBottomToTop: first Add = bottom of scroll, last Add = top. Add in reverse so
-        // reading top→bottom is NPC party → Quests → World events → What we know → Character.
+        // InfoList is VerticalTopToBottom: add in screen order top → bottom.
         var built = new[]
         {
-            BuildCharacterSection(npc, context),
-            BuildWhatWeKnowSection(npc, context, headerMuted),
-            BuildWorldEventsSection(headerMuted),
+            BuildNpcPartySection(npc),
             BuildQuestSection(context, headerMuted, questGold),
-            BuildNpcPartySection(npc)
+            BuildWorldEventsSection(headerMuted),
+            BuildWhatWeKnowSection(npc, context, headerMuted),
+            BuildCharacterSection(npc, context)
         };
         for (var i = 0; i < built.Length; i++)
         {
-            var visualFromTop = built.Length - 1 - i;
-            built[i].SectionPanelColor = (visualFromTop % 2 == 0) ? stripeA : stripeB;
+            built[i].SectionPanelColor = (i % 2 == 0) ? stripeA : stripeB;
             InfoSections.Add(built[i]);
         }
     }
