@@ -1,11 +1,9 @@
 using System;
 using System.Reflection;
-using AIInfluence.UI;
 using MCM.Abstractions.Base.Global;
 using TaleWorlds.CampaignSystem;
-using TaleWorlds.CampaignSystem.ViewModelCollection;
-using TaleWorlds.Core.ImageIdentifiers;
 using TaleWorlds.Engine.GauntletUI;
+using TaleWorlds.InputSystem;
 using TaleWorlds.Library;
 using TaleWorlds.MountAndBlade;
 using TaleWorlds.ScreenSystem;
@@ -18,6 +16,65 @@ public class NpcChatWindowLayer : GauntletLayer
     private NpcChatWindowVM _viewModel;
 
     internal NpcChatWindowVM ViewModel => _viewModel;
+
+    /// <summary>Call from <see cref="NpcChatWindowManager.Tick"/> when Enter should send while the chat input has focus.</summary>
+    internal void TickEnterToSend()
+    {
+        if (_viewModel == null || _movie == null)
+            return;
+        try
+        {
+            var input = ((ScreenLayer)this).Input;
+            if (!input.IsKeyReleased(InputKey.Enter) && !input.IsKeyReleased(InputKey.NumpadEnter))
+                return;
+            object focused = TryGetFocusedWidget(_movie);
+            if (!IsUnderEditableTextWidget(focused))
+                return;
+            _viewModel.ExecuteSendMessage();
+        }
+        catch (Exception ex)
+        {
+            InformationManager.DisplayMessage(new InformationMessage("[NpcChatWindow] TickEnterToSend: " + ex.Message));
+        }
+    }
+
+    private static object TryGetFocusedWidget(object movie)
+    {
+        if (movie == null)
+            return null;
+        PropertyInfo rootProp = movie.GetType().GetProperty("RootWidget", BindingFlags.Public | BindingFlags.Instance);
+        object root = rootProp?.GetValue(movie);
+        if (root == null)
+            return null;
+        PropertyInfo ctxProp = root.GetType().GetProperty("Context", BindingFlags.Public | BindingFlags.Instance);
+        object ctx = ctxProp?.GetValue(root);
+        if (ctx == null)
+            return null;
+        Type ctxType = ctx.GetType();
+        object em = ctxType.GetProperty("EventManager")?.GetValue(ctx);
+        if (em == null)
+            em = ctxType.GetProperty("UIEventManager")?.GetValue(ctx);
+        if (em == null)
+            return null;
+        PropertyInfo fwProp = em.GetType().GetProperty("FocusedWidget", BindingFlags.Public | BindingFlags.Instance);
+        return fwProp?.GetValue(em);
+    }
+
+    private static bool IsUnderEditableTextWidget(object w)
+    {
+        if (w == null)
+            return false;
+        const string name = "EditableTextWidget";
+        object x = w;
+        while (x != null)
+        {
+            if (x.GetType().Name == name)
+                return true;
+            PropertyInfo parentProp = x.GetType().GetProperty("ParentWidget", BindingFlags.Public | BindingFlags.Instance);
+            x = parentProp?.GetValue(x);
+        }
+        return false;
+    }
     /// <summary>
     /// Reads the mission camera offset from MCM settings. Map conversations
     /// use a separate tableau camera with its own MCM setting, applied via
@@ -28,20 +85,6 @@ public class NpcChatWindowLayer : GauntletLayer
     public NpcChatWindowLayer(Hero npc, NPCContext context, Action onReturn)
         : base("NpcChatWindowLayer", 500, false)
     {
-        // Must be set before LoadMovie so AIInfluencePortraitWidget reads it on activation
-        try
-        {
-            if (npc?.CharacterObject != null)
-            {
-                var code = CampaignUIHelper.GetCharacterCode(npc.CharacterObject, false);
-                AIInfluencePortraitWidget.PendingCharacterCode = code?.Code;
-            }
-        }
-        catch (Exception)
-        {
-            AIInfluencePortraitWidget.PendingCharacterCode = null;
-        }
-
         _viewModel = new NpcChatWindowVM(npc, context, onReturn);
         _movie = base.LoadMovie("ChatInterface", (ViewModel)(object)_viewModel);
         ((ScreenLayer)this).InputRestrictions.SetInputRestrictions(true, (InputUsageMask)7);
@@ -50,6 +93,14 @@ public class NpcChatWindowLayer : GauntletLayer
 
     protected override void OnFinalize()
     {
+        try
+        {
+            _viewModel?.FinalizeEncyclopediaHeroStrip();
+        }
+        catch (Exception ex)
+        {
+            InformationManager.DisplayMessage(new InformationMessage("[NpcChatWindow] FinalizeEncyclopediaHeroStrip failed: " + ex.Message));
+        }
         if (_movie != null)
         {
             try

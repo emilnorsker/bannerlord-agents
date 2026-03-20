@@ -12,6 +12,27 @@ Always consider the consequences of a given code change even if it is just a sin
 
 Never write `catch { }` or `catch (Exception) { }` — this masks errors and makes debugging impossible. Always surface the error.
 
+### Gauntlet / UI prefab changes
+
+Whenever you **change Gauntlet XML**, brushes, layout constants, or VM bindings for a screen:
+
+1. **Show the user a text tree view** of the affected widget hierarchy **in your reply** (containers, important ids, `DataSource` roots, scroll/clip paths, and what is collapsible vs fixed chrome). **Do not** add or maintain a separate `CHAT_INTERFACE.md` (or similar) doc file in the repo for this—the tree is for the conversation only, not a committed artifact.
+
+---
+
+## TaleWorlds decompiled sources (`random_logs` branch)
+
+Bulk **ILSpy-style decompiled C#** for Bannerlord managed assemblies lives on the **`random_logs`** branch only, under **`decompiled/`** at the repo root (SandBox, StoryMode, TaleWorlds.*, NavalDLC, etc.).
+
+- **Do not** commit or push large decompiled trees to feature branches or `main`. Use `random_logs` for archaeology, binding traces, and comparing widget/VM code to Gauntlet XML.
+- **CI / compile** still uses the small DLL set in **`.github/workflows/dlls/`** (referenced by the build). Those are not a full decompile; they exist so agents can verify symbols without checking out `random_logs`.
+- **Finding types:** search under `decompiled/` for `HeroViewModel.cs`, `EncyclopediaCharacterTableauWidget.cs`, `CharacterViewModel.cs`, etc. Paths are assembly-rooted (e.g. `decompiled/TaleWorlds.CampaignSystem.ViewModelCollection/.../HeroViewModel.cs`).
+- **Regenerating** (optional): install `ilspycmd`, then e.g.  
+  `ilspycmd -p --nested-directories -r .github/workflows/dlls -o decompiled/<AssemblyName> .github/workflows/dlls/<AssemblyName>.dll`  
+  Prefer doing that on a branch dedicated to reference dumps (e.g. `random_logs`), not on PR branches.
+
+See also **`decompiled/README.md`** on `random_logs` for the same pointers.
+
 ---
 
 ## Bannerlord API Verification Protocol
