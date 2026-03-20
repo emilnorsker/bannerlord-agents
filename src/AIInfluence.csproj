@@ -13,6 +13,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Reference Include="Bannerlord.GameMaster">
+      <HintPath>../ref/Bannerlord.GameMaster-v1.3.14.11/Bannerlord.GameMaster.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
     <Reference Include="OggVorbisEncoder">
       <HintPath>../bin/Win64_Shipping_Client/OggVorbisEncoder.dll</HintPath>
     </Reference>
