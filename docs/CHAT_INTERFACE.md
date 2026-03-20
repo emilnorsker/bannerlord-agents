@@ -15,6 +15,114 @@ This module exposes **one** in-game Gauntlet conversation UI for AI NPC chat.
 | `WorldEventLineVM` | World events only: `SkillIconVisualWidget` + text; skill from `DynamicEvent.Type` via `WorldEventSkillMapper` → `DefaultSkills` IDs (same as encyclopedia). |
 | `InfoSectionVM` / `PartyTroopRowVM` | Collapsible right-panel sections; party rows use `InventoryImageIdentifierWidget` + formation label + count. |
 
+## Component tree (`ChatInterface.xml`)
+
+Prefab: `GUI/Prefabs/ChatInterface.xml`. Below: **non–text widgets** only get a role note (`TextWidget` / `RichTextWidget` appear as unlabeled nodes). Indentation = containment.
+
+```
+Window ChatInterfaceWindow (Layer=Overlay)
+└── BrushWidget [Encyclopedia.Page.SoundBrush] — full-screen shell; encyclopedia page brush (sound/visual parent for this screen).
+    └── Widget — inset margin; receives input for the whole window.
+        └── ListPanel [HorizontalLeftToRight] — three columns: hero | chat | info.
+            │
+            ├── Widget [left ~EncyLeft.W] — column background gradient.
+            │   ├── Widget (clip) — clips the tableau stack.
+            │   │   ├── EncyclopediaCharacterTableauWidget {HeroCharacter} — 3D portrait / equipment tableau.
+            │   │   ├── Widget [hero_silhouette] — shown when information is hidden.
+            │   │   ├── ParallaxItemBrushWidget [Smoke] — animated smoke (vanilla encyclopedia).
+            │   │   └── ParallaxItemBrushWidget [Smoke2]
+            │   ├── TextWidget …
+            │   ├── ListPanel [VerticalBottomToTop] — name / title / traits block.
+            │   │   ├── TextWidget …
+            │   │   ├── TextWidget …
+            │   │   ├── Widget [pregnant icon] — sprite container.
+            │   │   │   └── HintWidget {PregnantHint}
+            │   │   ├── NavigationScopeTargeter — focus entry into trait strip.
+            │   │   └── NavigatableListPanel Id=NpcChatTraits {Traits}
+            │   │       └── ItemTemplate: EncyclopediaHeroTraitVisualWidget
+            │   │           └── HintWidget {Hint}
+            │   ├── ListPanel [VerticalBottomToTop] — skills header + grid (bottom-aligned).
+            │   │   ├── TextWidget …
+            │   │   ├── NavigationScopeTargeter — focus entry into skills grid.
+            │   │   └── NavigatableGridWidget Id=NpcChatSkillsGrid {HeroSkillList}
+            │   │       └── ItemTemplate: SkillIconVisualWidget @SkillId
+            │   │           ├── TextWidget …
+            │   │           └── HintWidget {Hint}
+            │   └── Widget [vertical divider sprite]
+            │
+            ├── Widget [Sep.W] — thin column separator.
+            │
+            ├── Widget [center, stretch]
+            │   ├── Widget — chat column fill #141414.
+            │   └── Widget — interactive layer (header, scroll, scrollbar, input).
+            │       ├── Widget [header bar !Header.H]
+            │       │   ├── TextWidget …
+            │       │   ├── RichTextWidget …
+            │       │   ├── RichTextWidget …
+            │       │   └── TextWidget …
+            │       ├── ScrollablePanel Id=MsgScroll — message list; InnerPanel MsgClip\MsgList; scrollbar sibling MsgScrollbar.
+            │       │   └── Widget Id=MsgClip — clip rect for messages.
+            │       │       └── ListPanel Id=MsgList {MessageList} [VerticalBottomToTop]
+            │       │           └── ItemTemplate: Widget — one message row.
+            │       │               ├── ListPanel [NPC] @IsNpc
+            │       │               │   ├── Widget [name_shadow]
+            │       │               │   │   └── ListPanel [Horizontal] — sender name + type tag.
+            │       │               │   │       ├── RichTextWidget …
+            │       │               │   │       └── TextWidget …
+            │       │               │   └── ListPanel {ContentSegments} [VerticalBottomToTop]
+            │       │               │       └── ItemTemplate: Widget — segment wrapper.
+            │       │               │           ├── Widget @IsBody → TextWidget …
+            │       │               │           └── Widget @IsPill → TextWidget …
+            │       │               └── ListPanel [Player] @IsPlayer
+            │       │                   ├── Widget — sender name strip.
+            │       │                   │   └── RichTextWidget …
+            │       │                   └── ListPanel {ContentSegments} …
+            │       │                       └── ItemTemplate: Widget — same body/pill pattern, right-aligned.
+            │       ├── Standard.VerticalScrollbar Id=MsgScrollbar — vanilla scrollbar for MsgScroll.
+            │       ├── Widget [thin horizontal rule above input]
+            │       └── Widget [input bar !Input.H]
+            │           ├── Widget [frame_9]
+            │           ├── Widget [gradient]
+            │           ├── Widget [text_input chrome]
+            │           │   ├── Widget [inner frame_9]
+            │           │   └── EditableTextWidget @InputText — player typing; OnTextChanged.
+            │           └── ButtonWidget ExecuteSendMessage @IsSendEnabled
+            │               └── TextWidget …
+            │
+            ├── Widget [Sep.W]
+            │
+            └── Widget [right ~Info.W]
+                ├── Widget — column fill.
+                ├── RichTextWidget …
+                ├── Widget [title underline]
+                ├── BrushWidget [Encyclopedia.Frame] — framed scroll region.
+                │   └── ScrollablePanel Id=InfoScroll — InnerPanel InfoRect\InfoList; VerticalScrollbar ..\..\InfoScrollbar.
+                │       └── Widget Id=InfoRect — clip; holds list + bottom shadow.
+                │           ├── NavigatableListPanel Id=InfoList {InfoSections} [VerticalBottomToTop]
+                │           │   └── ItemTemplate: ListPanel — one collapsible section.
+                │           │       ├── ButtonWidget ExecuteToggle [Encyclopedia.TopBanner]
+                │           │       │   └── ListPanel [Horizontal] — @HeaderText + @ExpandGlyph (text widgets).
+                │           │       └── ListPanel @IsExpanded
+                │           │           ├── ListPanel {WorldEventLines} @HasWorldEventLines
+                │           │           │   └── ItemTemplate: ListPanel [Horizontal]
+                │           │           │       ├── SkillIconVisualWidget @SkillId
+                │           │           │       └── RichTextWidget …
+                │           │           ├── ListPanel {TextLines} @HasStandardTextLines
+                │           │           │   └── ItemTemplate: Widget → RichTextWidget …
+                │           │           ├── ListPanel {TroopRows} @HasTroopRows
+                │           │           │   └── ItemTemplate: ListPanel [Horizontal]
+                │           │           │       ├── InventoryImageIdentifierWidget @Portrait
+                │           │           │       ├── RichTextWidget …
+                │           │           │       └── TextWidget …
+                │           │           └── RichTextWidget … @ShowPartyFood
+                │           └── BrushWidget [Encyclopedia.Scroll.Shadow] — bottom fade over scroll content.
+                ├── ScrollbarWidget Id=InfoScrollbar — custom flat track + handle.
+                │   ├── BrushWidget [scrollbar bed]
+                │   └── BrushWidget Id=InfoScrollbarHandle
+                └── ButtonWidget ExecuteReturn
+                    └── TextWidget …
+```
+
 ## Information panel (right column) — components
 
 **Prefab:** `GUI/Prefabs/ChatInterface.xml` (right column only). **Root VM field:** `NpcChatWindowVM.InfoSections` (`MBBindingList<InfoSectionVM>`).
