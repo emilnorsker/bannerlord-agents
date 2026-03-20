@@ -4,7 +4,9 @@
 
 ### → **[INTRIGUE_SYSTEM_DESIGN.md](./INTRIGUE_SYSTEM_DESIGN.md)**
 
-Use that document as the authoritative contract for plots, runtime secrets, plot points, hooks, chat UI alignment, and migration from catalog-first secrets.
+### → **[INTRIGUE_IMPLEMENTATION_PLAN.md](./INTRIGUE_IMPLEMENTATION_PLAN.md)** (slices I-01–I-12, test cases, sign-off)
+
+Use the design document as the authoritative contract for plots, runtime secrets, plot points, hooks, chat UI alignment, and migration from catalog-first secrets.
 
 ---
 
