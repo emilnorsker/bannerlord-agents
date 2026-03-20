@@ -18,6 +18,7 @@ public static class NpcChatWindowManager
     public static void Tick()
     {
         _layer?.TickEnterToSend();
+        _layer?.ViewModel?.RefreshNativeDialogueOptionsIfNeeded();
     }
 
     public static void Show(Hero npc, NPCContext context, Action onReturn)

@@ -58,6 +58,13 @@ public class NpcChatWindowVM : ViewModel
     // ── Center ────────────────────────────────────────────────────────────
     [DataSourceProperty] public MBBindingList<ChatMessageItemVM> MessageList { get; } = new MBBindingList<ChatMessageItemVM>();
 
+    /// <summary>Engine-native conversation choices (vanilla dialogue menu options).</summary>
+    [DataSourceProperty] public MBBindingList<NativeDialogueOptionVM> NativeDialogueOptions { get; } = new MBBindingList<NativeDialogueOptionVM>();
+
+    [DataSourceProperty] public bool HasNativeDialogueOptions { get; private set; }
+
+    private DateTime _lastNativeDialogueRefreshUtc = DateTime.MinValue;
+
     [DataSourceProperty]
     public string InputText
     {
@@ -704,6 +711,35 @@ public class NpcChatWindowVM : ViewModel
         {
             _inputText = newText ?? "";
             ((ViewModel)this).OnPropertyChangedWithValue<string>(_inputText, "InputText");
+        }
+    }
+
+    /// <summary>Refreshes native dialogue menu options from <see cref="NativeConversationMenuBridge"/> (throttled).</summary>
+    internal void RefreshNativeDialogueOptionsIfNeeded()
+    {
+        if ((DateTime.UtcNow - _lastNativeDialogueRefreshUtc).TotalMilliseconds < 250.0)
+            return;
+        _lastNativeDialogueRefreshUtc = DateTime.UtcNow;
+
+        if (!NativeConversationMenuBridge.TryGetPlayerOptions(out List<(int Index, string Text)> opts) || opts.Count == 0)
+        {
+            NativeDialogueOptions.Clear();
+            if (HasNativeDialogueOptions)
+            {
+                HasNativeDialogueOptions = false;
+                ((ViewModel)this).OnPropertyChangedWithValue(false, "HasNativeDialogueOptions");
+            }
+            return;
+        }
+
+        NativeDialogueOptions.Clear();
+        foreach (var o in opts)
+            NativeDialogueOptions.Add(new NativeDialogueOptionVM(o.Index, o.Text));
+
+        if (!HasNativeDialogueOptions)
+        {
+            HasNativeDialogueOptions = true;
+            ((ViewModel)this).OnPropertyChangedWithValue(true, "HasNativeDialogueOptions");
         }
     }
 

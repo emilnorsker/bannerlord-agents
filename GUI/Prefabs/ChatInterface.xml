@@ -11,6 +11,7 @@
     <Constant Name="Inset" Value="20" />
     <Constant Name="Header.H" Value="72" />
     <Constant Name="Input.H" Value="52" />
+    <Constant Name="NativeOpts.H" Value="56" />
     <Constant Name="Msg.Margin" Value="30" />
     <Constant Name="Gold" Value="#FFE6B685" />
     <Constant Name="SepColor" Value="#FFFFFF22" />
@@ -236,6 +237,39 @@
                             </Widget>
                           </Children>
                         </ScrollablePanel>
+                        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="!NativeOpts.H"
+                                VerticalAlignment="Bottom" MarginBottom="!Input.H" IsVisible="@HasNativeDialogueOptions"
+                                Sprite="BlankWhiteSquare_9" Color="#1A1510FF">
+                          <Children>
+                            <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                        HorizontalAlignment="Left" VerticalAlignment="Top" MarginLeft="10" MarginTop="4"
+                                        Brush="SPScoreboard.Subtitle.Text" Brush.FontSize="12" Text="Native dialogue" IsDisabled="true"/>
+                            <ScrollablePanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                                             MarginTop="22" MarginLeft="6" MarginRight="6" MarginBottom="4"
+                                             ClipRect="NativeOptsClip" InnerPanel="NativeOptsClip\NativeOptsList">
+                              <Children>
+                                <Widget Id="NativeOptsClip" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" ClipContents="true">
+                                  <Children>
+                                    <ListPanel Id="NativeOptsList" DataSource="{NativeDialogueOptions}" WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                               StackLayout.LayoutMethod="HorizontalLeftToRight" Spacing="6">
+                                      <ItemTemplate>
+                                        <ButtonWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="28" MaxWidth="220"
+                                                      Brush="Popup.Done.Button" UpdateChildrenStates="true" DoNotPassEventsToChildren="true"
+                                                      Command.Click="ExecuteSelect">
+                                          <Children>
+                                            <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" MaxWidth="200"
+                                                        VerticalAlignment="Center" MarginLeft="10" MarginRight="10" MarginTop="2" MarginBottom="2"
+                                                        Brush="Popup.Button.Text" Brush.FontSize="14" Text="@Label"/>
+                                          </Children>
+                                        </ButtonWidget>
+                                      </ItemTemplate>
+                                    </ListPanel>
+                                  </Children>
+                                </Widget>
+                              </Children>
+                            </ScrollablePanel>
+                          </Children>
+                        </Widget>
                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" VerticalAlignment="Bottom"
                                 PositionYOffset="-52" Sprite="BlankWhiteSquare_9" Color="!SepColor"/>
                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="!Input.H" VerticalAlignment="Bottom"
