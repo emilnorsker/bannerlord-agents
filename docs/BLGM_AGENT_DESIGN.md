@@ -130,8 +130,31 @@ Some kingdom-scoped commands may exist in the catalog while the **player’s cha
 
 ---
 
-## POC progress (implementation)
+## Implementation slices (POC → full)
 
-**Slice 1 (done in repo):** MCM → Debug & Fixes → **GM POC (query kingdoms)** enqueues a single read-only `gm.query.kingdom` on `GameMasterPocQueue`; `AIInfluenceBehavior.Tick` drains **one** action per application tick before the lip-sync main-thread queue. Results are **log-only** (`[GM_POC] observation …`). Requires **Bannerlord.GameMaster** loaded. No LLM.
+Ordered steps. Later slices assume earlier ones unless noted. **Slice 1** is already merged; adjust numbering only if you insert work between existing slices.
 
-**Next slices (planned):** multi-line budget; correlation id in log; JSON plan from a debug OpenRouter call; serializer; then path-specific wiring.
+| # | Slice | Outcome |
+|---|--------|--------|
+| **1** | **Fixed read-only probe + queue + drain** | `ConcurrentQueue`, drain **one** item per application tick in `AIInfluenceBehavior.Tick` (before lip-sync queue). MCM button enqueues `gm.query.kingdom`. **Log-only** observations (`[GM_POC]`). No LLM. **Status: done.** |
+| **2** | **Correlation id** | Every enqueue receives a **Guid**; enqueue, each serialized line, and each `CallFunction` return log under that id so parallel completions can be untangled later. |
+| **3** | **Drain budget** | MCM or const: max **N** queue actions per tick (default 1); prevents multi-line jobs from stalling one frame once slices add batches. |
+| **4** | **Async producer stress** | Enqueue from `Task.Run` (or a stub “LLM completed” callback on a thread-pool thread) to prove the queue + logging behave under the same pattern real HTTP uses. |
+| **5** | **Batch enqueue lock** | When one plan maps to **multiple** lines, `lock` while enqueueing the whole batch so two concurrent completions cannot interleave lines. |
+| **6** | **Serializer v1** | C# DTO / record (positional + named-arg fields + “needs single quotes”) → one exact BLGM string. Validate locally before `CallFunction`. |
+| **7** | **Debug OpenRouter hop** | Dev-only: one completion (OpenRouter) with a frozen system prompt returning **JSON** matching the DTO; parse → serialize → enqueue → observe in log. Proves LLM → game loop with no NPC Chat UI yet. |
+| **8** | **Observation visibility** | Surface last observation in-game (MCM readonly text, debug overlay, or message) so testers see the loop without `mod_log` only. |
+| **9** | **NPC Chat path (opt-in)** | Gated setting: completion path for dialogue may emit the plan schema; snapshot = current NPC + player; correlation tied to conversation / `NPCContext` id. |
+| **10** | **World Events path (opt-in)** | Same executor; **world-shaped** snapshot + stricter or different allowlist table for dynamic/diplomatic prompts. |
+| **11** | **Hazard index v1** | Curated list of error-prone commands with **preconditions** derived from `Hero` / `Clan` / `Kingdom` / settlement APIs; host rejects or warns before execution; prompt tells the completion to **consult this list first** for those verbs. |
+| **12** | **Full tagged command index** | Cover ~139 commands with machine tags (family, scope, rough risk); filter or document for the model; ideally **generated** from a pinned BLGM wiki/API export so version drift is visible. |
+| **13** | **Dedicated GM audit log** | Append-only file (or structured log channel): plan JSON, serialized lines, raw returns, path id, timestamps—supplements `[GM_POC]` for incident review (includes help-probe accidents). |
+| **14** | **Help-before-mutate workflow** | Plan schema supports `probe_help` / arity-unknown; optional automatic no-arg help line with logging; accept residual mod risk. |
+| **15** | **No UI disambiguation** | Harmony or BLGM fork path: ambiguous entity match returns **text** for the agent instead of opening an interactive picker. |
+| **16** | **OpenRouter-only for GM plans** | Restrict structured-plan completions to OpenRouter (or one schema-capable gateway); other backends unchanged for normal chat until trimmed intentionally. |
+| **17** | **Schema-constrained plans** | Use provider JSON Schema / strict output for the plan DTO where supported; keep validate-and-reject on the host. |
+| **18** | **RAG (optional)** | After the loop is stable: retrieve wiki paragraphs for rare flags; never replace hazard index + serializer. |
+| **19** | **Campaign lifecycle** | Define policy for pending queue on save load, mission transition, teardown (cancel, flush, or persist with version). Previously deferred. |
+| **20** | **MissionGM** | Separate operator for mission-time APIs; do not overload campaign `gm.*` queue. |
+
+**Review:** After slice **10**, pause for playtesting; slices **11–17** are where reliability and ops mature; **18–20** are scale and future scope.
