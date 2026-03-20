@@ -40,3 +40,70 @@ These use other prefabs / layers and must not be confused with NPC chat:
 ## Optional follow-ups
 
 - `GUI/Brushes/PopUpBrush.xml` TODOs reference future segment types (`IsEvent`, `IsItemGrant`) in `ChatInterface.xml`; current template only uses **body / pill** (`IsBody` / `IsPill`).
+
+---
+
+## `AIResponse` → game execution vs chat pills
+
+After each send, `AIInfluenceBehavior` applies many `AIResponse` fields (money, items, quests, kingdom, workshop, …). **Chat pills** are a separate summary built in `NpcChatWindowVM.BuildPlayerActionPills` (player’s message row) and `BuildNpcActionPills` (NPC reply row). Both read the **same** `AIResponse` so **money and items are mirrored on both rows** (wording from player vs NPC perspective).
+
+### `money_transfer` (`MoneyTransferInfo`)
+
+| `action` | Meaning in `ProcessMoneyTransfer` | Player-row pill | NPC-row pill |
+|----------|-----------------------------------|-----------------|--------------|
+| `receive` | Player pays NPC (player −gold, NPC +gold) | `You gave {amt} gold to {npc}` | `{npc} received {amt} gold from you` |
+| `give` | NPC pays player (NPC −gold, player +gold) | `You received {amt} gold from {npc}` | `{npc} gave you {amt} gold` |
+
+Other `action` strings: **no pill**; execution logs `Unknown action` and does not move gold.
+
+Optional `opposed_attribute`: opposed roll before any transfer (same for money/items).
+
+### `item_transfers[]` (`ItemTransferData`)
+
+| `action` | Meaning in `ProcessItemTransfers` | Player-row pill | NPC-row pill |
+|----------|-----------------------------------|-----------------|--------------|
+| `take` | Player → NPC (items leave player) | `You gave {items} to {npc}` | `{npc} took {items} from you` |
+| `give` | NPC → player | `You received {items} from {npc}` | `{npc} gave you {items}` |
+
+Other `action` values: transfer fails with “Unknown action”; **no pill**.
+
+### `workshop_action`
+
+Prompt / schema (`PromptGenerator`): **`none`** or **`sell`** only. There is **no** documented `buy` or other value.
+
+| Value | Execution | Pill (NPC row only) |
+|-------|-----------|---------------------|
+| `sell` (final agreement) | `ProcessWorkshopSale` / delayed sale | `Sold workshop to you` |
+| `none` / omitted | No workshop UI | — |
+| Anything else | Not handled like `sell` | **No pill** (and sale will not run) |
+
+### `quest_action` (`QuestActionData`)
+
+- **`action`**: free string (e.g. create / update / complete / fail — see `ProcessQuestAction`). **Pill (NPC row):** `Quest: {action}` (raw string).
+- Other quest fields drive behavior, not separate pill lines.
+
+### `decision`
+
+- Non-`none` text → **NPC row** pill: `• {decision}` (`ActionColor`). No player-row mirror.
+
+### `LastTechnicalActionForDisplay` (on `NPCContext`)
+
+- Pipe-separated `name:payload` entries; special cases (`follow_player`, `transfer_troops_and_prisoners`, …). **NPC row only** (technical / follow / travel pills).
+
+### `romance_intent`
+
+- Not `none` → **NPC row** pill (flirt / romance / proposal labels or raw). No player-row mirror.
+
+### `kingdom_action` + `kingdom_action_reason`
+
+- **`kingdom_action`**: must be `none` or one of many strings from **`GetKingdomActionsSection`** in `PromptGenerator` (war/peace, alliance, trade, tribute, reparations, fief grant/receive, hire/dismiss mercenary, vassalage, join clan/kingdom, kick, `transfer_kingdom`, … — **context-dependent**; the prompt only lists what the NPC *may* use).
+- **Pill (NPC row):** `Kingdom: {kingdom_action}` (raw; **reason is not shown** in the pill).
+- **`ExecuteKingdomAction`** runs the real diplomacy.
+
+### Fields with **no** chat pill (examples)
+
+Still applied or stored elsewhere; not rendered as structured pills: `internal_thoughts`, `claimed_*`, `threat_level`, `escalation_state`, `kingdom_action_reason`, `workshop_string_id` / `workshop_price` (used for sale, not pill text), `character_death`, `character_personality` / backstory / quirks (context + UI panels), `tts_instructions`, `settlement_id` alone, `item_transfers_opposed_attribute` (affects roll only), etc.
+
+### Relation / narrative pills (history string)
+
+From **`ParseLine`**: blocks after `\\n---\\n` (action) and `\\n===\\n` (relation) become pills when **reloaded from `ConversationHistory`**, independent of `AIResponse`.

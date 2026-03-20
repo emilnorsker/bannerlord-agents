@@ -547,30 +547,46 @@ public class NpcChatWindowVM : ViewModel
         return toPlayer ? $"{npcName} gave you {list}" : $"You gave {list} to {npcName}";
     }
 
+    private static string FormatItemTransferPillList(IEnumerable<ItemTransferData> transfers) =>
+        string.Join(", ", transfers.Select(t => $"{ResolveItemName(t.ItemId)} (x{t.Amount})"));
+
+    /// <summary>Pills on the <b>player</b> message row mirror the same <see cref="AIResponse"/> as NPC pills (see <see cref="BuildNpcActionPills"/>).</summary>
     private static IEnumerable<(string text, string textColor)> BuildPlayerActionPills(AIResponse r, string npcName)
     {
         if (r == null) yield break;
-        if (r.MoneyTransfer != null && r.MoneyTransfer.Amount != 0 && string.Equals(r.MoneyTransfer.Action, "receive", StringComparison.OrdinalIgnoreCase))
-            yield return ($"• You received {Math.Abs(r.MoneyTransfer.Amount)} gold from {npcName}", MoneyTransferColor);
+        if (r.MoneyTransfer != null && r.MoneyTransfer.Amount != 0)
+        {
+            int amt = Math.Abs(r.MoneyTransfer.Amount);
+            if (string.Equals(r.MoneyTransfer.Action, "receive", StringComparison.OrdinalIgnoreCase))
+                yield return ($"• You gave {amt} gold to {npcName}", MoneyTransferColor);
+            else if (string.Equals(r.MoneyTransfer.Action, "give", StringComparison.OrdinalIgnoreCase))
+                yield return ($"• You received {amt} gold from {npcName}", MoneyTransferColor);
+        }
         var takeTransfers = r.ItemTransfers?.Where(t => string.Equals(t.Action, "take", StringComparison.OrdinalIgnoreCase)).ToList();
         if (takeTransfers?.Count > 0)
-        {
-            var itemNames = takeTransfers.Select(t => $"{ResolveItemName(t.ItemId)} (x{t.Amount})");
-            yield return ($"• You gave {string.Join(", ", itemNames)} to {npcName}", ItemTransferColor);
-        }
+            yield return ($"• You gave {FormatItemTransferPillList(takeTransfers)} to {npcName}", ItemTransferColor);
+        var giveTransfers = r.ItemTransfers?.Where(t => string.Equals(t.Action, "give", StringComparison.OrdinalIgnoreCase)).ToList();
+        if (giveTransfers?.Count > 0)
+            yield return ($"• You received {FormatItemTransferPillList(giveTransfers)} from {npcName}", ItemTransferColor);
     }
 
     private static IEnumerable<(string text, string textColor)> BuildNpcActionPills(AIResponse r, NPCContext ctx, string npcName)
     {
         if (r == null) yield break;
-        if (r.MoneyTransfer != null && r.MoneyTransfer.Amount != 0 && string.Equals(r.MoneyTransfer.Action, "give", StringComparison.OrdinalIgnoreCase))
-            yield return ($"• {npcName} gave you {Math.Abs(r.MoneyTransfer.Amount)} gold", MoneyTransferColor);
+        if (r.MoneyTransfer != null && r.MoneyTransfer.Amount != 0)
+        {
+            int amt = Math.Abs(r.MoneyTransfer.Amount);
+            if (string.Equals(r.MoneyTransfer.Action, "give", StringComparison.OrdinalIgnoreCase))
+                yield return ($"• {npcName} gave you {amt} gold", MoneyTransferColor);
+            else if (string.Equals(r.MoneyTransfer.Action, "receive", StringComparison.OrdinalIgnoreCase))
+                yield return ($"• {npcName} received {amt} gold from you", MoneyTransferColor);
+        }
         var giveTransfers = r.ItemTransfers?.Where(t => string.Equals(t.Action, "give", StringComparison.OrdinalIgnoreCase)).ToList();
         if (giveTransfers?.Count > 0)
-        {
-            var itemNames = giveTransfers.Select(t => $"{ResolveItemName(t.ItemId)} (x{t.Amount})");
-            yield return ($"• {npcName} gave you {string.Join(", ", itemNames)}", ItemTransferColor);
-        }
+            yield return ($"• {npcName} gave you {FormatItemTransferPillList(giveTransfers)}", ItemTransferColor);
+        var takeTransfers = r.ItemTransfers?.Where(t => string.Equals(t.Action, "take", StringComparison.OrdinalIgnoreCase)).ToList();
+        if (takeTransfers?.Count > 0)
+            yield return ($"• {npcName} took {FormatItemTransferPillList(takeTransfers)} from you", ItemTransferColor);
         if (!string.IsNullOrEmpty(r.QuestAction?.Action))
             yield return ($"• Quest: {r.QuestAction.Action}", QuestActionColor);
         if (!string.IsNullOrEmpty(r.Decision) && r.Decision != "none" && r.Decision != "none\n")
