@@ -1,162 +1,219 @@
-# AI Influence — Intrigue & plot-driven secrets — design notes
+# AI Influence — Intrigue and plot-driven secrets
 
-**Audience:** engineers working on AIInfluence who need a **rigorous contract** for plots, secrets, hooks, and plot points on top of Mount & Blade II: Bannerlord—**without** treating the language model as the save file.
+**Audience:** Engineers extending AIInfluence with plots, runtime secrets, hooks, and plot points on Mount & Blade II: Bannerlord.
 
-**Tone:** this document records *intent* and *constraints* agreed in design discussion. It is not a task list for a single PR. Update it when schema names, log prefixes, or slice boundaries change.
+**Scope:** This file defines **target behavior**, **data shapes**, and **constraints** for the intrigue layer. It does not list pull requests. Implementation order is in **Implementation slices** at the end.
 
-**Related today:** `TECHNICAL_GUIDE.en.md` (artifacts, prompts), `NPCContext` / `WorldSecret` / `CheckSecretKnowledge` / `PromptGenerator` (shipping behavior). This doc describes the **target** system and how it relates to that baseline.
+**Normative:** Sentences using **must** or **must not** are requirements for the target design unless marked **should** (strong recommendation) or **may** (optional).
 
----
-
-## Two completion paths (precision, not “the model”)
-
-AIInfluence must **name** which pipeline a request belongs to. They share validators and save rules but differ in **snapshot shape** and **what may be proposed**.
-
-**Campaign intrigue path** — Work driven by **campaign time** and **engine events** (battle resolved, daily tick, entered settlement, peace declared, prisoner moved). Completions (when used) receive a **world-shaped** snapshot: active plot instances, involved kingdoms/clans, recent `DynamicEvent` summaries, policy flags. This path may propose **structured operations** that mutate the intrigue ledger and, through validated adapters, Bannerlord state. It must **not** assume the player is in dialogue.
-
-**NPC dialogue path** — Completions driven by **player↔hero** chat: messenger-style prompts, `NPCContext` for **one** `Hero`, relation/trust/emotion. The snapshot is **interlocutor-shaped**. This path produces **speech** and may propose **dialogue-scoped** JSON (tone, short-term intent); **durable** changes to plots, secrets, or hooks require an **explicit** validated mechanism (e.g. tool / post-step commit), not free text. If the UI shows plot points, secrets, and hooks for this talker, the **same ids** must feed the prompt builder—no shadow state.
-
-In the rest of this document, **proposal** means **structured output** from whichever path is active for that HTTP job. We avoid the vague phrase “the model” where it would blur these two.
+**Related documents:** `TECHNICAL_GUIDE.en.md` (file formats, prompts). Related code today: `NPCContext`, `WorldSecret`, `WorldInfoManager.CheckSecretKnowledge`, `PromptGenerator`, `AIInfluence.DynamicEvents`.
 
 ---
 
-## What we are actually building
+## Terms
 
-Intrigue is **not** a second simulation of Calradia. It is a **ledger** plus **rules**:
-
-- **Plot instances** — phases, participants, links to world facts (battle uid, prisoner ids).
-- **Plot points** — “what the world is saying/doing” (situation beats); propagate like living news; **not** the same object kind as secrets.
-- **Secrets (runtime)** — hidden facts **minted** when a plot step or validated effect says so, with `origin` pointing at plot + step; **who knows** is explicit per character.
-- **Hooks** — leverage on a **named** target (player or NPC-held), optional `description` text, optional tie to **generated RP items** as evidence; **not** the same row as a secret.
-- **Bannerlord** remains the authority for battles, parties, prisoners, relations, wars, settlements. Intrigue **reads** that state and **writes** only through defined effects and existing diplomacy/event machinery where applicable.
-
-The **LLM** may propose parameters for beats (within schema); **only committed operations** change saves.
-
----
-
-## Baseline today (must not be confused with target)
-
-**Implemented:** `world_secrets.json` catalog → `WorldSecret` → `CheckSecretKnowledge` rolls `knowledgeChance` on first knowledge generation pass → `NPCContext.KnownSecrets` holds **ids** → `PromptGenerator` resolves to `description (access: …)` in the prompt. **Parallel:** `world_info.json` / `KnownInfo`. **Parallel:** `DynamicEvents` on NPC + `DynamicEventsManager` for living events.
-
-**Gap vs target:** Catalog-first secrets with a **per-first-chat roll** are **not** plot-driven. The target system makes **runtime secret records** authoritative for campaign-born facts; catalog entries become **optional** (modpack lore, migration, or fill for static scenarios).
-
-Migration strategy belongs in implementation slices; this doc only states the **contract**: new saves should prefer **origin-linked** secrets; old `KnownSecrets` ids may still resolve through catalog until migrated.
+| Term | Definition |
+|------|------------|
+| **LLM** | The language model used for a given HTTP request (remote or local). |
+| **HTTP job** | One request–response cycle to the LLM API (or one non-LLM test job treated the same in logs). |
+| **Completion** | The response body from one HTTP job. |
+| **Snapshot** | Structured data built in C# from `Campaign`, intrigue stores, and `NPCContext`. Snapshots are inputs to prompts or proposal validators. The LLM must not invent snapshot fields. |
+| **Proposal** | Structured output (usually JSON) listing intended intrigue or Bannerlord operations **before** validation. Not persisted until validated and committed. |
+| **Authoritative state** | Values last written to the save (or memory backed by save) after validation. Assistant text is not authoritative. |
+| **Intrigue store** | Persisted records for plots, runtime secrets, hooks, and plot points (exact files or tables are implementation details). |
+| **Campaign intrigue job** | Work run from campaign time or engine events (battle end, daily tick, settlement entry, peace, prisoner moves, etc.). Used when the player may not be in dialogue. |
+| **NPC dialogue job** | Work run for player↔NPC chat. One `Hero` and that hero’s `NPCContext` are in scope per message generation. |
+| **Plot point** | A situation beat (rumor, movement, pressure) tied to a plot; not the same record type as a secret. May align with or extend `DynamicEvent` integration. |
+| **Runtime secret** | A secret record created by the intrigue pipeline with `origin` pointing at a plot and step (or validated effect), not only a row in `world_secrets.json`. |
+| **Hook** | A leverage record: owner, target `Hero`, optional `description`, basis (secret or event id), strength, optional evidence item link. |
+| **Chat leverage row** | UI in the NPC chat window showing which hooks and verified secrets apply to the current interlocutor. Must use the same ids as the prompt builder for that hero. |
 
 ---
 
-## Hard constraints from Bannerlord and the mod
+## Campaign intrigue jobs and NPC dialogue jobs
 
-- **Threading:** Anything touching `Campaign`, heroes, parties, or save mutation must follow the same discipline as the rest of the mod: **enqueue** work from async completion handlers; **apply** on the simulation/main thread under a budget (see existing `AIInfluenceBehavior.Tick` patterns). Do not block the map on HTTP.
-- **Provenance:** Chat assistant text is **not** proof that a secret exists or spread. Only **logged, validated writes** (or deterministic step execution) count.
-- **No silent failure:** Schema rejections, policy rejects, and engine errors surface in logs (and where possible UI); no pretending success.
+The host must record which kind of job each HTTP job belongs to. Both kinds share validation rules for proposals and saves, but **snapshot contents** and **allowed side effects** differ.
 
----
+**Campaign intrigue job**
 
-## Proposals, validators, and fallbacks
+- **Trigger:** Campaign clock, battle resolution, entering or leaving a settlement, peace, prisoner transfer, or other engine hooks defined by the scheduler.
+- **Snapshot includes (non-exhaustive):** Active plot instances; involved kingdom and clan ids; recent or relevant `DynamicEvent` summaries; policy flags; aggregates needed for world-scale prompts.
+- **May:** Emit proposals that update the intrigue store and, through validated adapters, call Bannerlord APIs (relations, parties, etc.).
+- **Must not:** Assume the player is in a dialogue scene.
 
-**Structured proposals** — Whether from the campaign path or a future “proposal” step, the host accepts only **JSON** (or equivalent DTOs) that list **typed operations**: e.g. `emit_plot_point`, `emit_secret`, `advance_plot_phase`, `propagate_knowledge`, `create_hook`, `apply_bannerlord_effect` (enum + ids). **Your code** validates ids exist, phases allow the op, and targets pass policy.
+**NPC dialogue job**
 
-**Immersive content without rigid-only templates:** Templates may stay **narrow**; **parameters** (wording, targets) can be filled by a **procedural generator** from live context, or by an LLM **inside** the schema. On validation failure, fall back to **procedural** or **no-op**—never silently accept invalid JSON.
-
-**Reactions, not only schedules:** Plot steps subscribe to **triggers** (`on_daily`, `on_battle_end`, `on_enter_settlement`, …) with per-trigger `requires` blocks. Same template can behave differently by trigger without hand-authoring infinite branches.
-
----
-
-## “Observations” and dialogue (plain language)
-
-When the player reads NPC lines, those lines are **not** ground truth for the ledger. Ground truth is: **what was committed** before this message was generated. The prompt builder must inject **plot points**, **KnownSecrets** (runtime + catalog resolution), **hooks**, and **DynamicEvent** slices exactly as stored for that hero. If the UI shows a leverage strip, it reads from the **same** hook/secret records the prompt uses.
+- **Trigger:** Player sends a message in the NPC chat UI (or equivalent).
+- **Snapshot includes (non-exhaustive):** One `Hero`; `NPCContext`; relation, trust, emotion; player-owned hooks and applicable secrets for that interlocutor; plot points and events linked to that hero’s saved lists.
+- **Produces:** Natural-language reply text for the NPC.
+- **May:** Emit small JSON for tone or short-lived UI (implementation-specific).
+- **Must not:** Persist plot, secret, or hook changes from raw assistant text alone. Durable changes require a validated path (tool handler, explicit post-step commit, or deterministic intrigue step).
+- **Must:** Use the same secret, hook, and plot-point ids in the prompt and in the chat leverage row so the UI does not show data that the prompt did not receive (no unsynchronized display).
 
 ---
 
-## Six layers (general program)
+## Scope of the intrigue subsystem
 
-1. **Inject a structured snapshot** — Campaign path: plots + world aggregates + recent events. Dialogue path: one hero’s context + player verification state + shared campaign facts needed for consistency.
-2. **Route intent** — Decide whether this tick is deterministic step execution, LLM-assisted parameter fill, or dialogue-only.
-3. **Validate locally** — Schema, allowlists, engine invariants (valid `Hero.StringId`, kingdom exists, phase machine allows op).
-4. **Default safe** — Procedural fallback or skip; log reason.
-5. **Execute** — Append save rows (`KnownSecrets`, secret store, plot store, hook store), call Bannerlord APIs on the correct thread, enqueue diplomacy/event updates as today’s code expects.
-6. **Render** — Build NPC prompt and UI from **post-commit** state only.
+The intrigue layer **stores** plot instances, plot points, runtime secrets, and hooks, and **runs** rules to create and propagate them.
+
+Mount & Blade II: Bannerlord remains authoritative for: battles, parties, prisoners, settlements, relations, wars, crime, and other engine-level state. The intrigue layer **reads** that state and **writes** Bannerlord state only through defined, validated calls (existing diplomacy and event systems where applicable).
+
+**LLM:** The LLM may fill parameters inside a fixed schema (proposals). Only operations committed after validation change the intrigue store or the campaign save.
+
+---
+
+## Current implementation and target behavior
+
+**Implemented today**
+
+- `world_secrets.json` defines catalog secrets (`WorldSecret`).
+- `CheckSecretKnowledge` rolls `knowledgeChance` when knowledge is first generated for an `NPCContext`; winning rolls append secret ids to `KnownSecrets`.
+- `PromptGenerator` resolves `KnownSecrets` to `description (access: …)` in the prompt.
+- `world_info.json` and `KnownInfo` follow a parallel pattern for non-secret info.
+- `DynamicEvents` on NPCs and `DynamicEventsManager` drive living events.
+
+**Target behavior**
+
+- Campaign-born hidden facts are **runtime secrets** with `origin` metadata (plot id, step id). The catalog becomes **optional** (modpack lore, migration, static scenarios).
+- Plot steps **create** secrets and plot points by validated effects, not by first-chat dice against a static list alone.
+
+**Migration:** New saves should prefer runtime secret ids with `origin`. Existing `KnownSecrets` entries may resolve through the catalog until migration tools run. Migration details belong in implementation work, not in this requirement list.
+
+---
+
+## Constraints
+
+**Threading**
+
+Code that touches `Campaign`, heroes, parties, or save data must follow the mod’s existing pattern: completion handlers enqueue work; the simulation or UI thread drains the queue under a time budget (see `AIInfluenceBehavior.Tick`). HTTP must not block the map thread.
+
+**Authoritative state**
+
+The assistant’s reply string is not evidence that a secret exists or who knows it. Only validated writes to the intrigue store or deterministic step execution count.
+
+**Errors**
+
+Schema failures, policy rejections, and engine errors must be logged. The system must not report success when a commit did not occur.
+
+---
+
+## Proposals, validation, and fallback
+
+**Proposal format**
+
+The host accepts proposals as JSON (or equivalent DTOs) listing typed operations, for example: `emit_plot_point`, `emit_secret`, `advance_plot_phase`, `propagate_knowledge`, `create_hook`, `apply_bannerlord_effect` with enums and string ids.
+
+**Validation**
+
+The host must verify: referenced ids exist; plot phase allows the operation; targets satisfy policy; Bannerlord invariants hold (valid `Hero.StringId`, kingdom exists, etc.).
+
+**Parameter text**
+
+Narrow plot templates may fix structure; wording and targets may come from a procedural generator from live state or from an LLM **inside** the schema. On validation failure, the host should fall back to procedural text or skip the operation and log the reason. Invalid JSON must not be committed.
+
+**Plot step triggers**
+
+Plot definitions may attach the same step to multiple triggers (`on_daily`, `on_battle_end`, `on_enter_settlement`) with different `requires` blocks so behavior varies by event without duplicating entire plot files.
+
+---
+
+## NPC dialogue output versus authoritative state
+
+Displayed NPC lines are not authoritative. Authoritative state is whatever was committed to the save before that reply was generated.
+
+The prompt builder must inject plot points, resolved secrets (`KnownSecrets` plus runtime secret store), hooks, and `DynamicEvent` slices **exactly** as stored for that hero. The chat leverage row must read the same hook and secret records as the prompt for that interlocutor.
+
+---
+
+## Processing steps from snapshot to UI
+
+1. Build the snapshot (campaign job or dialogue job).
+2. Choose execution mode: deterministic plot step, LLM-assisted proposal within schema, or dialogue-only generation.
+3. Validate proposals: schema, allowlists, engine invariants.
+4. On failure, fall back or skip; log.
+5. Execute: append intrigue store rows, call Bannerlord APIs on the correct thread, update diplomacy or event queues as existing code requires.
+6. Build prompt and chat UI only from state **after** step 5 for that turn.
 
 ---
 
 ## Data model (normative shapes)
 
-*Field names are logical; align with C# / JSON save conventions when implementing.*
+Field names are logical; align with C# and JSON save layout in implementation.
 
-**Plot instance (save)** — `id`, `template_id`, `status`, `phase`, `started_campaign_day`, `context` (battle uid, prisoner ids, kingdom ids), `completed_step_ids`, `linked_plot_point_ids`, `linked_secret_ids`, optional `deadline_campaign_day`.
+**Plot instance (save):** `id`, `template_id`, `status`, `phase`, `started_campaign_day`, `context` (battle uid, prisoner ids, kingdom ids), `completed_step_ids`, `linked_plot_point_ids`, `linked_secret_ids`, optional `deadline_campaign_day`.
 
-**Plot step (template, mod data)** — `step_id`, `requires` (predicate bundle), `effects[]` with typed ops: `emit_plot_point`, `emit_secret`, `advance_phase`, `spawn_hook`, `apply_relation_delta` (if policy allows), etc. Triggers: which engine events wake this step.
+**Plot step (template, mod data):** `step_id`, `requires` (predicates), `effects[]` with typed operations (`emit_plot_point`, `emit_secret`, `advance_phase`, `spawn_hook`, `apply_relation_delta` if allowed). Lists which engine events activate the step.
 
-**Secret record (runtime, save)** — `id`, `description`, `access`, `subjects` (heroes/clans), `origin` `{ plot_id, step_id, cause }`, `created_campaign_day`, `status`. **Not** created by chat prose; created by executed effects.
+**Secret record (runtime, save):** `id`, `description`, `access`, `subjects` (heroes or clans), `origin` `{ plot_id, step_id, cause }`, `created_campaign_day`, `status`. Created by executed effects, not by chat text alone.
 
-**Plot point (save or parallel to `DynamicEvent`)** — `id`, `plot_id`, `summary`, `importance`, spread/expire fields, links to diplomacy/event pipeline as integrated.
+**Plot point:** `id`, `plot_id`, `summary`, `importance`, spread and expiry fields, integration with diplomacy or `DynamicEvent` as designed.
 
-**Hook** — `id`, `owner` (player vs npc), `target_hero_string_id`, **`description`** (what leverage means in play), `basis` `{ kind: secret \| event, id }`, `strength` (`weak` \| `strong`), optional `evidence_item` `{ optional, rp_item_template_id, generated_item_string_id }`, lifecycle fields.
+**Hook:** `id`, `owner` (player or npc), `target_hero_string_id`, `description` (what the leverage is in play), `basis` `{ kind: secret or event, id }`, `strength` (`weak` or `strong`), optional `evidence_item` (`rp_item_template_id`, `generated_item_string_id`), lifecycle fields.
 
-**Per-hero knowledge** — Continue `KnownSecrets: string[]` but ids may point to **runtime** secret store first, then catalog fallback. Optional separate `known_plot_point_ids` if not folded into `DynamicEvents`.
-
----
-
-## Identity and disambiguation
-
-Use **`Hero.StringId`** and **`Clan.StringId`** / **`Kingdom.StringId`** in all stored references. Partial names are for UI only; the ledger stores **canonical ids**. Ambiguous UI selection must not write ambiguous hooks.
+**Per-hero knowledge:** `KnownSecrets` remains a list of string ids; resolution checks runtime secret store first, then catalog. Optional separate list for plot point ids if not folded into `DynamicEvents`.
 
 ---
 
-## Player-facing interface (contract)
+## Identity
 
-- **Chat UI** (`ChatInterface.xml` / `NpcChatWindowVM`): show **plot points** (situation), **secrets** applicable to this talker, **hooks** owned by player toward this talker, with rumor vs verified distinction per policy. Same source as prompt.
-- **MCM:** toggles for strength labeling, verbosity—implementation detail, not core contract.
-
----
-
-## Risks (accepted for early phases)
-
-- **Migration:** Mixed old catalog ids and new runtime ids until migration tools run.
-- **LLM proposals:** Wrong targets if snapshot stale; mitigate with **refresh** before proposal and **hard** validation.
-- **Concurrent jobs:** Campaign proposal + dialogue completion in flight need **correlation ids** in logs if both touch the same plot.
+Stored references must use `Hero.StringId`, `Clan.StringId`, and `Kingdom.StringId`. Display names are for UI only. Hooks and secrets must not be written with ambiguous partial names.
 
 ---
 
-## Out of scope (explicit deferrals)
+## Player-facing interface
 
-- **Full replacement** of `DynamicEventsManager`—integrate with or extend it, do not fork two competing event worlds without a merge plan.
-- **Mission-time intrigue** as first-class—campaign-authoritative until a mission layer is specified.
-- **Per-secret legal simulation** (trial rules)—not required for ledger v1.
+- **Chat UI** (`ChatInterface.xml`, `NpcChatWindowVM`): Show plot points, applicable secrets, and player-owned hooks for the current interlocutor; distinguish rumor from verified per policy. Data source must match the prompt builder.
+- **MCM:** Optional toggles for labels and verbosity are implementation details.
+
+---
+
+## Accepted risks (early phases)
+
+- Mixed catalog ids and runtime ids until migration completes.
+- Stale snapshots if the host does not refresh before a proposal; mitigation is refresh and strict validation.
+- Concurrent campaign and dialogue HTTP jobs touching one plot: logs should include correlation ids to separate completions.
+
+---
+
+## Out of scope
+
+- Replacing `DynamicEventsManager` with a second parallel event system without a merge plan.
+- First-class mission-scene intrigue until a mission-layer design exists.
+- Full legal or trial simulation per secret.
 
 ---
 
 ## References (internal)
 
 - `TECHNICAL_GUIDE.en.md` — `world_secrets.json`, `world_info.json`, `dynamic_events.json`, NPC save fields.
-- `docs/INTRIGUE_SYSTEM_PLAN.md` — short pointer to this document.
-- Code: `WorldInfoManager.CheckSecretKnowledge`, `PromptGenerator` secret resolution, `NPCContext`, `AIInfluence.DynamicEvents`.
+- `docs/INTRIGUE_SYSTEM_PLAN.md` — pointer to this document.
+- Code: `WorldInfoManager.CheckSecretKnowledge`, `PromptGenerator`, `NPCContext`, `AIInfluence.DynamicEvents`.
 
 ---
 
-## Implementation slices (ordered)
+## Implementation slices
 
-Later slices assume earlier unless noted. Status is **planning** until issues mark otherwise.
+Status is planning until work items mark otherwise. Later slices assume earlier slices unless noted.
 
 | # | Slice | Outcome |
 |---|--------|--------|
-| **1** | **Plot instance store** | Serialize `plot_id`, phase, context blob; no LLM. Load/save safe. |
-| **2** | **Runtime secret store** | CRUD by id; `origin` metadata; resolve in prompt before catalog. |
-| **3** | **Step executor (deterministic)** | `requires` + `emit_plot_point` / `emit_secret` without LLM; unit-testable. |
-| **4** | **Triggers** | Wire `on_battle_end`, `on_daily_tick`, `on_enter_settlement` to scheduler. |
-| **5** | **Migration bridge** | Map legacy `world_secrets` rolls to optional runtime records or freeze behavior behind MCM. |
-| **6** | **Hook store + prompt** | `PlayerHooks`, `description`, strength; chat strip reads same rows. |
-| **7** | **Optional evidence item** | Spawn RP item on hook create when basis warrants; bind ids. |
-| **8** | **LLM-assisted proposal** | Schema-constrained JSON; validate; commit or fallback; log correlation id. |
-| **9** | **`plot_id` on events** | Link `DynamicEvent` (or parallel) to plot instance for diplomacy/UI. |
-| **10** | **Dialogue path audit** | Guarantee no silent ledger write from assistant text; tool path only. |
-| **11** | **Caps & cleanup** | Max concurrent plots; expiry; save size bounds. |
-| **12** | **Manual test spec** | Add `docs/INTRIGUE_TEST_SPEC.md` when slices 1–6 are buildable. |
+| 1 | Plot instance store | Serialize plot id, phase, context; no LLM; load and save safe. |
+| 2 | Runtime secret store | CRUD by id; `origin` metadata; prompt resolves runtime before catalog. |
+| 3 | Step executor (deterministic) | `requires` and `emit_plot_point` / `emit_secret` without LLM; unit-testable. |
+| 4 | Triggers | Connect `on_battle_end`, `on_daily_tick`, `on_enter_settlement` to scheduler. |
+| 5 | Migration bridge | Map legacy `world_secrets` behavior to runtime records or MCM-gated freeze. |
+| 6 | Hook store and prompt | `PlayerHooks`, `description`, strength; chat leverage row reads same rows. |
+| 7 | Optional evidence item | Spawn RP item on hook creation when basis requires; bind ids. |
+| 8 | LLM-assisted proposal | Schema JSON; validate; commit or fallback; log correlation id. |
+| 9 | `plot_id` on events | Link `DynamicEvent` (or parallel) to plot instance for diplomacy and UI. |
+| 10 | Dialogue path audit | No silent intrigue writes from assistant text only. |
+| 11 | Caps and cleanup | Max concurrent plots; expiry; save size limits. |
+| 12 | Manual test spec | Add `docs/INTRIGUE_TEST_SPEC.md` when slices 1–6 are buildable. |
 
-**Review:** After slice **6**, pause for playtest; **8–10** are where reliability and provenance harden.
+Playtesting after slice 6 is recommended before heavy reliance on slices 8–10.
 
 ---
 
-## Document status
+## Maintenance
 
-*Design agreement for the intrigue layer. Update when POC results or `TECHNICAL_GUIDE` change assumptions.*
+Update this document when `TECHNICAL_GUIDE` artifacts change, when slice boundaries change, or when the intrigue store schema changes. Log prefix and MCM label changes should be reflected here if they affect integration.
