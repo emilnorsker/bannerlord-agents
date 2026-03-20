@@ -308,9 +308,10 @@ public class AIActionIntegration
 				text += "### create_rp_item\n";
 				text += "**Purpose**: Create any roleplay (RP) item for the player: letters, documents, notes, AND physical narrative objects (sacks, packages, sealed containers, trophies, proof or bounty material, quest props).\n";
 				text += "**When**: You narrate handing something to the player, they pick it up, say they put it in inventory, or ask you to pass an object that exists in the scene — use this so it exists in inventory (not only for paper). **Only if** the player does not already have this item in the technical inventory list below (never duplicate an item they already hold).\n";
+				text += "**Not when**: The player seizes or takes something by force, theft, or intimidation — use `item_transfers` with top-level `item_transfers_opposed_attribute` (skill check), not create_rp_item.\n";
 				text += "**Usage**: `technical_action: \"create_rp_item:<name>|<description>\"`\n";
 				text += "**Example**: `create_rp_item:Letter|Important message` or `create_rp_item:Sack of heads|Proof for the bounty`\n";
-				text += "**Important**: The item is automatically given to the player upon creation. Do NOT use `item_transfers` for RP items.\n";
+				text += "**Important**: Consensual handoff only — item is given automatically. Do not use `item_transfers` for voluntary RP handoffs; use `item_transfers` + opposed attribute only for contested takes of real inventory items.\n";
 				text += "**CRITICAL**: Check \"CRITICAL - Player's Inventory (UNKNOWN TO YOU)\" section BEFORE creating. Do NOT create duplicate items.\n\n";
 				break;
 			case "transfer_troops_and_prisoners":
