@@ -46,13 +46,14 @@ public static class NearbyPartyInfoProvider
 				}
 			}
 		}
-		return (from entry in (from entry in ((IEnumerable<MobileParty>)MobileParty.All).Where(delegate(MobileParty party)
+		(List<string> questSummaries, HashSet<string> questSpawnPartyIds) = CollectQuestSpawnedPartySummaries(referenceHero, position.Value, excludedParties);
+		List<string> nearbySummaries = (from entry in (from entry in ((IEnumerable<MobileParty>)MobileParty.All).Where(delegate(MobileParty party)
 				{
 					//IL_002a: Unknown result type (might be due to invalid IL or missing references)
 					//IL_002f: Unknown result type (might be due to invalid IL or missing references)
 					//IL_0038: Unknown result type (might be due to invalid IL or missing references)
 					int result;
-					if (party != null && !excludedParties.Contains(party) && !party.IsDisbanding && !party.IsGarrison && !party.IsMilitia)
+					if (party != null && !excludedParties.Contains(party) && !party.IsDisbanding && !party.IsGarrison && !party.IsMilitia && !questSpawnPartyIds.Contains(((MBObjectBase)party).StringId))
 					{
 						Vec2 position2D = party.GetPosition2D();
 						result = (((position2D).Distance(position.Value) <= radius) ? 1 : 0);
@@ -79,6 +80,46 @@ public static class NearbyPartyInfoProvider
 			select BuildSummary(entry.Party, entry.Distance, referenceHero) into summary
 			where !string.IsNullOrEmpty(summary)
 			select summary).ToList();
+		List<string> list = new List<string>();
+		list.AddRange(questSummaries);
+		list.AddRange(nearbySummaries);
+		return list;
+	}
+
+	/// <summary>Parties spawned by ongoing AI quest generation (spawn_party), regardless of distance from the NPC — so any NPC can reference them in rumors.</summary>
+	private static (List<string> Summaries, HashSet<string> PartyIds) CollectQuestSpawnedPartySummaries(Hero referenceHero, Vec2 referencePosition, HashSet<MobileParty> excludedParties)
+	{
+		List<string> list = new List<string>();
+		HashSet<string> hashSet = new HashSet<string>();
+		Campaign current = Campaign.Current;
+		if (current?.QuestManager?.Quests == null)
+		{
+			return (list, hashSet);
+		}
+		foreach (AIGeneratedQuest aiQuest in current.QuestManager.Quests.OfType<AIGeneratedQuest>())
+		{
+			if (!aiQuest.IsOngoing)
+			{
+				continue;
+			}
+			string spawnedPartyId = aiQuest.SpawnedPartyId;
+			if (string.IsNullOrEmpty(spawnedPartyId) || hashSet.Contains(spawnedPartyId))
+			{
+				continue;
+			}
+			MobileParty mobileParty = MobileParty.All?.FirstOrDefault((MobileParty p) => p != null && ((MBObjectBase)p).StringId == spawnedPartyId);
+			if (mobileParty == null || excludedParties.Contains(mobileParty) || mobileParty.IsDisbanding || mobileParty.IsGarrison || mobileParty.IsMilitia)
+			{
+				continue;
+			}
+			string text = BuildSummary(mobileParty, mobileParty.GetPosition2D().Distance(referencePosition), referenceHero);
+			if (!string.IsNullOrEmpty(text))
+			{
+				hashSet.Add(spawnedPartyId);
+				list.Add(text);
+			}
+		}
+		return (list, hashSet);
 	}
 
 	private static Vec2? GetReferencePosition(Hero hero)
