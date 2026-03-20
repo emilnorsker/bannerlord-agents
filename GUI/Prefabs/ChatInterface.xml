@@ -16,33 +16,42 @@
     <Constant Name="SepColor" Value="#FFFFFF22" />
   </Constants>
 
+  <!-- Overlay layer root: hosts the whole chat UI. -->
   <Window Id="ChatInterfaceWindow" Layer="Overlay">
+    <!-- Full-screen shell; encyclopedia page brush (ambient sound/visual parent for this screen). -->
     <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                  DoNotAcceptEvents="true" Brush="Encyclopedia.Page.SoundBrush">
       <Children>
+        <!-- Content root with inset margin; receives input for the whole chat. -->
         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                 MarginLeft="!Inset" MarginRight="!Inset" MarginTop="!Inset" MarginBottom="!Inset"
                 DoNotAcceptEvents="false">
           <Children>
+            <!-- Three columns: hero strip | chat | info panel. -->
             <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                        StackLayout.LayoutMethod="HorizontalLeftToRight" DoNotAcceptEvents="false">
               <Children>
 
                 <!-- ══ Left: vanilla encyclopedia hero column (unchanged structure) ══ -->
+                <!-- Left column background; gradient behind tableau and text blocks. -->
                 <Widget HeightSizePolicy="StretchToParent" WidthSizePolicy="Fixed" SuggestedWidth="!EncyLeft.W"
                         Sprite="General\CharacterCreation\character_creation_background_gradient">
                   <Children>
+                    <!-- Clips tableau stack; holds layered 3D portrait + decorative sprites. -->
                     <Widget WidthSizePolicy="Fixed" SuggestedWidth="!EncyLeft.W" HeightSizePolicy="StretchToParent"
                             HorizontalAlignment="Left" MarginBottom="1" VerticalAlignment="Center" IsEnabled="false" ClipContents="true">
                       <Children>
+                        <!-- 3D hero portrait / equipment tableau from HeroCharacter VM. -->
                         <EncyclopediaCharacterTableauWidget DataSource="{HeroCharacter}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                             BodyProperties="@BodyProperties" IsFemale="@IsFemale" EquipmentCode="@EquipmentCode" CharStringId="@CharStringId"
                             StanceIndex="@StanceIndex" BannerCodeText="@BannerCodeText" MountCreationKey="@MountCreationKey" IsEnabled="false"
                             IsDead="@IsDead" ArmorColor1="@ArmorColor1" ArmorColor2="@ArmorColor2" IdleAction="@IdleAction"
                             IdleFaceAnim="@IdleFaceAnim" Race="@Race" IsHidden="@IsHidden"/>
+                        <!-- Silhouette when hero info is hidden. -->
                         <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="478" SuggestedHeight="666"
                                 HorizontalAlignment="Center" VerticalAlignment="Bottom" ValueFactor="20"
                                 Sprite="Encyclopedia\hero_silhouette" IsVisible="@IsInformationHidden"/>
+                        <!-- Animated smoke drift behind the figure (vanilla encyclopedia effect). -->
                         <ParallaxItemBrushWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="582" SuggestedHeight="380"
                             Brush="Encyclopedia.Character.Smoke" OneDirectionDuration="5" OneDirectionDistance="100" InitialDirection="Right"
                             IsEaseInOutEnabled="true" VerticalAlignment="Bottom" HorizontalAlignment="Center" PositionYOffset="1"/>
@@ -54,6 +63,7 @@
                     <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                 Brush="Encyclopedia.SubPage.Info.Text" Brush.FontColor="#F4E1C4FF" Brush.TextHorizontalAlignment="Center"
                                 VerticalAlignment="Bottom" MarginBottom="25" IsVisible="@IsInformationHidden" Text="@InfoHiddenReasonText"/>
+                    <!-- Name, title, traits row; stacks bottom-up for encyclopedia-style placement. -->
                     <ListPanel HeightSizePolicy="CoverChildren" WidthSizePolicy="StretchToParent"
                                StackLayout.LayoutMethod="VerticalBottomToTop" MarginLeft="20" MarginRight="20">
                       <Children>
@@ -62,6 +72,7 @@
                                     Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Top" MarginTop="10" Text="@NpcName"/>
                         <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                     Brush="Encyclopedia.SubPage.Info.Text" Brush.FontColor="#E1BE8FFF" Brush.TextHorizontalAlignment="Center" Text="@NpcTitle"/>
+                        <!-- Pregnant icon; hover hint from VM. -->
                         <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="34" SuggestedHeight="34" MarginTop="2"
                                 HorizontalAlignment="Center" Sprite="SPGeneral\Clan\Status\icon_pregnant" IsVisible="@IsPregnant">
                           <Children>
@@ -69,8 +80,10 @@
                                         Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint"/>
                           </Children>
                         </Widget>
+                        <!-- Gamepad/keyboard: defines where focus enters the trait strip. -->
                         <NavigationScopeTargeter ScopeID="NpcChatHeroTraitsScope" ScopeParent="..\NpcChatTraits" ScopeMovements="Horizontal"
                             NavigateFromScopeEdges="true" UseDiscoveryAreaAsScopeEdges="true" ExtendDiscoveryAreaBottom="220"/>
+                        <!-- Horizontal list of trait icons; navigatable for controller. -->
                         <NavigatableListPanel Id="NpcChatTraits" DataSource="{Traits}" WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed"
                                               SuggestedHeight="75" HorizontalAlignment="Center" MarginTop="2">
                           <ItemTemplate>
@@ -86,6 +99,7 @@
                         </NavigatableListPanel>
                       </Children>
                     </ListPanel>
+                    <!-- Skills label + 6-column skill grid; pinned toward bottom of column. -->
                     <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" VerticalAlignment="Bottom" MarginLeft="10"
                                StackLayout.LayoutMethod="VerticalBottomToTop">
                       <Children>
@@ -112,11 +126,13 @@
                         </NavigatableGridWidget>
                       </Children>
                     </ListPanel>
+                    <!-- Vertical rule between left column and center chat. -->
                     <Widget WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent" SuggestedWidth="2" HorizontalAlignment="Right"
                             Sprite="Encyclopedia\divider_vertical"/>
                   </Children>
                 </Widget>
 
+                <!-- Thin separator between columns. -->
                 <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Sep.W" HeightSizePolicy="StretchToParent"
                         Sprite="BlankWhiteSquare_9" Color="!SepColor"/>
 
@@ -125,8 +141,10 @@
                   <Children>
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                             Sprite="BlankWhiteSquare_9" Color="#141414FF" DoNotAcceptEvents="true"/>
+                    <!-- Interactive layer: header, scroll, scrollbar, input bar. -->
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" DoNotAcceptEvents="false">
                       <Children>
+                        <!-- Top bar: conversation title + relation / trust / mood (text widgets inside). -->
                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="!Header.H" VerticalAlignment="Top"
                                 Sprite="BlankWhiteSquare_9" Color="#1A1A1AFF">
                           <Children>
@@ -145,6 +163,7 @@
                                         Brush="SPScoreboard.Subtitle.Text" Brush.FontSize="12" Text="@EmotionLabel" IsDisabled="true"/>
                           </Children>
                         </Widget>
+                        <!-- Message list scroll; inner panel is MsgClip\MsgList; scrollbar is sibling MsgScrollbar. -->
                         <ScrollablePanel Id="MsgScroll" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                          MarginTop="!Header.H" MarginBottom="!Input.H" MarginRight="20" MarginLeft="4"
                                          AutoHideScrollBars="true" ClipRect="MsgClip" InnerPanel="MsgClip\MsgList"
@@ -155,6 +174,7 @@
                                 <ListPanel Id="MsgList" DataSource="{MessageList}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                            StackLayout.LayoutMethod="VerticalBottomToTop" Spacing="10" MarginLeft="14" MarginRight="14" MarginTop="6" MarginBottom="6">
                                   <ItemTemplate>
+                                    <!-- One chat message row: NPC block and/or player block (visibility-bound). -->
                                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginTop="2" MarginBottom="1">
                                       <Children>
                                         <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" HorizontalAlignment="Left"
@@ -177,6 +197,7 @@
                                             <ListPanel DataSource="{ContentSegments}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                        StackLayout.LayoutMethod="VerticalBottomToTop" Spacing="10">
                                               <ItemTemplate>
+                                                <!-- Segment: body or pill (mutually exclusive via IsBody / IsPill). -->
                                                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren">
                                                   <Children>
                                                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" HorizontalAlignment="Left" IsVisible="@IsBody" MarginTop="2" MarginBottom="2">
@@ -237,10 +258,12 @@
                             </Widget>
                           </Children>
                         </ScrollablePanel>
+                        <!-- Vanilla vertical scrollbar; bound to MsgScroll. -->
                         <Standard.VerticalScrollbar Id="MsgScrollbar" WidthSizePolicy="Fixed" SuggestedWidth="22" HeightSizePolicy="StretchToParent"
                                                     HorizontalAlignment="Right" MarginTop="!Header.H" MarginBottom="!Input.H" MarginRight="2"/>
                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" VerticalAlignment="Bottom"
                                 PositionYOffset="-52" Sprite="BlankWhiteSquare_9" Color="!SepColor"/>
+                        <!-- Bottom bar: decorative layers + text field + Send. -->
                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="!Input.H" VerticalAlignment="Bottom"
                                 Sprite="BlankWhiteSquare_9" Color="#1A110CFF">
                           <Children>
@@ -248,11 +271,13 @@
                                     Sprite="frame_9" ExtendLeft="4" ExtendTop="4" ExtendRight="4" ExtendBottom="4" AlphaFactor="0.34" IsEnabled="false"/>
                             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                     Sprite="General\CharacterCreation\character_creation_background_gradient" Color="#2A1A11FF" AlphaFactor="0.2" IsEnabled="false"/>
+                            <!-- Input chrome (std popup text_input background) + inner frame. -->
                             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="38"
                                     HorizontalAlignment="Left" VerticalAlignment="Center" MarginLeft="8" MarginRight="106" Sprite="StdAssets\Popup\text_input">
                               <Children>
                                 <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                         Sprite="frame_9" ExtendLeft="3" ExtendTop="3" ExtendRight="3" ExtendBottom="3" AlphaFactor="0.16" IsEnabled="false"/>
+                                <!-- Player message input; bound to VM, fires OnTextChanged. -->
                                 <EditableTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                                     HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10,4,10,4"
                                                     Brush="Review.NameInput.Text" Text="@InputText" Command.TextChanged="OnTextChanged"/>
@@ -286,6 +311,7 @@
                                     Brush.FontSize="23" Color="!Gold" Text="Information" IsDisabled="true"/>
                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" VerticalAlignment="Top"
                             PositionYOffset="48" MarginLeft="8" MarginRight="8" Sprite="BlankWhiteSquare_9" Color="!SepColor"/>
+                    <!-- Encyclopedia frame border around the scroll area. -->
                     <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                  MarginTop="54" MarginBottom="50" MarginLeft="4" MarginRight="4"
                                  Brush="Encyclopedia.Frame" DoNotAcceptEvents="true">
@@ -300,6 +326,7 @@
                             <NavigatableListPanel Id="InfoList" DataSource="{InfoSections}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                   StackLayout.LayoutMethod="VerticalBottomToTop" Spacing="8" MarginLeft="4" MarginRight="4" MarginTop="4" MarginBottom="4">
                               <ItemTemplate>
+                                <!-- One collapsible section: banner row + expanded body. -->
                                 <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                            StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="0" MarginLeft="2" MarginRight="2" MarginBottom="6">
                                   <Children>
@@ -376,6 +403,7 @@
                                 </ListPanel>
                               </ItemTemplate>
                             </NavigatableListPanel>
+                            <!-- Bottom fade over scroll content (vanilla encyclopedia scroll shadow). -->
                             <BrushWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="120"
                                          VerticalAlignment="Bottom" HorizontalAlignment="Center" Brush="Encyclopedia.Scroll.Shadow" Brush.VerticalFlip="false"/>
                           </Children>
@@ -384,6 +412,7 @@
                         </ScrollablePanel>
                       </Children>
                     </BrushWidget>
+                    <!-- Custom flat scrollbar; VerticalScrollbar path on InfoScroll points here. -->
                     <ScrollbarWidget Id="InfoScrollbar" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent"
                                      MarginRight="2" MarginBottom="54" MarginTop="54" AlignmentAxis="Vertical"
                                      HorizontalAlignment="Right" VerticalAlignment="Center" Handle="InfoScrollbarHandle" MinValue="0" MaxValue="100">
