@@ -35,7 +35,7 @@ public class CreateRPItemAction : AIActionBase
 
 	public override string ActionName => "create_rp_item";
 
-	public override string Description => "AI creates a roleplay item (letter, document, sign, etc.) and gives it to the player";
+	public override string Description => "AI creates a roleplay item (letter, document, physical prop, etc.) and gives it to the player";
 
 	public static bool PrepareItemCreation(Hero hero, string itemName, string itemDescription, Dictionary<string, object> metadata = null)
 	{
