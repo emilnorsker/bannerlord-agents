@@ -1,22 +1,17 @@
-using TaleWorlds.CampaignSystem;
-using TaleWorlds.CampaignSystem.ViewModelCollection;
 using TaleWorlds.Core;
-using TaleWorlds.Core.ImageIdentifiers;
 using TaleWorlds.Library;
 
 namespace AIInfluence;
 
-/// <summary>One formation group in the NPC party strip (portrait of a representative troop + count).</summary>
+/// <summary>One formation row: clan-style sprite + (count), matching clan party troop strip (not inventory portraits).</summary>
 public class PartyTroopRowVM : ViewModel
 {
-    [DataSourceProperty] public ImageIdentifier Portrait { get; }
-    [DataSourceProperty] public string FormationName { get; }
-    [DataSourceProperty] public string CountLabel { get; }
+    [DataSourceProperty] public string FormationSprite { get; }
+    [DataSourceProperty] public string CountInParens { get; }
 
-    public PartyTroopRowVM(FormationClass formation, int count, CharacterObject representativeTroop)
+    public PartyTroopRowVM(FormationClass formation, int count)
     {
-        FormationName = PartyTroopFormationHelper.FormatFormationName(formation);
-        CountLabel = count.ToString();
-        Portrait = new CharacterImageIdentifier(CampaignUIHelper.GetCharacterCode(representativeTroop, false));
+        FormationSprite = PartyTroopFormationHelper.GetFormationSpritePath(formation);
+        CountInParens = "(" + count + ")";
     }
 }

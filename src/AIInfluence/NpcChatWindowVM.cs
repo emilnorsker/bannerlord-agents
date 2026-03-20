@@ -223,7 +223,7 @@ public class NpcChatWindowVM : ViewModel
             return section;
         }
         foreach (var row in PartyTroopFormationHelper.AggregateTroopFormations(party))
-            section.TroopRows.Add(new PartyTroopRowVM(row.formation, row.count, row.sample));
+            section.TroopRows.Add(new PartyTroopRowVM(row.formation, row.count));
         section.HasTroopRows = section.TroopRows.Count > 0;
         float days = party.GetNumDaysForFoodToLast();
         var (_, col) = NpcPartyFoodSupply.Classify(days);
