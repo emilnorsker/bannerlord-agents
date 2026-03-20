@@ -46,11 +46,6 @@ jobs:
           cp -r GUI staging/AIInfluence/
           [ -d Assets ] && cp -r Assets staging/AIInfluence/
           [ -d AssetSources ] && cp -r AssetSources staging/AIInfluence/
-          cp bin/Win64_Shipping_Client/OggVorbisEncoder.dll staging/AIInfluence/bin/Win64_Shipping_Client/
-          cp bin/Win64_Shipping_Client/System.Buffers.dll staging/AIInfluence/bin/Win64_Shipping_Client/
-          cp bin/Win64_Shipping_Client/System.Memory.dll staging/AIInfluence/bin/Win64_Shipping_Client/
-          [ -f bin/Win64_Shipping_Client/rhubarb.exe ] && cp bin/Win64_Shipping_Client/rhubarb.exe staging/AIInfluence/bin/Win64_Shipping_Client/
-          cp -r bin/Win64_Shipping_Client/res staging/AIInfluence/bin/Win64_Shipping_Client/
           # world_secrets.json contains in-game lore (hidden NPC details), not credentials
           # TECHNICAL_GUIDE.*.md stay in the repo for contributors; not bundled in the release 7z
           for f in world.txt world_info.json world_secrets.json cultural_traditions.json \

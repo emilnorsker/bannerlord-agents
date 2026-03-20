@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using AIInfluence.Behaviors.AIActions;
-using AIInfluence.Services;
 using AIInfluence.SettlementCombat;
 using AIInfluence.Util;
 using MCM.Abstractions.Base.Global;
@@ -850,20 +849,6 @@ public class DialogManager
 						_behavior.UpdateContextData(context, npc);
 						_behavior.SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
 					}
-					ModSettings instance = GlobalSettings<ModSettings>.Instance;
-					if (instance != null && instance.EnableTTS)
-					{
-						if (context.PreparedTts != null)
-						{
-							_behavior.LogMessage($"[TTS] Playing pre-prepared TTS for {npc.Name}");
-							TtsLipSyncService.PlayPrepared(context.PreparedTts);
-							context.PreparedTts = null;
-						}
-						else
-						{
-							_behavior.LogMessage($"[TTS] No prepared TTS available for {npc.Name}, skipping playback.");
-						}
-					}
 					_behavior.LogMessage($"[DEBUG] Displaying dynamic response for NPC {((MBObjectBase)npc).StringId}. CombatResponse={context.CombatResponse}, IsSurrendering={context.IsSurrendering}, MarriageResponse={context.MarriageResponse}");
 					if (npc.IsPrisoner)
 					{
@@ -1523,20 +1508,6 @@ public class DialogManager
 				if (npc != null)
 				{
 					NPCContext context = _behavior.GetOrCreateNPCContext(npc);
-					ModSettings instance = GlobalSettings<ModSettings>.Instance;
-					if (instance != null && instance.EnableTTS)
-					{
-						if (context.PreparedTts != null)
-						{
-							_behavior.LogMessage($"[TTS] Playing pre-prepared TTS for {npc.Name} (surrender flow)");
-							TtsLipSyncService.PlayPrepared(context.PreparedTts);
-							context.PreparedTts = null;
-						}
-						else
-						{
-							_behavior.LogMessage($"[TTS] No prepared TTS available for {npc.Name} (surrender flow), skipping playback.");
-						}
-					}
 					_behavior.LogMessage($"[DEBUG] Displaying dynamic response for NPC {((MBObjectBase)npc).StringId} in surrender dialog. CombatResponse={context.CombatResponse}, IsSurrendering={context.IsSurrendering}, MarriageResponse={context.MarriageResponse}");
 					if (!npc.IsPrisoner && context.CombatResponse != null)
 					{

@@ -88,9 +88,6 @@ public class AIResponse
 	[JsonProperty("allows_letters")]
 	public bool? AllowsLettersFromNPC { get; set; }
 
-	[JsonProperty("tts_instructions")]
-	public string TTSInstructions { get; set; }
-
 	[JsonProperty("settlement_id")]
 	public string SettlementId { get; set; }
 

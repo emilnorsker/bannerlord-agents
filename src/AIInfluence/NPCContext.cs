@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using AIInfluence.Services;
 using Newtonsoft.Json;
 using TaleWorlds.CampaignSystem;
 
@@ -17,15 +16,6 @@ public class NPCContext
 	public string StringId { get; set; } = "";
 
 	public string Gender { get; set; }
-
-	public string AssignedTTSVoice { get; set; } = "";
-
-	public string LastTTSPlayedText { get; set; } = "";
-
-	public string LastTTSInstructions { get; set; } = "";
-
-	[JsonIgnore]
-	public TtsPreparedData PreparedTts { get; set; }
 
 	public bool IsInPlayerParty { get; set; }
 
