@@ -1,5 +1,17 @@
 # Agent Development Guide
 
+## Design and documentation writing
+
+When editing design notes, `TECHNICAL_GUIDE`, or similar:
+
+- **No editorial tone.** Do not write headings or asides that comment on how to think or write (e.g. parenthetical slogans, “precision, not …”, “read this first” as meta-joke, “we avoid …”, first-person editorial). State requirements in **neutral, direct** language.
+- **No undefined jargon.** Every specialized term (`completion`, `pipeline`, `snapshot`, `proposal`, `world-shaped`, `interlocutor-shaped`, `ledger`, `shadow state`, `minted`, etc.) must appear in a **Terms** section with one-line definitions, or be defined **inline on first use**. Do not assume readers share prior chat context.
+- **Section titles name the subject.** Prefer `Campaign pipeline versus NPC dialogue pipeline` over titles that are commentary on the content.
+
+Violations make documents unusable for a cold reader; treat this as a hard rule for new or revised docs.
+
+---
+
 ## Target Game Version
 
 This mod targets **Bannerlord v1.3.x**. Do not reference or worry about v1.0–v1.2.x API differences.
