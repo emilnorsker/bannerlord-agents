@@ -112,6 +112,7 @@ public class SubModule : MBSubModuleBase
 	public override void OnGameEnd(Game game)
 	{
 		base.OnGameEnd(game);
+		GameMasterLifecycle.OnGameEnd();
 		Console.WriteLine("[SUBMODULE] OnGameEnd called - resetting systems");
 		if (_aiInfluenceBehavior != null)
 		{

@@ -27,9 +27,10 @@ public static class GameMasterCommandSerializer
 					["items"] = new JObject { ["type"] = "string" }
 				},
 				["intent"] = new JObject { ["type"] = "string" },
-				["probe_help_first"] = new JObject { ["type"] = "boolean" }
+				["probe_help_first"] = new JObject { ["type"] = "boolean" },
+				["story_intent"] = new JObject { ["type"] = "string" }
 			},
-			["required"] = new JArray("gm_command", "args", "intent", "probe_help_first")
+			["required"] = new JArray("gm_command", "args", "intent", "probe_help_first", "story_intent")
 		};
 		return new JObject
 		{

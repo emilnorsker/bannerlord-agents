@@ -19,4 +19,8 @@ public sealed class BlgmPlanDto
 
 	[JsonProperty("probe_help_first")]
 	public bool ProbeHelpFirst { get; set; }
+
+	/// <summary>Why this GM action exists for the story (slice 28).</summary>
+	[JsonProperty("story_intent")]
+	public string StoryIntent { get; set; }
 }

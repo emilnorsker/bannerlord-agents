@@ -20,7 +20,14 @@ public static class GameMasterPocQueue
 
 	public static readonly ConcurrentQueue<Action> Queue = new ConcurrentQueue<Action>();
 
-	private const string OpenRouterGmPlanPrompt = "Return ONLY one JSON object, no markdown.\r\nKeys: gm_command (string, must start with gm.), args (string array), intent (query|mutate|probe_help), probe_help_first (boolean).\r\nTask: safe read-only kingdom listing — use gm.query.kingdom with empty args, intent=query, probe_help_first=false.\r\nExample: {\"gm_command\":\"gm.query.kingdom\",\"args\":[],\"intent\":\"query\",\"probe_help_first\":false}";
+	private const string OpenRouterGmPlanPrompt = "Return ONLY one JSON object, no markdown.\r\nKeys: gm_command (string, must start with gm.), args (string array), intent (query|mutate|probe_help), probe_help_first (boolean), story_intent (short string — dramatic purpose, or empty \"\" for pure query).\r\nTask: safe read-only kingdom listing — use gm.query.kingdom with empty args, intent=query, probe_help_first=false, story_intent=\"\".\r\nExample: {\"gm_command\":\"gm.query.kingdom\",\"args\":[],\"intent\":\"query\",\"probe_help_first\":false,\"story_intent\":\"\"}";
+
+	public static void ClearQueueForLifecycle()
+	{
+		while (Queue.TryDequeue(out _))
+		{
+		}
+	}
 
 	public static Guid EnqueueReadOnlyKingdomQueryProbe()
 	{
@@ -135,6 +142,7 @@ public static class GameMasterPocQueue
 			if (audit.HasValue)
 			{
 				GameMasterAuditLog.Append(audit.Value.CompletionPath, audit.Value.CorrelationId, jobId, line, audit.Value.PlanJson, "complete", msg);
+				TryRecordGmObservation(audit, jobId, line, msg);
 			}
 			return;
 		}
@@ -146,6 +154,7 @@ public static class GameMasterPocQueue
 			if (audit.HasValue)
 			{
 				GameMasterAuditLog.Append(audit.Value.CompletionPath, audit.Value.CorrelationId, jobId, line, audit.Value.PlanJson, "complete", "(empty after split)");
+				TryRecordGmObservation(audit, jobId, line, "(empty after split)");
 			}
 			return;
 		}
@@ -161,6 +170,7 @@ public static class GameMasterPocQueue
 				if (audit.HasValue)
 				{
 					GameMasterAuditLog.Append(audit.Value.CompletionPath, audit.Value.CorrelationId, jobId, line, audit.Value.PlanJson, "complete", msg2);
+					TryRecordGmObservation(audit, jobId, line, msg2);
 				}
 				return;
 			}
@@ -170,6 +180,7 @@ public static class GameMasterPocQueue
 			if (audit.HasValue)
 			{
 				GameMasterAuditLog.Append(audit.Value.CompletionPath, audit.Value.CorrelationId, jobId, line, audit.Value.PlanJson, "complete", text ?? "");
+				TryRecordGmObservation(audit, jobId, line, text ?? "");
 			}
 		}
 		catch (Exception ex)
@@ -180,7 +191,17 @@ public static class GameMasterPocQueue
 			if (audit.HasValue)
 			{
 				GameMasterAuditLog.Append(audit.Value.CompletionPath, audit.Value.CorrelationId, jobId, line, audit.Value.PlanJson, "complete", msg3);
+				TryRecordGmObservation(audit, jobId, line, msg3);
 			}
 		}
+	}
+
+	private static void TryRecordGmObservation(GameMasterGmJobAuditInfo? audit, Guid jobId, string line, string observation)
+	{
+		if (!audit.HasValue || string.IsNullOrEmpty(audit.Value.ObservationBucketKey))
+		{
+			return;
+		}
+		GameMasterObservationStore.Record(audit.Value.ObservationBucketKey, jobId, line, observation ?? "", audit.Value.StoryIntent);
 	}
 }

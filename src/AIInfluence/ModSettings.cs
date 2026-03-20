@@ -142,6 +142,28 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 
 	private bool _gameMasterOpenRouterGmPlanStrictSchema = false;
 
+	private bool _gameMasterObservationLoopEnabled = true;
+
+	private bool _gameMasterObservationInjectIntoPrompt = true;
+
+	private int _gameMasterObservationMaxEntries = 5;
+
+	private bool _gameMasterHostPolicyEnabled = true;
+
+	private int _gameMasterMaxSerializedLineLength = 1024;
+
+	private int _gameMasterMaxPlansPerCampaignDay = 0;
+
+	private int _gameMasterMaxGmQueueDepth = 50;
+
+	private int _gameMasterRateLimitSeconds = 60;
+
+	private int _gameMasterMaxPlansPerRateWindow = 15;
+
+	private bool _gameMasterSkillCheckMutates = false;
+
+	private bool _gameMasterNpcSocialAppendixEnabled = true;
+
 	private bool _allowRomanceWithMarried = false;
 
 	private float _intimacyConceptionChance = 0.15f;
@@ -4566,6 +4588,210 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 			{
 				_gameMasterOpenRouterGmPlanStrictSchema = value;
 				this.OnSettingChanged?.Invoke("GameMasterOpenRouterGmPlanStrictSchema", value);
+			}
+		}
+	}
+
+	[SettingPropertyGroup("Game Master (BLGM agent)", GroupOrder = 5)]
+	[SettingPropertyBool("Observation loop: store runtime results", Order = 8, RequireRestart = false, HintText = "Slice 21: keep last GM observations per correlation for injection.")]
+	public bool GameMasterObservationLoopEnabled
+	{
+		get
+		{
+			return _gameMasterObservationLoopEnabled;
+		}
+		set
+		{
+			if (_gameMasterObservationLoopEnabled != value)
+			{
+				_gameMasterObservationLoopEnabled = value;
+				this.OnSettingChanged?.Invoke("GameMasterObservationLoopEnabled", value);
+			}
+		}
+	}
+
+	[SettingPropertyGroup("Game Master (BLGM agent)", GroupOrder = 5)]
+	[SettingPropertyBool("Observation loop: inject into next OpenRouter prompt", Order = 9, RequireRestart = false, HintText = "Slice 21: append last observations block to the next completion prompt.")]
+	public bool GameMasterObservationInjectIntoPrompt
+	{
+		get
+		{
+			return _gameMasterObservationInjectIntoPrompt;
+		}
+		set
+		{
+			if (_gameMasterObservationInjectIntoPrompt != value)
+			{
+				_gameMasterObservationInjectIntoPrompt = value;
+				this.OnSettingChanged?.Invoke("GameMasterObservationInjectIntoPrompt", value);
+			}
+		}
+	}
+
+	[SettingPropertyGroup("Game Master (BLGM agent)", GroupOrder = 5)]
+	[SettingPropertyInteger("Observation buffer: max entries per bucket", 1, 20, "entries", Order = 10, RequireRestart = false, HintText = "Slice 21: ring buffer size per NPC/world correlation key.")]
+	public int GameMasterObservationMaxEntries
+	{
+		get
+		{
+			return _gameMasterObservationMaxEntries;
+		}
+		set
+		{
+			int num = Math.Max(1, Math.Min(20, value));
+			if (_gameMasterObservationMaxEntries != num)
+			{
+				_gameMasterObservationMaxEntries = num;
+				this.OnSettingChanged?.Invoke("GameMasterObservationMaxEntries", num);
+			}
+		}
+	}
+
+	[SettingPropertyGroup("Game Master (BLGM agent)", GroupOrder = 5)]
+	[SettingPropertyBool("Host policy: prefix/length/rate/depth", Order = 11, RequireRestart = false, HintText = "Slice 22: enforce gm. prefix, max line length, queue depth, optional per-day and sliding-window limits.")]
+	public bool GameMasterHostPolicyEnabled
+	{
+		get
+		{
+			return _gameMasterHostPolicyEnabled;
+		}
+		set
+		{
+			if (_gameMasterHostPolicyEnabled != value)
+			{
+				_gameMasterHostPolicyEnabled = value;
+				this.OnSettingChanged?.Invoke("GameMasterHostPolicyEnabled", value);
+			}
+		}
+	}
+
+	[SettingPropertyGroup("Game Master (BLGM agent)", GroupOrder = 5)]
+	[SettingPropertyInteger("Max serialized GM line length", 64, 4096, "chars", Order = 12, RequireRestart = false, HintText = "Slice 22: reject longer lines (0 uses default 1024 internally).")]
+	public int GameMasterMaxSerializedLineLength
+	{
+		get
+		{
+			return _gameMasterMaxSerializedLineLength;
+		}
+		set
+		{
+			int num = Math.Max(0, Math.Min(8192, value));
+			if (_gameMasterMaxSerializedLineLength != num)
+			{
+				_gameMasterMaxSerializedLineLength = num;
+				this.OnSettingChanged?.Invoke("GameMasterMaxSerializedLineLength", num);
+			}
+		}
+	}
+
+	[SettingPropertyGroup("Game Master (BLGM agent)", GroupOrder = 5)]
+	[SettingPropertyInteger("Max GM plans per campaign day (0=unlimited)", 0, 500, "plans", Order = 13, RequireRestart = false, HintText = "Slice 22: in-game day cap; 0 disables.")]
+	public int GameMasterMaxPlansPerCampaignDay
+	{
+		get
+		{
+			return _gameMasterMaxPlansPerCampaignDay;
+		}
+		set
+		{
+			int num = Math.Max(0, Math.Min(5000, value));
+			if (_gameMasterMaxPlansPerCampaignDay != num)
+			{
+				_gameMasterMaxPlansPerCampaignDay = num;
+				this.OnSettingChanged?.Invoke("GameMasterMaxPlansPerCampaignDay", num);
+			}
+		}
+	}
+
+	[SettingPropertyGroup("Game Master (BLGM agent)", GroupOrder = 5)]
+	[SettingPropertyInteger("Max GM queue depth", 1, 500, "jobs", Order = 14, RequireRestart = false, HintText = "Slice 22: refuse new enqueues when ConcurrentQueue length reaches this.")]
+	public int GameMasterMaxGmQueueDepth
+	{
+		get
+		{
+			return _gameMasterMaxGmQueueDepth;
+		}
+		set
+		{
+			int num = Math.Max(1, Math.Min(5000, value));
+			if (_gameMasterMaxGmQueueDepth != num)
+			{
+				_gameMasterMaxGmQueueDepth = num;
+				this.OnSettingChanged?.Invoke("GameMasterMaxGmQueueDepth", num);
+			}
+		}
+	}
+
+	[SettingPropertyGroup("Game Master (BLGM agent)", GroupOrder = 5)]
+	[SettingPropertyInteger("Rate limit window (seconds, 0=off)", 0, 3600, "sec", Order = 15, RequireRestart = false, HintText = "Slice 22: sliding window; pair with max plans per window.")]
+	public int GameMasterRateLimitSeconds
+	{
+		get
+		{
+			return _gameMasterRateLimitSeconds;
+		}
+		set
+		{
+			int num = Math.Max(0, Math.Min(86400, value));
+			if (_gameMasterRateLimitSeconds != num)
+			{
+				_gameMasterRateLimitSeconds = num;
+				this.OnSettingChanged?.Invoke("GameMasterRateLimitSeconds", num);
+			}
+		}
+	}
+
+	[SettingPropertyGroup("Game Master (BLGM agent)", GroupOrder = 5)]
+	[SettingPropertyInteger("Max plans per rate window", 1, 200, "plans", Order = 16, RequireRestart = false, HintText = "Slice 22: used when rate limit window > 0.")]
+	public int GameMasterMaxPlansPerRateWindow
+	{
+		get
+		{
+			return _gameMasterMaxPlansPerRateWindow;
+		}
+		set
+		{
+			int num = Math.Max(1, Math.Min(10000, value));
+			if (_gameMasterMaxPlansPerRateWindow != num)
+			{
+				_gameMasterMaxPlansPerRateWindow = num;
+				this.OnSettingChanged?.Invoke("GameMasterMaxPlansPerRateWindow", num);
+			}
+		}
+	}
+
+	[SettingPropertyGroup("Game Master (BLGM agent)", GroupOrder = 5)]
+	[SettingPropertyBool("Skill check before risky mutates (NPC path)", Order = 17, RequireRestart = false, HintText = "Slice 25: opposed check (social) before mutating plans when NPC hero is present.")]
+	public bool GameMasterSkillCheckMutates
+	{
+		get
+		{
+			return _gameMasterSkillCheckMutates;
+		}
+		set
+		{
+			if (_gameMasterSkillCheckMutates != value)
+			{
+				_gameMasterSkillCheckMutates = value;
+				this.OnSettingChanged?.Invoke("GameMasterSkillCheckMutates", value);
+			}
+		}
+	}
+
+	[SettingPropertyGroup("Game Master (BLGM agent)", GroupOrder = 5)]
+	[SettingPropertyBool("NPC Chat: append relation line (GM appendix)", Order = 18, RequireRestart = false, HintText = "Slice 24: API-backed relation with player in blgm appendix (NPC path only).")]
+	public bool GameMasterNpcSocialAppendixEnabled
+	{
+		get
+		{
+			return _gameMasterNpcSocialAppendixEnabled;
+		}
+		set
+		{
+			if (_gameMasterNpcSocialAppendixEnabled != value)
+			{
+				_gameMasterNpcSocialAppendixEnabled = value;
+				this.OnSettingChanged?.Invoke("GameMasterNpcSocialAppendixEnabled", value);
 			}
 		}
 	}

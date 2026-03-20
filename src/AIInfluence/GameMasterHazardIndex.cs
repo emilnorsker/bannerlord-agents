@@ -3,7 +3,7 @@ using TaleWorlds.CampaignSystem;
 
 namespace AIInfluence;
 
-/// <summary>Slice 11: reject or warn on error-prone gm.* lines using campaign facts.</summary>
+/// <summary>Slice 11 / 23: hazard checks — gm.query.* is generally allowed; mutates use API-backed rules.</summary>
 public static class GameMasterHazardIndex
 {
 	public static bool TryPassPreconditions(string line, Hero npcInterlocutor, out string rejectionReason)
@@ -21,6 +21,10 @@ public static class GameMasterHazardIndex
 			return false;
 		}
 		string cmd = parts[0].ToLowerInvariant();
+		if (cmd.StartsWith("gm.query.", StringComparison.OrdinalIgnoreCase))
+		{
+			return true;
+		}
 		if (cmd.StartsWith("gm.kingdom.", StringComparison.OrdinalIgnoreCase) && Campaign.Current != null)
 		{
 			Hero main = Hero.MainHero;
@@ -29,28 +33,36 @@ public static class GameMasterHazardIndex
 				rejectionReason = "hazard: gm.kingdom.* requires player clan to belong to a kingdom";
 				return false;
 			}
-			bool isRuler = main.Clan.Kingdom.Leader == main;
-			if (!isRuler)
+			if (main.Clan.Kingdom.Leader != main)
 			{
-				rejectionReason = "hazard: gm.kingdom.* requires player to be kingdom ruler (vassals lack authority for many kingdom console actions)";
+				rejectionReason = "hazard: gm.kingdom.* requires player to be kingdom ruler for many kingdom console actions";
 				return false;
 			}
 		}
-		if (LooksLikeMassDestructive(cmd))
+		if (LooksLikeHighRiskFamily(cmd) && npcInterlocutor != null && npcInterlocutor.IsPrisoner)
 		{
-			rejectionReason = "hazard: command family is treated as high-risk for automation; disable hazard index in settings to allow (not recommended)";
+			rejectionReason = "hazard: high-risk GM family while NPC interlocutor is prisoner (NPC-path)";
+			return false;
+		}
+		if (LooksLikeHighRiskFamily(cmd))
+		{
+			rejectionReason = "hazard: troop/bandit/caravan family blocked for unattended automation (use gm.query.* or disable hazard enforcement)";
 			return false;
 		}
 		return true;
 	}
 
-	private static bool LooksLikeMassDestructive(string cmd)
+	private static bool LooksLikeHighRiskFamily(string cmd)
 	{
 		if (cmd.StartsWith("gm.troop.", StringComparison.OrdinalIgnoreCase))
 		{
 			return true;
 		}
 		if (cmd.StartsWith("gm.bandit.", StringComparison.OrdinalIgnoreCase))
+		{
+			return true;
+		}
+		if (cmd.StartsWith("gm.caravan.", StringComparison.OrdinalIgnoreCase))
 		{
 			return true;
 		}

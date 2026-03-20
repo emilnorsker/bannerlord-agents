@@ -18,6 +18,7 @@ public static class GameMasterTaggedCommandIndex
 		sb.AppendLine("- gm.troop.* : party/troop mass ops (scope:party|risk:very_high)");
 		sb.AppendLine("- gm.caravan.* / gm.bandit.* : world spawns (scope:world|risk:very_high)");
 		sb.AppendLine("Rule: prefer gm.query.* to resolve string_ids before any mutate.");
+		sb.AppendLine("Examples (non-exhaustive): gm.query.kingdom, gm.query.hero, gm.query.settlement, gm.query.clan, gm.query.item.");
 		return sb.ToString();
 	}
 }

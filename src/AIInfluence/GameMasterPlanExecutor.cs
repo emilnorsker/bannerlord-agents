@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using MCM.Abstractions.Base.Global;
 using Newtonsoft.Json;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.Core;
 
 namespace AIInfluence;
 
@@ -14,7 +15,7 @@ public enum GameMasterCompletionPath
 	PlayerStatementAnalysis
 }
 
-/// <summary>Slices 9–11, 14, 16: enqueue BLGM work from LLM plans (OpenRouter-only gate).</summary>
+/// <summary>Slices 9–11, 14, 16, 21–25, 28: enqueue BLGM work from OpenRouter plans.</summary>
 public static class GameMasterPlanExecutor
 {
 	public static void TryEnqueueFromNpcChat(BlgmPlanDto plan, string npcStringId, Hero npc, string backendName)
@@ -43,6 +44,27 @@ public static class GameMasterPlanExecutor
 		TryEnqueue(plan, GameMasterCompletionPath.PlayerStatementAnalysis, correlationId ?? "player_dip", backendName, null, queryOnly);
 	}
 
+	private static string GetObservationBucketKey(GameMasterCompletionPath path, string correlationId)
+	{
+		if (path == GameMasterCompletionPath.NpcChat)
+		{
+			return "NpcChat|" + (correlationId ?? "");
+		}
+		if (path == GameMasterCompletionPath.DynamicEvents)
+		{
+			return "World|DynamicEvents";
+		}
+		if (path == GameMasterCompletionPath.DiplomacyStatement)
+		{
+			return "Dip|Global";
+		}
+		if (path == GameMasterCompletionPath.PlayerStatementAnalysis)
+		{
+			return "Dip|PlayerAnalysis";
+		}
+		return "Gm|misc";
+	}
+
 	private static void TryEnqueue(BlgmPlanDto plan, GameMasterCompletionPath path, string correlationId, string backendName, Hero npcForHazard, bool worldQueryOnly)
 	{
 		ModSettings settings = GlobalSettings<ModSettings>.Instance;
@@ -68,7 +90,37 @@ public static class GameMasterPlanExecutor
 		}
 		catch (Exception ex)
 		{
-			AIInfluenceBehavior.Instance?.LogMessage("[GM_AGENT] serialize failed: " + ex.Message);
+			AIInfluenceBehavior.Instance?.LogMessage("[GM_SCHEMA] serialize failed: " + ex.Message);
+			return;
+		}
+		string intent = plan.Intent?.Trim() ?? "";
+		string helpLineOnly = GameMasterCommandSerializer.SerializeLine(cmdToken, Array.Empty<string>());
+		if (string.Equals(intent, "probe_help", StringComparison.OrdinalIgnoreCase))
+		{
+			if (worldQueryOnly && !cmdToken.StartsWith("gm.query.", StringComparison.OrdinalIgnoreCase))
+			{
+				AIInfluenceBehavior.Instance?.LogMessage("[GM_AGENT] rejected (world query-only policy): " + helpLineOnly);
+				return;
+			}
+			if (settings.GameMasterHazardIndexEnforce && !GameMasterHazardIndex.TryPassPreconditions(helpLineOnly, npcForHazard, out string hzPh))
+			{
+				AIInfluenceBehavior.Instance?.LogMessage("[GM_AGENT] hazard rejection: " + hzPh + " | " + helpLineOnly);
+				return;
+			}
+			string pathKeyPh = path.ToString();
+			string planJsonPh = JsonConvert.SerializeObject(plan);
+			string bucketPh = GetObservationBucketKey(path, correlationId);
+			string storyIntentPh = plan.StoryIntent?.Trim() ?? "";
+			GameMasterGmJobAuditInfo auditPh = new GameMasterGmJobAuditInfo(pathKeyPh, correlationId, planJsonPh, bucketPh, storyIntentPh);
+			if (!GameMasterHostPolicy.TryAcceptPlan(helpLineOnly, out string phPolicy, 0))
+			{
+				AIInfluenceBehavior.Instance?.LogMessage(phPolicy);
+				return;
+			}
+			GameMasterHostPolicy.RegisterPlanAccepted();
+			Guid hj = Guid.NewGuid();
+			GameMasterPocQueue.EnqueueExecuteLine(hj, helpLineOnly, auditPh);
+			GameMasterAuditLog.Append(pathKeyPh, correlationId, hj, helpLineOnly, planJsonPh, "enqueue", "probe_help");
 			return;
 		}
 		if (worldQueryOnly && !cmdToken.StartsWith("gm.query.", StringComparison.OrdinalIgnoreCase))
@@ -81,22 +133,32 @@ public static class GameMasterPlanExecutor
 			AIInfluenceBehavior.Instance?.LogMessage("[GM_AGENT] hazard rejection: " + hz + " | " + line);
 			return;
 		}
+		bool isMutate = !string.Equals(intent, "query", StringComparison.OrdinalIgnoreCase) && !string.Equals(intent, "probe_help", StringComparison.OrdinalIgnoreCase) && !cmdToken.StartsWith("gm.query.", StringComparison.OrdinalIgnoreCase);
+		if (settings.GameMasterSkillCheckMutates && isMutate && npcForHazard != null && Hero.MainHero != null)
+		{
+			CharacterAttribute attr = OpposedSkillCheck.ParseAttribute("social");
+			if (!OpposedSkillCheck.PlayerWins(Hero.MainHero, npcForHazard, attr, out int _, out int _, out int _))
+			{
+				AIInfluenceBehavior.Instance?.LogMessage("[GM_AGENT] skill-check gate failed for mutate: " + line);
+				return;
+			}
+		}
 		string pathKey = path.ToString();
 		string planJson = JsonConvert.SerializeObject(plan);
-		GameMasterGmJobAuditInfo audit = new GameMasterGmJobAuditInfo(pathKey, correlationId, planJson);
-		string intent = plan.Intent?.Trim() ?? "";
-		if (string.Equals(intent, "probe_help", StringComparison.OrdinalIgnoreCase))
+		string bucket = GetObservationBucketKey(path, correlationId);
+		string storyIntent = plan.StoryIntent?.Trim() ?? "";
+		GameMasterGmJobAuditInfo audit = new GameMasterGmJobAuditInfo(pathKey, correlationId, planJson, bucket, storyIntent);
+		bool chainHelp = plan.ProbeHelpFirst && !string.Equals(intent, "query", StringComparison.OrdinalIgnoreCase);
+		if (!GameMasterHostPolicy.TryAcceptPlan(line, out string policyMsg, chainHelp ? 1 : 0))
 		{
-			Guid hj = Guid.NewGuid();
-			string helpLine = GameMasterCommandSerializer.SerializeLine(cmdToken, Array.Empty<string>());
-			GameMasterPocQueue.EnqueueExecuteLine(hj, helpLine, audit);
-			GameMasterAuditLog.Append(pathKey, correlationId, hj, helpLine, planJson, "enqueue", "probe_help");
+			AIInfluenceBehavior.Instance?.LogMessage(policyMsg);
 			return;
 		}
-		if (plan.ProbeHelpFirst && !string.Equals(intent, "query", StringComparison.OrdinalIgnoreCase))
+		GameMasterHostPolicy.RegisterPlanAccepted();
+		if (chainHelp)
 		{
-			Guid hj2 = Guid.NewGuid();
 			string helpLine2 = GameMasterCommandSerializer.SerializeLine(cmdToken, Array.Empty<string>());
+			Guid hj2 = Guid.NewGuid();
 			GameMasterPocQueue.EnqueueExecuteLine(hj2, helpLine2, audit);
 			GameMasterAuditLog.Append(pathKey, correlationId, hj2, helpLine2, planJson, "enqueue", "probe_help_first");
 		}
