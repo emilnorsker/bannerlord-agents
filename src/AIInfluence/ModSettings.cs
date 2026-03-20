@@ -4450,6 +4450,91 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 	};
 
 	[SettingPropertyGroup("{=AIInfluence_Group_Debug}Debug & Fixes", GroupOrder = 99)]
+	[SettingPropertyButton("GM POC: async enqueue (thread pool)", -1, true, "", Content = "GM POC async enqueue", Order = 3, RequireRestart = false, HintText = "Slice 4: Task.Run → same kingdom query enqueue (proves thread-safe queue).")]
+	public Action EnqueueGameMasterPocProbeAsync { get; set; } = delegate
+	{
+		try
+		{
+			if (Campaign.Current == null)
+			{
+				InformationManager.DisplayMessage(new InformationMessage("[GM_POC] Start a campaign first.", Colors.Yellow));
+				return;
+			}
+			GameMasterPocQueue.EnqueueReadOnlyKingdomProbeFromThreadPool();
+			InformationManager.DisplayMessage(new InformationMessage("[GM_POC] Async enqueue started — check mod_log.", Colors.Green));
+		}
+		catch (Exception ex)
+		{
+			InformationManager.DisplayMessage(new InformationMessage("[GM_POC] " + ex.Message, Colors.Red));
+		}
+	};
+
+	[SettingPropertyGroup("{=AIInfluence_Group_Debug}Debug & Fixes", GroupOrder = 99)]
+	[SettingPropertyButton("GM POC: batch 3× (locked enqueue)", -1, true, "", Content = "GM POC batch ×3", Order = 4, RequireRestart = false, HintText = "Slice 5: three kingdom-query jobs under one lock (no interleaved lines from a second batch).")]
+	public Action EnqueueGameMasterPocBatchLocked { get; set; } = delegate
+	{
+		try
+		{
+			if (Campaign.Current == null)
+			{
+				InformationManager.DisplayMessage(new InformationMessage("[GM_POC] Start a campaign first.", Colors.Yellow));
+				return;
+			}
+			GameMasterPocQueue.EnqueueBatchReadOnlyKingdomProbesLocked(3);
+			InformationManager.DisplayMessage(new InformationMessage("[GM_POC] Queued 3 jobs (locked batch).", Colors.Green));
+		}
+		catch (Exception ex)
+		{
+			InformationManager.DisplayMessage(new InformationMessage("[GM_POC] " + ex.Message, Colors.Red));
+		}
+	};
+
+	[SettingPropertyGroup("{=AIInfluence_Group_Debug}Debug & Fixes", GroupOrder = 99)]
+	[SettingPropertyButton("GM POC: OpenRouter → JSON → queue", -1, true, "", Content = "GM POC OpenRouter plan", Order = 5, RequireRestart = false, HintText = "Slice 7: OpenRouter API (key in settings) returns JSON → gm line → queue. Requires OpenRouter key and campaign.")]
+	public Action StartGameMasterPocOpenRouter { get; set; } = delegate
+	{
+		try
+		{
+			if (Campaign.Current == null)
+			{
+				InformationManager.DisplayMessage(new InformationMessage("[GM_POC] Start a campaign first.", Colors.Yellow));
+				return;
+			}
+			if (string.IsNullOrEmpty(GlobalSettings<ModSettings>.Instance?.ApiKey))
+			{
+				InformationManager.DisplayMessage(new InformationMessage("[GM_POC] Set OpenRouter API key (Mod Settings → OpenRouter).", Colors.Yellow));
+				return;
+			}
+			GameMasterPocQueue.StartOpenRouterJsonPlanEnqueue();
+			InformationManager.DisplayMessage(new InformationMessage("[GM_POC] OpenRouter request started — watch log / diagnostics.", Colors.Green));
+		}
+		catch (Exception ex)
+		{
+			InformationManager.DisplayMessage(new InformationMessage("[GM_POC] " + ex.Message, Colors.Red));
+		}
+	};
+
+	[SettingPropertyGroup("{=AIInfluence_Group_Debug}Debug & Fixes", GroupOrder = 99)]
+	[SettingPropertyButton("GM POC: show last observation", -1, true, "", Content = "GM POC last observation", Order = 6, RequireRestart = false, HintText = "Slice 8: shows last job/line/observation from diagnostics (also in mod_log).")]
+	public Action ShowGameMasterPocLastObservation { get; set; } = delegate
+	{
+		try
+		{
+			string summary = GameMasterPocDiagnostics.FormatSummary();
+			string text = summary;
+			if (text.Length > 450)
+			{
+				text = text.Substring(0, 450) + "…";
+			}
+			InformationManager.DisplayMessage(new InformationMessage(text, Colors.Cyan));
+		}
+		catch (Exception ex)
+		{
+			InformationManager.DisplayMessage(new InformationMessage("[GM_POC] " + ex.Message, Colors.Red));
+		}
+	};
+
+	[SettingPropertyGroup("{=AIInfluence_Group_Debug}Debug & Fixes", GroupOrder = 99)]
 	[SettingPropertyButton("{=AIInfluence_FixPregnancy}Fix Broken Pregnancies", -1, true, "", Content = "{=AIInfluence_FixPregnancy_Button}Fix Now", Order = 0, RequireRestart = false, HintText = "{=AIInfluence_FixPregnancy_Hint}Fixes pregnancy records with missing father data (caused by intimacy with unmarried NPCs in older versions). Removes broken records and resets IsPregnant flag to prevent crash at childbirth.")]
 	public Action FixBrokenPregnancies { get; set; } = delegate
 	{

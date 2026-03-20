@@ -140,18 +140,18 @@ Some kingdom-scoped commands may exist in the catalog while the **player’s cha
 
 ## Implementation slices (POC → full)
 
-Ordered steps. Later slices assume earlier ones unless noted. **Slice 1** is already merged; adjust numbering only if you insert work between existing slices.
+Ordered steps. Later slices assume earlier ones unless noted. **Slices 1–8** are implemented (`GameMasterPocQueue`, `GameMasterCommandSerializer`, `GameMasterPocDiagnostics`, MCM Debug buttons).
 
 | # | Slice | Outcome |
 |---|--------|--------|
 | **1** | **Fixed read-only probe + queue + drain** | `ConcurrentQueue`, drain **one** item per application tick in `AIInfluenceBehavior.Tick` (before lip-sync queue). MCM button enqueues `gm.query.kingdom`. **Log-only** observations (`[GM_POC]`). No LLM. **Status: done.** |
 | **2** | **Correlation id** | Every enqueue receives a **Guid**; enqueue, each serialized line, and each `CallFunction` return log under that id so parallel completions can be untangled later. **Status: done.** |
 | **3** | **Drain budget** | MCM or const: max **N** queue actions per tick (default 1); prevents multi-line jobs from stalling one frame once slices add batches. **Status: done** (MCM Debug: **GM POC: max queue drains per tick**, 1–50). |
-| **4** | **Async producer stress** | Enqueue from `Task.Run` (or a stub “LLM completed” callback on a thread-pool thread) to prove the queue + logging behave under the same pattern real HTTP uses. |
-| **5** | **Batch enqueue lock** | When one plan maps to **multiple** lines, `lock` while enqueueing the whole batch so two concurrent completions cannot interleave lines. |
-| **6** | **Serializer v1** | C# DTO / record (positional + named-arg fields + “needs single quotes”) → one exact BLGM string. Validate locally before `CallFunction`. |
-| **7** | **Debug OpenRouter hop** | Dev-only: one completion (OpenRouter) with a frozen system prompt returning **JSON** matching the DTO; parse → serialize → enqueue → observe in log. Proves LLM → game loop with no NPC Chat UI yet. |
-| **8** | **Observation visibility** | Surface last observation in-game (MCM readonly text, debug overlay, or message) so testers see the loop without `mod_log` only. |
+| **4** | **Async producer stress** | Enqueue from `Task.Run` (or a stub “LLM completed” callback on a thread-pool thread) to prove the queue + logging behave under the same pattern real HTTP uses. **Status: done** — MCM **GM POC async enqueue**. |
+| **5** | **Batch enqueue lock** | When one plan maps to **multiple** lines, `lock` while enqueueing the whole batch so two concurrent completions cannot interleave lines. **Status: done** — MCM **GM POC batch ×3** (`EnqueueBatchReadOnlyKingdomProbesLocked`). |
+| **6** | **Serializer v1** | C# DTO / record (positional + named-arg fields + “needs single quotes”) → one exact BLGM string. Validate locally before `CallFunction`. **Status: done** — `GameMasterCommandSerializer` (`SerializeLine`, `TryParseOpenRouterJson`). |
+| **7** | **Debug OpenRouter hop** | Dev-only: one completion (OpenRouter) with a frozen system prompt returning **JSON** matching the DTO; parse → serialize → enqueue → observe in log. Proves LLM → game loop with no NPC Chat UI yet. **Status: done** — MCM **GM POC OpenRouter plan**. |
+| **8** | **Observation visibility** | Surface last observation in-game (MCM readonly text, debug overlay, or message) so testers see the loop without `mod_log` only. **Status: done** — `GameMasterPocDiagnostics` + MCM **GM POC last observation**. |
 | **9** | **NPC Chat path (opt-in)** | Gated setting: completion path for dialogue may emit the plan schema; snapshot = current NPC + player; correlation tied to conversation / `NPCContext` id. |
 | **10** | **World Events path (opt-in)** | Same executor; **world-shaped** snapshot + stricter or different allowlist table for dynamic/diplomatic prompts. |
 | **11** | **Hazard index v1** | Curated list of error-prone commands with **preconditions** derived from `Hero` / `Clan` / `Kingdom` / settlement APIs; host rejects or warns before execution; prompt tells the completion to **consult this list first** for those verbs. |
