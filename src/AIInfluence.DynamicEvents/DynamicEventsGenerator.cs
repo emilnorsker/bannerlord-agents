@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using AIInfluence;
 using AIInfluence.Diplomacy;
 using AIInfluence.Diseases;
 using AIInfluence.Util;
