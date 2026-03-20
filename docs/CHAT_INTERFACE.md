@@ -60,7 +60,7 @@ Window ChatInterfaceWindow (Layer=Overlay)
             │       │   ├── RichTextWidget …
             │       │   ├── RichTextWidget …
             │       │   └── TextWidget …
-            │       ├── ScrollablePanel Id=MsgScroll — message list; InnerPanel MsgClip\MsgList; scrollbar sibling MsgScrollbar.
+            │       ├── ScrollablePanel Id=MsgScroll — message list; InnerPanel MsgClip\MsgList; mouse wheel only (no visible scrollbar).
             │       │   └── Widget Id=MsgClip — clip rect for messages.
             │       │       └── ListPanel Id=MsgList {MessageList} [VerticalBottomToTop]
             │       │           └── ItemTemplate: Widget — one message row.
@@ -78,7 +78,6 @@ Window ChatInterfaceWindow (Layer=Overlay)
             │       │                   │   └── RichTextWidget …
             │       │                   └── ListPanel {ContentSegments} …
             │       │                       └── ItemTemplate: Widget — same body/pill pattern, right-aligned.
-            │       ├── Standard.VerticalScrollbar Id=MsgScrollbar — vanilla scrollbar for MsgScroll.
             │       ├── Widget [thin horizontal rule above input]
             │       └── Widget [input bar !Input.H]
             │           ├── Widget [frame_9]
