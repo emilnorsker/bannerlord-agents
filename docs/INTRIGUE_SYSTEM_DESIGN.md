@@ -194,24 +194,22 @@ Stored references must use `Hero.StringId`, `Clan.StringId`, and `Kingdom.String
 
 ## Implementation slices
 
-Status is planning until work items mark otherwise. Later slices assume earlier slices unless noted.
+Ten slices; detail, test cases, and sign-off are in `docs/INTRIGUE_IMPLEMENTATION_PLAN.md`. Status is planning until work items mark otherwise.
 
 | # | Slice | Outcome |
 |---|--------|--------|
-| 1 | Plot instance store | Serialize plot id, phase, context; no LLM; load and save safe. |
-| 2 | Runtime secret store | CRUD by id; `origin` metadata; prompt resolves runtime before catalog. |
-| 3 | Step executor (deterministic) | `requires` and `emit_plot_point` / `emit_secret` without LLM; unit-testable. |
-| 4 | Triggers | Connect `on_battle_end`, `on_daily_tick`, `on_enter_settlement` to scheduler. |
-| 5 | Migration bridge | Map legacy `world_secrets` behavior to runtime records or MCM-gated freeze. |
-| 6 | Hook store and prompt | `PlayerHooks`, `description`, strength; chat leverage row reads same rows. |
-| 7 | Optional evidence item | Spawn RP item on hook creation when basis requires; bind ids. |
-| 8 | LLM-assisted proposal | Schema JSON; validate; commit or fallback; log correlation id. |
-| 9 | `plot_id` on events | Link `DynamicEvent` (or parallel) to plot instance for diplomacy and UI. |
-| 10 | Dialogue path audit | No silent intrigue writes from assistant text only. |
-| 11 | Caps and cleanup | Max concurrent plots; expiry; save size limits. |
-| 12 | Manual test spec | Add `docs/INTRIGUE_TEST_SPEC.md` when slices 1–6 are buildable. |
+| 1 | Plot instance persistence | Serialize plot id, phase, context; no LLM; load and save safe. |
+| 2 | Runtime secret store and catalog compatibility | CRUD; runtime-before-catalog resolution; legacy roll freeze or migration. |
+| 3 | Step executor and propagation | Deterministic `requires` / effects; plot point storage strategy fixed; propagate knowledge to heroes. |
+| 4 | Scheduler, triggers, correlation logging | Campaign hooks run executor; correlation ids in logs. |
+| 5 | Dynamic events and `plot_id` | Optional link from event to plot instance. |
+| 6 | Hooks, chat leverage, optional evidence | Hook store; UI aligned with prompt; optional RP item. |
+| 7 | LLM-assisted proposal | Schema JSON; validate; commit or reject; correlation id. |
+| 8 | Dialogue path audit | No silent intrigue writes from chat text alone. |
+| 9 | Caps, expiry, cleanup | Max plots; expiry; measurable stress procedure. |
+| 10 | Manual test spec and sign-off | `docs/INTRIGUE_TEST_SPEC.md` for slices 1–6 regression. |
 
-Playtesting after slice 6 is recommended before heavy reliance on slices 8–10.
+Playtesting after slice 6 is recommended before heavy reliance on slices 7–9.
 
 ---
 

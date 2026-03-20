@@ -2,11 +2,13 @@
 
 **Audience:** Engineers implementing the intrigue layer described in `docs/INTRIGUE_SYSTEM_DESIGN.md`.
 
-**Scope:** This file turns design **slices** into **ordered work packages**. Each slice is **shippable**, **testable**, and has **explicit success criteria**. It does not replace the design spec.
+**Scope:** This file turns **ten** design slices into **ordered work packages**. Each slice is **shippable**, **testable**, and has **explicit success criteria**. It does not replace the design spec.
 
 **Normative:** The same documentation rules as `agents.md` (no editorial tone; define terms; neutral headings). Requirements use **must** and **must not**.
 
 **Depends on:** `docs/INTRIGUE_SYSTEM_DESIGN.md` (data model, pipelines, constraints).
+
+**Consolidation:** Earlier drafts used twelve slices. The following **ten** merge prior scope: **migration** sits inside **runtime store** (I-02); **evidence items** sit inside **hooks** (I-06); **correlation logging** sits inside **scheduler** (I-04); **caps** are a dedicated slice (I-09); **manual test spec** is the final slice (I-10).
 
 ---
 
@@ -25,17 +27,15 @@
 | Id | Title | Depends on |
 |----|--------|------------|
 | I-01 | Plot instance persistence | — |
-| I-02 | Runtime secret store | I-01 |
-| I-03 | Deterministic step executor | I-01, I-02 |
-| I-04 | Plot scheduler triggers | I-03 |
-| I-05 | Catalog migration bridge | I-02 |
-| I-06 | Hooks and chat alignment | I-02, I-05 |
-| I-07 | Hook evidence items | I-06 |
-| I-08 | LLM proposal path | I-03, I-04 |
-| I-09 | Plot id on dynamic events | I-01, I-04 |
-| I-10 | Dialogue path audit | I-06, I-08 |
-| I-11 | Caps and expiry | I-01, I-02 |
-| I-12 | Manual test specification document | I-01 through I-06 |
+| I-02 | Runtime secret store and catalog compatibility | I-01 |
+| I-03 | Deterministic step executor and knowledge propagation | I-01, I-02 |
+| I-04 | Plot scheduler, triggers, correlation logging | I-03 |
+| I-05 | Dynamic events and `plot_id` | I-01, I-04 |
+| I-06 | Hooks, chat leverage row, optional evidence | I-02 |
+| I-07 | LLM-assisted proposal path | I-03, I-04 |
+| I-08 | Dialogue path audit | I-06, I-07 |
+| I-09 | Caps, expiry, cleanup | I-01, I-02, I-03 |
+| I-10 | Manual test specification and regression sign-off | I-01 through I-06 |
 
 ---
 
@@ -45,145 +45,127 @@
 
 **Depends on:** None.
 
-**Deliverables:** Serialization types; load on campaign start; save on campaign save or intrigue save hook; log line on load with plot count (optional).
+**Deliverables:** Serialization types; load on campaign start; save on campaign save or intrigue save hook; optional log line on load with plot count.
 
 **Test case (primary)**
 
-- **Automated (preferred):** If the solution has a test project, add a test that serializes a plot instance with fixed field values to JSON (or the chosen format), deserializes, and asserts equality on all fields.
-- **Manual (if no test project):** Start campaign, trigger one-time code path or MCM debug action that writes one plot instance, save game, load game, confirm the same id and phase appear in save file or log.
+- **Automated (preferred):** If the solution has a test project, serialize a plot instance with fixed field values, deserialize, assert equality on all fields.
+- **Manual (if no test project):** Start campaign; trigger MCM debug or one-time path that writes one plot instance; save; load; confirm same id and phase in save or log.
 
 **Success criteria**
 
-- After load, the in-memory plot registry matches what was saved.
+- After load, in-memory plot registry matches what was saved.
 - No exception during save or load.
-- Plot id and phase are stable strings suitable for `origin` references in I-02.
+- Plot id and phase are stable strings suitable for `origin` references.
 
 ---
 
-## I-02 — Runtime secret store
+## I-02 — Runtime secret store and catalog compatibility
 
-**Goal:** Store runtime secret records with `id`, `description`, `access`, `subjects`, `origin` (`plot_id`, `step_id`), `created_campaign_day`. Resolve secret text for prompts by id with **runtime store first**, then catalog (`world_secrets.json`) fallback.
+**Goal:** Store runtime secret records with `id`, `description`, `access`, `subjects`, `origin` (`plot_id`, `step_id` where applicable), `created_campaign_day`. Resolve prompt text by id with **runtime store first**, then `world_secrets.json` fallback. Preserve behavior for existing saves: MCM flag to freeze legacy `CheckSecretKnowledge` rolls and/or one-time migration of catalog-backed ids to runtime rows with `origin` set for migration (exact policy in implementation notes).
 
-**Depends on:** I-01 (for `plot_id` in `origin`).
+**Depends on:** I-01.
 
-**Deliverables:** Secret store CRUD; integration with `PromptGenerator` (or equivalent) so `KnownSecrets` ids resolve through runtime first.
+**Deliverables:** Secret store CRUD; resolver integrated with `PromptGenerator` (or equivalent); compatibility path documented; MCM entry if freezing rolls.
 
 **Test case (primary)**
 
-- **Automated:** Insert a runtime secret with `id = sec_test_runtime_01` and a fixed description; build a minimal `NPCContext` with `KnownSecrets` containing that id; call the resolver used by prompts; assert the returned string equals the runtime description, not any catalog row with the same id if both existed.
-- **Manual:** Same check via MCM debug that prints resolved prompt text for a test NPC.
+- **Automated:** (1) Runtime-only id: insert runtime secret `sec_test_runtime_01` with fixed description; `KnownSecrets` contains that id; resolver returns runtime text. (2) Catalog-only id: id present only in catalog; resolver returns catalog text. (3) Unknown id: resolver logs error and does not throw.
+- **Manual:** Same three cases via MCM debug output.
 
 **Success criteria**
 
-- Runtime secret wins over catalog when both could apply.
-- Missing id logs a clear error and does not crash.
+- Resolution order is runtime then catalog for every id.
+- Default compatibility mode does not break existing campaigns (manual load of pre-change save).
 
 ---
 
-## I-03 — Deterministic step executor
+## I-03 — Deterministic step executor and knowledge propagation
 
-**Goal:** Execute plot step definitions with `requires` predicates and `effects` including `emit_plot_point` and `emit_secret` **without** calling the LLM. Unit-testable with a fake campaign context.
+**Goal:** Execute plot step definitions with `requires` predicates and effects (`emit_plot_point`, `emit_secret`, `propagate_knowledge` or equivalent) **without** the LLM. **Plot point** records must follow one chosen storage strategy documented in the deliverables (dedicated intrigue rows and/or `DynamicEvent` integration—pick one for v1 and document). Propagation must append secret ids (or plot point ids) to per-hero state per rule (e.g. lords of clan).
 
 **Depends on:** I-01, I-02.
 
-**Deliverables:** Step executor service; at least one plot template with one step that emits one secret when predicates pass.
+**Deliverables:** Step executor; at least one template with one step; propagation rules; idempotency guard so a step does not double-apply without explicit policy.
 
 **Test case (primary)**
 
-- **Automated:** Unit test with a frozen `PlotContext` / mock campaign state where `requires` is satisfied; run executor; assert one new runtime secret row exists with correct `origin.step_id` and one plot point id if `emit_plot_point` is used.
+- **Automated:** Satisfy `requires` with mock context; run executor; assert runtime secret row with correct `origin.step_id`; assert target heroes’ knowledge lists updated per rule; assert no writes when `requires` fails.
 
 **Success criteria**
 
-- When `requires` fails, no secrets or plot points are created.
-- When `requires` passes, effects run exactly once (idempotent flag on step).
+- Failed `requires` creates no secrets or propagated ids.
+- Successful run is idempotent per step completion flag.
 
 ---
 
-## I-04 — Plot scheduler triggers
+## I-04 — Plot scheduler, triggers, correlation logging
 
-**Goal:** Wire campaign hooks (`on_daily_tick`, `on_battle_end`, `on_enter_settlement` or the subset agreed in code review) to enqueue the plot scheduler so I-03 runs at the right time.
+**Goal:** Subscribe to campaign hooks (`on_daily_tick`, `on_battle_end`, `on_enter_settlement` or reviewed subset) so I-03 runs on the correct thread and tick budget. Every enqueue or completion related to intrigue must log a **correlation id** from trigger through executor so parallel jobs are distinguishable in `mod_log` (or dedicated channel).
 
 **Depends on:** I-03.
 
-**Deliverables:** Subscriptions from existing campaign event handlers; single-threaded execution consistent with `AIInfluenceBehavior.Tick` discipline.
+**Deliverables:** Event subscriptions; queue or direct call consistent with `AIInfluenceBehavior.Tick`; logging format documented (prefix + Guid).
 
 **Test case (primary)**
 
-- **Manual:** With a test plot that advances on `on_battle_end`, win a battle in-game (or trigger battle end in debug); verify log shows scheduler run and plot state changes per template.
-- **Automated (optional):** Mock `MapEvent` end and assert scheduler invoked once.
+- **Manual:** Trigger test plot on `on_battle_end` (use debug template delivered with I-03); logs show one correlation id per run; duplicate battle does not double-run (guard verified).
+- **Automated (optional):** Mock battle end; assert scheduler invoked once with expected correlation pattern.
 
 **Success criteria**
 
-- Scheduler does not run on unrelated ticks.
-- No duplicate execution for the same battle event (guard by event id or flag).
+- No scheduler run on unrelated ticks in control test.
+- Correlation id present for every intrigue execution path in this slice.
 
 ---
 
-## I-05 — Catalog migration bridge
+## I-05 — Dynamic events and `plot_id`
 
-**Goal:** Preserve existing behavior for saves that only have catalog `KnownSecrets` while enabling runtime ids. Options: MCM flag to freeze old roll behavior; or one-time migration that copies eligible catalog secrets into runtime records with `origin: migration`.
+**Goal:** Extend `DynamicEvent` (or agreed parallel record) with optional `plot_id` linking to the I-01 plot instance. Writer sets field when events originate from plot pipeline; readers use it for diplomacy and UI.
+
+**Depends on:** I-01, I-04.
+
+**Deliverables:** Schema change; writer path from plot effects; backward compatibility for null `plot_id`.
+
+**Test case (primary)**
+
+- **Manual:** Emit event from plot; inspect persisted event; `plot_id` matches active plot id. Create non-plot event; `plot_id` is null.
+
+**Success criteria**
+
+- No crash when loading saves without the new field (migration or default).
+
+---
+
+## I-06 — Hooks, chat leverage row, optional evidence
+
+**Goal:** Persist hooks (`PlayerHooks` or equivalent) with `description`, `strength`, `target_hero_string_id`, `basis`. Chat UI row and prompt builder use **identical** hook ids for the current interlocutor. **Optional:** `evidence_item` spawns or references RP item; store `generated_item_string_id`. If no item pipeline exists, evidence path is **skipped** with success criteria “hooks without evidence unchanged.”
 
 **Depends on:** I-02.
 
-**Deliverables:** Documented migration or compatibility path; MCM entry if needed.
+**Deliverables:** Hook store; prompt injection; `NpcChatWindowVM` (or successor) bindings; optional item integration.
 
 **Test case (primary)**
 
-- **Manual:** Load a save from before I-02; confirm NPCs still resolve secrets in dialogue; no new runtime secrets unless migration runs; after migration (if implemented), confirm `KnownSecrets` still valid.
+- **Manual:** Create hook via debug; open chat with target; leverage row matches prompt log for same hook id. If evidence enabled: item exists and id survives reload; if disabled: hook-only path passes.
 
 **Success criteria**
 
-- No regression on existing campaigns for the default compatibility mode.
+- Hook appears in UI **if and only if** hook is in prompt inputs for that session (same ids).
 
 ---
 
-## I-06 — Hooks and chat alignment
+## I-07 — LLM-assisted proposal path
 
-**Goal:** Persist hook records (`PlayerHooks` or equivalent); include `description`, `strength`, `target_hero_string_id`, `basis`. Chat UI row (leverage) and prompt builder read **the same** hook list for the current interlocutor.
-
-**Depends on:** I-02, I-05.
-
-**Deliverables:** Hook store; prompt injection; `NpcChatWindowVM` (or successor) bindings for leverage row.
-
-**Test case (primary)**
-
-- **Manual:** Create a hook with `description` in debug; open chat with target hero; verify row matches; log prompt snippet for that NPC and verify same hook id appears.
-
-**Success criteria**
-
-- Hook visible in UI **if and only if** hook is in prompt inputs for that session (same ids).
-
----
-
-## I-07 — Hook evidence items
-
-**Goal:** Optional `evidence_item` on hook: spawn or reference RP item when `basis` warrants; store `generated_item_string_id` on hook.
-
-**Depends on:** I-06.
-
-**Deliverables:** Hook schema extension; item spawn hook into existing item pipeline (if any).
-
-**Test case (primary)**
-
-- **Manual:** Create hook with evidence item; verify item exists in player inventory or quest stash per design; reload save; id stable.
-
-**Success criteria**
-
-- Hooks without evidence item unchanged.
-
----
-
-## I-08 — LLM-assisted proposal path
-
-**Goal:** HTTP completion returns JSON proposal; host validates schema; commits or rejects; logs correlation id; **no** commit on invalid JSON.
+**Goal:** HTTP completion returns JSON proposal; host validates schema; commits or rejects; logs **correlation id**; invalid JSON never mutates save. Dry-run mode acceptable for first merge.
 
 **Depends on:** I-03, I-04.
 
-**Deliverables:** JSON schema or DTO; validator; correlation id in logs from enqueue through commit.
+**Deliverables:** JSON schema or DTO; validator; integration with enqueue path from I-04 logging.
 
 **Test case (primary)**
 
-- **Manual or automated:** Feed **invalid** JSON; assert no new rows; log shows validation failure. Feed **valid** JSON matching a dry-run operation; assert rows appear or dry-run log confirms.
+- **Automated or manual:** Invalid JSON → no new intrigue rows; log shows validation failure. Valid minimal proposal → rows appear or dry-run log confirms commit path.
 
 **Success criteria**
 
@@ -191,64 +173,48 @@
 
 ---
 
-## I-09 — Plot id on dynamic events
+## I-08 — Dialogue path audit
 
-**Goal:** `DynamicEvent` (or parallel record) carries optional `plot_id` linking to I-01 instance for diplomacy and UI.
+**Goal:** Establish that raw NPC chat text does not append `KnownSecrets`, runtime secrets, hooks, or plot rows without a validated tool or post-commit path.
 
-**Depends on:** I-01, I-04.
+**Depends on:** I-06, I-07.
 
-**Deliverables:** Schema extension; writer when creating events from plot; reader for UI.
-
-**Test case (primary)**
-
-- **Manual:** Trigger event from plot; inspect `dynamic_events` storage (or log); `plot_id` matches active plot.
-
-**Success criteria**
-
-- Events without plots remain `plot_id` null.
-
----
-
-## I-10 — Dialogue path audit
-
-**Goal:** Prove that raw assistant text from NPC dialogue does **not** append `KnownSecrets`, runtime secrets, hooks, or plot rows without a validated tool or post-commit path.
-
-**Depends on:** I-06, I-08.
-
-**Deliverables:** Code audit checklist or automated guard; logging when dialogue would attempt mutation.
+**Deliverables:** Checklist; optional CI grep or unit test forbidding direct `KnownSecrets.Add` from dialogue handlers; logging when mutation APIs are called.
 
 **Test case (primary)**
 
-- **Manual:** Send chat messages that **claim** a new secret; verify save unchanged; only tool path adds rows.
+- **Manual:** Send messages that assert new secrets in prose; save hash or row count unchanged for intrigue stores.
+- **Automated (preferred):** Static rule or test fails if forbidden call sites exist.
 
 **Success criteria**
 
-- Documented evidence that no code path maps free text directly to `KnownSecrets` append.
+- Written evidence (grep output or test name) stored with sign-off.
 
 ---
 
-## I-11 — Caps and expiry
+## I-09 — Caps, expiry, cleanup
 
-**Goal:** Enforce maximum concurrent plots; optional expiry for plot points and secrets; prevent unbounded save growth.
+**Goal:** Enforce maximum concurrent plot instances; expiry for plot points and secrets where applicable; prevent unbounded growth. **Success must be measurable:** e.g. cap = N rejects or evicts per written policy; optional file-size or row-count ceiling documented as manual stress procedure.
 
-**Depends on:** I-01, I-02.
+**Depends on:** I-01, I-02, I-03.
 
 **Deliverables:** Config (MCM or const); cleanup on tick or daily.
 
 **Test case (primary)**
 
-- **Automated:** Insert N+1 plots; assert cap rejects or evicts oldest per policy.
-- **Manual:** Same via debug spam.
+- **Automated:** Insert N+1 plots when cap is N; assert rejection or eviction per policy.
+- **Manual:** Documented stress run for row count; record before/after in sign-off.
 
 **Success criteria**
 
-- Save file size stays within configured bounds under stress.
+- Cap enforced deterministically.
+- Expiry removes or archives rows without crashing saves.
 
 ---
 
-## I-12 — Manual test specification document
+## I-10 — Manual test specification and regression sign-off
 
-**Goal:** Add `docs/INTRIGUE_TEST_SPEC.md` with TC ids mapping to slices I-01 through I-06 (primary regression set), prerequisites, steps, and success criteria aligned with this plan.
+**Goal:** Add `docs/INTRIGUE_TEST_SPEC.md` with test case ids for **I-01 through I-06**, prerequisites, steps, success criteria aligned with this plan; sign-off table for release candidates.
 
 **Depends on:** I-01 through I-06 complete.
 
@@ -256,11 +222,11 @@
 
 **Test case (primary)**
 
-- **Review:** Document exists; each TC references one slice id; sign-off table present.
+- **Review:** File exists; each TC maps to one of I-01–I-06; another engineer can execute regression without reading source.
 
 **Success criteria**
 
-- Another engineer can run I-01–I-06 regression using only `INTRIGUE_TEST_SPEC.md` and this plan.
+- Document linked from this plan; dated sign-off row for at least one full I-01–I-06 pass.
 
 ---
 
@@ -270,10 +236,17 @@
 |-------|--------|------|---------------------|
 | I-01 | | | |
 | I-02 | | | |
-| … | | | |
+| I-03 | | | |
+| I-04 | | | |
+| I-05 | | | |
+| I-06 | | | |
+| I-07 | | | |
+| I-08 | | | |
+| I-09 | | | |
+| I-10 | | | |
 
 ---
 
 ## Maintenance
 
-Update this plan when a slice is split, merged, or reordered. When `INTRIGUE_SYSTEM_DESIGN.md` slices table changes, align this document’s ids and dependencies.
+Update this plan when a slice is split, merged, or reordered. When `INTRIGUE_SYSTEM_DESIGN.md` changes, align dependencies and numbering here.
