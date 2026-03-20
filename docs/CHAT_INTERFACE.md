@@ -17,13 +17,13 @@ This module exposes **one** in-game Gauntlet conversation UI for AI NPC chat.
 
 ## Component tree (`ChatInterface.xml`)
 
-Prefab: `GUI/Prefabs/ChatInterface.xml`. Below: **non–text widgets** only get a role note (`TextWidget` / `RichTextWidget` appear as unlabeled nodes). Indentation = containment.
+Prefab: `GUI/Prefabs/ChatInterface.xml`. **Layout constants:** `EncyLeft.W`=370, `Info.W`=540, `Header.H`, `Input.H`, `Inset`, `Sep.W`. **Non–text widgets** get a short role note (`TextWidget` / `RichTextWidget` shown as `…`). Indentation = containment.
 
 ```
 Window ChatInterfaceWindow (Layer=Overlay)
 └── BrushWidget [Encyclopedia.Page.SoundBrush] — full-screen shell; encyclopedia page brush (sound/visual parent for this screen).
     └── Widget — inset margin; receives input for the whole window.
-        └── ListPanel [HorizontalLeftToRight] — three columns: hero | chat | info.
+        └── ListPanel [HorizontalLeftToRight] — three columns: hero (~370) | chat (stretch) | info (~540).
             │
             ├── Widget [left ~EncyLeft.W] — column background gradient.
             │   ├── Widget (clip) — clips the tableau stack.
@@ -54,7 +54,7 @@ Window ChatInterfaceWindow (Layer=Overlay)
             │
             ├── Widget [center, stretch]
             │   ├── Widget — chat column fill #141414.
-            │   └── Widget — interactive layer (header, scroll, scrollbar, input).
+            │   └── Widget — interactive layer (header, message scroll, input bar).
             │       ├── Widget [header bar !Header.H]
             │       │   ├── TextWidget …
             │       │   ├── RichTextWidget …
@@ -90,30 +90,31 @@ Window ChatInterfaceWindow (Layer=Overlay)
             │
             ├── Widget [Sep.W]
             │
-            └── Widget [right ~Info.W]
-                ├── Widget — column fill.
-                ├── BrushWidget [Encyclopedia.TopBanner] — fixed “Information” title (not collapsible).
+            └── Widget [right column fixed width !Info.W = 540px]
+                ├── Widget — column fill #141414.
+                ├── BrushWidget [Encyclopedia.TopBanner] — fixed “Information” strip (not collapsible; no ExecuteToggle).
                 ├── Widget [title underline]
-                ├── BrushWidget [Encyclopedia.Frame] — framed scroll region.
-                │   └── ScrollablePanel Id=InfoScroll — InnerPanel InfoRect\InfoList; VerticalScrollbar ..\..\InfoScrollbar.
-                │       └── Widget Id=InfoRect — clip; holds list + bottom shadow.
+                ├── BrushWidget [Encyclopedia.Frame] — outer frame around the scroll area only.
+                │   └── ScrollablePanel Id=InfoScroll — InnerPanel InfoRect\InfoList; VerticalScrollbar ..\..\InfoScrollbar; mouse wheel.
+                │       └── Widget Id=InfoRect — clip; holds section list + bottom shadow.
                 │           ├── NavigatableListPanel Id=InfoList {InfoSections} [VerticalBottomToTop]
-                │           │   └── ItemTemplate: Widget [@SectionPanelColor stripe] → ListPanel — one collapsible section.
-                │           │       ├── ButtonWidget ExecuteToggle [Encyclopedia.TopBanner]
-                │           │       │   └── ListPanel [Horizontal] — @HeaderText + @ExpandGlyph (text widgets).
-                │           │       └── ListPanel @IsExpanded
-                │           │           ├── ListPanel {WorldEventLines} @HasWorldEventLines
-                │           │           │   └── ItemTemplate: ListPanel [Horizontal]
-                │           │           │       ├── SkillIconVisualWidget @SkillId
-                │           │           │       └── RichTextWidget …
-                │           │           ├── ListPanel {TextLines} @HasStandardTextLines
-                │           │           │   └── ItemTemplate: Widget → RichTextWidget …
-                │           │           ├── ListPanel {TroopRows} @HasTroopRows
-                │           │           │   └── ItemTemplate: ListPanel [Horizontal]
-                │           │           │       ├── InventoryImageIdentifierWidget @Portrait
-                │           │           │       ├── RichTextWidget …
-                │           │           │       └── TextWidget …
-                │           │           └── RichTextWidget … @ShowPartyFood
+                │           │   └── ItemTemplate: Widget [BlankWhiteSquare_9 Color=@SectionPanelColor] — alternating stripe tint per section (VM: #121820F0 / #1E1810F0 top→bottom).
+                │           │       └── ListPanel — one collapsible section (header button + expanded body).
+                │           │           ├── ButtonWidget ExecuteToggle [Encyclopedia.TopBanner]
+                │           │           │   └── ListPanel [Horizontal] — @HeaderText + @ExpandGlyph (text widgets).
+                │           │           └── ListPanel @IsExpanded
+                │           │               ├── ListPanel {WorldEventLines} @HasWorldEventLines
+                │           │               │   └── ItemTemplate: ListPanel [Horizontal]
+                │           │               │       ├── SkillIconVisualWidget @SkillId
+                │           │               │       └── RichTextWidget …
+                │           │               ├── ListPanel {TextLines} @HasStandardTextLines
+                │           │               │   └── ItemTemplate: Widget → RichTextWidget …
+                │           │               ├── ListPanel {TroopRows} @HasTroopRows
+                │           │               │   └── ItemTemplate: ListPanel [Horizontal]
+                │           │               │       ├── InventoryImageIdentifierWidget @Portrait
+                │           │               │       ├── RichTextWidget …
+                │           │               │       └── TextWidget …
+                │           │               └── RichTextWidget … @ShowPartyFood
                 │           └── BrushWidget [Encyclopedia.Scroll.Shadow] — bottom fade over scroll content.
                 ├── ScrollbarWidget Id=InfoScrollbar — custom flat track + handle.
                 │   ├── BrushWidget [scrollbar bed]

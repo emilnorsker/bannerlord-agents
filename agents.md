@@ -12,6 +12,13 @@ Always consider the consequences of a given code change even if it is just a sin
 
 Never write `catch { }` or `catch (Exception) { }` — this masks errors and makes debugging impossible. Always surface the error.
 
+### Gauntlet / UI prefab changes
+
+Whenever you **change Gauntlet XML**, brushes, layout constants, or VM bindings for a screen:
+
+1. **Show the user a text tree view** of the affected widget hierarchy in your reply (containers, important ids, `DataSource` roots, scroll/clip paths, and what is collapsible vs fixed chrome).
+2. For the NPC chat surface, keep **`docs/CHAT_INTERFACE.md`** § *Component tree* aligned with `GUI/Prefabs/ChatInterface.xml` so the repo stays the canonical reference.
+
 ---
 
 ## TaleWorlds decompiled sources (`random_logs` branch)
