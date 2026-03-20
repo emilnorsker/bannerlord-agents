@@ -116,6 +116,12 @@ Some kingdom-scoped commands may exist in the catalog while the **player’s cha
 
 ---
 
+## Module dependency
+
+`SubModule.xml` lists **Bannerlord.GameMaster** in `DependedModules` with `LoadBeforeThis` so `gm.*` commands exist before AIInfluence runs. Players must install [Bannerlord.GameMaster](https://github.com/SolWayward/Bannerlord.GameMaster) alongside this mod.
+
+---
+
 ## References (external)
 
 - BLGM repository and wiki: <https://github.com/SolWayward/Bannerlord.GameMaster>  
