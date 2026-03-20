@@ -187,6 +187,7 @@ Stored references must use `Hero.StringId`, `Clan.StringId`, and `Kingdom.String
 
 - `TECHNICAL_GUIDE.en.md` — `world_secrets.json`, `world_info.json`, `dynamic_events.json`, NPC save fields.
 - `docs/INTRIGUE_SYSTEM_PLAN.md` — pointer to this document.
+- `docs/INTRIGUE_IMPLEMENTATION_PLAN.md` — ordered slices, test cases, success criteria.
 - Code: `WorldInfoManager.CheckSecretKnowledge`, `PromptGenerator`, `NPCContext`, `AIInfluence.DynamicEvents`.
 
 ---
