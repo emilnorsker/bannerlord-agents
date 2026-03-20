@@ -14,6 +14,12 @@ public static class NpcChatWindowManager
 
     internal static NpcChatWindowVM GetCurrentViewModel() => _layer?.ViewModel;
 
+    /// <summary>Enter / numpad-Enter to send while the chat text input (EditableTextWidget) has UI focus.</summary>
+    public static void Tick()
+    {
+        _layer?.TickEnterToSend();
+    }
+
     public static void Show(Hero npc, NPCContext context, Action onReturn)
     {
         if (npc == null)
