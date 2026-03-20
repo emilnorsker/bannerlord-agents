@@ -4921,6 +4921,22 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 	};
 
 	[SettingPropertyGroup("{=AIInfluence_Group_Debug}Debug & Fixes", GroupOrder = 99)]
+	[SettingPropertyButton("BLGM E2E test (gm.query.kingdom)", -1, true, "", Content = "BLGM E2E test", Order = 7, RequireRestart = false, HintText = "Single end-to-end check: runs gm.query.kingdom via CommandLineFunctionality (Bannerlord.GameMaster). Writes [BLGM_E2E] lines to mod_log.txt without requiring Enable Debug Logging or other GM toggles.")]
+	public Action RunGameMasterE2ETest { get; set; } = delegate
+	{
+		try
+		{
+			GameMasterPocQueue.RunE2ETest();
+			InformationManager.DisplayMessage(new InformationMessage("[BLGM_E2E] OK — see mod_log.txt", Colors.Green));
+		}
+		catch (Exception ex)
+		{
+			AIInfluenceBehavior.Instance?.LogMessage("[BLGM_E2E] MCM button caught: " + ex);
+			InformationManager.DisplayMessage(new InformationMessage("[BLGM_E2E] FAIL: " + ex.Message, Colors.Red));
+		}
+	};
+
+	[SettingPropertyGroup("{=AIInfluence_Group_Debug}Debug & Fixes", GroupOrder = 99)]
 	[SettingPropertyButton("{=AIInfluence_FixPregnancy}Fix Broken Pregnancies", -1, true, "", Content = "{=AIInfluence_FixPregnancy_Button}Fix Now", Order = 0, RequireRestart = false, HintText = "{=AIInfluence_FixPregnancy_Hint}Fixes pregnancy records with missing father data (caused by intimacy with unmarried NPCs in older versions). Removes broken records and resets IsPregnant flag to prevent crash at childbirth.")]
 	public Action FixBrokenPregnancies { get; set; } = delegate
 	{

@@ -180,7 +180,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	public void LogMessage(string message)
 	{
-		bool isAlwaysLog = !string.IsNullOrEmpty(message) && (message.StartsWith("[ERROR]") || message.StartsWith("[SYNC-TRACE]"));
+		bool isAlwaysLog = !string.IsNullOrEmpty(message) && (message.StartsWith("[ERROR]") || message.StartsWith("[SYNC-TRACE]") || message.StartsWith("[BLGM_E2E]"));
 		if (!isAlwaysLog && (!_isInitialized || !(GlobalSettings<ModSettings>.Instance?.EnableDebugLogging ?? false)))
 		{
 			return;

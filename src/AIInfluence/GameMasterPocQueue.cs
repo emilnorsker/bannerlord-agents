@@ -204,4 +204,38 @@ public static class GameMasterPocQueue
 		}
 		GameMasterObservationStore.Record(audit.Value.ObservationBucketKey, jobId, line, observation ?? "", audit.Value.StoryIntent);
 	}
+
+	/// <summary>MCM one-shot: synchronous <c>gm.query.kingdom</c> via <c>CommandLineFunctionality</c> — no queue, no OpenRouter, no GM toggles. Logs <c>[BLGM_E2E]</c> (always written to mod_log).</summary>
+	public static void RunE2ETest()
+	{
+		const string testLine = "gm.query.kingdom";
+		AIInfluenceBehavior.Instance?.LogMessage("[BLGM_E2E] === start ===");
+		if (Campaign.Current == null)
+		{
+			AIInfluenceBehavior.Instance?.LogMessage("[BLGM_E2E] FAIL: Campaign.Current is null (load a save / start campaign).");
+			throw new InvalidOperationException("Campaign.Current is null.");
+		}
+		string[] parts = testLine.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+		string command = parts[0].ToLowerInvariant();
+		List<string> args = parts.Skip(1).ToList();
+		AIInfluenceBehavior.Instance?.LogMessage("[BLGM_E2E] token=" + command + " args=" + args.Count);
+		if (!CommandLineFunctionality.HasFunctionForCommand(command))
+		{
+			const string msg = "HasFunctionForCommand=false — Bannerlord.GameMaster not loaded or dependency missing in SubModule.xml.";
+			AIInfluenceBehavior.Instance?.LogMessage("[BLGM_E2E] FAIL: " + msg);
+			throw new InvalidOperationException(msg);
+		}
+		try
+		{
+			string text = CommandLineFunctionality.CallFunction(command, args, out bool _);
+			AIInfluenceBehavior.Instance?.LogMessage("[BLGM_E2E] CallFunction OK, len=" + (text?.Length ?? 0));
+			AIInfluenceBehavior.Instance?.LogMessage("[BLGM_E2E] output:\n" + (text ?? "(null)"));
+			AIInfluenceBehavior.Instance?.LogMessage("[BLGM_E2E] === success ===");
+		}
+		catch (Exception ex)
+		{
+			AIInfluenceBehavior.Instance?.LogMessage("[BLGM_E2E] CallFunction threw: " + ex);
+			throw;
+		}
+	}
 }
