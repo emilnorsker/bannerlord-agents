@@ -4409,6 +4409,26 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 	};
 
 	[SettingPropertyGroup("{=AIInfluence_Group_Debug}Debug & Fixes", GroupOrder = 99)]
+	[SettingPropertyButton("GM POC: enqueue read-only query", -1, true, "", Content = "GM POC (query kingdoms)", Order = 2, RequireRestart = false, HintText = "POC slice 1: enqueues gm.query.kingdom (requires Bannerlord.GameMaster). Drains on next application ticks; read mod_log for [GM_POC] observation lines.")]
+	public Action EnqueueGameMasterPocProbe { get; set; } = delegate
+	{
+		try
+		{
+			if (Campaign.Current == null)
+			{
+				InformationManager.DisplayMessage(new InformationMessage("[GM_POC] Start a campaign first.", Colors.Yellow));
+				return;
+			}
+			GameMasterPocQueue.EnqueueReadOnlyKingdomQueryProbe();
+			InformationManager.DisplayMessage(new InformationMessage("[GM_POC] Queued gm.query.kingdom — check mod_log.", Colors.Green));
+		}
+		catch (Exception ex)
+		{
+			InformationManager.DisplayMessage(new InformationMessage("[GM_POC] " + ex.Message, Colors.Red));
+		}
+	};
+
+	[SettingPropertyGroup("{=AIInfluence_Group_Debug}Debug & Fixes", GroupOrder = 99)]
 	[SettingPropertyButton("{=AIInfluence_FixPregnancy}Fix Broken Pregnancies", -1, true, "", Content = "{=AIInfluence_FixPregnancy_Button}Fix Now", Order = 0, RequireRestart = false, HintText = "{=AIInfluence_FixPregnancy_Hint}Fixes pregnancy records with missing father data (caused by intimacy with unmarried NPCs in older versions). Removes broken records and resets IsPregnant flag to prevent crash at childbirth.")]
 	public Action FixBrokenPregnancies { get; set; } = delegate
 	{

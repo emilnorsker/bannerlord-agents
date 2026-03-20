@@ -127,3 +127,11 @@ Some kingdom-scoped commands may exist in the catalog while the **player’s cha
 ---
 
 *Document status: design agreement captured for implementation phases. Update when POC results change assumptions.*
+
+---
+
+## POC progress (implementation)
+
+**Slice 1 (done in repo):** MCM → Debug & Fixes → **GM POC (query kingdoms)** enqueues a single read-only `gm.query.kingdom` on `GameMasterPocQueue`; `AIInfluenceBehavior.Tick` drains **one** action per application tick before the lip-sync main-thread queue. Results are **log-only** (`[GM_POC] observation …`). Requires **Bannerlord.GameMaster** loaded. No LLM.
+
+**Next slices (planned):** multi-line budget; correlation id in log; JSON plan from a debug OpenRouter call; serializer; then path-specific wiring.

@@ -477,6 +477,17 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			_npcInitiativeSystem.Tick(dt);
 		}
+		if (GameMasterPocQueue.Queue.TryDequeue(out Action gmPocAction))
+		{
+			try
+			{
+				gmPocAction();
+			}
+			catch (Exception ex)
+			{
+				LogMessage("[GM_POC] drain error: " + ex.Message);
+			}
+		}
 		Action result;
 		while (TtsLipSyncService.MainThreadQueue.TryDequeue(out result))
 		{
