@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -95,7 +96,7 @@ public static class AIClient
 	private static (string systemPrompt, string userMessage, bool extracted) ExtractLastPlayerMessage(string prompt)
 	{
 		string item = prompt;
-		string item2 = "Respond to the player's latest message in character, following the instructions provided. Format your response as JSON with all required fields.";
+		string item2 = "Respond to the player's latest message in character, following the instructions provided.";
 		int num = prompt.LastIndexOf("\nPlayer: ");
 		if (num >= 0)
 		{
@@ -106,7 +107,7 @@ public static class AIClient
 				if (string.IsNullOrEmpty(text2) || text2.StartsWith("Last Interaction:", StringComparison.OrdinalIgnoreCase))
 				{
 					item = prompt.Substring(0, num).TrimEnd(Array.Empty<char>());
-					item2 = "Player: " + text + "\n\nRespond to this message in character, following all instructions in the system message above. Format your response as JSON with all required fields.";
+					item2 = "Player: " + text + "\n\nRespond to this message in character, following all instructions in the system message above.";
 					AIInfluenceBehavior.Instance?.LogMessage($"[AI_CLIENT] Extracted last player message to user role ({text.Length} chars): {text.Substring(0, Math.Min(100, text.Length))}...");
 					return (systemPrompt: item, userMessage: item2, extracted: true);
 				}
@@ -115,8 +116,7 @@ public static class AIClient
 		return (systemPrompt: item, userMessage: item2, extracted: false);
 	}
 
-	/// <summary>OpenRouter chat completion. When <paramref name="notifyMessageChunk"/> is set, assistant text is delivered incrementally (message draft fragments).</summary>
-	/// <param name="notifyMessageChunk">Optional; invoked for each fragment of the assistant message draft (raw text).</param>
+	/// <summary>OpenRouter chat completion (always SSE). Assistant text is delivered incrementally when <paramref name="notifyMessageChunk"/> is set.</summary>
 	private static async Task<string> GetOpenRouterResponse(string npcName, string faction, string prompt, Action<string> notifyMessageChunk = null)
 	{
 		if (string.IsNullOrEmpty(GlobalSettings<ModSettings>.Instance?.ApiKey))
@@ -145,12 +145,8 @@ public static class AIClient
 			["content"] = (JToken)(userMessage)
 		});
 		val["messages"] = (JToken)val2;
-		bool isStreaming = notifyMessageChunk != null;
-		// Do not force json_object while streaming: some providers buffer until
-		// the object is complete, which collapses visible token-by-token updates.
-		if (!isStreaming)
-			val["response_format"] = (JToken)new JObject { ["type"] = (JToken)("json_object") };
-		val["stream"] = (JToken)isStreaming;
+		val["stream"] = true;
+		val["response_format"] = OpenRouterNpcResponseSchema.GetResponseFormat();
 		JObject requestBody = val;
 		string json = ((JToken)requestBody).ToString((Formatting)0, Array.Empty<JsonConverter>());
 		StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -159,71 +155,38 @@ public static class AIClient
 		{
 			HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "https://openrouter.ai/api/v1/chat/completions");
 			request.Content = (HttpContent)(object)content;
-			HttpResponseMessage response = ((notifyMessageChunk != null) ? (await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false)) : (await httpClient.SendAsync(request).ConfigureAwait(false)));
+			HttpResponseMessage response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
 			response.EnsureSuccessStatusCode();
-			if (notifyMessageChunk != null)
+			StringBuilder debugStreamBuffer = (GlobalSettings<ModSettings>.Instance?.DebugStreamToGameLog ?? false) ? new StringBuilder() : null;
+			void NotifyAndDebug(string chunk)
 			{
-				StringBuilder stringBuilder = new StringBuilder();
-				StringBuilder debugStreamBuffer = (GlobalSettings<ModSettings>.Instance?.DebugStreamToGameLog ?? false) ? new StringBuilder() : null;
-				using (Stream stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+				notifyMessageChunk?.Invoke(chunk);
+				if (debugStreamBuffer != null)
 				{
-					using StreamReader streamReader = new StreamReader(stream);
-					while (!streamReader.EndOfStream)
+					debugStreamBuffer.Append(chunk);
+					if (debugStreamBuffer.Length >= 120)
 					{
-						string text = await streamReader.ReadLineAsync().ConfigureAwait(false);
-						if (string.IsNullOrWhiteSpace(text) || !text.StartsWith("data:", StringComparison.Ordinal))
-						{
-							continue;
-						}
-						string text2 = text.Substring(5).Trim();
-						if (text2 == "[DONE]")
-						{
-							break;
-						}
-						JObject val3 = JObject.Parse(text2);
-						string text3 = val3?["error"]?["message"]?.ToString();
-						if (!string.IsNullOrEmpty(text3))
-						{
-							throw new InvalidOperationException("OpenRouter stream error: " + text3);
-						}
-						JToken val4 = val3?["choices"]?[0];
-						if (string.Equals(val4?["finish_reason"]?.ToString(), "error", StringComparison.OrdinalIgnoreCase))
-						{
-							throw new InvalidOperationException("OpenRouter stream terminated with finish_reason=error.");
-						}
-						string text4 = val4?["delta"]?["content"]?.ToString();
-						if (string.IsNullOrEmpty(text4))
-						{
-							continue;
-						}
-						stringBuilder.Append(text4);
-						if (debugStreamBuffer != null)
-						{
-							debugStreamBuffer.Append(text4);
-							if (debugStreamBuffer.Length >= 120)
-							{
-								string batchedChunk = debugStreamBuffer.ToString().Replace("\n", "\\n");
-								debugStreamBuffer.Clear();
-								TtsLipSyncService.MainThreadQueue.Enqueue(() => InformationManager.DisplayMessage(new InformationMessage("[LLM STREAM] " + batchedChunk)));
-							}
-						}
-						notifyMessageChunk(text4);
+						string batchedChunk = debugStreamBuffer.ToString().Replace("\n", "\\n");
+						debugStreamBuffer.Clear();
+						TtsLipSyncService.MainThreadQueue.Enqueue(() => InformationManager.DisplayMessage(new InformationMessage("[LLM STREAM] " + batchedChunk)));
 					}
 				}
+			}
+			using (Stream stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+			{
+				(JObject assistantMessage, _) = await ReadOpenRouterChatCompletionStreamAsync(stream, NotifyAndDebug, collectToolCallDeltas: false).ConfigureAwait(false);
 				if (debugStreamBuffer != null && debugStreamBuffer.Length > 0)
 				{
 					string remainingChunk = debugStreamBuffer.ToString().Replace("\n", "\\n");
 					TtsLipSyncService.MainThreadQueue.Enqueue(() => InformationManager.DisplayMessage(new InformationMessage("[LLM STREAM] " + remainingChunk)));
 				}
-				string text5 = stringBuilder.ToString();
+				if (assistantMessage["tool_calls"] != null)
+					LogWarning("OpenRouter returned tool_calls without tools in request; using content only.");
+				string text5 = assistantMessage["content"]?.ToString() ?? "";
 				if (!text5.TrimStart(Array.Empty<char>()).StartsWith("{", StringComparison.Ordinal))
-				{
 					LogWarning("OpenRouter streaming completed without JSON object output. Falling back to plain-text preview mode.");
-				}
 				return text5;
 			}
-			dynamic responseObject = JsonConvert.DeserializeObject<object>(await response.Content.ReadAsStringAsync());
-			return responseObject.choices[0].message.content.ToString();
 		}
 		catch (Exception ex)
 		{
@@ -247,7 +210,7 @@ public static class AIClient
 		var (systemPrompt, userMessage, _) = ExtractLastPlayerMessage(prompt);
 		var messages = new JArray
 		{
-			new JObject { ["role"] = "system", ["content"] = systemPrompt + "\n\n**TOOLS:** Use find_settlements/find_parties/find_items for string_ids. Final message = JSON with response, decision, tone, suspected_lie, character_death, marriage, character_personality/backstory/quirks, allows_letters.\n" },
+			new JObject { ["role"] = "system", ["content"] = systemPrompt + "\n\n**TOOLS:** Use find_settlements/find_parties/find_items for string_ids. The final assistant message is constrained by API structured output (npc_chat_response schema).\n" },
 			new JObject { ["role"] = "user", ["content"] = userMessage }
 		};
 		var tools = ChatTools.ToolCatalog.GetToolsForApi();
@@ -256,7 +219,7 @@ public static class AIClient
 		// Guard against model looping over tools forever – abort after 50 rounds.
 		for (int round = 0; round < 50; round++)
 		{
-			JToken assistantMessage = await SendToolRequest(messages, tools);
+			JToken assistantMessage = await SendToolRequest(messages, tools, notifyMessageChunk).ConfigureAwait(false);
 			if (assistantMessage == null)
 				return GenerateErrorResponse("Invalid response.");
 
@@ -268,7 +231,7 @@ public static class AIClient
 				{
 					string toolName = toolCall["function"]?["name"]?.ToString() ?? "";
 					string toolArgs = toolCall["function"]?["arguments"]?.ToString() ?? "{}";
-					string result = await onToolCall(toolName, toolArgs);
+					string result = await onToolCall(toolName, toolArgs).ConfigureAwait(false);
 					messages.Add(new JObject
 					{
 						["role"] = "tool",
@@ -281,10 +244,7 @@ public static class AIClient
 
 			string content = assistantMessage["content"]?.ToString();
 			if (!string.IsNullOrEmpty(content))
-			{
-				notifyMessageChunk?.Invoke(content);
 				return content;
-			}
 
 			return GenerateErrorResponse("Empty response.");
 		}
@@ -292,14 +252,25 @@ public static class AIClient
 		return GenerateErrorResponse("Too many tool turns.");
 	}
 
-	private static async Task<JToken> SendToolRequest(JArray messages, JArray tools)
+	private static async Task<JToken> SendToolRequest(JArray messages, JArray tools, Action<string> notifyMessageChunk)
 	{
-		var body = new JObject { ["model"] = GlobalSettings<ModSettings>.Instance.AIModel, ["messages"] = messages, ["tools"] = tools };
-		using var content = new StringContent(body.ToString(), Encoding.UTF8, "application/json");
+		JObject body = new JObject
+		{
+			["model"] = GlobalSettings<ModSettings>.Instance.AIModel,
+			["messages"] = messages,
+			["tools"] = tools,
+			["stream"] = true,
+			["response_format"] = OpenRouterNpcResponseSchema.GetResponseFormat()
+		};
+		using StringContent content = new StringContent(body.ToString(), Encoding.UTF8, "application/json");
 		httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GlobalSettings<ModSettings>.Instance.ApiKey);
-		var response = await httpClient.PostAsync("https://openrouter.ai/api/v1/chat/completions", content);
+		HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "https://openrouter.ai/api/v1/chat/completions");
+		request.Content = content;
+		HttpResponseMessage response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
 		response.EnsureSuccessStatusCode();
-		return JObject.Parse(await response.Content.ReadAsStringAsync())?["choices"]?[0]?["message"];
+		using Stream stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+		(JObject assistantMessage, _) = await ReadOpenRouterChatCompletionStreamAsync(stream, notifyMessageChunk, collectToolCallDeltas: true).ConfigureAwait(false);
+		return assistantMessage;
 	}
 
 	private static async Task<string> GetDeepSeekResponse(string npcName, string faction, string prompt)
@@ -448,17 +419,23 @@ public static class AIClient
 		JObject requestBody = new JObject
 		{
 			["model"] = (JToken)(GlobalSettings<ModSettings>.Instance.AIModel),
-			["messages"] = (JToken)(object)messages
+			["messages"] = (JToken)(object)messages,
+			["stream"] = true
 		};
 		string json = ((JToken)requestBody).ToString((Formatting)0, Array.Empty<JsonConverter>());
 		StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
 		httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GlobalSettings<ModSettings>.Instance.ApiKey);
 		try
 		{
-			HttpResponseMessage response = await httpClient.PostAsync("https://openrouter.ai/api/v1/chat/completions", (HttpContent)(object)content);
+			HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "https://openrouter.ai/api/v1/chat/completions");
+			request.Content = (HttpContent)(object)content;
+			HttpResponseMessage response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
 			response.EnsureSuccessStatusCode();
-			dynamic responseObject = JsonConvert.DeserializeObject<object>(await response.Content.ReadAsStringAsync());
-			return responseObject.choices[0].message.content.ToString().Trim();
+			using (Stream stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+			{
+				(JObject assistantMessage, _) = await ReadOpenRouterChatCompletionStreamAsync(stream, null, collectToolCallDeltas: false).ConfigureAwait(false);
+				return assistantMessage["content"]?.ToString().Trim() ?? "";
+			}
 		}
 		catch (Exception ex)
 		{
@@ -864,6 +841,127 @@ public static class AIClient
 		return "Error: Failed to get response from KoboldCpp. Check if KoboldCpp is running and accessible.";
 	}
 
+	private sealed class ToolCallPart
+	{
+		public string Id;
+
+		public string Type = "function";
+
+		public string Name;
+
+		public readonly StringBuilder Arguments = new StringBuilder();
+	}
+
+	private static void MergeToolCallDeltas(JArray deltaToolCalls, Dictionary<int, ToolCallPart> toolByIndex)
+	{
+		foreach (JToken token in deltaToolCalls)
+		{
+			JObject tc = (JObject)token;
+			int index = tc["index"]?.Value<int>() ?? 0;
+			if (!toolByIndex.TryGetValue(index, out ToolCallPart part))
+			{
+				part = new ToolCallPart();
+				toolByIndex[index] = part;
+			}
+			if (tc["id"] != null)
+				part.Id = tc["id"].ToString();
+			if (tc["type"] != null)
+				part.Type = tc["type"].ToString();
+			JObject fn = tc["function"] as JObject;
+			if (fn == null)
+				continue;
+			if (fn["name"] != null)
+				part.Name = fn["name"].ToString();
+			if (fn["arguments"] != null)
+				part.Arguments.Append(fn["arguments"].ToString());
+		}
+	}
+
+	private static JObject BuildAssistantMessageFromStream(StringBuilder content, Dictionary<int, ToolCallPart> toolByIndex)
+	{
+		if (toolByIndex.Count > 0)
+		{
+			JArray arr = new JArray();
+			foreach (KeyValuePair<int, ToolCallPart> kv in toolByIndex.OrderBy(k => k.Key))
+			{
+				ToolCallPart t = kv.Value;
+				arr.Add(new JObject
+				{
+					["id"] = t.Id ?? "",
+					["type"] = t.Type ?? "function",
+					["function"] = new JObject
+					{
+						["name"] = t.Name ?? "",
+						["arguments"] = t.Arguments.ToString()
+					}
+				});
+			}
+			return new JObject
+			{
+				["role"] = "assistant",
+				["content"] = JValue.CreateNull(),
+				["tool_calls"] = arr
+			};
+		}
+		return new JObject
+		{
+			["role"] = "assistant",
+			["content"] = content.ToString()
+		};
+	}
+
+	private static async Task<(JObject assistantMessage, string finishReason)> ReadOpenRouterChatCompletionStreamAsync(Stream stream, Action<string> notifyContentDelta, bool collectToolCallDeltas)
+	{
+		StringBuilder content = new StringBuilder();
+		Dictionary<int, ToolCallPart> toolByIndex = new Dictionary<int, ToolCallPart>();
+		string finishReason = null;
+		using (StreamReader reader = new StreamReader(stream))
+		{
+			while (!reader.EndOfStream)
+			{
+				string line = await reader.ReadLineAsync().ConfigureAwait(false);
+				if (string.IsNullOrWhiteSpace(line) || !line.StartsWith("data:", StringComparison.Ordinal))
+					continue;
+				string data = line.Substring(5).Trim();
+				if (data == "[DONE]")
+					break;
+				JObject chunk;
+				try
+				{
+					chunk = JObject.Parse(data);
+				}
+				catch (JsonException ex)
+				{
+					LogWarning("OpenRouter SSE: skipped malformed JSON line: " + ex.Message);
+					continue;
+				}
+				string err = chunk["error"]?["message"]?.ToString();
+				if (!string.IsNullOrEmpty(err))
+					throw new InvalidOperationException("OpenRouter stream error: " + err);
+				JToken choice0 = chunk["choices"]?[0];
+				if (choice0 == null)
+					continue;
+				string fr = choice0["finish_reason"]?.ToString();
+				if (!string.IsNullOrEmpty(fr))
+					finishReason = fr;
+				if (string.Equals(fr, "error", StringComparison.OrdinalIgnoreCase))
+					throw new InvalidOperationException("OpenRouter stream terminated with finish_reason=error.");
+				JObject delta = choice0["delta"] as JObject;
+				if (delta == null)
+					continue;
+				string text = delta["content"]?.ToString();
+				if (!string.IsNullOrEmpty(text))
+				{
+					content.Append(text);
+					notifyContentDelta?.Invoke(text);
+				}
+				if (collectToolCallDeltas && delta["tool_calls"] is JArray tca)
+					MergeToolCallDeltas(tca, toolByIndex);
+			}
+		}
+		return (BuildAssistantMessageFromStream(content, toolByIndex), finishReason);
+	}
+
 	private static string GenerateErrorResponse(string message)
 	{
 		return JsonConvert.SerializeObject((object)new AIResponse
@@ -941,15 +1039,27 @@ public static class AIClient
 				["content"] = (JToken)("Hello")
 			});
 			val["messages"] = (JToken)val2;
+			val["stream"] = true;
 			JObject requestBody = val;
 			string json = ((JToken)requestBody).ToString((Formatting)0, Array.Empty<JsonConverter>());
 			StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
 			httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GlobalSettings<ModSettings>.Instance.ApiKey);
-			HttpResponseMessage response = await httpClient.PostAsync("https://openrouter.ai/api/v1/chat/completions", (HttpContent)(object)content);
+			HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "https://openrouter.ai/api/v1/chat/completions");
+			request.Content = (HttpContent)(object)content;
+			HttpResponseMessage response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
 			if (response.IsSuccessStatusCode)
 			{
-				InformationManager.DisplayMessage(new InformationMessage("OpenRouter: Connection test successful", ExtraColors.GreenAIInfluence));
-				return true;
+				using (Stream stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+				{
+					(JObject assistantMessage, _) = await ReadOpenRouterChatCompletionStreamAsync(stream, null, collectToolCallDeltas: false).ConfigureAwait(false);
+					if (assistantMessage["content"] != null || assistantMessage["tool_calls"] != null)
+					{
+						InformationManager.DisplayMessage(new InformationMessage("OpenRouter: Connection test successful", ExtraColors.GreenAIInfluence));
+						return true;
+					}
+				}
+				InformationManager.DisplayMessage(new InformationMessage("OpenRouter: Test request returned empty body", ExtraColors.RedAIInfluence));
+				return false;
 			}
 			InformationManager.DisplayMessage(new InformationMessage(string.Format(arg1: await response.Content.ReadAsStringAsync(), format: "OpenRouter: Test request failed: {0} - {1}", arg0: response.StatusCode), ExtraColors.RedAIInfluence));
 		}

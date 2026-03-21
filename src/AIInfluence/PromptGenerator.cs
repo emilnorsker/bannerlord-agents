@@ -893,7 +893,7 @@ public static class PromptGenerator
 		}
 		string text54 = (list11.Any() ? string.Join("; ", list11) : "none");
 		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.Append("### Mission ###\nRole-play as a character in Mount & Blade II: Bannerlord. Use your personality, history, and context to inform responses. Output ONLY a valid JSON object with no extra text or markdown.\n\n");
+		stringBuilder.Append("### Mission ###\nRole-play as a character in Mount & Blade II: Bannerlord. Use your personality, history, and context to inform responses. The reply format is enforced by the API (structured output); do not wrap output in markdown code fences.\n\n");
 		stringBuilder.Append("### Core Rules ###\n- Stay in character. Never break immersion or reference modern world/AI. " + ((overrideUseAsterisks ?? GlobalSettings<ModSettings>.Instance.PromptUseAsterisks) ? "Use *asterisks for actions/surroundings*" : "Dialogue only, no action descriptions.") + " Language: " + text43 + ".\n- Address the person naturally—NEVER use \"player\" or meta-gaming terms. They are a real person in your world.\n- Verify data consistency: Cross-check conversation history against facts, focus on data marked as current. React in-character if you detect contradictions.\n- Vary responses naturally unless character traits dictate repetition (catchphrases, verbal tics). Avoid formulaic patterns.\n- Facts MUST come from CURRENT DATA. Improvise emotions/flavor only. NEVER invent character names not in CURRENT DATA — use generic titles (elder, merchant) if unknown.\n\n");
 		if (!isMessengerMode && GlobalSettings<ModSettings>.Instance.PromptEnableInternalThoughts)
 		{
@@ -926,7 +926,7 @@ public static class PromptGenerator
 			stringBuilder.Append("### Task Logic ###\n- Completion: After finishing tasks (gather info, deliver message, errand), use 'return_to_player' when appropriate.\n- Travel: 'go_to_settlement' ONLY for independent travel (own party, leaving player's group). Don't use if already in player's party.\n- Following: 'follow_player'=stay continuously (in party). 'return_to_player'=go back after absence. Can't do both.\n- Combat orders: Use combat actions ('attack_party', 'siege_settlement') only when player explicitly orders. Append ',then:return' to return after.\n- Sequence: Go → Task → Return (when makes sense). New task while busy? Finish current first.\n- Independence: Decide when to return based on personality/situation and what player asked.\n\n");
 			stringBuilder.Append(GetAvailableActionsPrompt(npc));
 		}
-		stringBuilder.Append("### JSON Output Format ###\nOutput ONLY valid JSON. No text outside.\n**IMPORTANT: Only include fields that are relevant. Omit optional fields if they don't apply (e.g., no money_transfer if not exchanging money, no kingdom_action if not a kingdom leader, etc.).**\n\n**REQUIRED fields (always include):**\n");
+		stringBuilder.Append("### Response fields (semantic meaning) ###\n**IMPORTANT: Only include fields that are relevant. Omit optional fields if they don't apply (e.g., no money_transfer if not exchanging money, no kingdom_action if not a kingdom leader, etc.).**\n\n**REQUIRED fields (always include):**\n");
 		stringBuilder.Append(string.Format("- `response`: (string) In-character speech/actions. Min {0} chars, max {1} chars.{2}\n", GlobalSettings<ModSettings>.Instance.PromptMinResponseLength, GlobalSettings<ModSettings>.Instance.PromptMaxResponseLength, (text12 != null && !string.IsNullOrEmpty(text12) && text12 != "to be determined by you") ? " **CRITICAL**: Use cultural phrases and speech patterns from Speech Quirks NATURALLY and authentically. Cultural greetings should appear ONLY at the very start of a conversation, not in every response. Cultural interjections, exclamations, or expressions should be used sparingly (1-2 times per response maximum) and varied - don't repeat the same phrase. Let your personality-based mannerisms flow naturally throughout your speech. The goal is to make your speech feel authentic and culturally grounded, not forced or repetitive." : ""));
 		if (!isMessengerMode && GlobalSettings<ModSettings>.Instance.PromptEnableInternalThoughts)
 		{
@@ -986,7 +986,6 @@ public static class PromptGenerator
 				stringBuilder.Append(kingdomActionsSection);
 			}
 		}
-		stringBuilder.Append("\n**Example structure:**\n" + GetExampleJsonStructure(npc, context) + "\n");
 		stringBuilder.Append("### The World ###\n- **The World:** " + text37 + ".\n\n");
 		int length = stringBuilder.Length;
 		stringBuilder.Append("### Global Politics of the World ###\n- **Kingdoms and Leaders:** " + kingdomsAndLeadersInfo + ".\n- **Current Wars:** " + text15 + ".\n" + ((!string.IsNullOrEmpty(allianceStatus)) ? ("- **Current Alliances:** " + allianceStatus + ".\n") : "") + ((!string.IsNullOrEmpty(tradeAgreementsInfo)) ? ("- **Trade Agreements:** " + tradeAgreementsInfo + "\n") : "") + ((!string.IsNullOrEmpty(tributesInfo)) ? ("- **Tributes:** " + tributesInfo + "\n") : "") + ((!string.IsNullOrEmpty(reparationsInfo)) ? ("- **War Reparations:** " + reparationsInfo + "\n") : "") + ((!string.IsNullOrEmpty(territoryTransfersInfo)) ? ("- **Recent Territory Transfers:** " + territoryTransfersInfo + "\n") : "") + ((!string.IsNullOrEmpty(transferableSettlementsInfo)) ? ("- **Transferable Settlements:** " + transferableSettlementsInfo + "\n") : "") + "- **Previous Rulers:** " + ((previousRulersInfo != null) ? previousRulersInfo : "Previous ruler information unavailable") + ".\n\n### Character Briefing (CURRENT DATA) ###\n" + $"- **Identity:** You are {npcName} (id:{text}), a {num2}-year-old {text8} {text9} of the {text2} (clan_id:{text3}).\n" + "- **Culture & Kingdom:** Your culture is " + text4 + ". " + text7 + "\n- **Description:** " + text16 + ".\n" + ((holdingsInfo != null) ? ("- **Holdings:** " + holdingsInfo + ".\n") : "") + ((text14 != null) ? ("- **Workshops:** " + text14 + ".\n") : "") + ((clanInfo != null) ? ("- **Clan:** " + clanInfo + ".\n") : "") + $"- **Your Wealth:** You have {npc.Gold} denars. This is your personal money that you can use freely.\n" + ((!isMessengerMode) ? ("- **Your Inventory (Items you can offer in trade/barter):**\n" + inventorySummary + "\n  (Use exact Item IDs from this list for 'item_transfers' action when you want to give items)\n") : "") + ((npc.IsFemale && npc.IsPregnant) ? GetPregnancyInfo(npc, context) : "") + "- **Appearance:** " + appearanceDescription + " " + equipmentDescription + "\n- **Capabilities:** " + skillNarrative + "\n" + (flag2 ? ("- **Base Personality Traits:** " + text11 + ". These are starting points for your personality, but create a DEEP, MULTI-DIMENSIONAL psychological portrait. These traits should influence but not limit you - show how they manifest in complex, human ways. A 'Honorable' person might have moments of moral conflict. A 'Daring' person might have hidden fears. Be creative, avoid stereotypes, and create a REAL, LIVING character with emotional depth, internal contradictions, and authentic human qualities.\n") : ("- **Your Character:** " + text11 + "\n  This is your stable, core personality - the psychological foundation that defines your behavior, reactions, and worldview. This describes your MENTAL traits, not physical abilities. Stay true to this character.\n" + (flag3 ? "- **Your Story:** You will define your backstory in this conversation.\n" : ("- **Your Story:** " + text10 + "\n")))) + ((text12 != null) ? ("- **Speech Quirks:** " + (flag4 ? "You will define your speech patterns in this conversation." : text12) + (flag4 ? "" : " **CRITICAL**: Use your speech patterns NATURALLY and authentically. Cultural greetings should appear ONLY at the very start of a conversation. Cultural interjections, exclamations, or expressions should be used sparingly (1-2 times per response maximum) and varied. Let your personality-based mannerisms flow naturally throughout your speech. Show your culture through varied, authentic expressions, not repetitive phrases.") + "\n") : "") + "- **Relationships:**\n  - **Relatives:** " + relativesInfo + ".\n  - **Friends & Enemies:** " + relationsInfo + ".\n" + ((visitedSettlementsInfo != null) ? ("- **Visited Settlements:** " + visitedSettlementsInfo + ".\n") : "") + "- **Status:** " + GetStatusPrefix(text13) + text13 + text17 + (string.IsNullOrEmpty(text39) ? "" : (". " + text39)) + (string.IsNullOrEmpty(text40) ? "" : (". " + text40)) + text50 + text49 + "\n- **Your Forces:** " + text32 + ".\n- **Your Captives:** " + nPCPrisonersInfo + ".\n- **Military Intel (PRIVATE KNOWLEDGE):** " + detailedMilitaryInfo + ". (Share ONLY if you trust the player and it makes sense).\n- **Known Information:** You have access to the following information:\n  - **General Info:** " + text20 + ".\n  - **Secrets:** " + text19 + ".\n- **Your Relationship with Player:** Your personal relationship value is " + text33 + ".\n- **Your Trust in Player:** Your calculated trust in them is " + text34 + " (0.0 to 1.0).\n" + (context.IsRomanceEligible ? string.Format("- **Romance Status:** Attraction: {0:F1}/100. Last romantic interaction: {1}.{2}\n", context.RomanceLevel, arg2, (text27 != null) ? (" Last intimate interaction: " + text27 + ".") : "") : "") + ((!isMessengerMode) ? ("- **Correspondence Preference:** allows_letters is currently " + context.AllowsLettersFromNPC.ToString().ToLower() + ".\n") : "") + "\n");
@@ -3017,79 +3016,6 @@ public static class PromptGenerator
 			AIInfluenceBehavior.Instance?.LogMessage($"[ERROR] Failed to get diplomatic statements for {npc.Name}: {ex.Message}");
 			return "none";
 		}
-	}
-
-	private static string GetExampleJsonStructure(Hero npc, NPCContext context)
-	{
-		bool isKingdomLeader = npc.IsKingdomLeader;
-		Hero mainHero = Hero.MainHero;
-		object obj;
-		if (mainHero == null)
-		{
-			obj = null;
-		}
-		else
-		{
-			Clan clan = mainHero.Clan;
-			obj = ((clan != null) ? clan.Kingdom : null);
-		}
-		bool flag = obj != null && Hero.MainHero.Clan.Kingdom.Leader == Hero.MainHero;
-		bool flag2 = isKingdomLeader && flag;
-		bool isRomanceEligible = context.IsRomanceEligible;
-		bool flag3 = ((IEnumerable<Workshop>)npc.OwnedWorkshops)?.Any() ?? false;
-		bool flag4 = string.IsNullOrEmpty(context.AIGeneratedPersonality);
-		bool flag5 = string.IsNullOrEmpty(context.AIGeneratedBackstory);
-		bool flag6 = string.IsNullOrEmpty(context.AIGeneratedSpeechQuirks);
-		bool flag7 = GlobalSettings<ModSettings>.Instance?.EnableTTS ?? false;
-		bool flag8 = GlobalSettings<ModSettings>.Instance?.PromptEnableInternalThoughts ?? false;
-		List<string> list = new List<string>();
-		list.Add("\"response\": \"...\"");
-		if (flag8)
-		{
-			list.Add("\"internal_thoughts\": \"...\"");
-		}
-		if (isRomanceEligible)
-		{
-			list.Add("\"romance_intent\": \"none\"");
-		}
-		list.AddRange(new string[11]
-		{
-			"\"decision\": \"none\"", "\"tone\": \"neutral\"", "\"threat_level\": \"none\"", "\"escalation_state\": \"neutral\"", "\"allows_letters\": true", "\"suspected_lie\": false", "\"deescalation_attempt\": false", "\"claimed_name\": null", "\"claimed_clan\": null", "\"claimed_age\": null",
-			"\"claimed_gold\": 0"
-		});
-		if (flag3)
-		{
-			list.Add("\"workshop_action\": \"none\"");
-			list.Add("\"workshop_string_id\": null");
-			list.Add("\"workshop_price\": 0");
-		}
-		if (flag2)
-		{
-			list.Add("\"kingdom_action\": \"none\"");
-			list.Add("\"kingdom_action_reason\": null");
-			list.Add("\"settlement_id\": null");
-			list.Add("\"daily_tribute_amount\": 0");
-			list.Add("\"tribute_duration_days\": 0");
-			list.Add("\"reparations_amount\": 0");
-			list.Add("\"trade_agreement_duration_years\": 1.0");
-		}
-		if (flag4)
-		{
-			list.Add("\"character_personality\": \"...\"");
-		}
-		if (flag5)
-		{
-			list.Add("\"character_backstory\": \"...\"");
-		}
-		if (flag6)
-		{
-			list.Add("\"character_speech_quirks\": \"[personality-based mannerism], [cultural phrase/expression]\"");
-		}
-		if (flag7)
-		{
-			list.Add("\"tts_instructions\": \"Speak with a neutral and calm tone\"");
-		}
-		return "{" + string.Join(", ", list) + "}";
 	}
 
 	private static string GetKingdomActionsSection(Hero npc, string gameLanguage)
