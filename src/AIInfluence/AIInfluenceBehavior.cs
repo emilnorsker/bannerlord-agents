@@ -207,13 +207,22 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		return _npcContexts;
 	}
 
-	public async Task<string> SendAIRequest(string prompt, string requestType)
+	public async Task<string> SendAIRequest(string prompt, string requestType, Hero npcForTools = null, NPCContext contextForTools = null)
 	{
 		try
 		{
 			LogMessage("[SEND_AI_REQUEST] Отправляем запрос типа '" + requestType + "' к ИИ");
 			LogMessage($"[SEND_AI_REQUEST] Длина промта: {prompt.Length} символов");
-			string response = ((!(requestType == "multi_dialogue_analysis")) ? (await AIClient.GetAIResponse("System", "Analysis", prompt)) : (await AIClient.GetRawTextResponse(prompt)));
+			string response;
+			if (requestType == "multi_dialogue_analysis")
+				response = await AIClient.GetRawTextResponse(prompt);
+			else
+			{
+				Func<string, string, Task<string>> toolExecutor = null;
+				if (string.Equals(GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue, "OpenRouter", StringComparison.Ordinal) && npcForTools != null && contextForTools != null)
+					toolExecutor = (name, args) => ExecuteChatTool(name, args, npcForTools, contextForTools);
+				response = await AIClient.GetAIResponse("System", "Analysis", prompt, null, toolExecutor);
+			}
 			LogMessage($"[SEND_AI_REQUEST] Получен ответ от ИИ для '{requestType}': {response?.Length ?? 0} символов");
 			if (!string.IsNullOrEmpty(response) && !response.StartsWith("Error:"))
 			{
@@ -2882,6 +2891,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			};
 		}
 		ApplyOpenRouterNpcToolsEnvelopeGuard(aiResult);
+		MergeDeferredOpenRouterToolResultsIntoAiResponse(context, aiResult);
 		if (!string.IsNullOrEmpty(aiResult.RomanceIntent) && aiResult.RomanceIntent != "none")
 		{
 			CampaignTime now = CampaignTime.Now;
@@ -3293,7 +3303,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	}
 
 	/// <summary>OpenRouter NPC chat uses tools for money/items/quests/kingdom/workshop; strip duplicate envelope fields if the model echoed them.</summary>
-	private static void ApplyOpenRouterNpcToolsEnvelopeGuard(AIResponse aiResult)
+	/// <summary>Strip envelope keys that are served by OpenRouter tools (and echoed JSON).</summary>
+	public static void ApplyOpenRouterNpcToolsEnvelopeGuard(AIResponse aiResult)
 	{
 		if (aiResult == null)
 			return;
@@ -3308,6 +3319,26 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		aiResult.WorkshopAction = null;
 		aiResult.WorkshopStringId = null;
 		aiResult.WorkshopPrice = 0;
+		aiResult.CharacterDeath = null;
+		aiResult.TechnicalAction = null;
+		aiResult.SettlementId = null;
+	}
+
+	/// <summary>Apply <see cref="NPCContext.DeferredCharacterDeathFromTools"/> / <see cref="NPCContext.DeferredTechnicalActionFromTools"/> after OpenRouter tool rounds (SendAIRequest / initiative paths).</summary>
+	public static void MergeDeferredOpenRouterToolResultsIntoAiResponse(NPCContext context, AIResponse aiResult)
+	{
+		if (context == null || aiResult == null)
+			return;
+		if (context.DeferredCharacterDeathFromTools != null)
+		{
+			aiResult.CharacterDeath = context.DeferredCharacterDeathFromTools;
+			context.DeferredCharacterDeathFromTools = null;
+		}
+		if (!string.IsNullOrEmpty(context.DeferredTechnicalActionFromTools))
+		{
+			aiResult.TechnicalAction = context.DeferredTechnicalActionFromTools;
+			context.DeferredTechnicalActionFromTools = null;
+		}
 	}
 
 	/// <summary>Runs one player turn in NPC chat. Returns the final assistant <b>message</b> body when complete.</summary>
@@ -3398,6 +3429,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		if (aiResult == null)
 			return "";
 		ApplyOpenRouterNpcToolsEnvelopeGuard(aiResult);
+		MergeDeferredOpenRouterToolResultsIntoAiResponse(context, aiResult);
 		string reply = aiResult.Response ?? "";
 		context.LastInteractionTime = CampaignTime.Now;
 		context.InteractionCount++;
@@ -6343,7 +6375,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			AIResponse snapshot = new AIResponse
 			{
 				KingdomAction = aiResult.KingdomAction,
-				KingdomActionReason = aiResult.KingdomActionReason
+				KingdomActionReason = aiResult.KingdomActionReason,
+				SettlementId = aiResult.SettlementId
 			};
 			string text = ((object)npc.Name)?.ToString() ?? "Unknown";
 			LogMessage("[KINGDOM_ACTION] Scheduled '" + snapshot.KingdomAction + "' from " + text + " to execute in 6 seconds.");

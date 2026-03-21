@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using AIInfluence.Behaviors.AIActions;
+using AIInfluence;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using TaleWorlds.CampaignSystem;
@@ -33,6 +34,8 @@ public static class ToolHandlers
 			"workshop_sell" => RunWorkshopSell(argsJson, npc, context, behavior),
 			"kingdom_action" => RunKingdomAction(argsJson, npc, context, behavior),
 			"quest_action" => RunQuestAction(argsJson, npc, context, behavior),
+			"character_death" => RunCharacterDeath(argsJson, context),
+			"technical_action" => RunTechnicalAction(argsJson, context),
 			_ => "unknown"
 		};
 	}
@@ -193,9 +196,43 @@ public static class ToolHandlers
 
 	private static string RunKingdomAction(string argsJson, Hero npc, NPCContext context, AIInfluenceBehavior behavior)
 	{
-		var action = ParseOrEmpty(argsJson)["action"]?.ToString();
+		var a = ParseOrEmpty(argsJson);
+		var action = a["action"]?.ToString();
 		if (string.IsNullOrEmpty(action)) return "ok";
-		behavior.ProcessKingdomAction(npc, new AIResponse { KingdomAction = action, KingdomActionReason = "" }, context);
+		behavior.ProcessKingdomAction(npc, new AIResponse
+		{
+			KingdomAction = action,
+			KingdomActionReason = a["reason"]?.ToString() ?? "",
+			SettlementId = a["settlement_id"]?.ToString()
+		}, context);
+		return "ok";
+	}
+
+	private static string RunCharacterDeath(string argsJson, NPCContext context)
+	{
+		var a = ParseOrEmpty(argsJson);
+		bool shouldDie = a["should_die"]?.Value<bool>() ?? false;
+		if (!shouldDie)
+		{
+			context.DeferredCharacterDeathFromTools = null;
+			return "ok";
+		}
+		context.DeferredCharacterDeathFromTools = new CharacterDeathInfo
+		{
+			ShouldDie = true,
+			DeathReason = a["death_reason"]?.ToString(),
+			KillerStringId = a["killer_string_id"]?.ToString(),
+			OpposedAttribute = a["opposed_attribute"]?.ToString()
+		};
+		return "ok";
+	}
+
+	private static string RunTechnicalAction(string argsJson, NPCContext context)
+	{
+		var v = ParseOrEmpty(argsJson)["value"]?.ToString();
+		if (string.IsNullOrEmpty(v))
+			return "ok";
+		context.DeferredTechnicalActionFromTools = v;
 		return "ok";
 	}
 

@@ -210,7 +210,7 @@ public static class AIClient
 		var (systemPrompt, userMessage, _) = ExtractLastPlayerMessage(prompt);
 		var messages = new JArray
 		{
-			new JObject { ["role"] = "system", ["content"] = systemPrompt + "\n\n**TOOLS:** Use functions for world effects (transfers, quests, kingdom, workshops, travel, search). Final reply JSON is dialogue only (no money/item/quest/kingdom/workshop fields—those are tools).\n" },
+			new JObject { ["role"] = "system", ["content"] = systemPrompt + "\n\n**TOOLS:** Use functions for world effects (transfers, quests, kingdom+settlement_id, workshops, travel, search, character_death, technical_action). Final reply JSON is dialogue only.\n" },
 			new JObject { ["role"] = "user", ["content"] = userMessage }
 		};
 		var tools = ChatTools.ToolCatalog.GetToolsForApi();

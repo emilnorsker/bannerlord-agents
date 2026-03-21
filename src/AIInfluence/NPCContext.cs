@@ -99,9 +99,16 @@ public class NPCContext
 	public AIResponse PendingAIResponse { get; set; }
 
 	/// <summary>Technical action string captured before processing (for chat UI pills).</summary>
-	/// <summary>Technical action string captured before processing (for chat UI pills).</summary>
 	[JsonIgnore]
 	public string LastTechnicalActionForDisplay { get; set; }
+
+	/// <summary>OpenRouter tool <c>character_death</c> result merged into the next <see cref="AIResponse"/> before game processing.</summary>
+	[JsonIgnore]
+	public CharacterDeathInfo DeferredCharacterDeathFromTools { get; set; }
+
+	/// <summary>OpenRouter tool <c>technical_action</c> value merged into the next <see cref="AIResponse"/> (same format as legacy JSON field).</summary>
+	[JsonIgnore]
+	public string DeferredTechnicalActionFromTools { get; set; }
 
 	public PendingRelationChange PendingRelationChange { get; set; }
 

@@ -48,15 +48,12 @@ public static class OpenRouterNpcResponseSchema
 			["deescalation_attempt"] = new JObject { ["type"] = "boolean" },
 			["decision"] = new JObject { ["type"] = new JArray("string", "null") },
 			["romance_intent"] = new JObject { ["type"] = new JArray("string", "null") },
-			["technical_action"] = new JObject { ["type"] = new JArray("string", "null") },
 			["claimed_gold"] = new JObject { ["type"] = "integer" },
-			["character_death"] = new JObject { ["type"] = new JArray("object", "null"), ["additionalProperties"] = true },
 			["character_personality"] = new JObject { ["type"] = new JArray("string", "null") },
 			["character_backstory"] = new JObject { ["type"] = new JArray("string", "null") },
 			["character_speech_quirks"] = new JObject { ["type"] = new JArray("string", "null") },
 			["allows_letters"] = new JObject { ["type"] = new JArray("boolean", "null") },
-			["tts_instructions"] = new JObject { ["type"] = new JArray("string", "null") },
-			["settlement_id"] = new JObject { ["type"] = new JArray("string", "null") }
+			["tts_instructions"] = new JObject { ["type"] = new JArray("string", "null") }
 		};
 	}
 }

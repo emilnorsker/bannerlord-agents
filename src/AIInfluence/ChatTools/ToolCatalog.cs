@@ -59,8 +59,13 @@ public static class ToolCatalog
 				"{\"items\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"item_id\":{\"type\":\"string\"},\"amount\":{\"type\":\"integer\"},\"action\":{\"type\":\"string\"}}}},\"opposed_attribute\":{\"type\":\"string\"}}", new[] { "items" }),
 			Tool("workshop_sell", "Sell workshop to player.",
 				"{\"workshop_string_id\":{\"type\":\"string\"},\"price\":{\"type\":\"integer\"}}", new[] { "workshop_string_id", "price" }),
-			Tool("kingdom_action", "Diplomatic action. Pass raw action string.", "{\"action\":{\"type\":\"string\"}}", new[] { "action" }),
-			Tool("quest_action", "Create/update quest. category: Combat|Negotiation|Intrigue|Escort|Gather|Other. Pass JSON object.", "{\"quest\":{\"type\":\"object\"},\"category\":{\"type\":\"string\",\"enum\":[\"Combat\",\"Negotiation\",\"Intrigue\",\"Escort\",\"Gather\",\"Other\"]}}", new[] { "quest", "category" })
+			Tool("kingdom_action", "Diplomatic/kingdom action. For grant_fief, receive_fief, demand_territory, transfer_territory include settlement_id from find_settlements.",
+				"{\"action\":{\"type\":\"string\"},\"reason\":{\"type\":\"string\"},\"settlement_id\":{\"type\":\"string\"}}", new[] { "action" }),
+			Tool("quest_action", "Create/update quest. category: Combat|Negotiation|Intrigue|Escort|Gather|Other. Pass JSON object.", "{\"quest\":{\"type\":\"object\"},\"category\":{\"type\":\"string\",\"enum\":[\"Combat\",\"Negotiation\",\"Intrigue\",\"Escort\",\"Gather\",\"Other\"]}}", new[] { "quest", "category" }),
+			Tool("character_death", "Roleplay death for this NPC when game rules allow. Set should_die true to schedule death handling.",
+				"{\"should_die\":{\"type\":\"boolean\"},\"death_reason\":{\"type\":\"string\"},\"killer_string_id\":{\"type\":\"string\"},\"opposed_attribute\":{\"type\":\"string\"}}", new[] { "should_die" }),
+			Tool("technical_action", "NPC map/script action string: action name, or NAME:payload, or NAME:STOP to stop (e.g. follow_player, go_to_settlement:town_S1:3).",
+				"{\"value\":{\"type\":\"string\"}}", new[] { "value" })
 		};
 	}
 
