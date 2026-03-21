@@ -98,15 +98,20 @@ public class NPCContext
 
 	public AIResponse PendingAIResponse { get; set; }
 
-	/// <summary>Technical action string captured before processing (for chat UI pills).</summary>
+	/// <summary>Last NPC map-command label shown in chat UI (follow, travel, etc.).</summary>
 	[JsonIgnore]
 	public string LastTechnicalActionForDisplay { get; set; }
 
-	/// <summary>OpenRouter tool <c>character_death</c> result merged into the next <see cref="AIResponse"/> before game processing.</summary>
+	/// <summary>
+	/// Temporary hold for roleplay death data from the OpenRouter <c>character_death</c> tool. Copied onto <see cref="AIResponse.CharacterDeath"/>
+	/// by <see cref="AIInfluenceBehavior.ApplyNpcContextToolDeferralsToAiResponse"/> before the rest of the mod runs.
+	/// </summary>
 	[JsonIgnore]
 	public CharacterDeathInfo DeferredCharacterDeathFromTools { get; set; }
 
-	/// <summary>OpenRouter tool <c>technical_action</c> value merged into the next <see cref="AIResponse"/> (same format as legacy JSON field).</summary>
+	/// <summary>
+	/// Temporary hold for the NPC map-command string from the OpenRouter <c>technical_action</c> tool (same text as <see cref="AIResponse.TechnicalAction"/>).
+	/// </summary>
 	[JsonIgnore]
 	public string DeferredTechnicalActionFromTools { get; set; }
 

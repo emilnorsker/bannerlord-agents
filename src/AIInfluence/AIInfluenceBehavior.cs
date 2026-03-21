@@ -2890,8 +2890,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				Decision = "none"
 			};
 		}
-		ApplyOpenRouterNpcToolsEnvelopeGuard(aiResult);
-		MergeDeferredOpenRouterToolResultsIntoAiResponse(context, aiResult);
+		RemoveDuplicateOpenRouterToolEffectsFromAiResponse(aiResult);
+		ApplyNpcContextToolDeferralsToAiResponse(context, aiResult);
 		if (!string.IsNullOrEmpty(aiResult.RomanceIntent) && aiResult.RomanceIntent != "none")
 		{
 			CampaignTime now = CampaignTime.Now;
@@ -3302,9 +3302,12 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 	}
 
-	/// <summary>OpenRouter NPC chat uses tools for money/items/quests/kingdom/workshop; strip duplicate envelope fields if the model echoed them.</summary>
-	/// <summary>Strip envelope keys that are served by OpenRouter tools (and echoed JSON).</summary>
-	public static void ApplyOpenRouterNpcToolsEnvelopeGuard(AIResponse aiResult)
+	/// <summary>
+	/// OpenRouter only. The model’s final reply is JSON; it may still repeat keys for effects already executed by tool calls
+	/// (gold, items, quests, death, kingdom settlement, workshop, etc.). This method sets those duplicate <see cref="AIResponse"/> properties to null
+	/// so the Bannerlord NPC dialogue code does not run the same effect twice.
+	/// </summary>
+	public static void RemoveDuplicateOpenRouterToolEffectsFromAiResponse(AIResponse aiResult)
 	{
 		if (aiResult == null)
 			return;
@@ -3324,8 +3327,13 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		aiResult.SettlementId = null;
 	}
 
-	/// <summary>Apply <see cref="NPCContext.DeferredCharacterDeathFromTools"/> / <see cref="NPCContext.DeferredTechnicalActionFromTools"/> after OpenRouter tool rounds (SendAIRequest / initiative paths).</summary>
-	public static void MergeDeferredOpenRouterToolResultsIntoAiResponse(NPCContext context, AIResponse aiResult)
+	/// <summary>
+	/// During an OpenRouter tool round, tools may store results on <paramref name="context"/> (see
+	/// <see cref="NPCContext.DeferredCharacterDeathFromTools"/> and <see cref="NPCContext.DeferredTechnicalActionFromTools"/>).
+	/// After the final assistant JSON is parsed into <paramref name="aiResult"/>, copy those values onto <paramref name="aiResult"/> so
+	/// existing code paths (NPC dialogue flow, <see cref="DialogManager"/> technical_action handling, roleplay death scheduling) still read <see cref="AIResponse"/> as before.
+	/// </summary>
+	public static void ApplyNpcContextToolDeferralsToAiResponse(NPCContext context, AIResponse aiResult)
 	{
 		if (context == null || aiResult == null)
 			return;
@@ -3428,8 +3436,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 		if (aiResult == null)
 			return "";
-		ApplyOpenRouterNpcToolsEnvelopeGuard(aiResult);
-		MergeDeferredOpenRouterToolResultsIntoAiResponse(context, aiResult);
+		RemoveDuplicateOpenRouterToolEffectsFromAiResponse(aiResult);
+		ApplyNpcContextToolDeferralsToAiResponse(context, aiResult);
 		string reply = aiResult.Response ?? "";
 		context.LastInteractionTime = CampaignTime.Now;
 		context.InteractionCount++;

@@ -970,8 +970,8 @@ public class NPCInitiativeSystem
 			}
 			string cleanedResponse = JsonCleaner.CleanJsonResponse(aiResponse);
 			AIResponse response = JsonConvert.DeserializeObject<AIResponse>(cleanedResponse);
-			AIInfluenceBehavior.ApplyOpenRouterNpcToolsEnvelopeGuard(response);
-			AIInfluenceBehavior.MergeDeferredOpenRouterToolResultsIntoAiResponse(request.Context, response);
+			AIInfluenceBehavior.RemoveDuplicateOpenRouterToolEffectsFromAiResponse(response);
+			AIInfluenceBehavior.ApplyNpcContextToolDeferralsToAiResponse(request.Context, response);
 			string message = response?.Response ?? "The messenger failed to deliver the message.";
 			message = UnescapeFormatting(message);
 			request.Context.LastAIResponseJson = cleanedResponse;
@@ -1535,8 +1535,8 @@ public class NPCInitiativeSystem
 			try
 			{
 				response = JsonConvert.DeserializeObject<AIResponse>(cleanedResponse);
-				AIInfluenceBehavior.ApplyOpenRouterNpcToolsEnvelopeGuard(response);
-				AIInfluenceBehavior.MergeDeferredOpenRouterToolResultsIntoAiResponse(context, response);
+				AIInfluenceBehavior.RemoveDuplicateOpenRouterToolEffectsFromAiResponse(response);
+				AIInfluenceBehavior.ApplyNpcContextToolDeferralsToAiResponse(context, response);
 				LogMessage("[NPC_MESSENGER_DEBUG] Parsed response from " + npcName + ":");
 				LogMessage("  - response: " + (response?.Response?.Substring(0, Math.Min(100, (response?.Response?.Length).GetValueOrDefault())) ?? "null") + "...");
 				LogMessage("  - technical_action: " + (response?.TechnicalAction ?? "null"));
@@ -1979,8 +1979,8 @@ public class NPCInitiativeSystem
 			try
 			{
 				response = JsonConvert.DeserializeObject<AIResponse>(cleanedResponse);
-				AIInfluenceBehavior.ApplyOpenRouterNpcToolsEnvelopeGuard(response);
-				AIInfluenceBehavior.MergeDeferredOpenRouterToolResultsIntoAiResponse(context, response);
+				AIInfluenceBehavior.RemoveDuplicateOpenRouterToolEffectsFromAiResponse(response);
+				AIInfluenceBehavior.ApplyNpcContextToolDeferralsToAiResponse(context, response);
 			}
 			catch
 			{
@@ -2197,8 +2197,8 @@ public class NPCInitiativeSystem
 			try
 			{
 				response = JsonConvert.DeserializeObject<AIResponse>(cleanedResponse);
-				AIInfluenceBehavior.ApplyOpenRouterNpcToolsEnvelopeGuard(response);
-				AIInfluenceBehavior.MergeDeferredOpenRouterToolResultsIntoAiResponse(context, response);
+				AIInfluenceBehavior.RemoveDuplicateOpenRouterToolEffectsFromAiResponse(response);
+				AIInfluenceBehavior.ApplyNpcContextToolDeferralsToAiResponse(context, response);
 			}
 			catch
 			{

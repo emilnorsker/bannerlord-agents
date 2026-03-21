@@ -42,22 +42,22 @@ public static class ToolHandlers
 
 	private static string RunFindSettlements(string argsJson)
 	{
-		var a = ParseOrEmpty(argsJson);
-		var results = ToolCatalog.FindSettlements(a["query"]?.ToString(), a["limit"]?.Value<int>() ?? 8);
+		JObject parsedArgs = ParseOrEmpty(argsJson);
+		var results = ToolCatalog.FindSettlements(parsedArgs["query"]?.ToString(), parsedArgs["limit"]?.Value<int>() ?? 8);
 		return JsonConvert.SerializeObject(results.Select(r => new { r.string_id, r.name }));
 	}
 
 	private static string RunFindParties(string argsJson, Hero npc)
 	{
-		var a = ParseOrEmpty(argsJson);
-		var results = ToolCatalog.FindParties(npc, a["query"]?.ToString(), a["limit"]?.Value<int>() ?? 8);
+		JObject parsedArgs = ParseOrEmpty(argsJson);
+		var results = ToolCatalog.FindParties(npc, parsedArgs["query"]?.ToString(), parsedArgs["limit"]?.Value<int>() ?? 8);
 		return JsonConvert.SerializeObject(results.Select(r => new { r.string_id, r.name }));
 	}
 
 	private static string RunFindItems(string argsJson)
 	{
-		var a = ParseOrEmpty(argsJson);
-		var results = ToolCatalog.FindItems(a["query"]?.ToString(), a["limit"]?.Value<int>() ?? 8);
+		JObject parsedArgs = ParseOrEmpty(argsJson);
+		var results = ToolCatalog.FindItems(parsedArgs["query"]?.ToString(), parsedArgs["limit"]?.Value<int>() ?? 8);
 		return JsonConvert.SerializeObject(results.Select(r => new { r.item_id, r.name }));
 	}
 
@@ -73,19 +73,19 @@ public static class ToolHandlers
 
 	private static string RunStopAction(string argsJson, Hero npc)
 	{
-		var an = ParseOrEmpty(argsJson)["action_name"]?.ToString();
-		if (string.IsNullOrEmpty(an)) return "missing";
-		AIActionManager.Instance?.StopAction(npc, an, showMessage: true);
+		string actionName = ParseOrEmpty(argsJson)["action_name"]?.ToString();
+		if (string.IsNullOrEmpty(actionName)) return "missing";
+		AIActionManager.Instance?.StopAction(npc, actionName, showMessage: true);
 		return "stopped";
 	}
 
 	private static string RunGoToSettlement(string argsJson, Hero npc, NPCContext context)
 	{
-		var a = ParseOrEmpty(argsJson);
-		var sid = a["settlement_id"]?.ToString();
-		if (string.IsNullOrEmpty(sid)) return "use find_settlements first";
-		var days = a["wait_days"]?.Value<float>() ?? 3f;
-		var param = sid + ":" + days; // legacy API expects this format
+		JObject parsedArgs = ParseOrEmpty(argsJson);
+		string settlementStringId = parsedArgs["settlement_id"]?.ToString();
+		if (string.IsNullOrEmpty(settlementStringId)) return "use find_settlements first";
+		float waitDays = parsedArgs["wait_days"]?.Value<float>() ?? 3f;
+		string param = settlementStringId + ":" + waitDays; // legacy API expects this format
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "go_to_settlement", param) != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "go_to_settlement");
 		context.LastTechnicalActionForDisplay = param;
@@ -94,10 +94,10 @@ public static class ToolHandlers
 
 	private static string RunAttackParty(string argsJson, Hero npc, NPCContext context)
 	{
-		var a = ParseOrEmpty(argsJson);
-		var pid = a["party_id"]?.ToString();
-		if (string.IsNullOrEmpty(pid)) return "use find_parties first";
-		var param = a["then_return"]?.Value<bool>() == true ? pid + ",then:return" : pid;
+		JObject parsedArgs = ParseOrEmpty(argsJson);
+		string partyStringId = parsedArgs["party_id"]?.ToString();
+		if (string.IsNullOrEmpty(partyStringId)) return "use find_parties first";
+		string param = parsedArgs["then_return"]?.Value<bool>() == true ? partyStringId + ",then:return" : partyStringId;
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "attack_party", param) != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "attack_party");
 		context.LastTechnicalActionForDisplay = param;
@@ -106,20 +106,21 @@ public static class ToolHandlers
 
 	private static string RunRaidVillage(string argsJson, Hero npc, NPCContext context)
 	{
-		var vid = ParseOrEmpty(argsJson)["village_id"]?.ToString();
-		if (string.IsNullOrEmpty(vid)) return "use find_settlements first";
-		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "raid_village", vid) != true) return "failed";
+		JObject parsedArgs = ParseOrEmpty(argsJson);
+		string villageStringId = parsedArgs["village_id"]?.ToString();
+		if (string.IsNullOrEmpty(villageStringId)) return "use find_settlements first";
+		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "raid_village", villageStringId) != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "raid_village");
-		context.LastTechnicalActionForDisplay = vid;
+		context.LastTechnicalActionForDisplay = villageStringId;
 		return "ok";
 	}
 
 	private static string RunPatrolSettlement(string argsJson, Hero npc, NPCContext context)
 	{
-		var a = ParseOrEmpty(argsJson);
-		var sid = a["settlement_id"]?.ToString();
-		if (string.IsNullOrEmpty(sid)) return "use find_settlements first";
-		var param = sid + ":" + (a["days"]?.Value<float>() ?? 5f);
+		JObject parsedArgs = ParseOrEmpty(argsJson);
+		string settlementStringId = parsedArgs["settlement_id"]?.ToString();
+		if (string.IsNullOrEmpty(settlementStringId)) return "use find_settlements first";
+		string param = settlementStringId + ":" + (parsedArgs["days"]?.Value<float>() ?? 5f);
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "patrol_settlement", param) != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "patrol_settlement");
 		context.LastTechnicalActionForDisplay = param;
@@ -128,10 +129,10 @@ public static class ToolHandlers
 
 	private static string RunWaitNearSettlement(string argsJson, Hero npc, NPCContext context)
 	{
-		var a = ParseOrEmpty(argsJson);
-		var sid = a["settlement_id"]?.ToString();
-		if (string.IsNullOrEmpty(sid)) return "use find_settlements first";
-		var param = sid + ":" + (a["days"]?.Value<float>() ?? 2f);
+		JObject parsedArgs = ParseOrEmpty(argsJson);
+		string settlementStringId = parsedArgs["settlement_id"]?.ToString();
+		if (string.IsNullOrEmpty(settlementStringId)) return "use find_settlements first";
+		string param = settlementStringId + ":" + (parsedArgs["days"]?.Value<float>() ?? 2f);
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "wait_near_settlement", param) != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "wait_near_settlement");
 		context.LastTechnicalActionForDisplay = param;
@@ -140,11 +141,12 @@ public static class ToolHandlers
 
 	private static string RunSiegeSettlement(string argsJson, Hero npc, NPCContext context)
 	{
-		var sid = ParseOrEmpty(argsJson)["settlement_id"]?.ToString();
-		if (string.IsNullOrEmpty(sid)) return "use find_settlements first";
-		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "siege_settlement", sid) != true) return "failed";
+		JObject parsedArgs = ParseOrEmpty(argsJson);
+		string settlementStringId = parsedArgs["settlement_id"]?.ToString();
+		if (string.IsNullOrEmpty(settlementStringId)) return "use find_settlements first";
+		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "siege_settlement", settlementStringId) != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "siege_settlement");
-		context.LastTechnicalActionForDisplay = sid;
+		context.LastTechnicalActionForDisplay = settlementStringId;
 		return "ok";
 	}
 
@@ -156,62 +158,62 @@ public static class ToolHandlers
 
 	private static string RunCreateRPItem(string argsJson, Hero npc, NPCContext context)
 	{
-		var a = ParseOrEmpty(argsJson);
-		var name = a["name"]?.ToString();
-		if (string.IsNullOrEmpty(name)) return "missing name";
-		var param = name + "|" + (a["description"]?.ToString() ?? "");
+		JObject parsedArgs = ParseOrEmpty(argsJson);
+		string itemName = parsedArgs["name"]?.ToString();
+		if (string.IsNullOrEmpty(itemName)) return "missing name";
+		string param = itemName + "|" + (parsedArgs["description"]?.ToString() ?? "");
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "create_rp_item", param) != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "create_rp_item");
-		context.LastTechnicalActionForDisplay = name;
+		context.LastTechnicalActionForDisplay = itemName;
 		return "ok";
 	}
 
 	private static string RunTransferMoney(string argsJson, Hero npc, NPCContext context, AIInfluenceBehavior behavior)
 	{
-		var a = ParseOrEmpty(argsJson);
-		var m = new MoneyTransferInfo { Action = a["action"]?.ToString(), Amount = a["amount"]?.Value<int>() ?? 0, OpposedAttribute = a["opposed_attribute"]?.ToString() };
-		if (m.Amount > 0) behavior.ProcessMoneyTransfer(npc, context, m);
+		JObject parsedArgs = ParseOrEmpty(argsJson);
+		var moneyTransfer = new MoneyTransferInfo { Action = parsedArgs["action"]?.ToString(), Amount = parsedArgs["amount"]?.Value<int>() ?? 0, OpposedAttribute = parsedArgs["opposed_attribute"]?.ToString() };
+		if (moneyTransfer.Amount > 0) behavior.ProcessMoneyTransfer(npc, context, moneyTransfer);
 		return "ok";
 	}
 
 	private static string RunTransferItems(string argsJson, Hero npc, NPCContext context, AIInfluenceBehavior behavior)
 	{
-		var a = ParseOrEmpty(argsJson);
-		var arr = a["items"] as JArray;
+		JObject parsedArgs = ParseOrEmpty(argsJson);
+		var arr = parsedArgs["items"] as JArray;
 		if (arr == null || arr.Count == 0) return "ok";
 		var list = new List<ItemTransferData>();
-		foreach (var i in arr)
-			list.Add(new ItemTransferData { ItemId = i["item_id"]?.ToString(), Amount = i["amount"]?.Value<int>() ?? 1, Action = i["action"]?.ToString() });
-		context.PendingItemTransfersOpposedAttribute = a["opposed_attribute"]?.ToString();
+		foreach (JToken itemRow in arr)
+			list.Add(new ItemTransferData { ItemId = itemRow["item_id"]?.ToString(), Amount = itemRow["amount"]?.Value<int>() ?? 1, Action = itemRow["action"]?.ToString() });
+		context.PendingItemTransfersOpposedAttribute = parsedArgs["opposed_attribute"]?.ToString();
 		behavior.ProcessItemTransfers(npc, context, list);
 		return "ok";
 	}
 
 	private static string RunWorkshopSell(string argsJson, Hero npc, NPCContext context, AIInfluenceBehavior behavior)
 	{
-		var a = ParseOrEmpty(argsJson);
-		behavior.ProcessWorkshopSale(npc, context, a["workshop_string_id"]?.ToString(), a["price"]?.Value<int>() ?? 0);
+		JObject parsedArgs = ParseOrEmpty(argsJson);
+		behavior.ProcessWorkshopSale(npc, context, parsedArgs["workshop_string_id"]?.ToString(), parsedArgs["price"]?.Value<int>() ?? 0);
 		return "ok";
 	}
 
 	private static string RunKingdomAction(string argsJson, Hero npc, NPCContext context, AIInfluenceBehavior behavior)
 	{
-		var a = ParseOrEmpty(argsJson);
-		var action = a["action"]?.ToString();
-		if (string.IsNullOrEmpty(action)) return "ok";
+		JObject parsedArgs = ParseOrEmpty(argsJson);
+		string kingdomAction = parsedArgs["action"]?.ToString();
+		if (string.IsNullOrEmpty(kingdomAction)) return "ok";
 		behavior.ProcessKingdomAction(npc, new AIResponse
 		{
-			KingdomAction = action,
-			KingdomActionReason = a["reason"]?.ToString() ?? "",
-			SettlementId = a["settlement_id"]?.ToString()
+			KingdomAction = kingdomAction,
+			KingdomActionReason = parsedArgs["reason"]?.ToString() ?? "",
+			SettlementId = parsedArgs["settlement_id"]?.ToString()
 		}, context);
 		return "ok";
 	}
 
 	private static string RunCharacterDeath(string argsJson, NPCContext context)
 	{
-		var a = ParseOrEmpty(argsJson);
-		bool shouldDie = a["should_die"]?.Value<bool>() ?? false;
+		JObject parsedArgs = ParseOrEmpty(argsJson);
+		bool shouldDie = parsedArgs["should_die"]?.Value<bool>() ?? false;
 		if (!shouldDie)
 		{
 			context.DeferredCharacterDeathFromTools = null;
@@ -220,32 +222,33 @@ public static class ToolHandlers
 		context.DeferredCharacterDeathFromTools = new CharacterDeathInfo
 		{
 			ShouldDie = true,
-			DeathReason = a["death_reason"]?.ToString(),
-			KillerStringId = a["killer_string_id"]?.ToString(),
-			OpposedAttribute = a["opposed_attribute"]?.ToString()
+			DeathReason = parsedArgs["death_reason"]?.ToString(),
+			KillerStringId = parsedArgs["killer_string_id"]?.ToString(),
+			OpposedAttribute = parsedArgs["opposed_attribute"]?.ToString()
 		};
 		return "ok";
 	}
 
 	private static string RunTechnicalAction(string argsJson, NPCContext context)
 	{
-		var v = ParseOrEmpty(argsJson)["value"]?.ToString();
-		if (string.IsNullOrEmpty(v))
+		JObject parsedArgs = ParseOrEmpty(argsJson);
+		string npcMapCommandLine = parsedArgs["value"]?.ToString();
+		if (string.IsNullOrEmpty(npcMapCommandLine))
 			return "ok";
-		context.DeferredTechnicalActionFromTools = v;
+		context.DeferredTechnicalActionFromTools = npcMapCommandLine;
 		return "ok";
 	}
 
 	private static string RunQuestAction(string argsJson, Hero npc, NPCContext context, AIInfluenceBehavior behavior)
 	{
-		var a = ParseOrEmpty(argsJson);
-		var q = a["quest"];
-		if (q == null) return "ok";
-		var qa = JsonConvert.DeserializeObject<QuestActionData>(q.ToString());
-		if (qa != null)
+		JObject parsedArgs = ParseOrEmpty(argsJson);
+		JToken questToken = parsedArgs["quest"];
+		if (questToken == null) return "ok";
+		QuestActionData questAction = JsonConvert.DeserializeObject<QuestActionData>(questToken.ToString());
+		if (questAction != null)
 		{
-			qa.Category = a["category"]?.ToString();
-			behavior.ProcessQuestAction(npc, context, qa);
+			questAction.Category = parsedArgs["category"]?.ToString();
+			behavior.ProcessQuestAction(npc, context, questAction);
 		}
 		return "ok";
 	}
