@@ -2,28 +2,34 @@
 
 ## North star (one sentence)
 
-**SSE stream → accumulate assistant message and tool calls → run tools until the model returns a final assistant message → parse that message with a strict dialogue-only contract (DTO / `response_format`) → update UI and game state from that DTO and from tool results only → never deserialize world actions from the dialogue JSON.**
+**SSE stream → accumulate tool calls (and stream `npc_say` / `npc_emote` tool arguments for live UI) → run the tool loop until the model is done → apply all speech, social, conflict, and world state only inside tool handlers and `NPCContext` → do not deserialize a monolithic dialogue JSON envelope; tone, suspected lies, escalation, romance, decisions, money, quests, and map are all named tools with small argument schemas, not fields in one parsed blob.**
 
-Everything that duplicates authority (legacy envelope on `AIResponse`, stringly-typed `technical_action`, `JsonCleaner` as default repair, per-feature raw backends) is migration scar tissue to remove.
+We do **not** treat the session as “produce one JSON object with `tone`, `suspected_lie`, … then parse it.” We treat it as **consuming a sequence of actions** from the model (tool calls), same as world actions.
+
+---
+
+## Legacy scar tissue (migration targets)
+
+Everything that duplicates authority (legacy envelope on `AIResponse`, stringly-typed `technical_action`, `JsonCleaner` as default repair, per-feature raw backends, monolithic `PromptGenerator` JSON prose) is to be removed or relegated to debug-only fallback.
 
 ---
 
 ## Principles
 
 1. **Single AI transport:** OpenRouter completions for in-mod features (other backends removed on dedicated branches).
-2. **Three layers:** HTTP/SSE + agent loop → **tools / structured output** → **domain handlers** → **game state / subscribers**.
-3. **No second authority:** Game effects come from **tool handlers** (or one strict `map_command` schema), not duplicate keys on a shared envelope type.
+2. **Three layers:** HTTP/SSE + agent loop → **tool calls** (and optional minimal assistant `content` only if the API requires it) → **tool handlers** → **game state / subscribers**.
+3. **No second authority:** No parallel “dialogue JSON” path for fields that also exist as tools. Small per-tool `arguments` JSON (from the API) is the only structured shape per action.
 4. **Observable tools:** Every tool invocation is loggable and broadcast on an internal bus (`OnToolCompleted` or equivalent), not re-encoded as opaque strings.
 
 ---
 
 ## Phase 0 — Repo + contract groundwork
 
-**Goal:** One way to call OpenRouter with streaming, tools, and `response_format`.
+**Goal:** One way to call OpenRouter with streaming and **tools**; `response_format` only where a feature is **not** fully tool-expressed (e.g. diplomacy text-only) or the API requires a minimal final message.
 
 | Deliverable | Notes |
 |-------------|--------|
-| Replace `SendAIRequestWithBackend` / `GetRawTextResponseWithBackend` for in-mod features | Route diplomacy, dynamic events, etc. through `GetAIResponse` (or one OpenRouter facade) with per-call `tools` + `response_format`. |
+| Replace `SendAIRequestWithBackend` / `GetRawTextResponseWithBackend` for in-mod features | Route diplomacy, dynamic events, etc. through `GetAIResponse` (or one OpenRouter facade) with per-call **`tools`**; add optional `response_format` per domain only when needed. |
 | Per-domain tool registries | e.g. NPC chat, diplomacy, dynamic events — compose into the request body; overlap only where intentional. |
 | Tool telemetry | `OnToolInvoked` / `OnToolCompleted(feature, name, argsJson, resultJson, error)` — single hook all handlers use. |
 
@@ -31,32 +37,31 @@ Everything that duplicates authority (legacy envelope on `AIResponse`, stringly-
 
 ---
 
-## Phase 1 — NPC chat: dialogue DTO + strict schema
+## Phase 1 — NPC chat: tool-first dialogue (speech + social + flow)
 
-**Goal:** Final assistant message = dialogue-only JSON.
+**Goal:** No monolithic `AIResponse` / dialogue JSON for **speech, tone, lies, escalation, romance, decisions**. Those become **tools** with small schemas (e.g. `npc_say` with `line` + optional `tone`; `lie_suspect` / `lie_resolve`; `conflict_update`; `dialogue_decision`; `romance_set_intent`; …). World tools (`transfer_money`, `quest_action`, map tools, …) stay **only** as tools.
 
 | Deliverable | Notes |
 |-------------|--------|
-| `NpcDialogueMessage` (DTO) or generated from schema | Only fields the player and flow need. |
-| `OpenRouterNpcResponseSchema`: `strict: true`, `additionalProperties: false` | Delete client-side key stripping (`OpenRouterDialogueJson`) once enforced. |
-| Stop using `JsonCleaner` on the default NPC reply path | Parse-or-fail + log + user-visible error. |
-| Stop deserializing the final message into `AIResponse` | Deserialize into the dialogue DTO only. |
+| Define tool schemas + handlers | Speech/emote stream via **tool argument deltas** where supported; handlers update `NPCContext` and UI. |
+| Remove `DeserializeObject<AIResponse>` for NPC final message | No `OpenRouterNpcResponseSchema` envelope for **dialogue** (delete or shrink to API-required ack only). |
+| Remove `JsonCleaner` / `OpenRouterDialogueJson` on default NPC path | No big blob to clean or strip. |
+| **Optional** minimal `response_format` | Only if provider requires non-empty assistant `content`; prefer **empty** or trivial `turn_done` tool instead of a 20-field JSON. |
 
-**Exit:** `AIResponse` is not the type of the final assistant JSON for NPC chat.
+**Exit:** NPC chat turn is **tool calls + context updates**, not one parsed dialogue object.
 
 ---
 
-## Phase 2 — NPC chat: effects only via tools
+## Phase 2 — NPC chat: world effects + deferrals only via tools
 
-**Goal:** No money / items / quests / kingdom / workshop / death from dialogue JSON.
+**Goal:** No money / items / quests / kingdom / workshop / death from any **legacy JSON envelope**.
 
 | Deliverable | Notes |
 |-------------|--------|
-| Remove `ProcessChatInput` blocks that set pending transfers, items, workshop from parsed `aiResult` | After Phase 1 these should be unused for OpenRouter. |
-| Ensure every effect has a tool | Already mostly true; close gaps. |
-| Remove merging deferrals onto `AIResponse` | Death / map deferrals → `NPCContext` pending structs or apply in handler + bus. |
+| Remove `ProcessChatInput` blocks that read envelope fields from parsed `aiResult` | Already redundant once Phase 1 removes deserialize. |
+| Remove merging deferrals onto `AIResponse` | Death / map → `NPCContext` or apply in handler + bus. |
 
-**Exit:** No game-effect fields populated from dialogue JSON on the NPC path.
+**Exit:** No game-effect fields on `AIResponse` for the NPC path.
 
 ---
 
@@ -78,11 +83,11 @@ Everything that duplicates authority (legacy envelope on `AIResponse`, stringly-
 
 | Deliverable | Notes |
 |-------------|--------|
-| `PendingNpcDialogue` (or equivalent) | Only what conversation menus need. |
-| Quest / kingdom from pending envelope | Remove if Phase 2 moved execution to tools only. |
+| `PendingNpcTurn` / context fields | Only what conversation menus need — **filled from tool handlers**, not from a JSON envelope. |
+| Quest / kingdom from pending envelope | Remove if execution is tools-only. |
 | Unify `HandlePlayerInput` and `ProcessChatInput` internals | One orchestrator; two UI entry points. |
 
-**Exit:** `DialogManager` does not re-run effects from JSON envelope duplicates.
+**Exit:** `DialogManager` does not re-run effects from legacy envelope duplicates.
 
 ---
 
@@ -92,7 +97,7 @@ Everything that duplicates authority (legacy envelope on `AIResponse`, stringly-
 
 | Deliverable | Notes |
 |-------------|--------|
-| Diplomacy | `GetAIResponse` + diplomacy tools + strict `response_format` where needed. |
+| Diplomacy | `GetAIResponse` + diplomacy tools; optional small `response_format` only if needed. |
 | Dynamic events | Same + event tools. |
 | Subscribers | React via tool bus, not string parsing. |
 
@@ -102,20 +107,12 @@ Everything that duplicates authority (legacy envelope on `AIResponse`, stringly-
 
 ## Phase 6 — Prompts + streaming UX
 
-**Goal:** Prompts match the contract.
+**Goal:** Prompts describe **tools**, not “put these keys in JSON.”
 
 | Deliverable | Notes |
 |-------------|--------|
-| Trim `PromptGenerator` prose that teaches legacy envelope JSON for NPC. |
-| Revisit `GetNpcMessagePreview` / streaming | Align with dialogue DTO or future `npc_say` tool args. |
-
----
-
-## Phase 7 (optional) — Speech / emote as tools
-
-**Goal:** Optional tools `npc_say` / `npc_emote` with guarantees and streaming on tool arguments; TTS reads from tool results or dedicated fields.
-
-**Dependency:** Strong streaming story for tool args; can ship after Phases 1–4.
+| Trim `PromptGenerator` envelope prose for NPC. |
+| Streaming preview | **Tool args** for `npc_say` / `npc_emote` (not regex on partial dialogue JSON). |
 
 ---
 
@@ -123,13 +120,12 @@ Everything that duplicates authority (legacy envelope on `AIResponse`, stringly-
 
 ```
 Phase 0 (OpenRouter + bus + registries)
-    → Phase 1 (dialogue DTO + strict schema)
-    → Phase 2 (tools-only effects)
+    → Phase 1 (tool-first dialogue: say, lie, conflict, … + remove dialogue envelope)
+    → Phase 2 (world effects only tools; remove deferrals onto AIResponse)
     → Phase 3 (map)  — can overlap Phase 4 design
     → Phase 4 (DialogManager / pending shrink)
     → Phase 5 (diplomacy / events)
     → Phase 6 (prompts / preview)
-    → Phase 7 (optional say/emote tools)
 ```
 
 ---
@@ -139,7 +135,7 @@ Phase 0 (OpenRouter + bus + registries)
 | Tag | Meaning |
 |-----|---------|
 | `openrouter-only-transport` | Phase 0 |
-| `npc-dialogue-dto` | Phase 1 |
+| `npc-tool-first-dialogue` | Phase 1 |
 | `tools-only-effects-npc` | Phase 2 |
 | `map-command-no-string` | Phase 3 |
 | `dialogmanager-thin` | Phase 4 |
@@ -150,6 +146,6 @@ Phase 0 (OpenRouter + bus + registries)
 
 ## Risks
 
-- **Strict schema** will surface more failures — treat as correct; add logging and clear in-game messages, not silent salvage.
-- **Tool sprawl** — group tools by domain and document each catalog.
-- **Regression** — add golden scenarios: multi-tool turn, dialogue-only turn, failure path.
+- **Tool sprawl** — group tools by domain (`npc_*`, `map_*`, `quest_*`, `diplomacy_*`) and document each catalog.
+- **Streaming tool args** — preview UX depends on provider streaming of `tool_calls` deltas; have a fallback (buffer until tool complete).
+- **Regression** — golden scenarios: multi-tool turn, say-only turn, world-action turn, failure path.
