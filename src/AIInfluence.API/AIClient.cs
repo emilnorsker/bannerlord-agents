@@ -242,7 +242,8 @@ public static class AIClient
 		var tools = ChatTools.ToolCatalog.GetToolsForApi();
 
 		// Agent loop: call model until it returns final text (not tool calls).
-		for (int round = 0; round < 5; round++)
+		// Guard against model looping over tools forever – abort after 50 rounds.
+		for (int round = 0; round < 50; round++)
 		{
 			JToken assistantMessage = await SendToolRequest(messages, tools);
 			if (assistantMessage == null)
