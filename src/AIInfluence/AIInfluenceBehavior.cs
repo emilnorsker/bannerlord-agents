@@ -103,7 +103,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	private const string WelcomeMarkerFileName = "welcome_popup_shown.txt";
 
-	private static readonly Regex StreamingResponseFieldRegex = new Regex("\"response\"\\s*:\\s*\"(?<text>(?:\\\\.|[^\"\\\\])*)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+	/// <summary>Matches the <c>response</c> JSON string field for NPC speech shown in the chat bubble.</summary>
+	private static readonly Regex NpcSpeechResponseFieldRegex = new Regex("\"response\"\\s*:\\s*\"(?<text>(?:\\\\.|[^\"\\\\])*)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
 	private bool _welcomeCheckedThisSession = false;
 
@@ -3259,17 +3260,19 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 	}
 
-	private static string TryExtractStreamingResponseText(string partialJson)
+	/// <summary>Returns NPC speech for the chat bubble from the accumulating reply body. The model emits JSON; this reads the <c>response</c> field before the document is complete.</summary>
+	/// <param name="accumulatedReplyText">All raw characters received so far for this reply (growing JSON text).</param>
+	private static string GetNpcSpeechPreview(string accumulatedReplyText)
 	{
-		if (string.IsNullOrEmpty(partialJson))
+		if (string.IsNullOrEmpty(accumulatedReplyText))
 		{
 			return "";
 		}
-		Match match = StreamingResponseFieldRegex.Match(partialJson);
+		Match match = NpcSpeechResponseFieldRegex.Match(accumulatedReplyText);
 		if (!match.Success)
 		{
-			if (!partialJson.TrimStart(Array.Empty<char>()).StartsWith("{", StringComparison.Ordinal))
-				return partialJson;
+			if (!accumulatedReplyText.TrimStart(Array.Empty<char>()).StartsWith("{", StringComparison.Ordinal))
+				return accumulatedReplyText;
 			return "";
 		}
 		string value = match.Groups["text"].Value;
@@ -3285,7 +3288,9 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 	}
 
-	public async Task<string> ProcessChatInput(Hero npc, string playerMessage, Action<string> onPartialResponse = null)
+	/// <summary>Runs one player turn in NPC chat. Returns the final assistant message body when complete.</summary>
+	/// <param name="onNpcSpeechPreviewUpdated">Optional; updates the chat bubble with NPC speech while the reply is still generating.</param>
+	public async Task<string> ProcessChatInput(Hero npc, string playerMessage, Action<string> onNpcSpeechPreviewUpdated = null)
 	{
 		if (npc == null || string.IsNullOrEmpty(playerMessage))
 			return "";
@@ -3303,18 +3308,18 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		context.PendingRelationChange = null;
 		context.PendingLiePenalty = null;
 		string prompt = PromptGenerator.GeneratePrompt(npc, context);
-		StringBuilder streamJsonBuilder = (onPartialResponse == null) ? null : new StringBuilder();
-		string lastStreamPreview = "";
-		Action<string> streamCallback = (onPartialResponse == null) ? null : (Action<string>)delegate(string streamDelta)
+		StringBuilder accumulatedRawReply = (onNpcSpeechPreviewUpdated == null) ? null : new StringBuilder();
+		string lastNpcSpeechPreview = "";
+		Action<string> npcReplyChunkHandler = (onNpcSpeechPreviewUpdated == null) ? null : (Action<string>)delegate(string replyTextChunk)
 		{
-			streamJsonBuilder.Append(streamDelta ?? "");
-			string text = TryExtractStreamingResponseText(streamJsonBuilder.ToString());
-			if (!string.IsNullOrEmpty(text) && !string.Equals(text, lastStreamPreview, StringComparison.Ordinal))
+			accumulatedRawReply.Append(replyTextChunk ?? "");
+			string text = GetNpcSpeechPreview(accumulatedRawReply.ToString());
+			if (!string.IsNullOrEmpty(text) && !string.Equals(text, lastNpcSpeechPreview, StringComparison.Ordinal))
 			{
-				lastStreamPreview = text;
+				lastNpcSpeechPreview = text;
 				try
 				{
-					onPartialResponse(text);
+					onNpcSpeechPreviewUpdated(text);
 				}
 				catch (Exception ex2)
 				{
@@ -3332,11 +3337,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			{
 				if (attempt > 1)
 				{
-					streamJsonBuilder?.Clear();
-					lastStreamPreview = "";
-					onPartialResponse?.Invoke("");
+					accumulatedRawReply?.Clear();
+					lastNpcSpeechPreview = "";
+					onNpcSpeechPreviewUpdated?.Invoke("");
 				}
-				aiResponse = await AIClient.GetAIResponse(npcName, faction, prompt + "\nPlayer: " + playerMessage, streamCallback, toolExecutor);
+				aiResponse = await AIClient.GetAIResponse(npcName, faction, prompt + "\nPlayer: " + playerMessage, npcReplyChunkHandler, toolExecutor);
 				if (!string.IsNullOrEmpty(aiResponse) && !aiResponse.StartsWith("Error:"))
 					break;
 				if (attempt < 3)

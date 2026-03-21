@@ -22,16 +22,18 @@ public static class AIClient
 
 	private const string GAME_KEY = "0199bcdd-3f9f-7a67-947e-ca10021b94ce";
 
-	public static async Task<string> GetAIResponse(string npcName, string faction, string prompt, Action<string> onOpenRouterStreamUpdate = null, Func<string, string, Task<string>> onToolCall = null)
+	/// <summary>Fetches the assistant message for NPC chat (or tools loop). OpenRouter can deliver text in chunks when <paramref name="onNpcReplyTextChunk"/> is set.</summary>
+	/// <param name="onNpcReplyTextChunk">Optional; each new piece of raw reply text from incremental delivery (NPC chat speech preview).</param>
+	public static async Task<string> GetAIResponse(string npcName, string faction, string prompt, Action<string> onNpcReplyTextChunk = null, Func<string, string, Task<string>> onToolCall = null)
 	{
 		string backend = GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue ?? "Player2";
 		try
 		{
 			if (backend == "OpenRouter" && onToolCall != null)
-				return await GetOpenRouterResponseWithTools(npcName, faction, prompt, onOpenRouterStreamUpdate, onToolCall);
+				return await GetOpenRouterResponseWithTools(npcName, faction, prompt, onNpcReplyTextChunk, onToolCall);
 			return backend switch
 			{
-				"OpenRouter" => await GetOpenRouterResponse(npcName, faction, prompt, onOpenRouterStreamUpdate), 
+				"OpenRouter" => await GetOpenRouterResponse(npcName, faction, prompt, onNpcReplyTextChunk), 
 				"DeepSeek" => await GetDeepSeekResponse(npcName, faction, prompt), 
 				"Player2" => await GetPlayer2Response(npcName, faction, prompt), 
 				"Ollama" => await GetOllamaResponse(npcName, faction, prompt), 
@@ -113,7 +115,9 @@ public static class AIClient
 		return (systemPrompt: item, userMessage: item2, extracted: false);
 	}
 
-	private static async Task<string> GetOpenRouterResponse(string npcName, string faction, string prompt, Action<string> onOpenRouterStreamUpdate = null)
+	/// <summary>OpenRouter chat completion; optionally delivers assistant text in chunks for NPC chat.</summary>
+	/// <param name="onNpcReplyTextChunk">Optional; each chunk of assistant text for the NPC speech preview.</param>
+	private static async Task<string> GetOpenRouterResponse(string npcName, string faction, string prompt, Action<string> onNpcReplyTextChunk = null)
 	{
 		if (string.IsNullOrEmpty(GlobalSettings<ModSettings>.Instance?.ApiKey))
 		{
@@ -141,7 +145,7 @@ public static class AIClient
 			["content"] = (JToken)(userMessage)
 		});
 		val["messages"] = (JToken)val2;
-		bool isStreaming = onOpenRouterStreamUpdate != null;
+		bool isStreaming = onNpcReplyTextChunk != null;
 		// Do not force json_object while streaming: some providers buffer until
 		// the object is complete, which collapses visible token-by-token updates.
 		if (!isStreaming)
@@ -155,9 +159,9 @@ public static class AIClient
 		{
 			HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "https://openrouter.ai/api/v1/chat/completions");
 			request.Content = (HttpContent)(object)content;
-			HttpResponseMessage response = ((onOpenRouterStreamUpdate != null) ? (await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false)) : (await httpClient.SendAsync(request).ConfigureAwait(false)));
+			HttpResponseMessage response = ((onNpcReplyTextChunk != null) ? (await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false)) : (await httpClient.SendAsync(request).ConfigureAwait(false)));
 			response.EnsureSuccessStatusCode();
-			if (onOpenRouterStreamUpdate != null)
+			if (onNpcReplyTextChunk != null)
 			{
 				StringBuilder stringBuilder = new StringBuilder();
 				StringBuilder debugStreamBuffer = (GlobalSettings<ModSettings>.Instance?.DebugStreamToGameLog ?? false) ? new StringBuilder() : null;
@@ -203,7 +207,7 @@ public static class AIClient
 								TtsLipSyncService.MainThreadQueue.Enqueue(() => InformationManager.DisplayMessage(new InformationMessage("[LLM STREAM] " + batchedChunk)));
 							}
 						}
-						onOpenRouterStreamUpdate(text4);
+						onNpcReplyTextChunk(text4);
 					}
 				}
 				if (debugStreamBuffer != null && debugStreamBuffer.Length > 0)
@@ -228,7 +232,7 @@ public static class AIClient
 		}
 	}
 
-	private static async Task<string> GetOpenRouterResponseWithTools(string npcName, string faction, string prompt, Action<string> onStream, Func<string, string, Task<string>> onToolCall)
+	private static async Task<string> GetOpenRouterResponseWithTools(string npcName, string faction, string prompt, Action<string> onNpcReplyTextChunk, Func<string, string, Task<string>> onToolCall)
 	{
 		if (string.IsNullOrEmpty(GlobalSettings<ModSettings>.Instance?.ApiKey))
 		{
@@ -278,7 +282,7 @@ public static class AIClient
 			string content = assistantMessage["content"]?.ToString();
 			if (!string.IsNullOrEmpty(content))
 			{
-				onStream?.Invoke(content);
+				onNpcReplyTextChunk?.Invoke(content);
 				return content;
 			}
 

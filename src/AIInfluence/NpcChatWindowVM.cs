@@ -790,13 +790,13 @@ public class NpcChatWindowVM : ViewModel
                     }
                 };
             }
-            string reply = await AIInfluenceBehavior.Instance.ProcessChatInput(_npc, message, partial =>
+            string reply = await AIInfluenceBehavior.Instance.ProcessChatInput(_npc, message, npcSpeechPreview =>
             {
                 TtsLipSyncService.MainThreadQueue.Enqueue(() =>
                 {
                     if (!streamingRetired && streamingItem != null)
                     {
-                        streamingTargetText = partial ?? "";
+                        streamingTargetText = npcSpeechPreview ?? "";
                         if (!streamPumpActive && streamPumpStep != null)
                         {
                             streamPumpActive = true;
