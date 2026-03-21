@@ -12,6 +12,7 @@ using MCM.Abstractions.Base.Global;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using TaleWorlds.Library;
+using TaleWorlds.MountAndBlade;
 
 namespace AIInfluence.API;
 
@@ -230,9 +231,15 @@ public static class AIClient
 	private static async Task<string> GetOpenRouterResponseWithTools(string npcName, string faction, string prompt, Action<string> onStream, Func<string, string, Task<string>> onToolCall)
 	{
 		if (string.IsNullOrEmpty(GlobalSettings<ModSettings>.Instance?.ApiKey))
+		{
+			InformationManager.DisplayMessage(new InformationMessage("Please set your OpenRouter API key in Mod Settings (AI Influence).", TaleWorlds.Library.Colors.Red));
 			return GenerateErrorResponse("I cannot respond right now. Something is amiss.");
+		}
 		if (!GlobalSettings<ModSettings>.Instance.EnableModification)
+		{
+			InformationManager.DisplayMessage(new InformationMessage("AI Influence mod is disabled in Mod Settings. Enable it to use chat.", TaleWorlds.Library.Colors.Red));
 			return GenerateErrorResponse("I am not inclined to speak at this moment.");
+		}
 		var (systemPrompt, userMessage, _) = ExtractLastPlayerMessage(prompt);
 		var messages = new JArray
 		{
