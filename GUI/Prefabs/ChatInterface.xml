@@ -293,8 +293,8 @@
                                  MarginLeft="4" MarginRight="4" MarginTop="4" Brush="Encyclopedia.TopBanner" Color="#0F141FFF" DoNotAcceptEvents="true">
                       <Children>
                         <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                        HorizontalAlignment="Center" VerticalAlignment="Center" Brush="SPScoreboard.Subtitle.Text"
-                                        Brush.FontSize="23" Color="!Gold" Text="Information" IsDisabled="true"/>
+                                        HorizontalAlignment="Left" VerticalAlignment="Center" MarginLeft="14" Brush="SPScoreboard.Subtitle.Text"
+                                        Brush.FontSize="23" Brush.TextHorizontalAlignment="Left" Color="!Gold" Text="Information" IsDisabled="true"/>
                       </Children>
                     </BrushWidget>
                     <Widget Id="InfoTitleUnderline" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" VerticalAlignment="Top"
@@ -363,14 +363,15 @@
                                             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren">
                                               <Children>
                                                 <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                                Brush="Encyclopedia.SubPage.Info.Text" Brush.FontSize="15" Color="@Color" Text="@Text" IsDisabled="true"/>
+                                                                Brush="Encyclopedia.SubPage.Info.Text" Brush.FontSize="15" Brush.TextHorizontalAlignment="Left"
+                                                                Color="@Color" Text="@Text" IsDisabled="true"/>
                                               </Children>
                                             </Widget>
                                           </ItemTemplate>
                                         </ListPanel>
                                         <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" IsVisible="@ShowPartyFood"
                                                         MarginLeft="8" MarginBottom="4" Brush="Encyclopedia.SubPage.Info.Text" Brush.FontSize="15"
-                                                        Color="@PartyFoodColor" Text="@PartyFoodText" IsDisabled="true"/>
+                                                        Brush.TextHorizontalAlignment="Left" Color="@PartyFoodColor" Text="@PartyFoodText" IsDisabled="true"/>
                                       </Children>
                                     </ListPanel>
                                   </Children>
