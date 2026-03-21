@@ -20,9 +20,9 @@ If a line has **no tag**, treat it as **narrative** (organizational only), not e
 
 **Command used:** `git diff 179768f^..HEAD --name-status` on migration-related paths (see repo history).
 
-**Files touched by OpenRouter-only commits** include: `AIClient.cs`, deleted alternate-provider files, **deleted** `Player2Client.cs` + `VoiceInfo.cs` (Player2/TTS companion removed), deleted `Player2UsageTracker.cs`, `ModSettings.cs`, `AIInfluenceBehavior.cs`, `NpcChatWindowVM.cs`, `SubModule.cs`, `TtsLipSyncService.cs` (PrepareAsync no-op), `NPCInitiativeSystem.cs`, diplomacy + `DynamicEventsGenerator.cs`, and this doc.
+**Files touched by OpenRouter-only commits** include: `AIClient.cs`, deleted alternate-provider files, **deleted** `Player2Client.cs` + `VoiceInfo.cs`, deleted `Player2UsageTracker.cs`, `ModSettings.cs`, `AIInfluenceBehavior.cs`, `NpcChatWindowVM.cs`, `SubModule.cs`, **deleted** `TtsLipSyncService.cs` + `TtsPreparedData.cs`, added `MainThreadDispatch.cs` (main-thread queue for LLM stream UI only), `NPCInitiativeSystem.cs`, `DialogManager.cs`, `PromptGenerator.cs`, `AIResponse.cs`, `JsonCleaner.cs`, `NPCContext.cs`, diplomacy + `DynamicEventsGenerator.cs`, and this doc.
 
-**SRC:** `ModSettings.EnableTTS` / `TTSSpeed` / etc. remain as **stub properties** (always disabled / fixed defaults) so existing saves and call sites compile; TTS UI and Player2 MCM groups were removed.
+**SRC:** TTS / `tts_instructions` / NPC voice fields were **removed** from prompts, JSON schema, `AIResponse`, `NPCContext`, and dialog; no TTS stub settings remain in `ModSettings`.
 
 **NRV:** Whether each line of those diffs is bug-free — **not** proven here.
 

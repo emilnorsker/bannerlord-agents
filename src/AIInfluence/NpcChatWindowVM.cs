@@ -788,7 +788,7 @@ public class NpcChatWindowVM : ViewModel
             };
             string reply = await AIInfluenceBehavior.Instance.ProcessChatInput(_npc, message, partial =>
             {
-                MainThreadDispatcher.Queue.Enqueue(() =>
+                MainThreadDispatch.MainThreadQueue.Enqueue(() =>
                 {
                     if (!streamingRetired && streamingItem != null)
                     {
@@ -872,7 +872,7 @@ public class NpcChatWindowVM : ViewModel
                                 catch (Exception ex) { AIInfluenceBehavior.Instance.LogMessage("[NpcChatWindow] SaveNPCContext after UpdateContextData failed: " + ex.Message); }
                             }
                             catch (Exception ex) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] UpdateContextData failed: " + ex.Message); }
-                            MainThreadDispatcher.Queue.Enqueue(() =>
+                            MainThreadDispatch.MainThreadQueue.Enqueue(() =>
                             {
                                 if (!NpcChatWindowManager.IsOpen || NpcChatWindowManager.GetCurrentViewModel() != this) return; // Skip if closed or reopened (wrong VM)
                                 RefreshTraitOverlay(_npc, ctx);
@@ -921,7 +921,7 @@ public class NpcChatWindowVM : ViewModel
                 try { ctx = AIInfluenceBehavior.Instance?.GetOrCreateNPCContext(_npc); }
                 catch (Exception ex) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] GetOrCreateNPCContext (empty reply) failed: " + ex.Message); }
                 if (ctx != null && AIInfluenceBehavior.Instance != null)
-                    MainThreadDispatcher.Queue.Enqueue(() =>
+                    MainThreadDispatch.MainThreadQueue.Enqueue(() =>
                     {
                         if (!NpcChatWindowManager.IsOpen || NpcChatWindowManager.GetCurrentViewModel() != this) return; // Skip if closed or reopened (wrong VM)
                         RefreshTraitOverlay(_npc, ctx);
