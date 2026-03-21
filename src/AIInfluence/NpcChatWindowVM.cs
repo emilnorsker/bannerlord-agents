@@ -201,7 +201,7 @@ public class NpcChatWindowVM : ViewModel
             BuildNpcPartySection(npc),
             BuildQuestSection(context, headerMuted, questGold),
             BuildWorldEventsSection(headerMuted),
-            BuildCharacterHistorySection(npc, context, headerMuted),
+            BuildCharacterHistorySection(context, headerMuted),
             BuildBehaviorSection(context, headerMuted),
             BuildCharacterSection(npc, context)
         };
@@ -300,18 +300,25 @@ public class NpcChatWindowVM : ViewModel
         return section;
     }
 
-    /// <summary>Known world facts / lore the player has unlocked (plain bullets only).</summary>
-    private InfoSectionVM BuildCharacterHistorySection(Hero npc, NPCContext context, string headerMuted)
+    /// <summary><c>character_backstory</c> → <see cref="NPCContext.AIGeneratedBackstory"/> (plain bullets; split on newlines).</summary>
+    private static InfoSectionVM BuildCharacterHistorySection(NPCContext context, string headerMuted)
     {
         var section = new InfoSectionVM { HeaderText = "Character history" };
-        bool any = false;
-        foreach (var info in ResolveKnownInfo(context, npc))
+        string backstory = context?.AIGeneratedBackstory?.Trim();
+        if (string.IsNullOrWhiteSpace(backstory))
         {
-            section.TextLines.Add(new TextItemVM("• " + info));
-            any = true;
+            section.TextLines.Add(new TextItemVM("• No backstory recorded yet", headerMuted));
+            section.RefreshVisibility();
+            return section;
         }
-        if (!any)
-            section.TextLines.Add(new TextItemVM("• No recorded history yet", headerMuted));
+        foreach (string line in backstory.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            string t = line.Trim();
+            if (t.Length > 0)
+                section.TextLines.Add(new TextItemVM("• " + t));
+        }
+        if (section.TextLines.Count == 0)
+            section.TextLines.Add(new TextItemVM("• No backstory recorded yet", headerMuted));
         section.RefreshVisibility();
         return section;
     }
@@ -380,19 +387,6 @@ public class NpcChatWindowVM : ViewModel
     }
     /// <summary>Formats an incoming quest line (NPC is delivery target).</summary>
     private static string FormatIncomingQuestLine(AIQuestInfo q) => $"• {q.Title} (deliver here)";
-
-    private static IEnumerable<string> ResolveKnownInfo(NPCContext context, Hero npc)
-    {
-        if (context?.KnownInfo == null || !context.KnownInfo.Any()) yield break;
-        var infos = WorldInfoManager.InformationManager.Instance?.GetInfo();
-        if (infos == null) yield break;
-        string npcName = ((object)npc?.Name)?.ToString() ?? "";
-        foreach (var i in infos.Where(i => !string.IsNullOrEmpty(i?.Id) && context.KnownInfo.Contains(i.Id)))
-        {
-            if (string.IsNullOrWhiteSpace(i.Description)) continue;
-            yield return i.Description.Replace("{character}", npcName).Trim();
-        }
-    }
 
     private static List<DynamicEvent> GetMergedEvents()
     {

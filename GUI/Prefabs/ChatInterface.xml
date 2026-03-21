@@ -243,7 +243,7 @@
                         </ScrollablePanel>
                         <Standard.VerticalScrollbar Id="MsgScrollbar" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent"
                                                     SuggestedWidth="22" HorizontalAlignment="Right" VerticalAlignment="Center"
-                                                    MarginRight="8"/>
+                                                    MarginRight="8" AlphaFactor="0"/>
                           </Children>
                         </Widget>
                         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" VerticalAlignment="Bottom"
@@ -387,7 +387,7 @@
                     </BrushWidget>
                     <Standard.VerticalScrollbar Id="InfoScrollbar" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent"
                                                 SuggestedWidth="22" HorizontalAlignment="Right" VerticalAlignment="Center"
-                                                MarginRight="2" MarginBottom="54" MarginTop="54"/>
+                                                MarginRight="2" MarginBottom="54" MarginTop="54" AlphaFactor="0"/>
                     <ButtonWidget WidthSizePolicy="Fixed" SuggestedWidth="130" HeightSizePolicy="Fixed" SuggestedHeight="38"
                                   HorizontalAlignment="Center" VerticalAlignment="Bottom" MarginBottom="8"
                                   Brush="Popup.Cancel.Button" UpdateChildrenStates="true" DoNotPassEventsToChildren="true" Command.Click="ExecuteReturn">

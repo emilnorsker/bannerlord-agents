@@ -7,7 +7,7 @@
 | 1 | NPC party info    | Troop formations + party food (glyph rows + optional food line). |
 | 2 | Quests            | Active / incoming AI quests (`TextLines` only). |
 | 3 | World events      | Recent dynamic events with skill icon (`GlyphLines`) or “None” (`TextLines`). |
-| 4 | Character history | Unlocked lore / known-info facts only (`TextLines`). |
+| 4 | Character history | AI `character_backstory` → `NPCContext.AIGeneratedBackstory` (`TextLines`; newline-split). |
 | 5 | Behavior          | AI personality, quirks, speech, mood (`TextLines`). |
 | 6 | Character         | Relation, trust, interaction count (`TextLines`). |
 
