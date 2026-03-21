@@ -195,7 +195,7 @@ public class NpcChatWindowVM : ViewModel
         const string stripeA = "#121820F0";
         const string stripeB = "#1E1810F0";
         InfoSections.Clear();
-        // RightInfoSectionsList is VerticalTopToBottom: add in screen order top → bottom.
+        // InfoSectionsList is VerticalTopToBottom: add in screen order top → bottom.
         var built = new[]
         {
             BuildNpcPartySection(npc),

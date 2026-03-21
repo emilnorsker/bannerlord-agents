@@ -123,11 +123,11 @@
                 <!-- ══ Center: conversation (replaces encyclopedia’s main scroll body) ══ -->
                 <Widget Id="CenterColumn" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent">
                   <Children>
-                    <Widget Id="CenterColumn_Background" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                    <Widget Id="ChatBackground" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                             Sprite="BlankWhiteSquare_9" Color="#141414FF" DoNotAcceptEvents="true"/>
-                    <Widget Id="CenterColumn_Content" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" DoNotAcceptEvents="false">
+                    <Widget Id="ChatContent" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" DoNotAcceptEvents="false">
                       <Children>
-                        <Widget Id="Conversation_HeaderBand" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="!Header.H" VerticalAlignment="Top"
+                        <Widget Id="ChatHeaderBand" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="!Header.H" VerticalAlignment="Top"
                                 Sprite="BlankWhiteSquare_9" Color="#1A1A1AFF">
                           <Children>
                             <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
@@ -145,18 +145,18 @@
                                         Brush="SPScoreboard.Subtitle.Text" Brush.FontSize="12" Text="@EmotionLabel" IsDisabled="true"/>
                           </Children>
                         </Widget>
-                        <!-- Conversation_ScrollWrapper: scroll region + invisible bar; siblings below = separator strip, then input bar. -->
-                        <Widget Id="Conversation_ScrollWrapper" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                        <!-- ChatScrollWrapper: scroll region + invisible bar; siblings below = separator strip, then input bar. -->
+                        <Widget Id="ChatScrollWrapper" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                 MarginTop="!Header.H" MarginBottom="!Input.H" MarginLeft="4">
                           <Children>
-                        <ScrollablePanel Id="ConversationScrollPanel" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                        <ScrollablePanel Id="ChatScrollPanel" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                          MarginRight="8" MarginLeft="0" MarginTop="0" MarginBottom="0"
-                                         ClipRect="ConversationScrollClip" InnerPanel="ConversationScrollClip\ConversationMessageList"
-                                         VerticalScrollbar="..\ConversationScrollBar\Scrollbar" AutoHideScrollBars="true">
+                                         ClipRect="ChatScrollClip" InnerPanel="ChatScrollClip\ChatMessageList"
+                                         VerticalScrollbar="..\ChatScrollBar\Scrollbar" AutoHideScrollBars="true">
                           <Children>
-                            <Widget Id="ConversationScrollClip" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" ClipContents="true">
+                            <Widget Id="ChatScrollClip" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" ClipContents="true">
                               <Children>
-                                <ListPanel Id="ConversationMessageList" DataSource="{MessageList}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                <ListPanel Id="ChatMessageList" DataSource="{MessageList}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                            StackLayout.LayoutMethod="VerticalBottomToTop" Spacing="10" MarginLeft="14" MarginRight="14" MarginTop="6" MarginBottom="6">
                                   <ItemTemplate>
                                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginTop="2" MarginBottom="1">
@@ -241,14 +241,14 @@
                             </Widget>
                           </Children>
                         </ScrollablePanel>
-                        <Standard.VerticalScrollbar Id="ConversationScrollBar" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent"
+                        <Standard.VerticalScrollbar Id="ChatScrollBar" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent"
                                                     SuggestedWidth="22" HorizontalAlignment="Right" VerticalAlignment="Center"
                                                     MarginRight="8" AlphaFactor="0"/>
                           </Children>
                         </Widget>
-                        <Widget Id="Conversation_InputSeparatorAbove" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" VerticalAlignment="Bottom"
+                        <Widget Id="InputSeparatorAbove" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" VerticalAlignment="Bottom"
                                 PositionYOffset="-52" Sprite="BlankWhiteSquare_9" Color="!SepColor" DoNotAcceptEvents="true"/>
-                        <Widget Id="Conversation_InputBar" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="!Input.H" VerticalAlignment="Bottom"
+                        <Widget Id="InputBar" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="!Input.H" VerticalAlignment="Bottom"
                                 Sprite="BlankWhiteSquare_9" Color="#1A110CFF">
                           <Children>
                             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
@@ -284,12 +284,12 @@
                         Sprite="BlankWhiteSquare_9" Color="!SepColor"/>
 
                 <!-- ══ Right: information panel (fixed title band | framed scroll | close) ══ -->
-                <Widget Id="RightInfo_Column" WidthSizePolicy="Fixed" SuggestedWidth="!Info.W" HeightSizePolicy="StretchToParent">
+                <Widget Id="RightColumn" WidthSizePolicy="Fixed" SuggestedWidth="!Info.W" HeightSizePolicy="StretchToParent">
                   <Children>
-                    <Widget Id="RightInfo_Background" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                    <Widget Id="InfoBackground" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                             Sprite="BlankWhiteSquare_9" Color="#141414FF" DoNotAcceptEvents="true"/>
                     <!-- Non-collapsible title strip (vanilla encyclopedia banner; distinct from per-section headers inside the scroll). -->
-                    <BrushWidget Id="RightInfo_StaticTitleBand" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="46" VerticalAlignment="Top"
+                    <BrushWidget Id="InfoTitleBand" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="46" VerticalAlignment="Top"
                                  MarginLeft="4" MarginRight="4" MarginTop="4" Brush="Encyclopedia.TopBanner" Color="#0F141FFF" DoNotAcceptEvents="true">
                       <Children>
                         <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
@@ -297,20 +297,20 @@
                                         Brush.FontSize="23" Color="!Gold" Text="Information" IsDisabled="true"/>
                       </Children>
                     </BrushWidget>
-                    <Widget Id="RightInfo_TitleUnderline" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" VerticalAlignment="Top"
+                    <Widget Id="InfoTitleUnderline" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" VerticalAlignment="Top"
                             PositionYOffset="52" MarginLeft="8" MarginRight="8" Sprite="BlankWhiteSquare_9" Color="!SepColor"/>
-                    <BrushWidget Id="RightInfo_Frame" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                    <BrushWidget Id="InfoFrame" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                  MarginTop="58" MarginBottom="50" MarginLeft="4" MarginRight="4"
                                  Brush="Encyclopedia.Frame" DoNotAcceptEvents="true">
                       <Children>
-                        <ScrollablePanel Id="RightInfoScrollPanel" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                        <ScrollablePanel Id="InfoScrollPanel" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                          MarginTop="4" MarginBottom="4" MarginLeft="8" MarginRight="8"
-                                         ClipRect="RightInfoClipRect" InnerPanel="RightInfoClipRect\RightInfoSectionsList"
-                                         VerticalScrollbar="..\..\RightInfoScrollBar\Scrollbar" AutoHideScrollBars="true">
+                                         ClipRect="InfoClipRect" InnerPanel="InfoClipRect\InfoSectionsList"
+                                         VerticalScrollbar="..\..\InfoScrollBar\Scrollbar" AutoHideScrollBars="true">
                           <Children>
-                        <Widget Id="RightInfoClipRect" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" DoNotAcceptEvents="false" ClipContents="true">
+                        <Widget Id="InfoClipRect" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" DoNotAcceptEvents="false" ClipContents="true">
                           <Children>
-                            <NavigatableListPanel Id="RightInfoSectionsList" DataSource="{InfoSections}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                            <NavigatableListPanel Id="InfoSectionsList" DataSource="{InfoSections}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                   StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="8" MarginLeft="4" MarginRight="4" MarginTop="4" MarginBottom="4">
                               <ItemTemplate>
                                 <!-- Single ListPanel per section: stripe + header + body (TopToBottom). Item VM = InfoSectionVM (ExecuteToggle). -->
@@ -385,7 +385,7 @@
                         </ScrollablePanel>
                       </Children>
                     </BrushWidget>
-                    <Standard.VerticalScrollbar Id="RightInfoScrollBar" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent"
+                    <Standard.VerticalScrollbar Id="InfoScrollBar" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent"
                                                 SuggestedWidth="22" HorizontalAlignment="Right" VerticalAlignment="Center"
                                                 MarginRight="2" MarginBottom="54" MarginTop="54" AlphaFactor="0"/>
                     <ButtonWidget WidthSizePolicy="Fixed" SuggestedWidth="130" HeightSizePolicy="Fixed" SuggestedHeight="38"
