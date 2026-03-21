@@ -2070,7 +2070,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 	}
 
-	private void ProcessWorkshopSale(Hero npc, NPCContext context, string workshopStringId, int agreedPrice)
+	internal void ProcessWorkshopSale(Hero npc, NPCContext context, string workshopStringId, int agreedPrice)
 	{
 		if (npc == null || string.IsNullOrEmpty(workshopStringId) || agreedPrice <= 0)
 		{
@@ -3464,46 +3464,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			LogMessage("[ChatWindow] HandleAIDecision failed: " + ex3.Message);
 		}
 		if (toolExecutor == null)
-		{
-			context.LastTechnicalActionForDisplay = null;
-			if (!string.IsNullOrEmpty(aiResult.TechnicalAction) && !aiResult.TechnicalAction.Equals("none", StringComparison.OrdinalIgnoreCase))
-			{
-				context.LastTechnicalActionForDisplay = aiResult.TechnicalAction;
-				foreach (string action in aiResult.TechnicalAction.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
-				{
-					var parts = action.Trim().Split(new[] { ':' }, 2);
-					string actionName = parts[0].Trim();
-					string payload = parts.Length > 1 ? parts[1].Trim() : "";
-					bool isStop = payload.Equals("STOP", StringComparison.OrdinalIgnoreCase);
-					if (npc.IsPrisoner && !isStop) continue;
-					if (isStop) AIActionManager.Instance?.StopAction(npc, actionName, showMessage: true);
-					else if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, actionName, payload) == true) AIActionManager.Instance?.StartAction(npc, actionName);
-				}
-			}
-			if (!string.IsNullOrEmpty(aiResult.WorkshopAction) && aiResult.WorkshopAction.Equals("sell", StringComparison.OrdinalIgnoreCase))
-				ProcessWorkshopSale(npc, context, aiResult.WorkshopStringId, aiResult.WorkshopPrice);
-			if (aiResult.MoneyTransfer != null && aiResult.MoneyTransfer.Amount > 0)
-				ProcessMoneyTransfer(npc, context, aiResult.MoneyTransfer);
-			if (aiResult.ItemTransfers != null && aiResult.ItemTransfers.Count > 0)
-			{
-				context.PendingItemTransfersOpposedAttribute = aiResult.ItemTransfersOpposedAttribute ?? aiResult.ItemTransfers.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.OpposedAttribute))?.OpposedAttribute;
-				ProcessItemTransfers(npc, context, aiResult.ItemTransfers);
-			}
-			if (!string.IsNullOrEmpty(aiResult.KingdomAction) && !aiResult.KingdomAction.Equals("none", StringComparison.OrdinalIgnoreCase))
-				ProcessKingdomAction(npc, aiResult, context);
-			if (aiResult.QuestAction != null && !string.IsNullOrEmpty(aiResult.QuestAction.Action))
-			{
-				var qa = aiResult.QuestAction;
-				GetDelayedTaskManager().AddTask(5.0, delegate { try { ProcessQuestAction(npc, GetOrCreateNPCContext(npc), qa); } catch (Exception ex) { LogMessage("[ERROR] Quest action failed: " + ex.Message); } });
-			}
-		}
-		if (aiResult.AllowsLettersFromNPC.HasValue && aiResult.AllowsLettersFromNPC.Value != context.AllowsLettersFromNPC)
-			context.AllowsLettersFromNPC = aiResult.AllowsLettersFromNPC.Value;
-		if (!string.IsNullOrEmpty(aiResult.RomanceIntent) && aiResult.RomanceIntent != "none")
-		{
-			context.LastRomanceInteractionDays = (int)CampaignTime.Now.ToDays;
-			context.RomanceLevel = Math.Min(100f, context.RomanceLevel + _random.Next(GlobalSettings<ModSettings>.Instance.MinRomanceChange, GlobalSettings<ModSettings>.Instance.MaxRomanceChange + 1) + (aiResult.RomanceIntent == "romance" ? 2 : 0));
-		}
+			ProcessLegacyJsonActions(npc, context, aiResult);
+		ApplyResponseMetadata(npc, npcName, context, aiResult);
 		if (aiResult.Tone == "positive")
 		{
 			int rel = _random.Next(GlobalSettings<ModSettings>.Instance.MinPositiveRelationChange, GlobalSettings<ModSettings>.Instance.MaxPositiveRelationChange + 1);
@@ -3528,34 +3490,43 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		return reply;
 	}
 
-	private async Task<string> ExecuteChatTool(string name, string argsJson, Hero npc, NPCContext context)
+	private void ProcessLegacyJsonActions(Hero npc, NPCContext context, AIResponse r)
 	{
-		try
+		context.LastTechnicalActionForDisplay = null;
+		if (!string.IsNullOrEmpty(r.TechnicalAction) && !r.TechnicalAction.Equals("none", StringComparison.OrdinalIgnoreCase))
 		{
-			var a = string.IsNullOrEmpty(argsJson) ? new JObject() : JObject.Parse(argsJson);
-			// Lookup tools - fuzzy finder returns valid string_ids
-			if (name == "find_settlements") { var results = ToolCatalog.FindSettlements(a["query"]?.ToString(), a["limit"]?.Value<int>() ?? 8); return JsonConvert.SerializeObject(results.Select(r => new { string_id = r.string_id, name = r.name }).ToList()); }
-			if (name == "find_parties") { var results = ToolCatalog.FindParties(npc, a["query"]?.ToString(), a["limit"]?.Value<int>() ?? 8); return JsonConvert.SerializeObject(results.Select(r => new { string_id = r.string_id, name = r.name }).ToList()); }
-			if (name == "find_items") { var results = ToolCatalog.FindItems(a["query"]?.ToString(), a["limit"]?.Value<int>() ?? 8); return JsonConvert.SerializeObject(results.Select(r => new { item_id = r.item_id, name = r.name }).ToList()); }
-			// Action tools - typed params, delegate to existing handlers
-			if (name == "follow_player") { if (npc.IsPrisoner) return "prisoner"; AIActionManager.Instance?.StopAction(npc, "follow_player"); if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "follow_player", "") == true) { AIActionManager.Instance?.StartAction(npc, "follow_player"); context.LastTechnicalActionForDisplay = "follow_player"; } return "ok"; }
-			if (name == "stop_action") { var an = a["action_name"]?.ToString(); if (string.IsNullOrEmpty(an)) return "missing"; AIActionManager.Instance?.StopAction(npc, an, showMessage: true); return "stopped"; }
-			if (name == "go_to_settlement") { var sid = a["settlement_id"]?.ToString(); if (string.IsNullOrEmpty(sid)) return "use find_settlements first"; var days = a["wait_days"]?.Value<float>() ?? 3f; var p = sid + ":" + days; if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "go_to_settlement", p) == true) { AIActionManager.Instance?.StartAction(npc, "go_to_settlement"); context.LastTechnicalActionForDisplay = p; return "ok"; } return "failed"; }
-			if (name == "attack_party") { var pid = a["party_id"]?.ToString(); if (string.IsNullOrEmpty(pid)) return "use find_parties first"; var tr = a["then_return"]?.Value<bool>() ?? false; var param = tr ? pid + ",then:return" : pid; if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "attack_party", param) == true) { AIActionManager.Instance?.StartAction(npc, "attack_party"); context.LastTechnicalActionForDisplay = param; return "ok"; } return "failed"; }
-			if (name == "raid_village") { var vid = a["village_id"]?.ToString(); if (string.IsNullOrEmpty(vid)) return "use find_settlements first"; if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "raid_village", vid) == true) { AIActionManager.Instance?.StartAction(npc, "raid_village"); context.LastTechnicalActionForDisplay = vid; return "ok"; } return "failed"; }
-			if (name == "patrol_settlement") { var sid = a["settlement_id"]?.ToString(); if (string.IsNullOrEmpty(sid)) return "use find_settlements first"; var days = a["days"]?.Value<float>() ?? 5f; var p = sid + ":" + days; if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "patrol_settlement", p) == true) { AIActionManager.Instance?.StartAction(npc, "patrol_settlement"); context.LastTechnicalActionForDisplay = p; return "ok"; } return "failed"; }
-			if (name == "wait_near_settlement") { var sid = a["settlement_id"]?.ToString(); if (string.IsNullOrEmpty(sid)) return "use find_settlements first"; var days = a["days"]?.Value<float>() ?? 2f; var p = sid + ":" + days; if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "wait_near_settlement", p) == true) { AIActionManager.Instance?.StartAction(npc, "wait_near_settlement"); context.LastTechnicalActionForDisplay = p; return "ok"; } return "failed"; }
-			if (name == "siege_settlement") { var sid = a["settlement_id"]?.ToString(); if (string.IsNullOrEmpty(sid)) return "use find_settlements first"; if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "siege_settlement", sid) == true) { AIActionManager.Instance?.StartAction(npc, "siege_settlement"); context.LastTechnicalActionForDisplay = sid; return "ok"; } return "failed"; }
-			if (name == "create_party") { if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "create_party", "") == true) { AIActionManager.Instance?.StartAction(npc, "create_party"); return "ok"; } return "failed"; }
-			if (name == "create_rp_item") { var itemName = a["name"]?.ToString(); var desc = a["description"]?.ToString() ?? ""; if (string.IsNullOrEmpty(itemName)) return "missing name"; var p = itemName + "|" + desc; if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "create_rp_item", p) == true) { AIActionManager.Instance?.StartAction(npc, "create_rp_item"); context.LastTechnicalActionForDisplay = itemName; return "ok"; } return "failed"; }
-			if (name == "transfer_money") { var m = new MoneyTransferInfo { Action = a["action"]?.ToString(), Amount = a["amount"]?.Value<int>() ?? 0, OpposedAttribute = a["opposed_attribute"]?.ToString() }; if (m.Amount > 0) ProcessMoneyTransfer(npc, context, m); return "ok"; }
-			if (name == "transfer_items") { var list = new List<ItemTransferData>(); foreach (var i in a["items"] as JArray ?? new JArray()) list.Add(new ItemTransferData { ItemId = i["item_id"]?.ToString(), Amount = i["amount"]?.Value<int>() ?? 1, Action = i["action"]?.ToString() }); if (list.Count > 0) { context.PendingItemTransfersOpposedAttribute = a["opposed_attribute"]?.ToString(); ProcessItemTransfers(npc, context, list); } return "ok"; }
-			if (name == "workshop_sell") { ProcessWorkshopSale(npc, context, a["workshop_string_id"]?.ToString(), a["price"]?.Value<int>() ?? 0); return "ok"; }
-			if (name == "kingdom_action") { var r = new AIResponse { KingdomAction = a["action"]?.ToString(), KingdomActionReason = "" }; if (!string.IsNullOrEmpty(r.KingdomAction)) ProcessKingdomAction(npc, r, context); return "ok"; }
-			if (name == "quest_action") { var q = a["quest"]?.ToString(); if (!string.IsNullOrEmpty(q)) { var qa = JsonConvert.DeserializeObject<QuestActionData>(q); if (qa != null) ProcessQuestAction(npc, context, qa); } return "ok"; }
-			return "unknown";
+			context.LastTechnicalActionForDisplay = r.TechnicalAction;
+			foreach (string a in r.TechnicalAction.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
+			{
+				var p = a.Trim().Split(new[] { ':' }, 2);
+				var name = p[0].Trim();
+				var payload = p.Length > 1 ? p[1].Trim() : "";
+				if (npc.IsPrisoner && !payload.Equals("STOP", StringComparison.OrdinalIgnoreCase)) continue;
+				if (payload.Equals("STOP", StringComparison.OrdinalIgnoreCase)) AIActionManager.Instance?.StopAction(npc, name, showMessage: true);
+				else if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, name, payload) == true) AIActionManager.Instance?.StartAction(npc, name);
+			}
 		}
-		catch (Exception ex) { LogMessage("[ChatTool] " + name + ": " + ex.Message); return "error"; }
+		if (r.WorkshopAction?.Equals("sell", StringComparison.OrdinalIgnoreCase) == true) ProcessWorkshopSale(npc, context, r.WorkshopStringId, r.WorkshopPrice);
+		if (r.MoneyTransfer?.Amount > 0) ProcessMoneyTransfer(npc, context, r.MoneyTransfer);
+		if (r.ItemTransfers?.Count > 0) { context.PendingItemTransfersOpposedAttribute = r.ItemTransfersOpposedAttribute ?? r.ItemTransfers.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.OpposedAttribute))?.OpposedAttribute; ProcessItemTransfers(npc, context, r.ItemTransfers); }
+		if (!string.IsNullOrEmpty(r.KingdomAction) && !r.KingdomAction.Equals("none", StringComparison.OrdinalIgnoreCase)) ProcessKingdomAction(npc, r, context);
+		if (r.QuestAction?.Action != null) { var qa = r.QuestAction; GetDelayedTaskManager().AddTask(5.0, delegate { try { ProcessQuestAction(npc, GetOrCreateNPCContext(npc), qa); } catch (Exception ex) { LogMessage("[ERROR] Quest: " + ex.Message); } }); }
+	}
+
+	private void ApplyResponseMetadata(Hero npc, string npcName, NPCContext context, AIResponse r)
+	{
+		if (r.AllowsLettersFromNPC.HasValue && r.AllowsLettersFromNPC.Value != context.AllowsLettersFromNPC) context.AllowsLettersFromNPC = r.AllowsLettersFromNPC.Value;
+		if (r.RomanceIntent?.Equals("none", StringComparison.OrdinalIgnoreCase) != true)
+		{
+			context.LastRomanceInteractionDays = (int)CampaignTime.Now.ToDays;
+			context.RomanceLevel = Math.Min(100f, context.RomanceLevel + _random.Next(GlobalSettings<ModSettings>.Instance.MinRomanceChange, GlobalSettings<ModSettings>.Instance.MaxRomanceChange + 1) + (r.RomanceIntent == "romance" ? 2 : 0));
+		}
+	}
+
+	private Task<string> ExecuteChatTool(string name, string argsJson, Hero npc, NPCContext context)
+	{
+		try { return Task.FromResult(ToolHandlers.Run(name, argsJson, npc, context, this)); }
+		catch (Exception ex) { LogMessage("[ChatTool] " + name + ": " + ex.Message); return Task.FromResult("error"); }
 	}
 
 	public async Task HandlePlayerDiplomaticInput()

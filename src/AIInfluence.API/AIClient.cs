@@ -234,49 +234,50 @@ public static class AIClient
 		if (!GlobalSettings<ModSettings>.Instance.EnableModification)
 			return GenerateErrorResponse("I am not inclined to speak at this moment.");
 		var (systemPrompt, userMessage, _) = ExtractLastPlayerMessage(prompt);
-		var toolPreamble = "\n\n**TOOLS:** Use find_settlements/find_parties/find_items to get valid string_ids before actions. Then use action tools. Final message = JSON with response, decision, tone, suspected_lie, character_death, marriage, character_personality/backstory/quirks, allows_letters.\n";
-		JArray messages = new JArray { new JObject { ["role"] = "system", ["content"] = systemPrompt + toolPreamble }, new JObject { ["role"] = "user", ["content"] = userMessage } };
-		JArray tools = ChatTools.ToolCatalog.GetToolsForApi();
-		for (int i = 0; i < 5; i++)
+		var messages = new JArray
 		{
-			JObject body = new JObject
-			{
-				["model"] = GlobalSettings<ModSettings>.Instance.AIModel,
-				["messages"] = messages,
-				["tools"] = tools
-			};
-			string json = body.ToString();
-			using var content = new StringContent(json, Encoding.UTF8, "application/json");
-			httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GlobalSettings<ModSettings>.Instance.ApiKey);
-			var response = await httpClient.PostAsync("https://openrouter.ai/api/v1/chat/completions", content);
-			response.EnsureSuccessStatusCode();
-			JObject data = JObject.Parse(await response.Content.ReadAsStringAsync());
-			JToken msg = data?["choices"]?[0]?["message"];
+			new JObject { ["role"] = "system", ["content"] = systemPrompt + "\n\n**TOOLS:** Use find_settlements/find_parties/find_items for string_ids. Final message = JSON with response, decision, tone, suspected_lie, character_death, marriage, character_personality/backstory/quirks, allows_letters.\n" },
+			new JObject { ["role"] = "user", ["content"] = userMessage }
+		};
+		var tools = ChatTools.ToolCatalog.GetToolsForApi();
+		for (int turn = 0; turn < 5; turn++)
+		{
+			var msg = await SendToolRequest(messages, tools);
 			if (msg == null) return GenerateErrorResponse("Invalid response.");
-			string finishReason = msg["finish_reason"]?.ToString();
-			JArray toolCalls = msg["tool_calls"] as JArray;
+			var toolCalls = msg["tool_calls"] as JArray;
 			if (toolCalls != null && toolCalls.Count > 0)
 			{
 				messages.Add(msg);
 				foreach (JToken tc in toolCalls)
 				{
-					string id = tc["id"]?.ToString();
-					string name = tc["function"]?["name"]?.ToString();
-					string args = tc["function"]?["arguments"]?.ToString() ?? "{}";
-					string result = await onToolCall(name ?? "", args);
-					messages.Add(new JObject { ["role"] = "tool", ["tool_call_id"] = id ?? "", ["content"] = result ?? "" });
+					messages.Add(new JObject
+					{
+						["role"] = "tool",
+						["tool_call_id"] = tc["id"]?.ToString() ?? "",
+						["content"] = await onToolCall(tc["function"]?["name"]?.ToString() ?? "", tc["function"]?["arguments"]?.ToString() ?? "{}")
+					});
 				}
 				continue;
 			}
-			string contentStr = msg["content"]?.ToString();
+			var contentStr = msg["content"]?.ToString();
 			if (!string.IsNullOrEmpty(contentStr))
 			{
-				if (onStream != null) onStream(contentStr);
+				onStream?.Invoke(contentStr);
 				return contentStr;
 			}
 			return GenerateErrorResponse("Empty response.");
 		}
 		return GenerateErrorResponse("Too many tool turns.");
+	}
+
+	private static async Task<JToken> SendToolRequest(JArray messages, JArray tools)
+	{
+		var body = new JObject { ["model"] = GlobalSettings<ModSettings>.Instance.AIModel, ["messages"] = messages, ["tools"] = tools };
+		using var content = new StringContent(body.ToString(), Encoding.UTF8, "application/json");
+		httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GlobalSettings<ModSettings>.Instance.ApiKey);
+		var response = await httpClient.PostAsync("https://openrouter.ai/api/v1/chat/completions", content);
+		response.EnsureSuccessStatusCode();
+		return JObject.Parse(await response.Content.ReadAsStringAsync())?["choices"]?[0]?["message"];
 	}
 
 	private static async Task<string> GetDeepSeekResponse(string npcName, string faction, string prompt)

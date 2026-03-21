@@ -59,7 +59,7 @@ public static class ToolCatalog
 			Tool("workshop_sell", "Sell workshop to player.",
 				"{\"workshop_string_id\":{\"type\":\"string\"},\"price\":{\"type\":\"integer\"}}", new[] { "workshop_string_id", "price" }),
 			Tool("kingdom_action", "Diplomatic action. Pass raw action string.", "{\"action\":{\"type\":\"string\"}}", new[] { "action" }),
-			Tool("quest_action", "Create/update quest. Pass JSON object.", "{\"quest\":{\"type\":\"object\"}}", new[] { "quest" })
+			Tool("quest_action", "Create/update quest. category: Combat|Negotiation|Intrigue|Escort|Gather|Other. Pass JSON object.", "{\"quest\":{\"type\":\"object\"},\"category\":{\"type\":\"string\",\"enum\":[\"Combat\",\"Negotiation\",\"Intrigue\",\"Escort\",\"Gather\",\"Other\"]}}", new[] { "quest", "category" })
 		};
 	}
 
@@ -120,21 +120,15 @@ public static class ToolCatalog
 		return list;
 	}
 
-	/// <summary>Fuzzy search items. Returns [{item_id, name}].</summary>
+	/// <summary>Fuzzy search items. Use ItemMentionParser for single best match; this returns multiple by simple Contains.</summary>
 	public static List<(string item_id, string name)> FindItems(string query, int limit = 8)
 	{
 		if (string.IsNullOrWhiteSpace(query)) return new List<(string, string)>();
 		var q = query.Trim().ToLowerInvariant();
-		var list = new List<(string id, string name)>();
-		foreach (var i in (IEnumerable<ItemObject>)Items.All ?? Enumerable.Empty<ItemObject>())
-		{
-			if (i == null) continue;
-			var name = i.Name?.ToString()?.ToLowerInvariant() ?? "";
-			var id = i.StringId ?? "";
-			if (name.Contains(q) || id.ToLowerInvariant().Contains(q))
-				list.Add((id, i.Name?.ToString() ?? id));
-			if (list.Count >= limit) break;
-		}
-		return list;
+		return (Items.All as IEnumerable<ItemObject> ?? Enumerable.Empty<ItemObject>())
+			.Where(i => i != null && ((i.Name?.ToString() ?? "").ToLowerInvariant().Contains(q) || (i.StringId ?? "").ToLowerInvariant().Contains(q)))
+			.Take(limit)
+			.Select(i => (i.StringId, i.Name?.ToString() ?? i.StringId))
+			.ToList();
 	}
 }
