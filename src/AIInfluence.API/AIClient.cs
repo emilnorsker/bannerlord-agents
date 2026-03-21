@@ -240,12 +240,9 @@ public static class AIClient
 			new JObject { ["role"] = "user", ["content"] = userMessage }
 		};
 		var tools = ChatTools.ToolCatalog.GetToolsForApi();
-		const int MaxToolRounds = 5;
 
 		// Agent loop: call model until it returns final text (not tool calls).
-		// Model either returns tool_calls (we execute, append results, call again)
-		// or content (final JSON response – we're done).
-		for (int round = 0; round < MaxToolRounds; round++)
+		for (int round = 0; round < 5; round++)
 		{
 			JToken assistantMessage = await SendToolRequest(messages, tools);
 			if (assistantMessage == null)
@@ -280,7 +277,7 @@ public static class AIClient
 			return GenerateErrorResponse("Empty response.");
 		}
 
-		return GenerateErrorResponse("Too many tool rounds.");
+		return GenerateErrorResponse("Too many tool turns.");
 	}
 
 	private static async Task<JToken> SendToolRequest(JArray messages, JArray tools)

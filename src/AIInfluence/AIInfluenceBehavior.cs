@@ -3463,8 +3463,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			LogMessage("[ChatWindow] HandleAIDecision failed: " + ex3.Message);
 		}
-		if (toolExecutor == null)
-			ProcessLegacyJsonActions(npc, context, aiResult);
 		ApplyResponseMetadata(npc, npcName, context, aiResult);
 		if (aiResult.Tone == "positive")
 		{
@@ -3488,29 +3486,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		if (decisionHandled && string.Equals(aiResult.Decision, "attack", StringComparison.OrdinalIgnoreCase))
 			InitiateCombatLogic(npc, context);
 		return reply;
-	}
-
-	private void ProcessLegacyJsonActions(Hero npc, NPCContext context, AIResponse r)
-	{
-		context.LastTechnicalActionForDisplay = null;
-		if (!string.IsNullOrEmpty(r.TechnicalAction) && !r.TechnicalAction.Equals("none", StringComparison.OrdinalIgnoreCase))
-		{
-			context.LastTechnicalActionForDisplay = r.TechnicalAction;
-			foreach (string a in r.TechnicalAction.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
-			{
-				var p = a.Trim().Split(new[] { ':' }, 2);
-				var name = p[0].Trim();
-				var payload = p.Length > 1 ? p[1].Trim() : "";
-				if (npc.IsPrisoner && !payload.Equals("STOP", StringComparison.OrdinalIgnoreCase)) continue;
-				if (payload.Equals("STOP", StringComparison.OrdinalIgnoreCase)) AIActionManager.Instance?.StopAction(npc, name, showMessage: true);
-				else if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, name, payload) == true) AIActionManager.Instance?.StartAction(npc, name);
-			}
-		}
-		if (r.WorkshopAction?.Equals("sell", StringComparison.OrdinalIgnoreCase) == true) ProcessWorkshopSale(npc, context, r.WorkshopStringId, r.WorkshopPrice);
-		if (r.MoneyTransfer?.Amount > 0) ProcessMoneyTransfer(npc, context, r.MoneyTransfer);
-		if (r.ItemTransfers?.Count > 0) { context.PendingItemTransfersOpposedAttribute = r.ItemTransfersOpposedAttribute ?? r.ItemTransfers.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.OpposedAttribute))?.OpposedAttribute; ProcessItemTransfers(npc, context, r.ItemTransfers); }
-		if (!string.IsNullOrEmpty(r.KingdomAction) && !r.KingdomAction.Equals("none", StringComparison.OrdinalIgnoreCase)) ProcessKingdomAction(npc, r, context);
-		if (r.QuestAction?.Action != null) { var qa = r.QuestAction; GetDelayedTaskManager().AddTask(5.0, delegate { try { ProcessQuestAction(npc, GetOrCreateNPCContext(npc), qa); } catch (Exception ex) { LogMessage("[ERROR] Quest: " + ex.Message); } }); }
 	}
 
 	private void ApplyResponseMetadata(Hero npc, string npcName, NPCContext context, AIResponse r)
