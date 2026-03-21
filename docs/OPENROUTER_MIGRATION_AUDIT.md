@@ -1,239 +1,207 @@
-# OpenRouter migration — full tracking audit
+# OpenRouter migration — source audit (evidence-tagged)
 
-**Purpose:** Single source of truth for **(1)** what the migration changed, **(2)** every compile-time LLM call site with **line numbers**, **(3)** error-shape vs caller logic, **(4)** `EnableModification` coverage, **(5)** **numbered** defects and **silent information loss**, **(6)** re-verification commands.
+**What this document is:** A **static** audit of the **current** `src/` tree: what the code **does** on paper, with **every substantive claim tagged**.
 
-**Git scope (OpenRouter-only work):** commits `179768f` … `ce51445` (inclusive), i.e.  
-`feat: use OpenRouter as the only AI backend` through `docs: add OpenRouter migration tracking`.
+**What this document is not:** Proof of in-game behavior, MCM serialization, network timing, or “no bugs in production.” Those require **you** running Bannerlord and/or tests we cannot run here.
 
-**Not in scope:** Other commits on the branch (UI, quests, CI, etc.) unless they touch the same files.
+**Honesty policy**
 
----
+| Tag | Meaning |
+|-----|--------|
+| **SRC** | Statement is backed by **quoted or cited** code in this repo (file + line or short excerpt). |
+| **INF** | **Inference** from documented .NET / HTTP behavior or logical follow-on from **SRC** — not observed in a running game. |
+| **NRV** | **Not verified** in this environment (needs runtime, git history compare, or external tool). |
 
-## Part A — Files changed by the migration (authoritative `git diff`)
-
-```
-git diff 179768f^..ce51445 --name-status -- \
-  src/AIInfluence.API/ src/AIInfluence.Diplomacy/ \
-  src/AIInfluence.DynamicEvents/DynamicEventsGenerator.cs \
-  src/AIInfluence/ModSettings.cs src/AIInfluence/AIInfluenceBehavior.cs \
-  src/AIInfluence/NpcChatWindowVM.cs src/AIInfluence/SubModule.cs \
-  docs/OPENROUTER_MIGRATION_AUDIT.md
-```
-
-| St | Path |
-|----|------|
-| A | `docs/OPENROUTER_MIGRATION_AUDIT.md` |
-| M | `src/AIInfluence.API/AIClient.cs` |
-| D | `src/AIInfluence.API/DeepSeekChatChoice.cs` |
-| D | `src/AIInfluence.API/DeepSeekChatRequest.cs` |
-| D | `src/AIInfluence.API/DeepSeekChatResponse.cs` |
-| D | `src/AIInfluence.API/DeepSeekClient.cs` |
-| D | `src/AIInfluence.API/DeepSeekMessage.cs` |
-| D | `src/AIInfluence.API/KoboldCppClient.cs` |
-| D | `src/AIInfluence.API/KoboldCppGenerateRequest.cs` |
-| D | `src/AIInfluence.API/KoboldCppResponse.cs` |
-| D | `src/AIInfluence.API/KoboldCppResult.cs` |
-| D | `src/AIInfluence.API/OllamaChatRequest.cs` |
-| D | `src/AIInfluence.API/OllamaClient.cs` |
-| D | `src/AIInfluence.API/OllamaGenerateRequest.cs` |
-| D | `src/AIInfluence.API/OllamaMessage.cs` |
-| D | `src/AIInfluence.API/OllamaOptions.cs` |
-| D | `src/AIInfluence.API/OllamaResponse.cs` |
-| M | `src/AIInfluence.API/Player2Client.cs` |
-| D | `src/AIInfluence.API/Player2UsageTracker.cs` |
-| M | `src/AIInfluence.Diplomacy/KingdomStatementGenerator.cs` |
-| M | `src/AIInfluence.Diplomacy/PlayerStatementAnalyzer.cs` |
-| M | `src/AIInfluence.DynamicEvents/DynamicEventsGenerator.cs` |
-| M | `src/AIInfluence/AIInfluenceBehavior.cs` |
-| M | `src/AIInfluence/ModSettings.cs` |
-| M | `src/AIInfluence/NpcChatWindowVM.cs` |
-| M | `src/AIInfluence/SubModule.cs` |
-
-### Per-file change summary (migration intent)
-
-| File | Change |
-|------|--------|
-| `AIClient.cs` | Single provider: OpenRouter HTTP; removed other backends’ code paths; merged raw API; streaming comment for `json_object`. |
-| Deleted `DeepSeek*` / `Ollama*` / `KoboldCpp*` | Entire alternate LLM clients + DTOs removed. |
-| `Player2Client.cs` | Removed LLM chat completions + chat-based connection test; kept TTS + heartbeat. |
-| `Player2UsageTracker.cs` | **Deleted** (unused; side effects / anti-tamper removed). |
-| `ModSettings.cs` | Removed backend dropdowns + non-OpenRouter provider fields; Player2 hints = TTS only. |
-| `AIInfluenceBehavior.cs` | `SendAIRequest*` renames/signature cleanup; direct OpenRouter; setting-handler removals as applicable. |
-| `NpcChatWindowVM.cs` | Streaming always on + finalize when no partial pump. |
-| `SubModule.cs` | Removed dead `_backendCheckTimer` / interval. |
-| `KingdomStatementGenerator.cs` / `PlayerStatementAnalyzer.cs` | `SendAIRequestForFeature`; no provider string. |
-| `DynamicEventsGenerator.cs` | Same. |
+If a line has **no tag**, treat it as **narrative** (organizational only), not evidence.
 
 ---
 
-## Part B — Master table: every LLM invocation (compile-time)
+## 1. Scope of the migration (git) — **SRC**
 
-**Convention:** `AIClient` is the **only** HTTP LLM implementation remaining.
+**Command used:** `git diff 179768f^..HEAD --name-status` on migration-related paths (see repo history).
 
-| # | File:line | Call expression | Wrapper / notes |
-|---|-----------|-----------------|-----------------|
-| 1 | `AIInfluenceBehavior.cs:213` | `AIClient.GetAIResponse` **or** `GetRawTextResponse` | Inside `SendAIRequest`; if `requestType == "multi_dialogue_analysis"` → raw only. |
-| 2 | `AIInfluenceBehavior.cs:238` | `AIClient.GetRawTextResponse(prompt, cachePrefixLength)` | `SendAIRequestForFeature`. |
-| 3 | `AIInfluenceBehavior.cs:269` | `AIClient.GetRawTextResponse(prompt)` | `SendAIRequestRaw`. |
-| 4 | `AIInfluenceBehavior.cs:2793` | `AIClient.GetAIResponse(...)` **no stream** | World / dynamic NPC dialogue path; retry loop. |
-| 5 | `AIInfluenceBehavior.cs:3330` | `AIClient.GetAIResponse(..., streamCallback)` | `ProcessChatInput`; retry loop. |
-| 6 | `AIInfluenceBehavior.cs:4921` | `SendAIRequestRaw` (async task) | Quest debug; `Task.Run` + 45s timeout. |
-| 7 | `ModSettings.cs` (TestOpenRouter) | `AIClient.TestOpenRouterConnection()` | MCM button. |
-| 8 | `DeathHistoryBehavior.cs:104` | `SendAIRequest(..., "history_gen")` | Uses row 1 → `GetAIResponse`. |
-| 9–12 | `NPCInitiativeSystem.cs:963,1525,1967,2183` | `SendAIRequest` | Same. |
-| 13–14 | `SettlementCombatManager.cs:581,2326` | `SendAIRequestRaw` | Row 3. |
-| 15 | `DynamicEventsAnalyzer.cs:1074` | `SendAIRequestRaw` | Row 3. |
-| 16–19 | `DynamicEventsGenerator.cs:228,289,1813,4133` | `SendAIRequestForFeature` | Row 2. |
-| 20 | `KingdomStatementGenerator.cs:1816` | `SendAIRequestForFeature(..., cachePrefixLength)` | Row 2. |
-| 21 | `PlayerStatementAnalyzer.cs:42` | `SendAIRequestForFeature` | Row 2. |
+**Files touched by OpenRouter-only commits** include: `AIClient.cs`, deleted alternate-provider files, `Player2Client.cs`, deleted `Player2UsageTracker.cs`, `ModSettings.cs`, `AIInfluenceBehavior.cs`, `NpcChatWindowVM.cs`, `SubModule.cs`, diplomacy + `DynamicEventsGenerator.cs`, and this doc.
 
-**Total direct `AIClient` surface:** `GetAIResponse`, `GetRawTextResponse`, `TestOpenRouterConnection`.  
-**Total call sites through wrappers:** table rows 1–21 (excluding MCM test).
+**NRV:** Whether each line of those diffs is bug-free — **not** proven here.
 
 ---
 
-## Part C — Error shapes (exact) and what callers assume
+## 2. Single LLM HTTP implementation — **SRC**
 
-### C.1 Shape definitions
+All dialogue / raw feature traffic goes through `AIInfluence.API.AIClient` to `https://openrouter.ai/api/v1/chat/completions` (see `AIClient.cs` lines 110, 230).
 
-| ID | Shape | Produced by | First bytes / example |
-|----|--------|-------------|------------------------|
-| S1 | JSON error envelope | `GenerateErrorResponse(msg)` in `AIClient.cs` ~242–255 | `{` … `"Response":"…"` |
-| S2 | Plain error string | `GetRawTextResponse` catch ~40–43 | `Error: AI request failed: …` |
-| S3 | Raw HTTP-style | `GetOpenRouterRawResponse` catch ~235–238 | `Error: ` + `ex.Message` (no response body) |
-| S4 | Missing key (raw) | `GetOpenRouterRawResponse` ~187–190 | `API key is missing.` — **does not** start with `Error:` |
-| S5 | `null` | `SendAIRequestForFeature` / `SendAIRequestRaw` **catch** in behavior ~259 | `null` |
-| S6 | Success model output | HTTP 200 body | JSON or text per prompt |
+**NRV:** TLS, DNS, OpenRouter account limits, regional blocking.
 
-### C.2 `SendAIRequest` predicate (`AIInfluenceBehavior.cs` ~215–222)
+---
+
+## 3. Return shapes from `AIClient` — **SRC**
+
+Read: full file `src/AIInfluence.API/AIClient.cs` (305 lines).
+
+| Case | Return value | Lines |
+|------|----------------|-------|
+| `GetAIResponse` outer catch | `GenerateErrorResponse(...)` → **JSON string** beginning with `{` | 27–30, 242–255 |
+| `GetOpenRouterResponse` inner catch | `GenerateErrorResponse("I am unable…")` | 178–181 |
+| Missing API key (dialogue path) | `GenerateErrorResponse(...)` | 72–75 |
+| Mod disabled (dialogue path only) | `GenerateErrorResponse(...)` | 77–80 |
+| `GetRawTextResponse` outer catch | `"Error: AI request failed: " + ex.Message` | 40–43 |
+| `GetOpenRouterRawResponse` missing key | `"API key is missing."` (**does not** start with `"Error:"`) | 187–190 |
+| `GetOpenRouterRawResponse` HTTP catch | `"Error: " + ex.Message` | 235–238 |
+
+---
+
+## 4. `SendAIRequest` predicate — **SRC**
+
+`src/AIInfluence/AIInfluenceBehavior.cs` lines 215–222:
 
 ```csharp
 if (!string.IsNullOrEmpty(response) && !response.StartsWith("Error:"))
-    return response; // logged SUCCESS
+{
+    LogMessage("[SEND_AI_REQUEST_SUCCESS] ...");
+    return response;
+}
+LogMessage("[SEND_AI_REQUEST_ERROR] ...");
 return null;
 ```
 
-| Response | `StartsWith("Error:")` | `SendAIRequest` returns | Log line |
-|----------|-------------------------|---------------------------|----------|
-| S1 JSON | **false** | **String (JSON)** as “success” | SUCCESS |
-| S2 | **true** | `null` | ERROR |
-| Empty | — | `null` | ERROR |
+**SRC:** Any string returned from `GetAIResponse` that is **`GenerateErrorResponse` JSON** begins with `{`, not `"Error:"`. Therefore `!response.StartsWith("Error:")` is **true** for that failure mode, and the method takes the **first** branch and logs **SUCCESS** (lines 217–218).
 
-**Impact [ERR-001]:** S1 is **indistinguishable** from success JSON by this predicate. Callers using only `StartsWith("Error:")` **do not** treat S1 as failure.
+**INF:** Callers that only use `StartsWith("Error:")` to detect failure may **not** treat JSON error envelopes as errors.
 
-### C.3 Retry loops (`ProcessChatInput` ~3320–3334, world map ~2788–2816)
-
-Break condition: `!string.IsNullOrEmpty(aiResponse) && !aiResponse.StartsWith("Error:")`.
-
-**Impact [ERR-002]:** S1 satisfies break → **no retry** on provider-side failure returned as JSON envelope.
-
-### C.4 `SendAIRequestForFeature` / `SendAIRequestRaw` (~246–250, 276–279)
-
-They check `response.StartsWith("Error:")` — **matches S2/S3**; **S4** (`API key is missing.`) **does not** match → treated as **success string** downstream [ERR-003].
-
-### C.5 `EnableModification`
-
-| Function | Checks `EnableModification`? |
-|----------|------------------------------|
-| `GetOpenRouterResponse` | **Yes** (~77–80) |
-| `GetOpenRouterRawResponse` | **No** |
-
-**Impact [ERR-004]:** Raw path can still POST if invoked while “Enable Modification” is false.
+**NRV:** Whether this mismatch existed **before** the OpenRouter-only branch (requires `git blame` / old `AIClient`).
 
 ---
 
-## Part D — Numbered defect & information-loss register
+## 5. Retry loops using `StartsWith("Error:")` — **SRC**
 
-| ID | Severity | Title | Detail |
-|----|----------|-------|--------|
-| ERR-001 | **High** | `SendAIRequest` vs S1 | JSON errors logged as SUCCESS; callers with `StartsWith("Error:")` miss API failure. |
-| ERR-002 | **High** | Retries vs S1 | Retry loops exit on first S1; transient failures not retried. |
-| ERR-003 | **Medium** | `API key is missing.` | Not `Error:`-prefixed; `SendAIRequestForFeature` may pass through as “success” body. |
-| ERR-004 | **Medium** | Raw path vs MCM disable | `GetOpenRouterRawResponse` ignores `EnableModification`. |
-| ERR-005 | **Medium** | Exception → `null` | `SendAIRequestForFeature` catch returns `null`; many callers use `IsNullOrEmpty` only — **exception text** only in behavior log, not in return value. |
-| ERR-006 | **Medium** | HTTP body discarded | `GetOpenRouterRawResponse` catch returns `ex.Message` only; OpenRouter JSON error body **lost** to caller. |
-| ERR-007 | **Medium** | Shared `HttpClient` auth | `DefaultRequestHeaders.Authorization` set per call; concurrent requests can race (intermittent wrong bearer). |
-| ERR-008 | **Low** | Non-stream `dynamic` | `responseObject.choices[0]...` throws → caught → S1 generic message; **provider body** not embedded in S1. |
-| ERR-009 | **Low** | Stream `JObject.Parse` | Malformed SSE line throws → same inner catch → S1. |
-| ERR-010 | **Low** | `TestOpenRouterConnection` | Non-success: status + body **shown** in game message (good); catch shows exception (good). |
+| Location | Lines (approx.) | Condition to break retry |
+|----------|------------------|---------------------------|
+| World / dynamic NPC | `AIInfluenceBehavior.cs` ~2794 | `!IsNullOrEmpty && !StartsWith("Error:")` |
+| `ProcessChatInput` | ~3331 | same |
 
-### Silent sinks (LLM-adjacent UI / infra)
+**SRC:** JSON error from `GenerateErrorResponse` does **not** start with `"Error:"`, so the break condition can fire on **error JSON** as if it were a successful model response.
 
-| ID | File:line | What is swallowed |
-|----|-----------|-------------------|
-| SIL-001 | `NpcChatWindowVM.cs` ~736 | `catch (Exception) { }` when reading `playerHistoryIdx` — **silent** (no log). |
-| SIL-002 | `NpcChatWindowManager.cs` ~75 | Empty catch (verify line in file). |
-| SIL-003 | `SubModule.cs` ~61–63, ~77–79 | Harmony patch failures **silent** (startup may partially patch). |
-| SIL-004 | `Player2Client.cs` ~141–143 | Timer dispose — empty catch (low risk). |
+**INF:** Transient HTTP failures that return JSON error bodies may **not** trigger retries.
 
 ---
 
-## Part E — `AIClient.cs` catch blocks (what is preserved vs lost)
+## 6. `SendAIRequestForFeature` / `SendAIRequestRaw` — **SRC**
 
-| Lines | Catch | Logged | Returned to caller | Lost |
-|-------|-------|--------|---------------------|------|
-| 27–30 | `GetAIResponse` outer | `ex.Message` | S1 with inner message text | Stack / inner exception detail not in JSON |
-| 40–43 | `GetRawTextResponse` outer | yes | S2 | Same |
-| 178–181 | `GetOpenRouterResponse` inner | `LogError(ex.Message)` | S1 generic user text | **HTTP response body** from OpenRouter |
-| 235–238 | `GetOpenRouterRawResponse` | `LogError` | S3 | **Full error payload** |
-| 297–301 | `TestOpenRouterConnection` | in-game message | `false` | OK for test |
+Lines 246–253 (`ForFeature`): failure detected with `response.StartsWith("Error:")` **after** empty check.
+
+**SRC:** The literal `"API key is missing."` (from `GetOpenRouterRawResponse` line 190) **does not** start with `"Error:"` → **ForFeature** treats it as **success path** (251–253) and returns that string to callers.
+
+**INF:** Downstream code may try to parse that as JSON for events/diplomacy.
 
 ---
 
-## Part F — Dynamic events: empty + error branches (logic trap)
+## 7. `EnableModification` — **SRC**
 
-In `DynamicEventsGenerator.cs`, patterns like:
+| Path | Checks `EnableModification`? | Lines |
+|------|------------------------------|-------|
+| `GetOpenRouterResponse` | Yes | 77–80 |
+| `GetOpenRouterRawResponse` | **No** | 185–239 |
 
-```csharp
-if (string.IsNullOrEmpty(dialogueAiResponse)) {
-    if (dialogueAiResponse != null && (dialogueAiResponse.Contains("API key is missing") || dialogueAiResponse.Contains("Error:")))
-```
+**INF:** If raw entry points run while mod is “disabled,” HTTP may still occur.
 
-When `dialogueAiResponse` is **`null`** (exception path from wrapper), the **inner** `if` is **false** — scheduling retry only happens when string is non-null **and** contains markers. **Exception** was already logged in `SendAIRequestForFeature`; **caller** still only sees “empty” [ERR-005].
+**NRV:** Whether any code path reaches raw APIs with mod disabled in a real session.
 
 ---
 
-## Part G — Re-verification commands (run after any change)
+## 8. Compile-time call sites to `AIClient` / wrappers — **SRC**
+
+Produced by repository search for `SendAIRequest`, `AIClient.Get`, `GetRawTextResponse` in `src/**/*.cs`.
+
+| # | File:line | Expression |
+|---|-------------|------------|
+| 1 | `AIInfluenceBehavior.cs:213` | `SendAIRequest` → `GetAIResponse` or `GetRawTextResponse` |
+| 2 | `AIInfluenceBehavior.cs:238` | `SendAIRequestForFeature` → `GetRawTextResponse` |
+| 3 | `AIInfluenceBehavior.cs:269` | `SendAIRequestRaw` → `GetRawTextResponse` |
+| 4 | `AIInfluenceBehavior.cs:2793` | direct `GetAIResponse` |
+| 5 | `AIInfluenceBehavior.cs:3330` | `GetAIResponse` + stream |
+| 6 | `AIInfluenceBehavior.cs:4921` | `SendAIRequestRaw` in background task |
+| 7 | `ModSettings.cs` (test) | `TestOpenRouterConnection` |
+| 8 | `DeathHistoryBehavior.cs:104` | `SendAIRequest` |
+| 9–12 | `NPCInitiativeSystem.cs:963,1525,1967,2183` | `SendAIRequest` |
+| 13–14 | `SettlementCombatManager.cs:581,2326` | `SendAIRequestRaw` |
+| 15 | `DynamicEventsAnalyzer.cs:1074` | `SendAIRequestRaw` |
+| 16–19 | `DynamicEventsGenerator.cs:228,289,1813,4133` | `SendAIRequestForFeature` |
+| 20 | `KingdomStatementGenerator.cs:1816` | `SendAIRequestForFeature` |
+| 21 | `PlayerStatementAnalyzer.cs:42` | `SendAIRequestForFeature` |
+
+**NRV:** Whether this list is **complete** at any future commit — re-run search before release.
+
+---
+
+## 9. Information loss in `AIClient` catches — **SRC**
+
+| Catch | Logged | Returned | Body of HTTP error response to caller? |
+|-------|--------|----------|----------------------------------------|
+| `GetOpenRouterResponse` ~178–181 | `ex.Message` | Fixed `GenerateErrorResponse` text | **No** — generic user-facing JSON `Response` only |
+| `GetOpenRouterRawResponse` ~235–238 | `ex.Message` | `"Error: " + ex.Message` | **Partial** — exception message only, not full OpenRouter JSON body |
+
+---
+
+## 10. Silent / empty catches (LLM-adjacent only) — **SRC**
+
+| File | Line | Pattern |
+|------|------|---------|
+| `NpcChatWindowVM.cs` | 736 | `catch (Exception) { }` |
+| `NpcChatWindowManager.cs` | 75 | `catch (Exception) { }` |
+| `SubModule.cs` | 61–63, 77–79 | `catch (Exception) { }` around Harmony |
+
+**INF:** Whether those hide user-visible failures — depends on what exceptions occur.
+
+---
+
+## 11. `HttpClient` — **INF**
+
+**INF:** `httpClient.DefaultRequestHeaders.Authorization` is assigned before each request (`AIClient.cs` 107, 227, 288). Microsoft docs: mutating default headers on a shared `HttpClient` under concurrency can cause races.
+
+**NRV:** Whether two LLM calls overlap in your typical session.
+
+---
+
+## 12. Build — **SRC** (point in time)
+
+`dotnet build src/AIInfluence.csproj` was run successfully in the agent environment during this work.
+
+**NRV:** Future commits may break the build.
+
+---
+
+## 13. Register: defects (for tracking)
+
+Use this table to **track fixes**. Each row is **SRC** for the mechanism; **INF/NRV** columns say what we did not prove.
+
+| ID | Mechanism (SRC) | Risk (INF/NRV) |
+|----|-----------------|----------------|
+| R1 | `SendAIRequest` uses `StartsWith("Error:")`; `GenerateErrorResponse` returns `{` | Callers may mis-classify JSON errors **INF**; pre-existed **NRV** |
+| R2 | Retry loops use same `StartsWith` test | May not retry on JSON error **INF** |
+| R3 | `"API key is missing."` not prefixed `Error:` | `SendAIRequestForFeature` success branch **SRC** |
+| R4 | `GetOpenRouterRawResponse` no `EnableModification` | Policy gap **INF** |
+| R5 | `SendAIRequestForFeature` catch returns `null` | Callers conflate with empty **INF** |
+| R6 | HTTP error bodies dropped in inner catch of `GetOpenRouterResponse` | Debugging harder **INF** |
+| R7 | Shared `HttpClient` + default headers | Race **INF** |
+| R8 | Empty catches in §10 | Exceptions swallowed **SRC**; impact **NRV** |
+
+---
+
+## 14. Re-verify (commands) — **SRC**
 
 ```bash
-# All LLM wrapper / client calls
 rg -n 'SendAIRequest|AIClient\.Get|GetRawTextResponse' src --glob '*.cs'
-
-# Error: checks (audit drift)
 rg -n 'StartsWith\(\"Error:' src --glob '*.cs'
-
-# EnableModification near AI
-rg -n 'EnableModification' src/AIInfluence.API/AIClient.cs src/AIInfluence/AIInfluenceBehavior.cs
-
-# Migration file list
-git diff 179768f^..HEAD --name-status -- src/AIInfluence.API/ \
-  src/AIInfluence.Diplomacy/ src/AIInfluence.DynamicEvents/DynamicEventsGenerator.cs \
-  src/AIInfluence/ModSettings.cs src/AIInfluence/NpcChatWindowVM.cs src/AIInfluence/SubModule.cs
+dotnet build src/AIInfluence.csproj
 ```
 
 ---
 
-## Part H — Runtime checklist (not done in CI)
+## 15. What I (the author of this audit) did not do — explicit
 
-- [ ] Bad / missing OpenRouter key: chat, event gen, diplomacy — **expected** user-visible behavior documented?
-- [ ] MCM “Enable Modification” off: confirm **raw** paths blocked or not (product decision).
-- [ ] Old `AIInfluence` JSON settings load without exception after removing keys.
-- [ ] Concurrent LLM calls (e.g. debug quest + chat) — watch for 401 / wrong key if race exists.
+- Did **not** run Bannerlord.
+- Did **not** execute automated tests beyond `dotnet build` where run.
+- Did **not** use `git blame` on every line of `AIClient` vs `main`.
+- Did **not** prove **concurrency** bugs; only stated **INF** from API design.
 
----
-
-## Part I — Changelog (append only)
-
-| Date | Commit | Note |
-|------|--------|------|
-| — | `179768f` | OpenRouter-only LLM; delete other providers’ client code. |
-| — | `4439f27` | Remove MCM backend dropdowns. |
-| — | `8b53a53` | Rename API surface; remove `OpenRouterBackendId`; SubModule dead fields. |
-| — | `1189451` | Delete `Player2UsageTracker`; strip Player2 LLM from `Player2Client`. |
-| — | `a70601a` | Streaming `json_object` comment; NpcChat finalize if no pump. |
-| — | `ce51445` | Initial audit doc. |
-| — | *(this edit)* | Full register: Parts A–I, ERR/SIL IDs, master table, git scope. |
-
----
-
-*Update this file when fixing ERR-### or when adding new LLM call sites.*
+This section exists so nobody can confuse this file with a **runtime** certification.
