@@ -115,6 +115,14 @@ public class NPCContext
 	[JsonIgnore]
 	public string DeferredTechnicalActionFromTools { get; set; }
 
+	/// <summary>OpenRouter <c>npc_say</c> tool: last spoken line for this turn (merged into <see cref="AIResponse.Response"/>).</summary>
+	[JsonIgnore]
+	public string LastNpcSayLine { get; set; }
+
+	/// <summary>Optional tone from <c>npc_say</c> (merged into <see cref="AIResponse.Tone"/>).</summary>
+	[JsonIgnore]
+	public string LastNpcSayTone { get; set; }
+
 	public PendingRelationChange PendingRelationChange { get; set; }
 
 	public PendingRelationChange PendingLiePenalty { get; set; }

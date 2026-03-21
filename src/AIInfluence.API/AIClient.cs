@@ -210,7 +210,7 @@ public static class AIClient
 		var (systemPrompt, userMessage, _) = ExtractLastPlayerMessage(prompt);
 		var messages = new JArray
 		{
-			new JObject { ["role"] = "system", ["content"] = systemPrompt + "\n\n**TOOLS:** Use functions for world effects (transfers, quests, kingdom+settlement_id, workshops, travel, search, character_death, technical_action). Final reply JSON is dialogue only.\n" },
+			new JObject { ["role"] = "system", ["content"] = systemPrompt + "\n\n**TOOLS:** Use functions for world effects (transfers, quests, kingdom, workshops, travel, search, character_death, technical_action). For spoken dialogue call **npc_say** with `line` (required) and optional `tone`. Final assistant message JSON may be minimal (`{}`) if dialogue was delivered only via npc_say and tools.\n" },
 			new JObject { ["role"] = "user", ["content"] = userMessage }
 		};
 		var tools = ChatTools.ToolCatalog.GetToolsForApi();
@@ -242,11 +242,11 @@ public static class AIClient
 				continue;
 			}
 
-			string content = assistantMessage["content"]?.ToString();
-			if (!string.IsNullOrEmpty(content))
+			string content = assistantMessage["content"]?.ToString() ?? "";
+			if (!string.IsNullOrWhiteSpace(content))
 				return content;
-
-			return GenerateErrorResponse("Empty response.");
+			// Tool-only turn: npc_say and other tools may carry all player-visible speech; merge fills AIResponse downstream.
+			return "{}";
 		}
 
 		return GenerateErrorResponse("Too many tool turns.");

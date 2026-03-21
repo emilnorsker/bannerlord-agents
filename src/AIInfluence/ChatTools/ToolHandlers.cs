@@ -36,6 +36,7 @@ public static class ToolHandlers
 			"quest_action" => RunQuestAction(argsJson, npc, context, behavior),
 			"character_death" => RunCharacterDeath(argsJson, context),
 			"technical_action" => RunTechnicalAction(argsJson, context),
+			"npc_say" => RunNpcSay(argsJson, context),
 			_ => "unknown"
 		};
 	}
@@ -226,6 +227,19 @@ public static class ToolHandlers
 			KillerStringId = parsedArgs["killer_string_id"]?.ToString(),
 			OpposedAttribute = parsedArgs["opposed_attribute"]?.ToString()
 		};
+		return "ok";
+	}
+
+	private static string RunNpcSay(string argsJson, NPCContext context)
+	{
+		JObject parsedArgs = ParseOrEmpty(argsJson);
+		string line = parsedArgs["line"]?.ToString();
+		if (string.IsNullOrEmpty(line))
+			return "missing_line";
+		context.LastNpcSayLine = line;
+		string tone = parsedArgs["tone"]?.ToString();
+		if (!string.IsNullOrEmpty(tone))
+			context.LastNpcSayTone = tone;
 		return "ok";
 	}
 

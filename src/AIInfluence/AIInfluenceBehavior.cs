@@ -2785,6 +2785,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 		LogMessage("[PLAYER_INPUT] " + playerInput);
 		context.AddMessage("Player: " + playerInput);
+		context.LastNpcSayLine = null;
+		context.LastNpcSayTone = null;
 		SaveNPCContext(npcId, npc, context);
 		WorldInfoManager.Instance.UpdateTimeContext(context);
 		WorldInfoManager.Instance.UpdateWarStatus(context);
@@ -2892,6 +2894,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			};
 		}
 		ApplyNpcContextToolDeferralsToAiResponse(context, aiResult);
+		ApplyNpcSayFromToolsToAiResponse(context, aiResult);
 		if (!string.IsNullOrEmpty(aiResult.RomanceIntent) && aiResult.RomanceIntent != "none")
 		{
 			CampaignTime now = CampaignTime.Now;
@@ -3324,6 +3327,20 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 	}
 
+	/// <summary>Merges <see cref="NPCContext.LastNpcSayLine"/> / <see cref="NPCContext.LastNpcSayTone"/> from the <c>npc_say</c> tool into <paramref name="aiResult"/> (tool-first dialogue).</summary>
+	public static void ApplyNpcSayFromToolsToAiResponse(NPCContext context, AIResponse aiResult)
+	{
+		if (context == null || aiResult == null)
+			return;
+		if (string.IsNullOrEmpty(context.LastNpcSayLine))
+			return;
+		aiResult.Response = context.LastNpcSayLine;
+		if (!string.IsNullOrEmpty(context.LastNpcSayTone))
+			aiResult.Tone = context.LastNpcSayTone;
+		context.LastNpcSayLine = null;
+		context.LastNpcSayTone = null;
+	}
+
 	/// <summary>Runs one player turn in NPC chat. Returns the final assistant <b>message</b> body when complete.</summary>
 	/// <param name="notifyNpcMessagePreviewChanged">Optional; invoked when the NPC message preview for the chat bubble changes while the <b>message draft</b> is still growing.</param>
 	public async Task<string> ProcessChatInput(Hero npc, string playerMessage, Action<string> notifyNpcMessagePreviewChanged = null)
@@ -3336,6 +3353,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		string faction = ((clan == null) ? null : ((object)clan.Name)?.ToString()) ?? "No faction";
 		NPCContext context = GetOrCreateNPCContext(npc);
 		UpdateContextData(context, npc);
+		context.LastNpcSayLine = null;
+		context.LastNpcSayTone = null;
 		string heroDisplayName = ((object)Hero.MainHero?.Name)?.ToString() ?? "Player";
 		context.AddMessage(heroDisplayName + ": " + playerMessage);
 		SaveNPCContext(npcId, npc, context);
@@ -3414,6 +3433,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		if (aiResult == null)
 			return "";
 		ApplyNpcContextToolDeferralsToAiResponse(context, aiResult);
+		ApplyNpcSayFromToolsToAiResponse(context, aiResult);
 		string reply = aiResult.Response ?? "";
 		context.LastInteractionTime = CampaignTime.Now;
 		context.InteractionCount++;

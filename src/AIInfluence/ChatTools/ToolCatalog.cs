@@ -65,7 +65,9 @@ public static class ToolCatalog
 			Tool("character_death", "Roleplay death for this NPC when game rules allow. Set should_die true to schedule death handling.",
 				"{\"should_die\":{\"type\":\"boolean\"},\"death_reason\":{\"type\":\"string\"},\"killer_string_id\":{\"type\":\"string\"},\"opposed_attribute\":{\"type\":\"string\"}}", new[] { "should_die" }),
 			Tool("technical_action", "NPC map/script action string: action name, or NAME:payload, or NAME:STOP to stop (e.g. follow_player, go_to_settlement:town_S1:3).",
-				"{\"value\":{\"type\":\"string\"}}", new[] { "value" })
+				"{\"value\":{\"type\":\"string\"}}", new[] { "value" }),
+			Tool("npc_say", "The NPC's spoken line to the player (in-character dialogue). Call each turn you produce speech; optional tone.",
+				"{\"line\":{\"type\":\"string\"},\"tone\":{\"type\":\"string\"}}", new[] { "line" })
 		};
 	}
 
