@@ -202,6 +202,9 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 	}
 
+	private static bool IsMainAiBackendOpenRouter() =>
+		string.Equals(GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue, "OpenRouter", StringComparison.Ordinal);
+
 	public Dictionary<string, NPCContext> GetNPCContexts()
 	{
 		return _npcContexts;
@@ -3115,44 +3118,35 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			LogMessage($"[DEBUG] Player claimed to have {context.PlayerInfo.ClaimedGold} denars");
 		}
 		bool isSellingWorkshop = !string.IsNullOrEmpty(aiResult.WorkshopAction) && aiResult.WorkshopAction.ToLower() == "sell";
-		if (aiResult.MoneyTransfer != null && aiResult.MoneyTransfer.Amount > 0)
+		if (!IsMainAiBackendOpenRouter())
 		{
-			if (isSellingWorkshop)
+			if (aiResult.MoneyTransfer != null && aiResult.MoneyTransfer.Amount > 0)
 			{
-				LogMessage("[MONEY_TRANSFER] Ignoring money_transfer because workshop is being sold (money transfer happens automatically in workshop sale)");
+				if (isSellingWorkshop)
+					LogMessage("[MONEY_TRANSFER] Ignoring money_transfer because workshop is being sold (money transfer happens automatically in workshop sale)");
+				else
+				{
+					context.PendingMoneyTransfer = aiResult.MoneyTransfer;
+					LogMessage($"[MONEY_TRANSFER] Saved pending money transfer: {aiResult.MoneyTransfer.Action} {aiResult.MoneyTransfer.Amount} denars for NPC {npc.Name}");
+				}
 			}
+			else if (aiResult.MoneyTransfer != null)
+				LogMessage($"[MONEY_TRANSFER] MoneyTransfer exists but Amount <= 0: Action={aiResult.MoneyTransfer.Action}, Amount={aiResult.MoneyTransfer.Amount}");
 			else
+				LogMessage("[MONEY_TRANSFER] MoneyTransfer is null in aiResult");
+			if (aiResult.ItemTransfers != null && aiResult.ItemTransfers.Count > 0)
 			{
-				context.PendingMoneyTransfer = aiResult.MoneyTransfer;
-				LogMessage($"[MONEY_TRANSFER] Saved pending money transfer: {aiResult.MoneyTransfer.Action} {aiResult.MoneyTransfer.Amount} denars for NPC {npc.Name}");
+				context.PendingItemTransfers = aiResult.ItemTransfers;
+				context.PendingItemTransfersOpposedAttribute = aiResult.ItemTransfersOpposedAttribute
+					?? aiResult.ItemTransfers.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.OpposedAttribute))?.OpposedAttribute;
+				LogMessage($"[ITEM_TRANSFER] Saved pending item transfers: {aiResult.ItemTransfers.Count} items for NPC {npc.Name}");
 			}
-		}
-		else if (aiResult.MoneyTransfer != null)
-		{
-			LogMessage($"[MONEY_TRANSFER] MoneyTransfer exists but Amount <= 0: Action={aiResult.MoneyTransfer.Action}, Amount={aiResult.MoneyTransfer.Amount}");
-		}
-		else
-		{
-			LogMessage("[MONEY_TRANSFER] MoneyTransfer is null in aiResult");
-		}
-		if (aiResult.ItemTransfers != null && aiResult.ItemTransfers.Count > 0)
-		{
-			context.PendingItemTransfers = aiResult.ItemTransfers;
-			context.PendingItemTransfersOpposedAttribute = aiResult.ItemTransfersOpposedAttribute
-				?? aiResult.ItemTransfers.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.OpposedAttribute))?.OpposedAttribute;
-			LogMessage($"[ITEM_TRANSFER] Saved pending item transfers: {aiResult.ItemTransfers.Count} items for NPC {npc.Name}");
-		}
-		else if (aiResult.ItemTransfers != null)
-		{
-			LogMessage($"[ITEM_TRANSFER] ItemTransfers exists but Count <= 0: {aiResult.ItemTransfers.Count} items");
-		}
-		else
-		{
-			LogMessage("[ITEM_TRANSFER] ItemTransfers is null in aiResult");
-		}
-		if (isSellingWorkshop)
-		{
-			ProcessWorkshopSale(npc, context, aiResult.WorkshopStringId, aiResult.WorkshopPrice);
+			else if (aiResult.ItemTransfers != null)
+				LogMessage($"[ITEM_TRANSFER] ItemTransfers exists but Count <= 0: {aiResult.ItemTransfers.Count} items");
+			else
+				LogMessage("[ITEM_TRANSFER] ItemTransfers is null in aiResult");
+			if (isSellingWorkshop)
+				ProcessWorkshopSale(npc, context, aiResult.WorkshopStringId, aiResult.WorkshopPrice);
 		}
 		if (aiResult.Tone == "positive")
 		{

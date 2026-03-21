@@ -41,7 +41,9 @@ Everything that duplicates authority (legacy envelope on `AIResponse`, stringly-
 
 **Goal:** No monolithic `AIResponse` / dialogue JSON for **speech, tone, lies, escalation, romance, decisions**. Those become **tools** with small schemas (e.g. `npc_say` with `line` + optional `tone`; `lie_suspect` / `lie_resolve`; `conflict_update`; `dialogue_decision`; `romance_set_intent`; …). World tools (`transfer_money`, `quest_action`, map tools, …) stay **only** as tools.
 
-**Implemented (slice):** Dialogue tools: `npc_say`, `suspected_lie`, `dialogue_decision`, `romance_intent`, `escalation_update`, `allows_letters` (+ world tools unchanged). `ApplyNpcDialogueToolsToAiResponse` merges into `AIResponse` after deserialize; `ClearNpcTurnDialogueTools` resets scratch each turn. OpenRouter agent loop returns `{}` when final assistant content is empty. Next: strip duplicate keys from JSON schema / `PromptGenerator` optional-field bloat, `OnToolCompleted` bus.
+**Implemented (slice):** Dialogue tools: `npc_say`, `suspected_lie`, `dialogue_decision`, `romance_intent`, `escalation_update`, `allows_letters` (+ world tools unchanged). `ApplyNpcDialogueToolsToAiResponse` merges into `AIResponse` after deserialize; `ClearNpcTurnDialogueTools` resets scratch each turn. OpenRouter agent loop returns `{}` when final assistant content is empty.
+
+**Pruning:** For OpenRouter + NPC chat, `PromptGenerator` omits long optional JSON field paragraphs (money/items/workshop/death/quest prose) at **generation time**—smaller prompts, not always smaller source file until non-OpenRouter paths are deleted. `HandlePlayerInput` skips legacy money/item/workshop-from-JSON handling when backend is OpenRouter (tools + strip already handle it).
 
 | Deliverable | Notes |
 |-------------|--------|
