@@ -240,34 +240,47 @@ public static class AIClient
 			new JObject { ["role"] = "user", ["content"] = userMessage }
 		};
 		var tools = ChatTools.ToolCatalog.GetToolsForApi();
-		for (int turn = 0; turn < 5; turn++)
+		const int MaxToolRounds = 5;
+
+		// Agent loop: call model until it returns final text (not tool calls).
+		// Model either returns tool_calls (we execute, append results, call again)
+		// or content (final JSON response – we're done).
+		for (int round = 0; round < MaxToolRounds; round++)
 		{
-			var msg = await SendToolRequest(messages, tools);
-			if (msg == null) return GenerateErrorResponse("Invalid response.");
-			var toolCalls = msg["tool_calls"] as JArray;
+			JToken assistantMessage = await SendToolRequest(messages, tools);
+			if (assistantMessage == null)
+				return GenerateErrorResponse("Invalid response.");
+
+			JArray toolCalls = assistantMessage["tool_calls"] as JArray;
 			if (toolCalls != null && toolCalls.Count > 0)
 			{
-				messages.Add(msg);
-				foreach (JToken tc in toolCalls)
+				messages.Add(assistantMessage);
+				foreach (JToken toolCall in toolCalls)
 				{
+					string toolName = toolCall["function"]?["name"]?.ToString() ?? "";
+					string toolArgs = toolCall["function"]?["arguments"]?.ToString() ?? "{}";
+					string result = await onToolCall(toolName, toolArgs);
 					messages.Add(new JObject
 					{
 						["role"] = "tool",
-						["tool_call_id"] = tc["id"]?.ToString() ?? "",
-						["content"] = await onToolCall(tc["function"]?["name"]?.ToString() ?? "", tc["function"]?["arguments"]?.ToString() ?? "{}")
+						["tool_call_id"] = toolCall["id"]?.ToString() ?? "",
+						["content"] = result ?? ""
 					});
 				}
 				continue;
 			}
-			var contentStr = msg["content"]?.ToString();
-			if (!string.IsNullOrEmpty(contentStr))
+
+			string content = assistantMessage["content"]?.ToString();
+			if (!string.IsNullOrEmpty(content))
 			{
-				onStream?.Invoke(contentStr);
-				return contentStr;
+				onStream?.Invoke(content);
+				return content;
 			}
+
 			return GenerateErrorResponse("Empty response.");
 		}
-		return GenerateErrorResponse("Too many tool turns.");
+
+		return GenerateErrorResponse("Too many tool rounds.");
 	}
 
 	private static async Task<JToken> SendToolRequest(JArray messages, JArray tools)
