@@ -4,12 +4,12 @@
 
 | Order | Header            | Purpose |
 |------:|-------------------|--------|
-| 1 | NPC party info    | Troop formations + party food (glyph rows + optional food line). |
-| 2 | Quests            | Active / incoming AI quests (`TextLines` only). |
-| 3 | World events      | Recent dynamic events with skill icon (`GlyphLines`) or “None” (`TextLines`). |
-| 4 | Character history | AI `character_backstory` → `NPCContext.AIGeneratedBackstory` (`TextLines`; newline-split). |
-| 5 | Behavior          | AI personality, quirks, speech, mood (`TextLines`). |
-| 6 | Character         | Relation, trust, interaction count (`TextLines`). |
+| 1 | Character         | Relation, trust, interaction count (`TextLines`). Header skill icon: Charm. |
+| 2 | Character history | AI `character_backstory` → `NPCContext.AIGeneratedBackstory` (`TextLines`; newline-split). Roguery. |
+| 3 | Behavior          | AI personality, quirks, speech, mood (`TextLines`). Steward. |
+| 4 | Quests            | Active / incoming AI quests (`TextLines` only). Trade. |
+| 5 | World events      | Recent dynamic events with skill icon (`GlyphLines`) or “None” (`TextLines`). Tactics. |
+| 6 | NPC party info    | Troop formations + party food (glyph rows + optional food line). Leadership. |
 
 `SectionPanelColor` is a **single** subtle tint for all sections (encyclopedia frame provides the main chrome; no alternating zebra).
 
@@ -29,7 +29,7 @@ Call **`InfoSectionVM.RefreshVisibility()`** after filling a section. It sets:
 - `HasStandardTextLines` = `TextLines.Count > 0`
 - `ShowPartyFood` = previous `ShowPartyFood` && non-empty `PartyFoodText`
 
-Prefab: `GUI/Prefabs/ChatInterface.xml` — horizontal padding for scroll content is **`!Info.Inset`** (12px) on **`InfoScrollPanel`** only; inner lists use **0** lateral margin. **`NavigationScopeTargeter`** (`NpcChatInfoSectionsScope`) → **`InfoSectionsList`** for gamepad/keyboard. **`InfoScrollPanel`** (`ClipRect` = **`InfoClipRect`**, inner = **`InfoSectionsList`**); sibling **`InfoScrollBar`** (invisible). No separate title underline or bottom scroll shadow; **`Encyclopedia.Frame`** alone defines the framed scroll region. Expanded body order: **GlyphLines → TextLines → party food** (see XML comments).
+Prefab: `GUI/Prefabs/ChatInterface.xml` — horizontal padding for scroll content is **`!Info.Inset`** (24px) on **`InfoScrollPanel`** only; inner lists use **0** lateral margin. Section headers use **`SkillIconVisualWidget`** + `InfoSectionVM.HeaderSkillId` (vanilla skill art). Expand/collapse uses ASCII **`v` / `>`** (Unicode arrows were missing glyphs and showed “?”). **`NavigationScopeTargeter`** (`NpcChatInfoSectionsScope`) → **`InfoSectionsList`**. **`InfoScrollPanel`** (`ClipRect` = **`InfoClipRect`**, inner = **`InfoSectionsList`**); sibling **`InfoScrollBar`** (invisible). Expanded body order: **GlyphLines → TextLines → party food** (see XML comments).
 
 ## Vanilla reference (game install)
 

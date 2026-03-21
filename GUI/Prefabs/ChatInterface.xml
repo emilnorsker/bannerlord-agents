@@ -15,7 +15,7 @@
     <Constant Name="Gold" Value="#FFE6B685" />
     <Constant Name="SepColor" Value="#FFFFFF22" />
     <!-- Single horizontal inset for scroll content inside Encyclopedia.Frame (matches encyclopedia subpage rhythm). -->
-    <Constant Name="Info.Inset" Value="12" />
+    <Constant Name="Info.Inset" Value="24" />
   </Constants>
 
   <Window Id="ChatInterfaceWindow" Layer="Overlay">
@@ -325,14 +325,17 @@
                                                   DoNotPassEventsToChildren="true" UpdateChildrenStates="true">
                                       <Children>
                                         <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                                                   StackLayout.LayoutMethod="HorizontalLeftToRight" MarginLeft="12" MarginRight="12">
+                                                   StackLayout.LayoutMethod="HorizontalLeftToRight" MarginLeft="6" MarginRight="8">
                                           <Children>
+                                            <SkillIconVisualWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="32" SuggestedHeight="32"
+                                                                   VerticalAlignment="Center" HorizontalAlignment="Left" MarginRight="8"
+                                                                   IsVisible="@ShowHeaderSkillIcon" SkillId="@HeaderSkillId" UseSmallestVariation="true"/>
                                             <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                             Brush="Encyclopedia.SubPage.Title.Text" Brush.FontSize="16" Brush.TextHorizontalAlignment="Left"
-                                                            VerticalAlignment="Center" Text="@HeaderText" IsDisabled="true" DoNotAcceptEvents="true"/>
+                                                            Color="#EAE2D4FF" VerticalAlignment="Center" Text="@HeaderText" IsDisabled="true" DoNotAcceptEvents="true"/>
                                             <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                                         HorizontalAlignment="Right" VerticalAlignment="Center"
-                                                        Brush="Encyclopedia.SubPage.Info.Text" Brush.FontSize="16" Text="@ExpandGlyph" DoNotAcceptEvents="true"/>
+                                                        Brush="SPScoreboard.Subtitle.Text" Brush.FontSize="18" Brush.FontColor="#C6AC8DFF" Text="@ExpandGlyph" DoNotAcceptEvents="true"/>
                                           </Children>
                                         </ListPanel>
                                       </Children>

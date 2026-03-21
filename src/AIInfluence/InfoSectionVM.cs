@@ -1,3 +1,4 @@
+using TaleWorlds.Core;
 using TaleWorlds.Library;
 
 namespace AIInfluence;
@@ -13,6 +14,7 @@ public class InfoSectionVM : ViewModel
     private string _headerText = "";
     private string _partyFoodText = "";
     private string _partyFoodColor = "#C6AC8DFF";
+    private string _headerSkillId = DefaultSkills.Charm.StringId;
     private string _sectionPanelColor = "#0C101868";
     private bool _hasGlyphLines;
     private bool _hasStandardTextLines = true;
@@ -27,10 +29,30 @@ public class InfoSectionVM : ViewModel
         {
             if (value == _sectionPanelColor)
                 return;
-            _sectionPanelColor = value ?? "#121820F0";
+            _sectionPanelColor = value ?? "#0C101868";
             OnPropertyChangedWithValue(_sectionPanelColor, "SectionPanelColor");
         }
     }
+
+    /// <summary>Vanilla skill icon for the section header (SkillIconVisualWidget).</summary>
+    [DataSourceProperty]
+    public string HeaderSkillId
+    {
+        get => _headerSkillId;
+        set
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                value = DefaultSkills.Charm.StringId;
+            if (value == _headerSkillId)
+                return;
+            _headerSkillId = value;
+            OnPropertyChangedWithValue(_headerSkillId, nameof(HeaderSkillId));
+            OnPropertyChangedWithValue(ShowHeaderSkillIcon, nameof(ShowHeaderSkillIcon));
+        }
+    }
+
+    [DataSourceProperty]
+    public bool ShowHeaderSkillIcon => !string.IsNullOrWhiteSpace(_headerSkillId);
 
     [DataSourceProperty]
     public string HeaderText
@@ -59,7 +81,8 @@ public class InfoSectionVM : ViewModel
         }
     }
 
-    [DataSourceProperty] public string ExpandGlyph => IsExpanded ? "▼" : "▶";
+    /// <summary>ASCII toggle (Unicode arrows often render as “?” with encyclopedia fonts).</summary>
+    [DataSourceProperty] public string ExpandGlyph => IsExpanded ? "v" : ">";
 
     /// <summary>Plain bullet lines (quests, character history, stats). Not for glyph rows.</summary>
     [DataSourceProperty] public MBBindingList<TextItemVM> TextLines { get; } = new MBBindingList<TextItemVM>();
