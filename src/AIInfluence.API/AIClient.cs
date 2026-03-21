@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using AIInfluence.ChatTools;
 using AIInfluence.Services;
 using AIInfluence.Util;
 using MCM.Abstractions.Base.Global;
@@ -233,9 +234,9 @@ public static class AIClient
 		if (!GlobalSettings<ModSettings>.Instance.EnableModification)
 			return GenerateErrorResponse("I am not inclined to speak at this moment.");
 		var (systemPrompt, userMessage, _) = ExtractLastPlayerMessage(prompt);
-		var toolPreamble = "\n\n**TOOLS:** Use tools for movement, transfers, kingdom, quest, workshop. Final message = JSON with response, decision, tone, suspected_lie, character_death, marriage, character_personality/backstory/quirks, allows_letters.\n";
+		var toolPreamble = "\n\n**TOOLS:** Use find_settlements/find_parties/find_items to get valid string_ids before actions. Then use action tools. Final message = JSON with response, decision, tone, suspected_lie, character_death, marriage, character_personality/backstory/quirks, allows_letters.\n";
 		JArray messages = new JArray { new JObject { ["role"] = "system", ["content"] = systemPrompt + toolPreamble }, new JObject { ["role"] = "user", ["content"] = userMessage } };
-		JArray tools = (JArray)JToken.Parse("[{\"type\":\"function\",\"function\":{\"name\":\"npc_action\",\"parameters\":{\"type\":\"object\",\"properties\":{\"action\":{\"type\":\"string\"},\"params\":{\"type\":\"string\"}},\"required\":[\"action\"]}}},{\"type\":\"function\",\"function\":{\"name\":\"transfer_money\",\"parameters\":{\"type\":\"object\",\"properties\":{\"action\":{\"type\":\"string\"},\"amount\":{\"type\":\"integer\"}},\"required\":[\"action\",\"amount\"]}}},{\"type\":\"function\",\"function\":{\"name\":\"transfer_items\",\"parameters\":{\"type\":\"object\",\"properties\":{\"items\":{\"type\":\"array\"}}}},{\"type\":\"function\",\"function\":{\"name\":\"kingdom_action\",\"parameters\":{\"type\":\"object\",\"properties\":{\"json\":{\"type\":\"string\"}},\"required\":[\"json\"]}}},{\"type\":\"function\",\"function\":{\"name\":\"quest_action\",\"parameters\":{\"type\":\"object\",\"properties\":{\"json\":{\"type\":\"string\"}}}},{\"type\":\"function\",\"function\":{\"name\":\"workshop_sell\",\"parameters\":{\"type\":\"object\",\"properties\":{\"workshop_string_id\":{\"type\":\"string\"},\"price\":{\"type\":\"integer\"}},\"required\":[\"workshop_string_id\",\"price\"]}}}]");
+		JArray tools = ChatTools.ToolCatalog.GetToolsForApi();
 		for (int i = 0; i < 5; i++)
 		{
 			JObject body = new JObject

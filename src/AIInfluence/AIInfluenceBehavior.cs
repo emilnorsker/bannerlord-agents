@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AIInfluence.API;
 using AIInfluence.Behaviors.AIActions;
+using AIInfluence.ChatTools;
 using AIInfluence.Behaviors.AIActions.TaskSystem;
 using AIInfluence.Behaviors.RolePlay;
 using AIInfluence.Diplomacy;
@@ -3532,23 +3533,26 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		try
 		{
 			var a = string.IsNullOrEmpty(argsJson) ? new JObject() : JObject.Parse(argsJson);
-			if (name == "npc_action")
-			{
-				var action = a["action"]?.ToString(); var p = a["params"]?.ToString() ?? "";
-				if (string.IsNullOrEmpty(action)) return "missing action";
-				var stop = p.Equals("STOP", StringComparison.OrdinalIgnoreCase);
-				if (npc.IsPrisoner && !stop) return "prisoner";
-				if (stop) { AIActionManager.Instance?.StopAction(npc, action, showMessage: true); return "stopped"; }
-				AIActionManager.Instance?.StopAction(npc, action);
-				if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, action, p) == true)
-				{ AIActionManager.Instance?.StartAction(npc, action); context.LastTechnicalActionForDisplay = string.IsNullOrEmpty(p) ? action : action + ":" + p; return "ok"; }
-				return "failed";
-			}
+			// Lookup tools - fuzzy finder returns valid string_ids
+			if (name == "find_settlements") { var results = ToolCatalog.FindSettlements(a["query"]?.ToString(), a["limit"]?.Value<int>() ?? 8); return JsonConvert.SerializeObject(results.Select(r => new { string_id = r.string_id, name = r.name }).ToList()); }
+			if (name == "find_parties") { var results = ToolCatalog.FindParties(npc, a["query"]?.ToString(), a["limit"]?.Value<int>() ?? 8); return JsonConvert.SerializeObject(results.Select(r => new { string_id = r.string_id, name = r.name }).ToList()); }
+			if (name == "find_items") { var results = ToolCatalog.FindItems(a["query"]?.ToString(), a["limit"]?.Value<int>() ?? 8); return JsonConvert.SerializeObject(results.Select(r => new { item_id = r.item_id, name = r.name }).ToList()); }
+			// Action tools - typed params, delegate to existing handlers
+			if (name == "follow_player") { if (npc.IsPrisoner) return "prisoner"; AIActionManager.Instance?.StopAction(npc, "follow_player"); if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "follow_player", "") == true) { AIActionManager.Instance?.StartAction(npc, "follow_player"); context.LastTechnicalActionForDisplay = "follow_player"; } return "ok"; }
+			if (name == "stop_action") { var an = a["action_name"]?.ToString(); if (string.IsNullOrEmpty(an)) return "missing"; AIActionManager.Instance?.StopAction(npc, an, showMessage: true); return "stopped"; }
+			if (name == "go_to_settlement") { var sid = a["settlement_id"]?.ToString(); if (string.IsNullOrEmpty(sid)) return "use find_settlements first"; var days = a["wait_days"]?.Value<float>() ?? 3f; var p = sid + ":" + days; if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "go_to_settlement", p) == true) { AIActionManager.Instance?.StartAction(npc, "go_to_settlement"); context.LastTechnicalActionForDisplay = p; return "ok"; } return "failed"; }
+			if (name == "attack_party") { var pid = a["party_id"]?.ToString(); if (string.IsNullOrEmpty(pid)) return "use find_parties first"; var tr = a["then_return"]?.Value<bool>() ?? false; var param = tr ? pid + ",then:return" : pid; if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "attack_party", param) == true) { AIActionManager.Instance?.StartAction(npc, "attack_party"); context.LastTechnicalActionForDisplay = param; return "ok"; } return "failed"; }
+			if (name == "raid_village") { var vid = a["village_id"]?.ToString(); if (string.IsNullOrEmpty(vid)) return "use find_settlements first"; if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "raid_village", vid) == true) { AIActionManager.Instance?.StartAction(npc, "raid_village"); context.LastTechnicalActionForDisplay = vid; return "ok"; } return "failed"; }
+			if (name == "patrol_settlement") { var sid = a["settlement_id"]?.ToString(); if (string.IsNullOrEmpty(sid)) return "use find_settlements first"; var days = a["days"]?.Value<float>() ?? 5f; var p = sid + ":" + days; if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "patrol_settlement", p) == true) { AIActionManager.Instance?.StartAction(npc, "patrol_settlement"); context.LastTechnicalActionForDisplay = p; return "ok"; } return "failed"; }
+			if (name == "wait_near_settlement") { var sid = a["settlement_id"]?.ToString(); if (string.IsNullOrEmpty(sid)) return "use find_settlements first"; var days = a["days"]?.Value<float>() ?? 2f; var p = sid + ":" + days; if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "wait_near_settlement", p) == true) { AIActionManager.Instance?.StartAction(npc, "wait_near_settlement"); context.LastTechnicalActionForDisplay = p; return "ok"; } return "failed"; }
+			if (name == "siege_settlement") { var sid = a["settlement_id"]?.ToString(); if (string.IsNullOrEmpty(sid)) return "use find_settlements first"; if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "siege_settlement", sid) == true) { AIActionManager.Instance?.StartAction(npc, "siege_settlement"); context.LastTechnicalActionForDisplay = sid; return "ok"; } return "failed"; }
+			if (name == "create_party") { if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "create_party", "") == true) { AIActionManager.Instance?.StartAction(npc, "create_party"); return "ok"; } return "failed"; }
+			if (name == "create_rp_item") { var itemName = a["name"]?.ToString(); var desc = a["description"]?.ToString() ?? ""; if (string.IsNullOrEmpty(itemName)) return "missing name"; var p = itemName + "|" + desc; if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "create_rp_item", p) == true) { AIActionManager.Instance?.StartAction(npc, "create_rp_item"); context.LastTechnicalActionForDisplay = itemName; return "ok"; } return "failed"; }
 			if (name == "transfer_money") { var m = new MoneyTransferInfo { Action = a["action"]?.ToString(), Amount = a["amount"]?.Value<int>() ?? 0, OpposedAttribute = a["opposed_attribute"]?.ToString() }; if (m.Amount > 0) ProcessMoneyTransfer(npc, context, m); return "ok"; }
 			if (name == "transfer_items") { var list = new List<ItemTransferData>(); foreach (var i in a["items"] as JArray ?? new JArray()) list.Add(new ItemTransferData { ItemId = i["item_id"]?.ToString(), Amount = i["amount"]?.Value<int>() ?? 1, Action = i["action"]?.ToString() }); if (list.Count > 0) { context.PendingItemTransfersOpposedAttribute = a["opposed_attribute"]?.ToString(); ProcessItemTransfers(npc, context, list); } return "ok"; }
-			if (name == "kingdom_action") { var r = new AIResponse { KingdomAction = a["json"]?.ToString(), KingdomActionReason = "" }; if (!string.IsNullOrEmpty(r.KingdomAction)) ProcessKingdomAction(npc, r, context); return "ok"; }
-			if (name == "quest_action") { var j = a["json"]?.ToString(); if (!string.IsNullOrEmpty(j)) { var q = JsonConvert.DeserializeObject<QuestActionData>(j); if (q != null) ProcessQuestAction(npc, context, q); } return "ok"; }
 			if (name == "workshop_sell") { ProcessWorkshopSale(npc, context, a["workshop_string_id"]?.ToString(), a["price"]?.Value<int>() ?? 0); return "ok"; }
+			if (name == "kingdom_action") { var r = new AIResponse { KingdomAction = a["action"]?.ToString(), KingdomActionReason = "" }; if (!string.IsNullOrEmpty(r.KingdomAction)) ProcessKingdomAction(npc, r, context); return "ok"; }
+			if (name == "quest_action") { var q = a["quest"]?.ToString(); if (!string.IsNullOrEmpty(q)) { var qa = JsonConvert.DeserializeObject<QuestActionData>(q); if (qa != null) ProcessQuestAction(npc, context, qa); } return "ok"; }
 			return "unknown";
 		}
 		catch (Exception ex) { LogMessage("[ChatTool] " + name + ": " + ex.Message); return "error"; }
