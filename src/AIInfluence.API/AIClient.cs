@@ -263,7 +263,7 @@ public static class AIClient
 			["tool_choice"] = "auto",
 			["parallel_tool_calls"] = true,
 			["stream"] = true,
-			["response_format"] = OpenRouterNpcResponseSchema.GetToolsPathResponseFormat()
+			["response_format"] = OpenRouterNpcResponseSchema.GetResponseFormat()
 		};
 		using StringContent content = new StringContent(body.ToString(), Encoding.UTF8, "application/json");
 		httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GlobalSettings<ModSettings>.Instance.ApiKey);
