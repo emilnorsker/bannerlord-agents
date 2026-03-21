@@ -20,7 +20,9 @@ If a line has **no tag**, treat it as **narrative** (organizational only), not e
 
 **Command used:** `git diff 179768f^..HEAD --name-status` on migration-related paths (see repo history).
 
-**Files touched by OpenRouter-only commits** include: `AIClient.cs`, deleted alternate-provider files, `Player2Client.cs`, deleted `Player2UsageTracker.cs`, `ModSettings.cs`, `AIInfluenceBehavior.cs`, `NpcChatWindowVM.cs`, `SubModule.cs`, diplomacy + `DynamicEventsGenerator.cs`, and this doc.
+**Files touched by OpenRouter-only commits** include: `AIClient.cs`, deleted alternate-provider files, **deleted** `Player2Client.cs` + `VoiceInfo.cs` (Player2/TTS companion removed), deleted `Player2UsageTracker.cs`, `ModSettings.cs`, `AIInfluenceBehavior.cs`, `NpcChatWindowVM.cs`, `SubModule.cs`, `TtsLipSyncService.cs` (PrepareAsync no-op), `NPCInitiativeSystem.cs`, diplomacy + `DynamicEventsGenerator.cs`, and this doc.
+
+**SRC:** `ModSettings.EnableTTS` / `TTSSpeed` / etc. remain as **stub properties** (always disabled / fixed defaults) so existing saves and call sites compile; TTS UI and Player2 MCM groups were removed.
 
 **NRV:** Whether each line of those diffs is bug-free — **not** proven here.
 

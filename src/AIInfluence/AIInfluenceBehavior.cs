@@ -478,7 +478,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			_npcInitiativeSystem.Tick(dt);
 		}
 		Action result;
-		while (MainThreadDispatcher.Queue.TryDequeue(out result))
+		while (MainThreadDispatch.MainThreadQueue.TryDequeue(out result))
 		{
 			try
 			{
@@ -486,7 +486,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			}
 			catch (Exception ex)
 			{
-				LogMessage("[MainThread] Queued action error: " + ex.Message);
+				LogMessage("[MainThreadDispatch] queued action error: " + ex.Message);
 			}
 		}
 	}
@@ -3797,6 +3797,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				}
 			}
 			CharacterInfo.UpdateEncyclopediaDescription(npc, nPCContext.AIGeneratedBackstory, nPCContext.AIGeneratedPersonality);
+			EnsureNpcGender(nPCContext, npc);
 			LogMessage("[DEBUG] Found existing context for " + stringId);
 			return nPCContext;
 		}
@@ -4855,7 +4856,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				Task completedTask = await Task.WhenAny(requestTask, timeoutTask);
 				string rawResponse = (completedTask == timeoutTask) ? "Error: Timeout (45s)" : await requestTask;
 
-				MainThreadDispatcher.Queue.Enqueue(() =>
+				MainThreadDispatch.MainThreadQueue.Enqueue(() =>
 				{
 					try
 					{
@@ -5850,6 +5851,14 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		catch (Exception ex2)
 		{
 			LogMessage("[ERROR] CleanupDeadNPCs failed: " + ex2.Message);
+		}
+	}
+
+	private void EnsureNpcGender(NPCContext context, Hero npc)
+	{
+		if (string.IsNullOrEmpty(context.Gender))
+		{
+			context.Gender = (npc.IsFemale ? "female" : "male");
 		}
 	}
 

@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using AIInfluence.API;
 using AIInfluence.Behaviors.AIActions;
 using AIInfluence.UI;
 using AIInfluence.Util;

@@ -1,6 +1,5 @@
 using System;
 using System.Reflection;
-using AIInfluence.API;
 using AIInfluence.Behaviors;
 using AIInfluence.Behaviors.DeathHistory;
 using AIInfluence.Diplomacy;
@@ -114,13 +113,6 @@ public class SubModule : MBSubModuleBase
 			_aiInfluenceBehavior = null;
 		}
 		InitializationManager.Instance.ResetAllSystems();
-		try
-		{
-			Player2Client.StopHeartbeatTimer();
-		}
-		catch (Exception)
-		{
-		}
 	}
 
 	protected override void OnApplicationTick(float dt)
@@ -137,13 +129,6 @@ public class SubModule : MBSubModuleBase
 			{
 				InformationManager.DisplayMessage(new InformationMessage("AI Influence Mod Loaded [BETA 4.0.2]"));
 				_loadMessageDisplayed = true;
-				try
-				{
-					Player2Client.StartHeartbeatTimer();
-				}
-				catch (Exception)
-				{
-				}
 			}
 		}
 		if (Campaign.Current != null && !_startMessageDisplayed)
