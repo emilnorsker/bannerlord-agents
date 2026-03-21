@@ -26,6 +26,26 @@ If a line has **no tag**, treat it as **narrative** (organizational only), not e
 
 **NRV:** Whether each line of those diffs is bug-free — **not** proven here.
 
+### 1a. Exhaustive removal checklist (Player2 / TTS / lip-sync stack) — **SRC**
+
+Searches used: ripgrep on `src/`, `docs/`, `.github/` for `tts`, `TTS`, `Player2`, `LipSync`, `rhubarb`, `OggEncoder`, `OggVorbis`, `tts_instructions`, `AssignedTTS`, `PreparedTts`, `EnableTTS` (case-insensitive); plus spot-check of `GUI/*.xml`.
+
+| Area | Removed / changed |
+|------|-------------------|
+| **Deleted C#** | `Player2Client.cs`, `VoiceInfo.cs`, `Player2UsageTracker.cs`, `TtsLipSyncService.cs`, `TtsPreparedData.cs`, `OggEncoder.cs` |
+| **Added C#** | `MainThreadDispatch.cs` only (queue for LLM stream / UI; not audio) |
+| **Project** | `AIInfluence.csproj` — no `OggVorbisEncoder` reference (**SRC:** current csproj `ItemGroup` is `System.Net.Http` only besides packages) |
+| **MCM** | No TTS / Player2 API groups; no `EnableTTS` / speed / volume properties on `ModSettings` |
+| **Model / state** | `AIResponse.TTSInstructions`; `NPCContext` voice / prepared-audio fields |
+| **Prompts** | `tts_instructions` lines in `PromptGenerator`; example JSON no longer lists `tts_instructions` |
+| **Dialog** | TTS playback blocks removed from `DialogManager` |
+| **JSON hygiene** | `JsonCleaner` default object and optional-field list — no `tts_instructions` |
+| **Death history** | `DeathHistoryBehavior` JSON field regex — no `tts_instructions` alternative |
+| **CI / release** | `.github/workflows/publish.yml` — no copy of `OggVorbisEncoder.dll`, `System.Buffers.dll`, `System.Memory.dll`, `rhubarb.exe`, or `bin/Win64_Shipping_Client/res/` (was lip-sync / phonetic resources for rhubarb) |
+| **Logs** | Main-thread dequeue errors log as `[MainThreadDispatch]` not `[LipSync]` (`AIInfluenceBehavior`) |
+
+**NRV:** A developer’s local `bin/Win64_Shipping_Client/` may still contain old `rhubarb.exe` / `res/` from before this change; the **release workflow no longer ships them**. Third-party dictionary files under `bin/.../res/sphinx/` are not part of `src/` and were not searched for product logic.
+
 ---
 
 ## 2. Single LLM HTTP implementation — **SRC**
