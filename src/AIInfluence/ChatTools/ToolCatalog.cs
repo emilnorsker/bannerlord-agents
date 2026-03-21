@@ -91,43 +91,43 @@ public static class ToolCatalog
 		int limit = 8)
 	{
 		if (string.IsNullOrWhiteSpace(query) || store == null) return new List<(string, string)>();
-		var q = query.Trim().ToLowerInvariant();
+		var queryNormalized = query.Trim().ToLowerInvariant();
 		var filtered = filter != null ? store.Where(filter) : store;
 		return filtered
-			.Where(x => x != null)
-			.Where(x =>
+			.Where(candidate => candidate != null)
+			.Where(candidate =>
 			{
-				var id = getId(x)?.ToLowerInvariant() ?? "";
-				var disp = getDisplayName(x)?.ToLowerInvariant() ?? "";
-				return id.Contains(q) || disp.Contains(q);
+				var id = getId(candidate)?.ToLowerInvariant() ?? "";
+				var displayText = getDisplayName(candidate)?.ToLowerInvariant() ?? "";
+				return id.Contains(queryNormalized) || displayText.Contains(queryNormalized);
 			})
 			.Take(limit)
-			.Select(x => (getId(x) ?? "", getDisplayName(x) ?? getId(x) ?? ""))
+			.Select(candidate => (getId(candidate) ?? "", getDisplayName(candidate) ?? getId(candidate) ?? ""))
 			.ToList();
 	}
 
 	public static List<(string string_id, string name)> FindSettlements(string query, int limit = 8) =>
 		FuzzySearch(query, Settlement.All ?? Enumerable.Empty<Settlement>(),
-			s => ((MBObjectBase)s).StringId,
-			s => s.Name?.ToString(),
-			s => s != null,
-			limit).Select(t => (t.id, t.name)).ToList();
+			settlement => ((MBObjectBase)settlement).StringId,
+			settlement => settlement.Name?.ToString(),
+			settlement => settlement != null,
+			limit).Select(result => (result.id, result.name)).ToList();
 
 	public static List<(string string_id, string name)> FindParties(Hero npc, string query, int limit = 8)
 	{
 		if (npc == null) return new List<(string, string)>();
-		Vec2 pos = npc.PartyBelongedTo != null ? npc.PartyBelongedTo.GetPosition2D : (npc.CurrentSettlement != null ? npc.CurrentSettlement.GetPosition2D : default);
+		Vec2 referencePosition = npc.PartyBelongedTo != null ? npc.PartyBelongedTo.GetPosition2D : (npc.CurrentSettlement != null ? npc.CurrentSettlement.GetPosition2D : default);
 		return FuzzySearch(query, MobileParty.All ?? Enumerable.Empty<MobileParty>(),
-			p => ((MBObjectBase)p).StringId,
-			p => $"{p.Name} ({p.GetPosition2D.Distance(pos):F0})",
-			p => p != null && !p.IsDisbanding && !p.IsGarrison && !p.IsMilitia,
-			limit).Select(t => (t.id, t.name)).ToList();
+			party => ((MBObjectBase)party).StringId,
+			party => $"{party.Name} ({party.GetPosition2D.Distance(referencePosition):F0})",
+			party => party != null && !party.IsDisbanding && !party.IsGarrison && !party.IsMilitia,
+			limit).Select(result => (result.id, result.name)).ToList();
 	}
 
 	public static List<(string item_id, string name)> FindItems(string query, int limit = 8) =>
 		FuzzySearch(query, Items.All as IEnumerable<ItemObject> ?? Enumerable.Empty<ItemObject>(),
-			i => i.StringId,
-			i => i.Name?.ToString(),
-			i => i != null,
-			limit).Select(t => (t.id, t.name)).ToList();
+			item => item.StringId,
+			item => item.Name?.ToString(),
+			item => item != null,
+			limit).Select(result => (result.id, result.name)).ToList();
 }
