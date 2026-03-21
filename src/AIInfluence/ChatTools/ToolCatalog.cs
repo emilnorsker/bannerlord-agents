@@ -56,7 +56,7 @@ public static class ToolCatalog
 			Tool("transfer_money", "Give or receive gold.",
 				"{\"action\":{\"type\":\"string\",\"enum\":[\"give\",\"receive\"]},\"amount\":{\"type\":\"integer\"},\"opposed_attribute\":{\"type\":\"string\"}}", new[] { "action", "amount" }),
 			Tool("transfer_items", "Give or take items.",
-				"{\"items\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"item_id\":{\"type\":\"string\"},\"amount\":{\"type\":\"integer\"},\"action\":{\"type\":\"string\"}}},\"opposed_attribute\":{\"type\":\"string\"}}", new[] { "items" }),
+				"{\"items\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"item_id\":{\"type\":\"string\"},\"amount\":{\"type\":\"integer\"},\"action\":{\"type\":\"string\"}}}},\"opposed_attribute\":{\"type\":\"string\"}}", new[] { "items" }),
 			Tool("workshop_sell", "Sell workshop to player.",
 				"{\"workshop_string_id\":{\"type\":\"string\"},\"price\":{\"type\":\"integer\"}}", new[] { "workshop_string_id", "price" }),
 			Tool("kingdom_action", "Diplomatic action. Pass raw action string.", "{\"action\":{\"type\":\"string\"}}", new[] { "action" }),
