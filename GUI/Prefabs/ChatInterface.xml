@@ -334,10 +334,12 @@
                                         </ListPanel>
                                       </Children>
                                     </ButtonWidget>
+                                    <!-- Expanded body: visibility flags come from InfoSectionVM.RefreshVisibility() in C# (HasGlyphLines, HasStandardTextLines, ShowPartyFood). -->
                                     <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" IsVisible="@IsExpanded"
                                                StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="4" MarginLeft="0" MarginRight="0" MarginTop="0" MarginBottom="2">
                                       <Children>
-                                        <ListPanel DataSource="{WorldEventLines}" IsVisible="@HasWorldEventLines" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                        <!-- One list for skill-icon rows (world events) and formation-sprite rows (party troops); same row shape. -->
+                                        <ListPanel DataSource="{GlyphLines}" IsVisible="@HasGlyphLines" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                    StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="10" MarginLeft="4" MarginRight="4" MarginTop="4" MarginBottom="2">
                                           <ItemTemplate>
                                             <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
@@ -345,7 +347,9 @@
                                               <Children>
                                                 <SkillIconVisualWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="40" SuggestedHeight="40"
                                                                        VerticalAlignment="Top" HorizontalAlignment="Left" MarginRight="6" MarginTop="2"
-                                                                       SkillId="@SkillId" UseSmallestVariation="true"/>
+                                                                       IsVisible="@IsSkill" SkillId="@SkillId" UseSmallestVariation="true"/>
+                                                <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="28" SuggestedHeight="28"
+                                                        VerticalAlignment="Center" HorizontalAlignment="Left" MarginRight="6" Sprite="@FormationSprite" IsVisible="@IsFormation"/>
                                                 <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" VerticalAlignment="Center"
                                                                 Brush="Encyclopedia.SubPage.Info.Text" Brush.FontSize="15" Brush.TextHorizontalAlignment="Left"
                                                                 Color="@Color" Text="@Text" IsDisabled="true"/>
@@ -362,20 +366,6 @@
                                                                 Brush="Encyclopedia.SubPage.Info.Text" Brush.FontSize="15" Color="@Color" Text="@Text" IsDisabled="true"/>
                                               </Children>
                                             </Widget>
-                                          </ItemTemplate>
-                                        </ListPanel>
-                                        <ListPanel DataSource="{TroopRows}" IsVisible="@HasTroopRows" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                   StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="10" MarginLeft="4" MarginRight="4" MarginTop="2" MarginBottom="4">
-                                          <ItemTemplate>
-                                            <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="32"
-                                                       StackLayout.LayoutMethod="HorizontalLeftToRight" MarginLeft="4" MarginRight="4">
-                                              <Children>
-                                                <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="28" SuggestedHeight="28"
-                                                        VerticalAlignment="Center" HorizontalAlignment="Left" Sprite="@FormationSprite"/>
-                                                <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" VerticalAlignment="Center" MarginLeft="6"
-                                                            Brush="Encyclopedia.SubPage.Info.Text" Brush.FontSize="16" Text="@CountInParens"/>
-                                              </Children>
-                                            </ListPanel>
                                           </ItemTemplate>
                                         </ListPanel>
                                         <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" IsVisible="@ShowPartyFood"

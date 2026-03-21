@@ -201,7 +201,8 @@ public class NpcChatWindowVM : ViewModel
             BuildNpcPartySection(npc),
             BuildQuestSection(context, headerMuted, questGold),
             BuildWorldEventsSection(headerMuted),
-            BuildWhatWeKnowSection(npc, context, headerMuted),
+            BuildCharacterHistorySection(npc, context, headerMuted),
+            BuildBehaviorSection(context, headerMuted),
             BuildCharacterSection(npc, context)
         };
         for (var i = 0; i < built.Length; i++)
@@ -218,20 +219,19 @@ public class NpcChatWindowVM : ViewModel
         if (party == null)
         {
             section.TextLines.Add(new TextItemVM("Not in a party on the map.", "#888888FF"));
-            section.HasTroopRows = false;
             section.ShowPartyFood = false;
+            section.RefreshVisibility();
             return section;
         }
         foreach (var row in PartyTroopFormationHelper.AggregateTroopFormations(party))
-            section.TroopRows.Add(new PartyTroopRowVM(row.formation, row.count));
-        section.HasTroopRows = section.TroopRows.Count > 0;
+            section.GlyphLines.Add(InfoGlyphLineVM.FromTroopFormation(row.formation, row.count));
         float days = party.GetNumDaysForFoodToLast();
         var (_, col) = NpcPartyFoodSupply.Classify(days);
         string leaderName = ((object)npc.Name)?.ToString() ?? "";
         section.PartyFoodText = NpcPartyFoodSupply.FormatNarrative(days, leaderName);
         section.PartyFoodColor = col;
         section.ShowPartyFood = true;
-        section.HasStandardTextLines = false;
+        section.RefreshVisibility();
         return section;
     }
 
@@ -244,6 +244,7 @@ public class NpcChatWindowVM : ViewModel
         else
             foreach (string line in lines)
                 section.TextLines.Add(new TextItemVM(line, questGold));
+        section.RefreshVisibility();
         return section;
     }
 
@@ -286,28 +287,39 @@ public class NpcChatWindowVM : ViewModel
                 if (e.IsDiseaseEvent)
                     type = "disease_outbreak";
                 string skillId = WorldEventSkillMapper.GetSkillIdForEventType(type);
-                section.WorldEventLines.Add(new WorldEventLineVM(skillId, "• " + text));
+                section.GlyphLines.Add(InfoGlyphLineVM.FromWorldEvent(skillId, "• " + text));
             }
         }
         catch (Exception ex)
         {
             AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] BuildWorldEventsSection failed: " + ex.Message);
         }
-        if (section.WorldEventLines.Count > 0)
-        {
-            section.HasWorldEventLines = true;
-            section.HasStandardTextLines = false;
-        }
-        else
-        {
+        if (section.GlyphLines.Count == 0)
             section.TextLines.Add(new TextItemVM("• None", headerMuted));
-        }
+        section.RefreshVisibility();
         return section;
     }
 
-    private InfoSectionVM BuildWhatWeKnowSection(Hero npc, NPCContext context, string headerMuted)
+    /// <summary>Known world facts / lore the player has unlocked (plain bullets only).</summary>
+    private InfoSectionVM BuildCharacterHistorySection(Hero npc, NPCContext context, string headerMuted)
     {
-        var section = new InfoSectionVM { HeaderText = "What we know" };
+        var section = new InfoSectionVM { HeaderText = "Character history" };
+        bool any = false;
+        foreach (var info in ResolveKnownInfo(context, npc))
+        {
+            section.TextLines.Add(new TextItemVM("• " + info));
+            any = true;
+        }
+        if (!any)
+            section.TextLines.Add(new TextItemVM("• No recorded history yet", headerMuted));
+        section.RefreshVisibility();
+        return section;
+    }
+
+    /// <summary>AI personality / speech / mood — separate from factual history.</summary>
+    private static InfoSectionVM BuildBehaviorSection(NPCContext context, string headerMuted)
+    {
+        var section = new InfoSectionVM { HeaderText = "Behavior" };
         bool any = false;
         if (!string.IsNullOrWhiteSpace(context?.AIGeneratedPersonality))
         {
@@ -327,13 +339,14 @@ public class NpcChatWindowVM : ViewModel
             section.TextLines.Add(new TextItemVM("• " + context.AIGeneratedSpeechQuirks));
             any = true;
         }
-        foreach (var info in ResolveKnownInfo(context, npc))
+        if (!string.IsNullOrWhiteSpace(context?.EmotionalState?.Mood))
         {
-            section.TextLines.Add(new TextItemVM("• " + info));
+            section.TextLines.Add(new TextItemVM($"• Mood: {context.EmotionalState.Mood}"));
             any = true;
         }
         if (!any)
-            section.TextLines.Add(new TextItemVM("• Personality not yet discovered", headerMuted));
+            section.TextLines.Add(new TextItemVM("• Not yet discovered", headerMuted));
+        section.RefreshVisibility();
         return section;
     }
 
@@ -344,8 +357,7 @@ public class NpcChatWindowVM : ViewModel
         section.TextLines.Add(new TextItemVM($"Relation: {rel:+#;-#;0}", rel >= 0 ? "#6FCF6FFF" : "#CF6F6FFF"));
         section.TextLines.Add(new TextItemVM($"Trust: {(context?.TrustLevel ?? 0f) * 100f:F0}%"));
         section.TextLines.Add(new TextItemVM($"Interactions: {context?.InteractionCount ?? 0}"));
-        if (!string.IsNullOrWhiteSpace(context?.EmotionalState?.Mood))
-            section.TextLines.Add(new TextItemVM($"Mood: {context.EmotionalState.Mood}"));
+        section.RefreshVisibility();
         return section;
     }
 
