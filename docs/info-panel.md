@@ -29,7 +29,7 @@ Call **`InfoSectionVM.RefreshVisibility()`** after filling a section. It sets:
 - `HasStandardTextLines` = `TextLines.Count > 0`
 - `ShowPartyFood` = previous `ShowPartyFood` && non-empty `PartyFoodText`
 
-Prefab: `GUI/Prefabs/ChatInterface.xml` — `InfoScroll` / `InfoRect` / `InfoList`; expanded body order is **GlyphLines → TextLines → party food** (see XML comments).
+Prefab: `GUI/Prefabs/ChatInterface.xml` — **`RightInfoScrollPanel`** (`ClipRect` = **`RightInfoClipRect`**, inner = **`RightInfoSectionsList`**); sibling **`RightInfoScrollBar`** (invisible). Expanded body order: **GlyphLines → TextLines → party food** (see XML comments).
 
 ## Vanilla reference (game install)
 
