@@ -1,6 +1,6 @@
 <Prefab>
   <!--
-    NPC chat = encyclopedia-first shell (SandBox EncyclopediaHeroPage.xml), not the old frame-first layout.
+    NPC chat = encyclopedia-first shell (mirror SandBox EncyclopediaHeroPage / Gauntlet encyclopedia subpage patterns), not the old frame-first layout.
     Root: Encyclopedia.Page.SoundBrush. Row: vanilla hero left strip (370) | conversation column | information column.
     Bindings: NpcChatWindowVM — HeroCharacter, Traits, HeroSkillList, MessageList, InfoSections, etc.
   -->
@@ -14,6 +14,8 @@
     <Constant Name="Msg.Margin" Value="30" />
     <Constant Name="Gold" Value="#FFE6B685" />
     <Constant Name="SepColor" Value="#FFFFFF22" />
+    <!-- Single horizontal inset for scroll content inside Encyclopedia.Frame (matches encyclopedia subpage rhythm). -->
+    <Constant Name="Info.Inset" Value="12" />
   </Constants>
 
   <Window Id="ChatInterfaceWindow" Layer="Overlay">
@@ -124,7 +126,7 @@
                 <Widget Id="CenterColumn" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent">
                   <Children>
                     <Widget Id="ChatBackground" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                            Sprite="BlankWhiteSquare_9" Color="#141414FF" DoNotAcceptEvents="true"/>
+                            Sprite="General\CharacterCreation\character_creation_background_gradient" DoNotAcceptEvents="true"/>
                     <Widget Id="ChatContent" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" DoNotAcceptEvents="false">
                       <Children>
                         <Widget Id="ChatHeaderBand" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="!Header.H" VerticalAlignment="Top"
@@ -287,7 +289,7 @@
                 <Widget Id="RightColumn" WidthSizePolicy="Fixed" SuggestedWidth="!Info.W" HeightSizePolicy="StretchToParent">
                   <Children>
                     <Widget Id="InfoBackground" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                            Sprite="BlankWhiteSquare_9" Color="#141414FF" DoNotAcceptEvents="true"/>
+                            Sprite="General\CharacterCreation\character_creation_background_gradient" DoNotAcceptEvents="true"/>
                     <!-- Non-collapsible title strip (vanilla encyclopedia banner; distinct from per-section headers inside the scroll). -->
                     <BrushWidget Id="InfoTitleBand" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="46" VerticalAlignment="Top"
                                  MarginLeft="4" MarginRight="4" MarginTop="4" Brush="Encyclopedia.TopBanner" Color="#0F141FFF" DoNotAcceptEvents="true">
@@ -297,32 +299,33 @@
                                         Brush.FontSize="23" Brush.TextHorizontalAlignment="Left" Color="!Gold" Text="Information" IsDisabled="true"/>
                       </Children>
                     </BrushWidget>
-                    <Widget Id="InfoTitleUnderline" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="2" VerticalAlignment="Top"
-                            PositionYOffset="52" MarginLeft="8" MarginRight="8" Sprite="BlankWhiteSquare_9" Color="!SepColor"/>
+                    <!-- Title + underline merged: frame top margin = title band (46) + margins (4+4). No extra separator strip. -->
                     <BrushWidget Id="InfoFrame" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                                 MarginTop="58" MarginBottom="50" MarginLeft="4" MarginRight="4"
+                                 MarginTop="54" MarginBottom="50" MarginLeft="4" MarginRight="4"
                                  Brush="Encyclopedia.Frame" DoNotAcceptEvents="true">
                       <Children>
                         <ScrollablePanel Id="InfoScrollPanel" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                                         MarginTop="4" MarginBottom="4" MarginLeft="8" MarginRight="8"
+                                         MarginLeft="!Info.Inset" MarginRight="!Info.Inset" MarginTop="!Info.Inset" MarginBottom="!Info.Inset"
                                          ClipRect="InfoClipRect" InnerPanel="InfoClipRect\InfoSectionsList"
                                          VerticalScrollbar="..\..\InfoScrollBar\Scrollbar" AutoHideScrollBars="true">
                           <Children>
                         <Widget Id="InfoClipRect" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" DoNotAcceptEvents="false" ClipContents="true">
                           <Children>
+                            <NavigationScopeTargeter ScopeID="NpcChatInfoSectionsScope" ScopeParent="..\InfoSectionsList" ScopeMovements="Vertical"
+                                NavigateFromScopeEdges="true" UseDiscoveryAreaAsScopeEdges="true" ExtendDiscoveryAreaTop="220" ExtendDiscoveryAreaBottom="220"/>
                             <NavigatableListPanel Id="InfoSectionsList" DataSource="{InfoSections}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                  StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="8" MarginLeft="4" MarginRight="4" MarginTop="4" MarginBottom="4">
+                                                  StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="6" MarginLeft="0" MarginRight="0" MarginTop="0" MarginBottom="0">
                               <ItemTemplate>
-                                <!-- Single ListPanel per section: stripe + header + body (TopToBottom). Item VM = InfoSectionVM (ExecuteToggle). -->
+                                <!-- Section: subtle tint only; spacing from list + Encyclopedia.Frame inset. Item VM = InfoSectionVM (ExecuteToggle). -->
                                 <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" Sprite="BlankWhiteSquare_9" Color="@SectionPanelColor"
-                                           StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="0" MarginLeft="0" MarginRight="0" MarginBottom="4">
+                                           StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="0" MarginLeft="0" MarginRight="0" MarginBottom="6">
                                   <Children>
-                                    <ButtonWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="36" MarginLeft="2" MarginRight="2"
+                                    <ButtonWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" MarginLeft="0" MarginRight="0"
                                                   Brush="Encyclopedia.TopBanner" Color="#0F141FFF" Command.Click="ExecuteToggle"
                                                   DoNotPassEventsToChildren="true" UpdateChildrenStates="true">
                                       <Children>
                                         <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                                                   StackLayout.LayoutMethod="HorizontalLeftToRight" MarginLeft="10" MarginRight="10">
+                                                   StackLayout.LayoutMethod="HorizontalLeftToRight" MarginLeft="12" MarginRight="12">
                                           <Children>
                                             <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                             Brush="Encyclopedia.SubPage.Title.Text" Brush.FontSize="16" Brush.TextHorizontalAlignment="Left"
@@ -334,16 +337,15 @@
                                         </ListPanel>
                                       </Children>
                                     </ButtonWidget>
-                                    <!-- Expanded body: visibility flags come from InfoSectionVM.RefreshVisibility() in C# (HasGlyphLines, HasStandardTextLines, ShowPartyFood). -->
+                                    <!-- Expanded body: visibility from InfoSectionVM.RefreshVisibility(). Padding = Info.Inset on scroll only. -->
                                     <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" IsVisible="@IsExpanded"
-                                               StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="4" MarginLeft="0" MarginRight="0" MarginTop="0" MarginBottom="2">
+                                               StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="6" MarginLeft="0" MarginRight="0" MarginTop="0" MarginBottom="0">
                                       <Children>
-                                        <!-- One list for skill-icon rows (world events) and formation-sprite rows (party troops); same row shape. -->
                                         <ListPanel DataSource="{GlyphLines}" IsVisible="@HasGlyphLines" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                   StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="10" MarginLeft="4" MarginRight="4" MarginTop="4" MarginBottom="2">
+                                                   StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="8" MarginLeft="0" MarginRight="0" MarginTop="0" MarginBottom="0">
                                           <ItemTemplate>
                                             <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                       StackLayout.LayoutMethod="HorizontalLeftToRight" MarginLeft="2" MarginRight="2">
+                                                       StackLayout.LayoutMethod="HorizontalLeftToRight" MarginLeft="0" MarginRight="0">
                                               <Children>
                                                 <SkillIconVisualWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="40" SuggestedHeight="40"
                                                                        VerticalAlignment="Top" HorizontalAlignment="Left" MarginRight="6" MarginTop="2"
@@ -358,7 +360,7 @@
                                           </ItemTemplate>
                                         </ListPanel>
                                         <ListPanel DataSource="{TextLines}" IsVisible="@HasStandardTextLines" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                   StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="10" MarginLeft="8" MarginRight="4" MarginTop="4" MarginBottom="2">
+                                                   StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="8" MarginLeft="0" MarginRight="0" MarginTop="0" MarginBottom="0">
                                           <ItemTemplate>
                                             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren">
                                               <Children>
@@ -370,7 +372,7 @@
                                           </ItemTemplate>
                                         </ListPanel>
                                         <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" IsVisible="@ShowPartyFood"
-                                                        MarginLeft="8" MarginBottom="4" Brush="Encyclopedia.SubPage.Info.Text" Brush.FontSize="15"
+                                                        MarginLeft="0" MarginBottom="4" Brush="Encyclopedia.SubPage.Info.Text" Brush.FontSize="15"
                                                         Brush.TextHorizontalAlignment="Left" Color="@PartyFoodColor" Text="@PartyFoodText" IsDisabled="true"/>
                                       </Children>
                                     </ListPanel>
@@ -378,8 +380,6 @@
                                 </ListPanel>
                               </ItemTemplate>
                             </NavigatableListPanel>
-                            <BrushWidget DoNotAcceptEvents="true" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="120"
-                                         VerticalAlignment="Bottom" HorizontalAlignment="Center" Brush="Encyclopedia.Scroll.Shadow" Brush.VerticalFlip="false"/>
                           </Children>
                         </Widget>
                           </Children>

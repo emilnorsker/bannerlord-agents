@@ -11,7 +11,7 @@
 | 5 | Behavior          | AI personality, quirks, speech, mood (`TextLines`). |
 | 6 | Character         | Relation, trust, interaction count (`TextLines`). |
 
-Stripe colors alternate per section in `RebuildInfoPanelSections`.
+`SectionPanelColor` is a **single** subtle tint for all sections (encyclopedia frame provides the main chrome; no alternating zebra).
 
 ## Data → UI mapping
 
@@ -29,7 +29,7 @@ Call **`InfoSectionVM.RefreshVisibility()`** after filling a section. It sets:
 - `HasStandardTextLines` = `TextLines.Count > 0`
 - `ShowPartyFood` = previous `ShowPartyFood` && non-empty `PartyFoodText`
 
-Prefab: `GUI/Prefabs/ChatInterface.xml` — **`InfoScrollPanel`** (`ClipRect` = **`InfoClipRect`**, inner = **`InfoSectionsList`**); sibling **`InfoScrollBar`** (invisible). Expanded body order: **GlyphLines → TextLines → party food** (see XML comments).
+Prefab: `GUI/Prefabs/ChatInterface.xml` — horizontal padding for scroll content is **`!Info.Inset`** (12px) on **`InfoScrollPanel`** only; inner lists use **0** lateral margin. **`NavigationScopeTargeter`** (`NpcChatInfoSectionsScope`) → **`InfoSectionsList`** for gamepad/keyboard. **`InfoScrollPanel`** (`ClipRect` = **`InfoClipRect`**, inner = **`InfoSectionsList`**); sibling **`InfoScrollBar`** (invisible). No separate title underline or bottom scroll shadow; **`Encyclopedia.Frame`** alone defines the framed scroll region. Expanded body order: **GlyphLines → TextLines → party food** (see XML comments).
 
 ## Vanilla reference (game install)
 

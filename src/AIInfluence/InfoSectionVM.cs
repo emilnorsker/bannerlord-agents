@@ -13,7 +13,7 @@ public class InfoSectionVM : ViewModel
     private string _headerText = "";
     private string _partyFoodText = "";
     private string _partyFoodColor = "#C6AC8DFF";
-    private string _sectionPanelColor = "#121820F0";
+    private string _sectionPanelColor = "#0C101868";
     private bool _hasGlyphLines;
     private bool _hasStandardTextLines = true;
     private bool _showPartyFood;

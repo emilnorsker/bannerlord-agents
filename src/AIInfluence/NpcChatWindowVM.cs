@@ -192,8 +192,8 @@ public class NpcChatWindowVM : ViewModel
     {
         const string headerMuted = "#888888FF";
         const string questGold = "#D0A96BFF";
-        const string stripeA = "#121820F0";
-        const string stripeB = "#1E1810F0";
+        // One subtle panel tint (Encyclopedia.Frame carries the main chrome; avoid heavy zebra stripes).
+        const string sectionStripe = "#0C101868";
         InfoSections.Clear();
         // InfoSectionsList is VerticalTopToBottom: add in screen order top → bottom.
         var built = new[]
@@ -205,10 +205,10 @@ public class NpcChatWindowVM : ViewModel
             BuildBehaviorSection(context, headerMuted),
             BuildCharacterSection(npc, context)
         };
-        for (var i = 0; i < built.Length; i++)
+        foreach (var section in built)
         {
-            built[i].SectionPanelColor = (i % 2 == 0) ? stripeA : stripeB;
-            InfoSections.Add(built[i]);
+            section.SectionPanelColor = sectionStripe;
+            InfoSections.Add(section);
         }
     }
 
