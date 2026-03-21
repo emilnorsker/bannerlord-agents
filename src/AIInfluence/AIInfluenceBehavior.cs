@@ -103,8 +103,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	private const string WelcomeMarkerFileName = "welcome_popup_shown.txt";
 
-	/// <summary>Matches the <c>response</c> JSON string field for NPC speech shown in the chat bubble.</summary>
-	private static readonly Regex NpcSpeechResponseFieldRegex = new Regex("\"response\"\\s*:\\s*\"(?<text>(?:\\\\.|[^\"\\\\])*)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+	/// <summary>Matches the <c>response</c> JSON string field used for the NPC message preview in chat.</summary>
+	private static readonly Regex NpcMessagePreviewResponseFieldRegex = new Regex("\"response\"\\s*:\\s*\"(?<text>(?:\\\\.|[^\"\\\\])*)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
 	private bool _welcomeCheckedThisSession = false;
 
@@ -3260,19 +3260,19 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 	}
 
-	/// <summary>Returns NPC speech for the chat bubble from the accumulating reply body. The model emits JSON; this reads the <c>response</c> field before the document is complete.</summary>
-	/// <param name="accumulatedReplyText">All raw characters received so far for this reply (growing JSON text).</param>
-	private static string GetNpcSpeechPreview(string accumulatedReplyText)
+	/// <summary>Returns the NPC message preview for the chat bubble from the in-progress message draft. The model emits JSON; this reads the <c>response</c> field before the message JSON is complete.</summary>
+	/// <param name="messageDraftText">Raw text of the assistant message so far (growing JSON).</param>
+	private static string GetNpcMessagePreview(string messageDraftText)
 	{
-		if (string.IsNullOrEmpty(accumulatedReplyText))
+		if (string.IsNullOrEmpty(messageDraftText))
 		{
 			return "";
 		}
-		Match match = NpcSpeechResponseFieldRegex.Match(accumulatedReplyText);
+		Match match = NpcMessagePreviewResponseFieldRegex.Match(messageDraftText);
 		if (!match.Success)
 		{
-			if (!accumulatedReplyText.TrimStart(Array.Empty<char>()).StartsWith("{", StringComparison.Ordinal))
-				return accumulatedReplyText;
+			if (!messageDraftText.TrimStart(Array.Empty<char>()).StartsWith("{", StringComparison.Ordinal))
+				return messageDraftText;
 			return "";
 		}
 		string value = match.Groups["text"].Value;
@@ -3288,9 +3288,9 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 	}
 
-	/// <summary>Runs one player turn in NPC chat. Returns the final assistant message body when complete.</summary>
-	/// <param name="onNpcSpeechPreviewUpdated">Optional; updates the chat bubble with NPC speech while the reply is still generating.</param>
-	public async Task<string> ProcessChatInput(Hero npc, string playerMessage, Action<string> onNpcSpeechPreviewUpdated = null)
+	/// <summary>Runs one player turn in NPC chat. Returns the final assistant <b>message</b> body when complete.</summary>
+	/// <param name="notifyNpcMessagePreviewChanged">Optional; invoked when the NPC message preview for the chat bubble changes while the <b>message draft</b> is still growing.</param>
+	public async Task<string> ProcessChatInput(Hero npc, string playerMessage, Action<string> notifyNpcMessagePreviewChanged = null)
 	{
 		if (npc == null || string.IsNullOrEmpty(playerMessage))
 			return "";
@@ -3308,25 +3308,30 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		context.PendingRelationChange = null;
 		context.PendingLiePenalty = null;
 		string prompt = PromptGenerator.GeneratePrompt(npc, context);
-		StringBuilder accumulatedRawReply = (onNpcSpeechPreviewUpdated == null) ? null : new StringBuilder();
-		string lastNpcSpeechPreview = "";
-		Action<string> npcReplyChunkHandler = (onNpcSpeechPreviewUpdated == null) ? null : (Action<string>)delegate(string replyTextChunk)
+		StringBuilder messageDraft = (notifyNpcMessagePreviewChanged == null) ? null : new StringBuilder();
+		string lastNpcMessagePreview = "";
+		Action<string> notifyMessageChunk = null;
+		if (notifyNpcMessagePreviewChanged != null)
 		{
-			accumulatedRawReply.Append(replyTextChunk ?? "");
-			string text = GetNpcSpeechPreview(accumulatedRawReply.ToString());
-			if (!string.IsNullOrEmpty(text) && !string.Equals(text, lastNpcSpeechPreview, StringComparison.Ordinal))
+			void AppendMessageChunk(string messageChunk)
 			{
-				lastNpcSpeechPreview = text;
-				try
+				messageDraft.Append(messageChunk ?? "");
+				string text = GetNpcMessagePreview(messageDraft.ToString());
+				if (!string.IsNullOrEmpty(text) && !string.Equals(text, lastNpcMessagePreview, StringComparison.Ordinal))
 				{
-					onNpcSpeechPreviewUpdated(text);
-				}
-				catch (Exception ex2)
-				{
-					LogMessage("[ChatWindow] Stream update callback failed: " + ex2.Message);
+					lastNpcMessagePreview = text;
+					try
+					{
+						notifyNpcMessagePreviewChanged(text);
+					}
+					catch (Exception ex2)
+					{
+						LogMessage("[ChatWindow] Stream update callback failed: " + ex2.Message);
+					}
 				}
 			}
-		};
+			notifyMessageChunk = AppendMessageChunk;
+		}
 		string aiResponse = null;
 		Func<string, string, Task<string>> toolExecutor = GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue == "OpenRouter"
 			? (name, args) => ExecuteChatTool(name, args, npc, context)
@@ -3337,11 +3342,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			{
 				if (attempt > 1)
 				{
-					accumulatedRawReply?.Clear();
-					lastNpcSpeechPreview = "";
-					onNpcSpeechPreviewUpdated?.Invoke("");
+					messageDraft?.Clear();
+					lastNpcMessagePreview = "";
+					notifyNpcMessagePreviewChanged?.Invoke("");
 				}
-				aiResponse = await AIClient.GetAIResponse(npcName, faction, prompt + "\nPlayer: " + playerMessage, npcReplyChunkHandler, toolExecutor);
+				aiResponse = await AIClient.GetAIResponse(npcName, faction, prompt + "\nPlayer: " + playerMessage, notifyMessageChunk, toolExecutor);
 				if (!string.IsNullOrEmpty(aiResponse) && !aiResponse.StartsWith("Error:"))
 					break;
 				if (attempt < 3)
