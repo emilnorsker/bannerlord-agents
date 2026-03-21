@@ -969,8 +969,9 @@ public class NPCInitiativeSystem
 				return;
 			}
 			string cleanedResponse = JsonCleaner.CleanJsonResponse(aiResponse);
+			if (JsonCleaner.IsValidJson(cleanedResponse))
+				cleanedResponse = OpenRouterDialogueJson.PrepareForAiResponseDeserialize(cleanedResponse);
 			AIResponse response = JsonConvert.DeserializeObject<AIResponse>(cleanedResponse);
-			AIInfluenceBehavior.RemoveDuplicateOpenRouterToolEffectsFromAiResponse(response);
 			AIInfluenceBehavior.ApplyNpcContextToolDeferralsToAiResponse(request.Context, response);
 			string message = response?.Response ?? "The messenger failed to deliver the message.";
 			message = UnescapeFormatting(message);
@@ -1534,8 +1535,9 @@ public class NPCInitiativeSystem
 			AIResponse response;
 			try
 			{
+				if (JsonCleaner.IsValidJson(cleanedResponse))
+					cleanedResponse = OpenRouterDialogueJson.PrepareForAiResponseDeserialize(cleanedResponse);
 				response = JsonConvert.DeserializeObject<AIResponse>(cleanedResponse);
-				AIInfluenceBehavior.RemoveDuplicateOpenRouterToolEffectsFromAiResponse(response);
 				AIInfluenceBehavior.ApplyNpcContextToolDeferralsToAiResponse(context, response);
 				LogMessage("[NPC_MESSENGER_DEBUG] Parsed response from " + npcName + ":");
 				LogMessage("  - response: " + (response?.Response?.Substring(0, Math.Min(100, (response?.Response?.Length).GetValueOrDefault())) ?? "null") + "...");
@@ -1978,8 +1980,9 @@ public class NPCInitiativeSystem
 			AIResponse response;
 			try
 			{
+				if (JsonCleaner.IsValidJson(cleanedResponse))
+					cleanedResponse = OpenRouterDialogueJson.PrepareForAiResponseDeserialize(cleanedResponse);
 				response = JsonConvert.DeserializeObject<AIResponse>(cleanedResponse);
-				AIInfluenceBehavior.RemoveDuplicateOpenRouterToolEffectsFromAiResponse(response);
 				AIInfluenceBehavior.ApplyNpcContextToolDeferralsToAiResponse(context, response);
 			}
 			catch
@@ -2196,8 +2199,9 @@ public class NPCInitiativeSystem
 			AIResponse response;
 			try
 			{
+				if (JsonCleaner.IsValidJson(cleanedResponse))
+					cleanedResponse = OpenRouterDialogueJson.PrepareForAiResponseDeserialize(cleanedResponse);
 				response = JsonConvert.DeserializeObject<AIResponse>(cleanedResponse);
-				AIInfluenceBehavior.RemoveDuplicateOpenRouterToolEffectsFromAiResponse(response);
 				AIInfluenceBehavior.ApplyNpcContextToolDeferralsToAiResponse(context, response);
 			}
 			catch
