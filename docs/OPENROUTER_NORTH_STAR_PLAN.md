@@ -41,7 +41,7 @@ Everything that duplicates authority (legacy envelope on `AIResponse`, stringly-
 
 **Goal:** No monolithic `AIResponse` / dialogue JSON for **speech, tone, lies, escalation, romance, decisions**. Those become **tools** with small schemas (e.g. `npc_say` with `line` + optional `tone`; `lie_suspect` / `lie_resolve`; `conflict_update`; `dialogue_decision`; `romance_set_intent`; …). World tools (`transfer_money`, `quest_action`, map tools, …) stay **only** as tools.
 
-**Implemented (slice):** `npc_say` tool + `NPCContext.LastNpcSayLine` / `LastNpcSayTone` + `ApplyNpcSayFromToolsToAiResponse` merges into `AIResponse` after deserialize; OpenRouter agent loop returns `{}` when final assistant content is empty so tool-only turns work. Further tools (lie, conflict, …) and removing envelope JSON come next.
+**Implemented (slice):** Dialogue tools: `npc_say`, `suspected_lie`, `dialogue_decision`, `romance_intent`, `escalation_update`, `allows_letters` (+ world tools unchanged). `ApplyNpcDialogueToolsToAiResponse` merges into `AIResponse` after deserialize; `ClearNpcTurnDialogueTools` resets scratch each turn. OpenRouter agent loop returns `{}` when final assistant content is empty. Next: strip duplicate keys from JSON schema / `PromptGenerator` optional-field bloat, `OnToolCompleted` bus.
 
 | Deliverable | Notes |
 |-------------|--------|

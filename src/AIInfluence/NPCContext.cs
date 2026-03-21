@@ -123,6 +123,28 @@ public class NPCContext
 	[JsonIgnore]
 	public string LastNpcSayTone { get; set; }
 
+	/// <summary>OpenRouter dialogue tools: merged into <see cref="AIResponse"/> after deserialize (tools override JSON when set).</summary>
+	[JsonIgnore]
+	public bool? DialogueToolSuspectedLie { get; set; }
+
+	[JsonIgnore]
+	public string DialogueToolDecision { get; set; }
+
+	[JsonIgnore]
+	public string DialogueToolRomanceIntent { get; set; }
+
+	[JsonIgnore]
+	public string DialogueToolThreatLevel { get; set; }
+
+	[JsonIgnore]
+	public string DialogueToolEscalationState { get; set; }
+
+	[JsonIgnore]
+	public bool? DialogueToolDeescalationAttempt { get; set; }
+
+	[JsonIgnore]
+	public bool? DialogueToolAllowsLetters { get; set; }
+
 	public PendingRelationChange PendingRelationChange { get; set; }
 
 	public PendingRelationChange PendingLiePenalty { get; set; }

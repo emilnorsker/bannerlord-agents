@@ -210,7 +210,7 @@ public static class AIClient
 		var (systemPrompt, userMessage, _) = ExtractLastPlayerMessage(prompt);
 		var messages = new JArray
 		{
-			new JObject { ["role"] = "system", ["content"] = systemPrompt + "\n\n**TOOLS:** Use functions for world effects (transfers, quests, kingdom, workshops, travel, search, character_death, technical_action). For spoken dialogue call **npc_say** with `line` (required) and optional `tone`. Final assistant message JSON may be minimal (`{}`) if dialogue was delivered only via npc_say and tools.\n" },
+			new JObject { ["role"] = "system", ["content"] = systemPrompt + "\n\n**TOOLS:** Prefer tools over stuffing fields into JSON. **Dialogue:** `npc_say` (line, tone?), `suspected_lie`, `dialogue_decision`, `romance_intent`, `escalation_update`, `allows_letters`. **World:** transfers, quests, kingdom, workshops, travel, search, character_death, technical_action. Final assistant JSON may be `{}` if you used tools for everything.\n" },
 			new JObject { ["role"] = "user", ["content"] = userMessage }
 		};
 		var tools = ChatTools.ToolCatalog.GetToolsForApi();

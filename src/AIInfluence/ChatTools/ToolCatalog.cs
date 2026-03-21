@@ -67,7 +67,17 @@ public static class ToolCatalog
 			Tool("technical_action", "NPC map/script action string: action name, or NAME:payload, or NAME:STOP to stop (e.g. follow_player, go_to_settlement:town_S1:3).",
 				"{\"value\":{\"type\":\"string\"}}", new[] { "value" }),
 			Tool("npc_say", "The NPC's spoken line to the player (in-character dialogue). Call each turn you produce speech; optional tone.",
-				"{\"line\":{\"type\":\"string\"},\"tone\":{\"type\":\"string\"}}", new[] { "line" })
+				"{\"line\":{\"type\":\"string\"},\"tone\":{\"type\":\"string\"}}", new[] { "line" }),
+			Tool("suspected_lie", "Set whether you believe the player's last statement is a lie (lie detection).",
+				"{\"suspected\":{\"type\":\"boolean\"}}", new[] { "suspected" }),
+			Tool("dialogue_decision", "Conversation flow: release, attack, surrender, accept_surrender, propose_marriage, accept_marriage, reject_marriage, intimate, or none.",
+				"{\"decision\":{\"type\":\"string\"}}", new[] { "decision" }),
+			Tool("romance_intent", "Romance stance: none, flirt, romance, proposal.",
+				"{\"intent\":{\"type\":\"string\"}}", new[] { "intent" }),
+			Tool("escalation_update", "Conflict/tension: optional threat_level, escalation_state, deescalation_attempt.",
+				"{\"threat_level\":{\"type\":\"string\"},\"escalation_state\":{\"type\":\"string\"},\"deescalation_attempt\":{\"type\":\"boolean\"}}", System.Array.Empty<string>()),
+			Tool("allows_letters", "Whether this NPC will send messengers/letters to the player.",
+				"{\"allows\":{\"type\":\"boolean\"}}", new[] { "allows" })
 		};
 	}
 

@@ -2785,8 +2785,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 		LogMessage("[PLAYER_INPUT] " + playerInput);
 		context.AddMessage("Player: " + playerInput);
-		context.LastNpcSayLine = null;
-		context.LastNpcSayTone = null;
+		ClearNpcTurnDialogueTools(context);
 		SaveNPCContext(npcId, npc, context);
 		WorldInfoManager.Instance.UpdateTimeContext(context);
 		WorldInfoManager.Instance.UpdateWarStatus(context);
@@ -2894,7 +2893,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			};
 		}
 		ApplyNpcContextToolDeferralsToAiResponse(context, aiResult);
-		ApplyNpcSayFromToolsToAiResponse(context, aiResult);
+		ApplyNpcDialogueToolsToAiResponse(context, aiResult);
 		if (!string.IsNullOrEmpty(aiResult.RomanceIntent) && aiResult.RomanceIntent != "none")
 		{
 			CampaignTime now = CampaignTime.Now;
@@ -3327,18 +3326,70 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 	}
 
-	/// <summary>Merges <see cref="NPCContext.LastNpcSayLine"/> / <see cref="NPCContext.LastNpcSayTone"/> from the <c>npc_say</c> tool into <paramref name="aiResult"/> (tool-first dialogue).</summary>
-	public static void ApplyNpcSayFromToolsToAiResponse(NPCContext context, AIResponse aiResult)
+	/// <summary>Clears per-turn scratch from OpenRouter dialogue tools (<c>npc_say</c>, <c>suspected_lie</c>, …).</summary>
+	public static void ClearNpcTurnDialogueTools(NPCContext context)
+	{
+		if (context == null)
+			return;
+		context.LastNpcSayLine = null;
+		context.LastNpcSayTone = null;
+		context.DialogueToolSuspectedLie = null;
+		context.DialogueToolDecision = null;
+		context.DialogueToolRomanceIntent = null;
+		context.DialogueToolThreatLevel = null;
+		context.DialogueToolEscalationState = null;
+		context.DialogueToolDeescalationAttempt = null;
+		context.DialogueToolAllowsLetters = null;
+	}
+
+	/// <summary>Merges OpenRouter dialogue tool results into <paramref name="aiResult"/> after deserialize (tools override duplicate JSON fields).</summary>
+	public static void ApplyNpcDialogueToolsToAiResponse(NPCContext context, AIResponse aiResult)
 	{
 		if (context == null || aiResult == null)
 			return;
-		if (string.IsNullOrEmpty(context.LastNpcSayLine))
-			return;
-		aiResult.Response = context.LastNpcSayLine;
-		if (!string.IsNullOrEmpty(context.LastNpcSayTone))
-			aiResult.Tone = context.LastNpcSayTone;
-		context.LastNpcSayLine = null;
-		context.LastNpcSayTone = null;
+		if (!string.IsNullOrEmpty(context.LastNpcSayLine))
+		{
+			aiResult.Response = context.LastNpcSayLine;
+			if (!string.IsNullOrEmpty(context.LastNpcSayTone))
+				aiResult.Tone = context.LastNpcSayTone;
+			context.LastNpcSayLine = null;
+			context.LastNpcSayTone = null;
+		}
+		if (context.DialogueToolSuspectedLie.HasValue)
+		{
+			aiResult.SuspectedLie = context.DialogueToolSuspectedLie.Value;
+			context.DialogueToolSuspectedLie = null;
+		}
+		if (!string.IsNullOrEmpty(context.DialogueToolDecision))
+		{
+			aiResult.Decision = context.DialogueToolDecision;
+			context.DialogueToolDecision = null;
+		}
+		if (!string.IsNullOrEmpty(context.DialogueToolRomanceIntent))
+		{
+			aiResult.RomanceIntent = context.DialogueToolRomanceIntent;
+			context.DialogueToolRomanceIntent = null;
+		}
+		if (context.DialogueToolThreatLevel != null)
+		{
+			aiResult.ThreatLevel = context.DialogueToolThreatLevel;
+			context.DialogueToolThreatLevel = null;
+		}
+		if (context.DialogueToolEscalationState != null)
+		{
+			aiResult.EscalationState = context.DialogueToolEscalationState;
+			context.DialogueToolEscalationState = null;
+		}
+		if (context.DialogueToolDeescalationAttempt.HasValue)
+		{
+			aiResult.DeescalationAttempt = context.DialogueToolDeescalationAttempt.Value;
+			context.DialogueToolDeescalationAttempt = null;
+		}
+		if (context.DialogueToolAllowsLetters.HasValue)
+		{
+			aiResult.AllowsLettersFromNPC = context.DialogueToolAllowsLetters;
+			context.DialogueToolAllowsLetters = null;
+		}
 	}
 
 	/// <summary>Runs one player turn in NPC chat. Returns the final assistant <b>message</b> body when complete.</summary>
@@ -3353,8 +3404,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		string faction = ((clan == null) ? null : ((object)clan.Name)?.ToString()) ?? "No faction";
 		NPCContext context = GetOrCreateNPCContext(npc);
 		UpdateContextData(context, npc);
-		context.LastNpcSayLine = null;
-		context.LastNpcSayTone = null;
+		ClearNpcTurnDialogueTools(context);
 		string heroDisplayName = ((object)Hero.MainHero?.Name)?.ToString() ?? "Player";
 		context.AddMessage(heroDisplayName + ": " + playerMessage);
 		SaveNPCContext(npcId, npc, context);
@@ -3433,7 +3483,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		if (aiResult == null)
 			return "";
 		ApplyNpcContextToolDeferralsToAiResponse(context, aiResult);
-		ApplyNpcSayFromToolsToAiResponse(context, aiResult);
+		ApplyNpcDialogueToolsToAiResponse(context, aiResult);
 		string reply = aiResult.Response ?? "";
 		context.LastInteractionTime = CampaignTime.Now;
 		context.InteractionCount++;

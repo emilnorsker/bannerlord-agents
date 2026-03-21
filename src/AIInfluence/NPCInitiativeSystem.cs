@@ -960,8 +960,7 @@ public class NPCInitiativeSystem
 			{
 				LogMessage("  - No conversation history");
 			}
-			request.Context.LastNpcSayLine = null;
-			request.Context.LastNpcSayTone = null;
+			AIInfluenceBehavior.ClearNpcTurnDialogueTools(request.Context);
 			string aiResponse = await _behavior.SendAIRequest(prompt, "npc_messenger", request.NPC, request.Context);
 			LogMessage($"[NPC_MESSENGER_DEBUG] Received AI response for {npcName}, length: {aiResponse?.Length ?? 0}");
 			LogMessage("[NPC_MESSENGER_DEBUG] FULL AI RESPONSE JSON: " + aiResponse);
@@ -975,7 +974,7 @@ public class NPCInitiativeSystem
 				cleanedResponse = OpenRouterDialogueJson.PrepareForAiResponseDeserialize(cleanedResponse);
 			AIResponse response = JsonConvert.DeserializeObject<AIResponse>(cleanedResponse);
 			AIInfluenceBehavior.ApplyNpcContextToolDeferralsToAiResponse(request.Context, response);
-			AIInfluenceBehavior.ApplyNpcSayFromToolsToAiResponse(request.Context, response);
+			AIInfluenceBehavior.ApplyNpcDialogueToolsToAiResponse(request.Context, response);
 			string message = response?.Response ?? "The messenger failed to deliver the message.";
 			message = UnescapeFormatting(message);
 			request.Context.LastAIResponseJson = cleanedResponse;
@@ -1528,8 +1527,7 @@ public class NPCInitiativeSystem
 			context.AllowsLettersFromNPC = originalAllowsLetters;
 			LogMessage("[NPC_MESSENGER] Generating response from " + npcName + " to player's letter (AllowsLetters forced to true for prompt)");
 			LogMessage("[NPC_MESSENGER_PROMPT] Full prompt for letter response:\n" + prompt);
-			context.LastNpcSayLine = null;
-			context.LastNpcSayTone = null;
+			AIInfluenceBehavior.ClearNpcTurnDialogueTools(context);
 			string aiResponse = await _behavior.SendAIRequest(prompt, "npc_letter_response", npc, context);
 			if (string.IsNullOrEmpty(aiResponse) || aiResponse.StartsWith("Error:"))
 			{
@@ -1544,7 +1542,7 @@ public class NPCInitiativeSystem
 					cleanedResponse = OpenRouterDialogueJson.PrepareForAiResponseDeserialize(cleanedResponse);
 				response = JsonConvert.DeserializeObject<AIResponse>(cleanedResponse);
 				AIInfluenceBehavior.ApplyNpcContextToolDeferralsToAiResponse(context, response);
-				AIInfluenceBehavior.ApplyNpcSayFromToolsToAiResponse(context, response);
+				AIInfluenceBehavior.ApplyNpcDialogueToolsToAiResponse(context, response);
 				LogMessage("[NPC_MESSENGER_DEBUG] Parsed response from " + npcName + ":");
 				LogMessage("  - response: " + (response?.Response?.Substring(0, Math.Min(100, (response?.Response?.Length).GetValueOrDefault())) ?? "null") + "...");
 				LogMessage("  - technical_action: " + (response?.TechnicalAction ?? "null"));
@@ -1976,8 +1974,7 @@ public class NPCInitiativeSystem
 			RefreshContextData(npc, context);
 			string prompt = GenerateHostileInitiativePrompt(npc, context);
 			LogMessage($"[NPC_HOSTILE_PROMPT] Full prompt for {npc.Name}:\n{prompt}");
-			context.LastNpcSayLine = null;
-			context.LastNpcSayTone = null;
+			AIInfluenceBehavior.ClearNpcTurnDialogueTools(context);
 			string aiResponse = await _behavior.SendAIRequest(prompt, "npc_hostile_initiative", npc, context);
 			if (string.IsNullOrEmpty(aiResponse) || aiResponse.StartsWith("Error:"))
 			{
@@ -1992,7 +1989,7 @@ public class NPCInitiativeSystem
 					cleanedResponse = OpenRouterDialogueJson.PrepareForAiResponseDeserialize(cleanedResponse);
 				response = JsonConvert.DeserializeObject<AIResponse>(cleanedResponse);
 				AIInfluenceBehavior.ApplyNpcContextToolDeferralsToAiResponse(context, response);
-				AIInfluenceBehavior.ApplyNpcSayFromToolsToAiResponse(context, response);
+				AIInfluenceBehavior.ApplyNpcDialogueToolsToAiResponse(context, response);
 			}
 			catch
 			{
@@ -2198,8 +2195,7 @@ public class NPCInitiativeSystem
 			RefreshContextData(npc, context);
 			string prompt = GeneratePartyInitiativePrompt(npc, context);
 			LogMessage($"[NPC_NEUTRAL_PROMPT] Full prompt for {npc.Name}:\n{prompt}");
-			context.LastNpcSayLine = null;
-			context.LastNpcSayTone = null;
+			AIInfluenceBehavior.ClearNpcTurnDialogueTools(context);
 			string aiResponse = await _behavior.SendAIRequest(prompt, "npc_neutral_initiative", npc, context);
 			if (string.IsNullOrEmpty(aiResponse) || aiResponse.StartsWith("Error:"))
 			{
@@ -2214,7 +2210,7 @@ public class NPCInitiativeSystem
 					cleanedResponse = OpenRouterDialogueJson.PrepareForAiResponseDeserialize(cleanedResponse);
 				response = JsonConvert.DeserializeObject<AIResponse>(cleanedResponse);
 				AIInfluenceBehavior.ApplyNpcContextToolDeferralsToAiResponse(context, response);
-				AIInfluenceBehavior.ApplyNpcSayFromToolsToAiResponse(context, response);
+				AIInfluenceBehavior.ApplyNpcDialogueToolsToAiResponse(context, response);
 			}
 			catch
 			{

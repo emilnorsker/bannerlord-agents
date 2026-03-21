@@ -37,6 +37,11 @@ public static class ToolHandlers
 			"character_death" => RunCharacterDeath(argsJson, context),
 			"technical_action" => RunTechnicalAction(argsJson, context),
 			"npc_say" => RunNpcSay(argsJson, context),
+			"suspected_lie" => RunSuspectedLie(argsJson, context),
+			"dialogue_decision" => RunDialogueDecision(argsJson, context),
+			"romance_intent" => RunRomanceIntent(argsJson, context),
+			"escalation_update" => RunEscalationUpdate(argsJson, context),
+			"allows_letters" => RunAllowsLetters(argsJson, context),
 			_ => "unknown"
 		};
 	}
@@ -227,6 +232,57 @@ public static class ToolHandlers
 			KillerStringId = parsedArgs["killer_string_id"]?.ToString(),
 			OpposedAttribute = parsedArgs["opposed_attribute"]?.ToString()
 		};
+		return "ok";
+	}
+
+	private static string RunSuspectedLie(string argsJson, NPCContext context)
+	{
+		JObject parsedArgs = ParseOrEmpty(argsJson);
+		if (parsedArgs["suspected"] == null)
+			return "missing";
+		context.DialogueToolSuspectedLie = parsedArgs["suspected"].Value<bool>();
+		return "ok";
+	}
+
+	private static string RunDialogueDecision(string argsJson, NPCContext context)
+	{
+		string decision = ParseOrEmpty(argsJson)["decision"]?.ToString();
+		if (string.IsNullOrEmpty(decision))
+			return "missing";
+		context.DialogueToolDecision = decision;
+		return "ok";
+	}
+
+	private static string RunRomanceIntent(string argsJson, NPCContext context)
+	{
+		string intent = ParseOrEmpty(argsJson)["intent"]?.ToString();
+		if (string.IsNullOrEmpty(intent))
+			return "missing";
+		context.DialogueToolRomanceIntent = intent;
+		return "ok";
+	}
+
+	private static string RunEscalationUpdate(string argsJson, NPCContext context)
+	{
+		JObject parsedArgs = ParseOrEmpty(argsJson);
+		JToken t = parsedArgs["threat_level"];
+		if (t != null && t.Type != JTokenType.Null)
+			context.DialogueToolThreatLevel = t.ToString();
+		t = parsedArgs["escalation_state"];
+		if (t != null && t.Type != JTokenType.Null)
+			context.DialogueToolEscalationState = t.ToString();
+		t = parsedArgs["deescalation_attempt"];
+		if (t != null && t.Type != JTokenType.Null)
+			context.DialogueToolDeescalationAttempt = t.Value<bool>();
+		return "ok";
+	}
+
+	private static string RunAllowsLetters(string argsJson, NPCContext context)
+	{
+		JObject parsedArgs = ParseOrEmpty(argsJson);
+		if (parsedArgs["allows"] == null)
+			return "missing";
+		context.DialogueToolAllowsLetters = parsedArgs["allows"].Value<bool>();
 		return "ok";
 	}
 
