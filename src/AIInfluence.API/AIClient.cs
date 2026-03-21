@@ -210,7 +210,7 @@ public static class AIClient
 		var (systemPrompt, userMessage, _) = ExtractLastPlayerMessage(prompt);
 		var messages = new JArray
 		{
-			new JObject { ["role"] = "system", ["content"] = systemPrompt + "\n\n**TOOLS:** Use find_settlements/find_parties/find_items for string_ids. The final assistant message is constrained by API structured output (npc_chat_response schema).\n" },
+			new JObject { ["role"] = "system", ["content"] = systemPrompt + "\n\n**TOOLS:** Use functions for world effects (transfers, quests, kingdom, workshops, travel, search). Final reply JSON is dialogue only (no money/item/quest/kingdom/workshop fields—those are tools).\n" },
 			new JObject { ["role"] = "user", ["content"] = userMessage }
 		};
 		var tools = ChatTools.ToolCatalog.GetToolsForApi();
@@ -254,13 +254,16 @@ public static class AIClient
 
 	private static async Task<JToken> SendToolRequest(JArray messages, JArray tools, Action<string> notifyMessageChunk)
 	{
+		// OpenRouter: tools on every request; tool_choice / parallel_tool_calls per https://openrouter.ai/docs/guides/features/tool-calling
 		JObject body = new JObject
 		{
 			["model"] = GlobalSettings<ModSettings>.Instance.AIModel,
 			["messages"] = messages,
 			["tools"] = tools,
+			["tool_choice"] = "auto",
+			["parallel_tool_calls"] = true,
 			["stream"] = true,
-			["response_format"] = OpenRouterNpcResponseSchema.GetResponseFormat()
+			["response_format"] = OpenRouterNpcResponseSchema.GetToolsPathResponseFormat()
 		};
 		using StringContent content = new StringContent(body.ToString(), Encoding.UTF8, "application/json");
 		httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GlobalSettings<ModSettings>.Instance.ApiKey);
@@ -959,6 +962,8 @@ public static class AIClient
 					MergeToolCallDeltas(tca, toolByIndex);
 			}
 		}
+		if (collectToolCallDeltas && toolByIndex.Count > 0 && !string.IsNullOrEmpty(finishReason) && !string.Equals(finishReason, "tool_calls", StringComparison.OrdinalIgnoreCase))
+			LogWarning("OpenRouter SSE: assembled tool_calls but finish_reason='" + finishReason + "' (docs: expect tool_calls when the model returns tools).");
 		return (BuildAssistantMessageFromStream(content, toolByIndex), finishReason);
 	}
 

@@ -2793,11 +2793,14 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		context.LastInteractionTime = CampaignTime.Now;
 		string aiResponse = null;
 		int maxRetries = 3;
+		Func<string, string, Task<string>> openRouterTools = GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue == "OpenRouter"
+			? (name, args) => ExecuteChatTool(name, args, npc, context)
+			: null;
 		for (int attempt = 1; attempt <= maxRetries; attempt++)
 		{
 			try
 			{
-				aiResponse = await AIClient.GetAIResponse(npcName, faction, prompt + "\nPlayer: " + playerInput);
+				aiResponse = await AIClient.GetAIResponse(npcName, faction, prompt + "\nPlayer: " + playerInput, null, openRouterTools);
 				if (!string.IsNullOrEmpty(aiResponse) && !aiResponse.StartsWith("Error:"))
 				{
 					break;
@@ -2878,6 +2881,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				Decision = "none"
 			};
 		}
+		ApplyOpenRouterNpcToolsEnvelopeGuard(aiResult);
 		if (!string.IsNullOrEmpty(aiResult.RomanceIntent) && aiResult.RomanceIntent != "none")
 		{
 			CampaignTime now = CampaignTime.Now;
@@ -3288,6 +3292,24 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 	}
 
+	/// <summary>OpenRouter NPC chat uses tools for money/items/quests/kingdom/workshop; strip duplicate envelope fields if the model echoed them.</summary>
+	private static void ApplyOpenRouterNpcToolsEnvelopeGuard(AIResponse aiResult)
+	{
+		if (aiResult == null)
+			return;
+		if (!string.Equals(GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue, "OpenRouter", StringComparison.Ordinal))
+			return;
+		aiResult.MoneyTransfer = null;
+		aiResult.ItemTransfers = null;
+		aiResult.ItemTransfersOpposedAttribute = null;
+		aiResult.QuestAction = null;
+		aiResult.KingdomAction = null;
+		aiResult.KingdomActionReason = null;
+		aiResult.WorkshopAction = null;
+		aiResult.WorkshopStringId = null;
+		aiResult.WorkshopPrice = 0;
+	}
+
 	/// <summary>Runs one player turn in NPC chat. Returns the final assistant <b>message</b> body when complete.</summary>
 	/// <param name="notifyNpcMessagePreviewChanged">Optional; invoked when the NPC message preview for the chat bubble changes while the <b>message draft</b> is still growing.</param>
 	public async Task<string> ProcessChatInput(Hero npc, string playerMessage, Action<string> notifyNpcMessagePreviewChanged = null)
@@ -3375,6 +3397,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 		if (aiResult == null)
 			return "";
+		ApplyOpenRouterNpcToolsEnvelopeGuard(aiResult);
 		string reply = aiResult.Response ?? "";
 		context.LastInteractionTime = CampaignTime.Now;
 		context.InteractionCount++;

@@ -3,27 +3,68 @@ using Newtonsoft.Json.Linq;
 
 namespace AIInfluence.API;
 
-/// <summary>OpenRouter <c>response_format</c> for NPC chat: constrains the assistant message to <see cref="AIResponse"/> without duplicating the schema in prompts.</summary>
+/// <summary>OpenRouter <c>response_format</c> for NPC chat: constrains the assistant message to <see cref="AIResponse"/> fields appropriate for each path.</summary>
 public static class OpenRouterNpcResponseSchema
 {
-	/// <summary>Returns <c>response_format</c> object to merge into chat/completions JSON body (<c>type: json_schema</c>).</summary>
+	private static readonly string[] ToolBackedRootKeys =
+	{
+		"money_transfer",
+		"item_transfers",
+		"item_transfers_opposed_attribute",
+		"quest_action",
+		"kingdom_action",
+		"kingdom_action_reason",
+		"workshop_action",
+		"workshop_string_id",
+		"workshop_price"
+	};
+
+	/// <summary>Full envelope (non–tool-call OpenRouter completions, legacy analysis paths).</summary>
 	public static JObject GetResponseFormat()
+	{
+		return WrapSchema("npc_chat_response", BuildRootSchema(includeToolBackedFields: true));
+	}
+
+	/// <summary>Final assistant JSON when <c>tools</c> are on the request: mechanical effects must use tools per OpenRouter tool-calling flow.</summary>
+	public static JObject GetToolsPathResponseFormat()
+	{
+		return WrapSchema("npc_dialogue_after_tools", BuildRootSchema(includeToolBackedFields: false));
+	}
+
+	private static JObject WrapSchema(string name, JObject rootSchema)
 	{
 		return new JObject
 		{
 			["type"] = "json_schema",
 			["json_schema"] = new JObject
 			{
-				["name"] = "npc_chat_response",
+				["name"] = name,
 				["strict"] = false,
-				["schema"] = BuildRootSchema()
+				["schema"] = rootSchema
 			}
 		};
 	}
 
-	private static JObject BuildRootSchema()
+	private static JObject BuildRootSchema(bool includeToolBackedFields)
 	{
-		var props = new JObject
+		JObject props = BuildAllProperties();
+		if (!includeToolBackedFields)
+		{
+			foreach (string key in ToolBackedRootKeys)
+				props.Remove(key);
+		}
+		return new JObject
+		{
+			["type"] = "object",
+			["properties"] = props,
+			["required"] = new JArray("response"),
+			["additionalProperties"] = true
+		};
+	}
+
+	private static JObject BuildAllProperties()
+	{
+		return new JObject
 		{
 			["internal_thoughts"] = new JObject { ["type"] = new JArray("string", "null") },
 			["response"] = new JObject { ["type"] = "string" },
@@ -59,13 +100,6 @@ public static class OpenRouterNpcResponseSchema
 			["tts_instructions"] = new JObject { ["type"] = new JArray("string", "null") },
 			["settlement_id"] = new JObject { ["type"] = new JArray("string", "null") },
 			["quest_action"] = new JObject { ["type"] = new JArray("object", "null"), ["additionalProperties"] = true }
-		};
-		return new JObject
-		{
-			["type"] = "object",
-			["properties"] = props,
-			["required"] = new JArray("response"),
-			["additionalProperties"] = true
 		};
 	}
 }
