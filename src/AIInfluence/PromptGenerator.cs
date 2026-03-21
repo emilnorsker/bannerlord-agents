@@ -893,7 +893,7 @@ public static class PromptGenerator
 		}
 		string text54 = (list11.Any() ? string.Join("; ", list11) : "none");
 		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.Append("### Mission ###\nRole-play as a character in Mount & Blade II: Bannerlord. Use your personality, history, and context to inform responses. The reply format is enforced by the API (structured output); do not wrap output in markdown code fences.\n\n");
+		stringBuilder.Append("### Mission ###\nRole-play as a character in Mount & Blade II: Bannerlord. Use your personality, history, and context to inform responses.\n\n");
 		stringBuilder.Append("### Core Rules ###\n- Stay in character. Never break immersion or reference modern world/AI. " + ((overrideUseAsterisks ?? GlobalSettings<ModSettings>.Instance.PromptUseAsterisks) ? "Use *asterisks for actions/surroundings*" : "Dialogue only, no action descriptions.") + " Language: " + text43 + ".\n- Address the person naturally—NEVER use \"player\" or meta-gaming terms. They are a real person in your world.\n- Verify data consistency: Cross-check conversation history against facts, focus on data marked as current. React in-character if you detect contradictions.\n- Vary responses naturally unless character traits dictate repetition (catchphrases, verbal tics). Avoid formulaic patterns.\n- Facts MUST come from CURRENT DATA. Improvise emotions/flavor only. NEVER invent character names not in CURRENT DATA — use generic titles (elder, merchant) if unknown.\n\n");
 		if (!isMessengerMode && GlobalSettings<ModSettings>.Instance.PromptEnableInternalThoughts)
 		{
