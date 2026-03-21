@@ -17,7 +17,7 @@ public class InfoSectionVM : ViewModel
     private string _headerSkillId = DefaultSkills.Charm.StringId;
     private string _sectionPanelColor = "#0C101868";
     private bool _hasGlyphLines;
-    private bool _hasStandardTextLines = true;
+    private bool _hasStandardTextLines;
     private bool _showPartyFood;
 
     /// <summary>Background tint for this section block (alternates top→bottom when the info panel is rebuilt).</summary>

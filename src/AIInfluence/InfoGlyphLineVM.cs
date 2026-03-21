@@ -9,12 +9,94 @@ namespace AIInfluence;
 /// </summary>
 public sealed class InfoGlyphLineVM : ViewModel
 {
-    [DataSourceProperty] public bool IsSkill { get; set; }
-    [DataSourceProperty] public bool IsFormation { get; set; }
-    [DataSourceProperty] public string SkillId { get; set; } = "";
-    [DataSourceProperty] public string FormationSprite { get; set; } = "";
-    [DataSourceProperty] public string Text { get; set; } = "";
-    [DataSourceProperty] public string Color { get; set; } = "#C6AC8DFF";
+    private bool _isSkill;
+    private bool _isFormation;
+    private string _skillId = "";
+    private string _formationSprite = "";
+    private string _text = "";
+    private string _color = "#C6AC8DFF";
+
+    [DataSourceProperty]
+    public bool IsSkill
+    {
+        get => _isSkill;
+        set
+        {
+            if (value == _isSkill)
+                return;
+            _isSkill = value;
+            OnPropertyChangedWithValue(value, nameof(IsSkill));
+        }
+    }
+
+    [DataSourceProperty]
+    public bool IsFormation
+    {
+        get => _isFormation;
+        set
+        {
+            if (value == _isFormation)
+                return;
+            _isFormation = value;
+            OnPropertyChangedWithValue(value, nameof(IsFormation));
+        }
+    }
+
+    [DataSourceProperty]
+    public string SkillId
+    {
+        get => _skillId;
+        set
+        {
+            value ??= "";
+            if (value == _skillId)
+                return;
+            _skillId = value;
+            OnPropertyChangedWithValue(_skillId, nameof(SkillId));
+        }
+    }
+
+    [DataSourceProperty]
+    public string FormationSprite
+    {
+        get => _formationSprite;
+        set
+        {
+            value ??= "";
+            if (value == _formationSprite)
+                return;
+            _formationSprite = value;
+            OnPropertyChangedWithValue(_formationSprite, nameof(FormationSprite));
+        }
+    }
+
+    [DataSourceProperty]
+    public string Text
+    {
+        get => _text;
+        set
+        {
+            value ??= "";
+            if (value == _text)
+                return;
+            _text = value;
+            OnPropertyChangedWithValue(_text, nameof(Text));
+        }
+    }
+
+    [DataSourceProperty]
+    public string Color
+    {
+        get => _color;
+        set
+        {
+            value ??= "#C6AC8DFF";
+            if (value == _color)
+                return;
+            _color = value;
+            OnPropertyChangedWithValue(_color, nameof(Color));
+        }
+    }
 
     public static InfoGlyphLineVM FromWorldEvent(string skillId, string text, string color = "#C6AC8DFF")
     {
