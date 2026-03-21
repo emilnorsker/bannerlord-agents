@@ -96,6 +96,8 @@ public static class AIClient
 		});
 		val["messages"] = (JToken)val2;
 		bool isStreaming = onOpenRouterStreamUpdate != null;
+		// Do not force json_object while streaming: some providers buffer until
+		// the object is complete, which collapses visible token-by-token updates.
 		if (!isStreaming)
 			val["response_format"] = (JToken)new JObject { ["type"] = (JToken)("json_object") };
 		val["stream"] = (JToken)isStreaming;

@@ -888,13 +888,21 @@ public class NpcChatWindowVM : ViewModel
 
                 if (streamingItem != null)
                 {
-                    // Let the typewriter pump finish animating to the full reply, then finalize.
-                    finalizeNpcMessage = doFinalize;
                     streamingTargetText = reply;
-                    if (!streamPumpActive && streamPumpStep != null)
+                    if (!streamPumpActive)
                     {
-                        streamPumpActive = true;
-                        streamPumpStep();
+                        // No partial stream chunks (e.g. error before SSE, or non-streaming path).
+                        doFinalize();
+                    }
+                    else
+                    {
+                        // Let the typewriter pump finish animating to the full reply, then finalize.
+                        finalizeNpcMessage = doFinalize;
+                        if (streamPumpStep != null)
+                        {
+                            streamPumpActive = true;
+                            streamPumpStep();
+                        }
                     }
                 }
                 else
