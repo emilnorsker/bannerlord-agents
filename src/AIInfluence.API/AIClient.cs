@@ -20,11 +20,13 @@ public static class AIClient
 
 	private const string GAME_KEY = "0199bcdd-3f9f-7a67-947e-ca10021b94ce";
 
-	public static async Task<string> GetAIResponse(string npcName, string faction, string prompt, Action<string> onOpenRouterStreamUpdate = null)
+	public static async Task<string> GetAIResponse(string npcName, string faction, string prompt, Action<string> onOpenRouterStreamUpdate = null, Func<string, string, Task<string>> onToolCall = null)
 	{
 		string backend = GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue ?? "Player2";
 		try
 		{
+			if (backend == "OpenRouter" && onToolCall != null)
+				return await GetOpenRouterResponseWithTools(npcName, faction, prompt, onOpenRouterStreamUpdate, onToolCall);
 			return backend switch
 			{
 				"OpenRouter" => await GetOpenRouterResponse(npcName, faction, prompt, onOpenRouterStreamUpdate), 
@@ -222,6 +224,58 @@ public static class AIClient
 			LogError("OpenRouter request failed: " + ex.Message);
 			return GenerateErrorResponse("I am unable to respond right now. Try again later.");
 		}
+	}
+
+	private static async Task<string> GetOpenRouterResponseWithTools(string npcName, string faction, string prompt, Action<string> onStream, Func<string, string, Task<string>> onToolCall)
+	{
+		if (string.IsNullOrEmpty(GlobalSettings<ModSettings>.Instance?.ApiKey))
+			return GenerateErrorResponse("I cannot respond right now. Something is amiss.");
+		if (!GlobalSettings<ModSettings>.Instance.EnableModification)
+			return GenerateErrorResponse("I am not inclined to speak at this moment.");
+		var (systemPrompt, userMessage, _) = ExtractLastPlayerMessage(prompt);
+		var toolPreamble = "\n\n**TOOLS:** Use tools for movement, transfers, kingdom, quest, workshop. Final message = JSON with response, decision, tone, suspected_lie, character_death, marriage, character_personality/backstory/quirks, allows_letters.\n";
+		JArray messages = new JArray { new JObject { ["role"] = "system", ["content"] = systemPrompt + toolPreamble }, new JObject { ["role"] = "user", ["content"] = userMessage } };
+		JArray tools = (JArray)JToken.Parse("[{\"type\":\"function\",\"function\":{\"name\":\"npc_action\",\"parameters\":{\"type\":\"object\",\"properties\":{\"action\":{\"type\":\"string\"},\"params\":{\"type\":\"string\"}},\"required\":[\"action\"]}}},{\"type\":\"function\",\"function\":{\"name\":\"transfer_money\",\"parameters\":{\"type\":\"object\",\"properties\":{\"action\":{\"type\":\"string\"},\"amount\":{\"type\":\"integer\"}},\"required\":[\"action\",\"amount\"]}}},{\"type\":\"function\",\"function\":{\"name\":\"transfer_items\",\"parameters\":{\"type\":\"object\",\"properties\":{\"items\":{\"type\":\"array\"}}}},{\"type\":\"function\",\"function\":{\"name\":\"kingdom_action\",\"parameters\":{\"type\":\"object\",\"properties\":{\"json\":{\"type\":\"string\"}},\"required\":[\"json\"]}}},{\"type\":\"function\",\"function\":{\"name\":\"quest_action\",\"parameters\":{\"type\":\"object\",\"properties\":{\"json\":{\"type\":\"string\"}}}},{\"type\":\"function\",\"function\":{\"name\":\"workshop_sell\",\"parameters\":{\"type\":\"object\",\"properties\":{\"workshop_string_id\":{\"type\":\"string\"},\"price\":{\"type\":\"integer\"}},\"required\":[\"workshop_string_id\",\"price\"]}}}]");
+		for (int i = 0; i < 5; i++)
+		{
+			JObject body = new JObject
+			{
+				["model"] = GlobalSettings<ModSettings>.Instance.AIModel,
+				["messages"] = messages,
+				["tools"] = tools
+			};
+			string json = body.ToString();
+			using var content = new StringContent(json, Encoding.UTF8, "application/json");
+			httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GlobalSettings<ModSettings>.Instance.ApiKey);
+			var response = await httpClient.PostAsync("https://openrouter.ai/api/v1/chat/completions", content);
+			response.EnsureSuccessStatusCode();
+			JObject data = JObject.Parse(await response.Content.ReadAsStringAsync());
+			JToken msg = data?["choices"]?[0]?["message"];
+			if (msg == null) return GenerateErrorResponse("Invalid response.");
+			string finishReason = msg["finish_reason"]?.ToString();
+			JArray toolCalls = msg["tool_calls"] as JArray;
+			if (toolCalls != null && toolCalls.Count > 0)
+			{
+				messages.Add(msg);
+				foreach (JToken tc in toolCalls)
+				{
+					string id = tc["id"]?.ToString();
+					string name = tc["function"]?["name"]?.ToString();
+					string args = tc["function"]?["arguments"]?.ToString() ?? "{}";
+					string result = await onToolCall(name ?? "", args);
+					messages.Add(new JObject { ["role"] = "tool", ["tool_call_id"] = id ?? "", ["content"] = result ?? "" });
+				}
+				continue;
+			}
+			string contentStr = msg["content"]?.ToString();
+			if (!string.IsNullOrEmpty(contentStr))
+			{
+				if (onStream != null) onStream(contentStr);
+				return contentStr;
+			}
+			return GenerateErrorResponse("Empty response.");
+		}
+		return GenerateErrorResponse("Too many tool turns.");
 	}
 
 	private static async Task<string> GetDeepSeekResponse(string npcName, string faction, string prompt)

@@ -24,6 +24,7 @@ using AIInfluence.Util;
 using Helpers;
 using MCM.Abstractions.Base.Global;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.Encounters;
@@ -3321,6 +3322,9 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			}
 		};
 		string aiResponse = null;
+		Func<string, string, Task<string>> toolExecutor = GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue == "OpenRouter"
+			? (name, args) => ExecuteChatTool(name, args, npc, context)
+			: null;
 		for (int attempt = 1; attempt <= 3; attempt++)
 		{
 			try
@@ -3331,7 +3335,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					lastStreamPreview = "";
 					onPartialResponse?.Invoke("");
 				}
-				aiResponse = await AIClient.GetAIResponse(npcName, faction, prompt + "\nPlayer: " + playerMessage, streamCallback);
+				aiResponse = await AIClient.GetAIResponse(npcName, faction, prompt + "\nPlayer: " + playerMessage, streamCallback, toolExecutor);
 				if (!string.IsNullOrEmpty(aiResponse) && !aiResponse.StartsWith("Error:"))
 					break;
 				if (attempt < 3)
@@ -3363,15 +3367,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		string reply = aiResult.Response ?? "";
 		context.LastInteractionTime = CampaignTime.Now;
 		context.InteractionCount++;
-		LogMessage("[DEBUG][CHAT_ACTION_AUDIT] ── AI response fields for chat window ──");
-		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] decision        = '{aiResult.Decision}'");
-		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] technical_action= '{aiResult.TechnicalAction}'");
-		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] money_transfer  = {(aiResult.MoneyTransfer != null ? $"action={aiResult.MoneyTransfer.Action} amount={aiResult.MoneyTransfer.Amount}" : "null")}");
-		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] item_transfers  = {(aiResult.ItemTransfers != null ? $"{aiResult.ItemTransfers.Count} item(s)" : "null")}");
-		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] kingdom_action  = '{aiResult.KingdomAction}'");
-		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] quest_action    = {(aiResult.QuestAction != null ? $"action={aiResult.QuestAction.Action}" : "null")}");
-		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] tone            = '{aiResult.Tone}'");
-		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] workshop_action = '{aiResult.WorkshopAction}'");
 		if (aiResult.CharacterDeath != null && aiResult.CharacterDeath.ShouldDie && CanNPCBeKilledThroughRoleplay(npc))
 		{
 			context.DeathReason = aiResult.CharacterDeath.DeathReason ?? "unknown causes";
@@ -3467,34 +3462,39 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			LogMessage("[ChatWindow] HandleAIDecision failed: " + ex3.Message);
 		}
-		context.LastTechnicalActionForDisplay = null;
-		if (!string.IsNullOrEmpty(aiResult.TechnicalAction) && !aiResult.TechnicalAction.Equals("none", StringComparison.OrdinalIgnoreCase))
+		if (toolExecutor == null)
 		{
-			context.LastTechnicalActionForDisplay = aiResult.TechnicalAction;
-			foreach (string action in aiResult.TechnicalAction.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
+			context.LastTechnicalActionForDisplay = null;
+			if (!string.IsNullOrEmpty(aiResult.TechnicalAction) && !aiResult.TechnicalAction.Equals("none", StringComparison.OrdinalIgnoreCase))
 			{
-				string[] parts = action.Trim().Split(new[] { ':' }, 2);
-				string actionName = parts[0].Trim();
-				string payload = parts.Length > 1 ? parts[1].Trim() : "";
-			bool isStop = payload.Equals("STOP", StringComparison.OrdinalIgnoreCase);
-			if (npc.IsPrisoner && !isStop)
+				context.LastTechnicalActionForDisplay = aiResult.TechnicalAction;
+				foreach (string action in aiResult.TechnicalAction.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
+				{
+					var parts = action.Trim().Split(new[] { ':' }, 2);
+					string actionName = parts[0].Trim();
+					string payload = parts.Length > 1 ? parts[1].Trim() : "";
+					bool isStop = payload.Equals("STOP", StringComparison.OrdinalIgnoreCase);
+					if (npc.IsPrisoner && !isStop) continue;
+					if (isStop) AIActionManager.Instance?.StopAction(npc, actionName, showMessage: true);
+					else if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, actionName, payload) == true) AIActionManager.Instance?.StartAction(npc, actionName);
+				}
+			}
+			if (!string.IsNullOrEmpty(aiResult.WorkshopAction) && aiResult.WorkshopAction.Equals("sell", StringComparison.OrdinalIgnoreCase))
+				ProcessWorkshopSale(npc, context, aiResult.WorkshopStringId, aiResult.WorkshopPrice);
+			if (aiResult.MoneyTransfer != null && aiResult.MoneyTransfer.Amount > 0)
+				ProcessMoneyTransfer(npc, context, aiResult.MoneyTransfer);
+			if (aiResult.ItemTransfers != null && aiResult.ItemTransfers.Count > 0)
 			{
-				LogMessage($"[TECHNICAL_ACTION] Skipping action '{actionName}' for prisoner {npc.Name}");
-				continue;
+				context.PendingItemTransfersOpposedAttribute = aiResult.ItemTransfersOpposedAttribute ?? aiResult.ItemTransfers.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.OpposedAttribute))?.OpposedAttribute;
+				ProcessItemTransfers(npc, context, aiResult.ItemTransfers);
 			}
-			if (isStop)
+			if (!string.IsNullOrEmpty(aiResult.KingdomAction) && !aiResult.KingdomAction.Equals("none", StringComparison.OrdinalIgnoreCase))
+				ProcessKingdomAction(npc, aiResult, context);
+			if (aiResult.QuestAction != null && !string.IsNullOrEmpty(aiResult.QuestAction.Action))
 			{
-				AIActionManager.Instance?.StopAction(npc, actionName, showMessage: true);
-				LogMessage($"[TECHNICAL_ACTION] Stopped '{actionName}' for {npc.Name}");
+				var qa = aiResult.QuestAction;
+				GetDelayedTaskManager().AddTask(5.0, delegate { try { ProcessQuestAction(npc, GetOrCreateNPCContext(npc), qa); } catch (Exception ex) { LogMessage("[ERROR] Quest action failed: " + ex.Message); } });
 			}
-			else
-			{
-				AIActionManager.Instance?.StopAction(npc, actionName);
-			if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, actionName, payload) == true)
-				AIActionManager.Instance?.StartAction(npc, actionName);
-			}
-			}
-			aiResult.TechnicalAction = null;
 		}
 		if (aiResult.AllowsLettersFromNPC.HasValue && aiResult.AllowsLettersFromNPC.Value != context.AllowsLettersFromNPC)
 			context.AllowsLettersFromNPC = aiResult.AllowsLettersFromNPC.Value;
@@ -3502,23 +3502,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			context.LastRomanceInteractionDays = (int)CampaignTime.Now.ToDays;
 			context.RomanceLevel = Math.Min(100f, context.RomanceLevel + _random.Next(GlobalSettings<ModSettings>.Instance.MinRomanceChange, GlobalSettings<ModSettings>.Instance.MaxRomanceChange + 1) + (aiResult.RomanceIntent == "romance" ? 2 : 0));
-		}
-		if (!string.IsNullOrEmpty(aiResult.WorkshopAction) && aiResult.WorkshopAction.Equals("sell", StringComparison.OrdinalIgnoreCase))
-			ProcessWorkshopSale(npc, context, aiResult.WorkshopStringId, aiResult.WorkshopPrice);
-		if (aiResult.MoneyTransfer != null && aiResult.MoneyTransfer.Amount > 0)
-			ProcessMoneyTransfer(npc, context, aiResult.MoneyTransfer);
-		if (aiResult.ItemTransfers != null && aiResult.ItemTransfers.Count > 0)
-		{
-			context.PendingItemTransfersOpposedAttribute = aiResult.ItemTransfersOpposedAttribute
-				?? aiResult.ItemTransfers.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.OpposedAttribute))?.OpposedAttribute;
-			ProcessItemTransfers(npc, context, aiResult.ItemTransfers);
-		}
-		if (!string.IsNullOrEmpty(aiResult.KingdomAction) && !aiResult.KingdomAction.Equals("none", StringComparison.OrdinalIgnoreCase))
-			ProcessKingdomAction(npc, aiResult, context);
-		if (aiResult.QuestAction != null && !string.IsNullOrEmpty(aiResult.QuestAction.Action))
-		{
-			QuestActionData capturedQuestAction = aiResult.QuestAction;
-			GetDelayedTaskManager().AddTask(5.0, delegate { try { ProcessQuestAction(npc, GetOrCreateNPCContext(npc), capturedQuestAction); } catch (Exception ex7) { LogMessage("[ERROR] Chat quest action failed: " + ex7.Message); } });
 		}
 		if (aiResult.Tone == "positive")
 		{
@@ -3542,6 +3525,33 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		if (decisionHandled && string.Equals(aiResult.Decision, "attack", StringComparison.OrdinalIgnoreCase))
 			InitiateCombatLogic(npc, context);
 		return reply;
+	}
+
+	private async Task<string> ExecuteChatTool(string name, string argsJson, Hero npc, NPCContext context)
+	{
+		try
+		{
+			var a = string.IsNullOrEmpty(argsJson) ? new JObject() : JObject.Parse(argsJson);
+			if (name == "npc_action")
+			{
+				var action = a["action"]?.ToString(); var p = a["params"]?.ToString() ?? "";
+				if (string.IsNullOrEmpty(action)) return "missing action";
+				var stop = p.Equals("STOP", StringComparison.OrdinalIgnoreCase);
+				if (npc.IsPrisoner && !stop) return "prisoner";
+				if (stop) { AIActionManager.Instance?.StopAction(npc, action, showMessage: true); return "stopped"; }
+				AIActionManager.Instance?.StopAction(npc, action);
+				if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, action, p) == true)
+				{ AIActionManager.Instance?.StartAction(npc, action); context.LastTechnicalActionForDisplay = string.IsNullOrEmpty(p) ? action : action + ":" + p; return "ok"; }
+				return "failed";
+			}
+			if (name == "transfer_money") { var m = new MoneyTransferInfo { Action = a["action"]?.ToString(), Amount = a["amount"]?.Value<int>() ?? 0, OpposedAttribute = a["opposed_attribute"]?.ToString() }; if (m.Amount > 0) ProcessMoneyTransfer(npc, context, m); return "ok"; }
+			if (name == "transfer_items") { var list = new List<ItemTransferData>(); foreach (var i in a["items"] as JArray ?? new JArray()) list.Add(new ItemTransferData { ItemId = i["item_id"]?.ToString(), Amount = i["amount"]?.Value<int>() ?? 1, Action = i["action"]?.ToString() }); if (list.Count > 0) { context.PendingItemTransfersOpposedAttribute = a["opposed_attribute"]?.ToString(); ProcessItemTransfers(npc, context, list); } return "ok"; }
+			if (name == "kingdom_action") { var r = new AIResponse { KingdomAction = a["json"]?.ToString(), KingdomActionReason = "" }; if (!string.IsNullOrEmpty(r.KingdomAction)) ProcessKingdomAction(npc, r, context); return "ok"; }
+			if (name == "quest_action") { var j = a["json"]?.ToString(); if (!string.IsNullOrEmpty(j)) { var q = JsonConvert.DeserializeObject<QuestActionData>(j); if (q != null) ProcessQuestAction(npc, context, q); } return "ok"; }
+			if (name == "workshop_sell") { ProcessWorkshopSale(npc, context, a["workshop_string_id"]?.ToString(), a["price"]?.Value<int>() ?? 0); return "ok"; }
+			return "unknown";
+		}
+		catch (Exception ex) { LogMessage("[ChatTool] " + name + ": " + ex.Message); return "error"; }
 	}
 
 	public async Task HandlePlayerDiplomaticInput()
