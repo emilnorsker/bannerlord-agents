@@ -5,7 +5,7 @@ namespace AIInfluence;
 
 /// <summary>
 /// Collapsible info block: optional <see cref="TextLines"/> (plain bullets), optional <see cref="GlyphLines"/>
-/// (skill icon or formation sprite + text — one list), optional party food line.
+/// (skill icon + text — one list), optional vanilla-style party troop count strip, optional party food line.
 /// Call <see cref="RefreshVisibility"/> after mutating lists so Gauntlet <c>IsVisible</c> flags stay consistent.
 /// </summary>
 public class InfoSectionVM : ViewModel
@@ -19,6 +19,11 @@ public class InfoSectionVM : ViewModel
     private bool _hasGlyphLines;
     private bool _hasStandardTextLines;
     private bool _showPartyFood;
+    private bool _showPartyTroopStrip;
+    private int _infantryCount;
+    private int _rangedCount;
+    private int _cavalryCount;
+    private int _horseArcherCount;
 
     /// <summary>Background tint for this section block (same subtle value for all sections in <c>RebuildInfoPanelSections</c>).</summary>
     [DataSourceProperty]
@@ -156,14 +161,81 @@ public class InfoSectionVM : ViewModel
         }
     }
 
+    /// <summary>Clan screen–style horizontal troop count row (<c>General\TroopTypeIcons\icon_troop_type_*</c>).</summary>
+    [DataSourceProperty]
+    public bool ShowPartyTroopStrip
+    {
+        get => _showPartyTroopStrip;
+        set
+        {
+            if (value == _showPartyTroopStrip)
+                return;
+            _showPartyTroopStrip = value;
+            OnPropertyChangedWithValue(value, nameof(ShowPartyTroopStrip));
+        }
+    }
+
+    [DataSourceProperty]
+    public int InfantryCount
+    {
+        get => _infantryCount;
+        set
+        {
+            if (value == _infantryCount)
+                return;
+            _infantryCount = value;
+            OnPropertyChangedWithValue(value, nameof(InfantryCount));
+        }
+    }
+
+    [DataSourceProperty]
+    public int RangedCount
+    {
+        get => _rangedCount;
+        set
+        {
+            if (value == _rangedCount)
+                return;
+            _rangedCount = value;
+            OnPropertyChangedWithValue(value, nameof(RangedCount));
+        }
+    }
+
+    [DataSourceProperty]
+    public int CavalryCount
+    {
+        get => _cavalryCount;
+        set
+        {
+            if (value == _cavalryCount)
+                return;
+            _cavalryCount = value;
+            OnPropertyChangedWithValue(value, nameof(CavalryCount));
+        }
+    }
+
+    [DataSourceProperty]
+    public int HorseArcherCount
+    {
+        get => _horseArcherCount;
+        set
+        {
+            if (value == _horseArcherCount)
+                return;
+            _horseArcherCount = value;
+            OnPropertyChangedWithValue(value, nameof(HorseArcherCount));
+        }
+    }
+
     /// <summary>
-    /// Syncs visibility flags from list counts and party-food text. Call after building or editing a section.
+    /// Syncs visibility flags from list counts, party troop strip, and party-food text. Call after building or editing a section.
     /// </summary>
     public void RefreshVisibility()
     {
         HasGlyphLines = GlyphLines.Count > 0;
         HasStandardTextLines = TextLines.Count > 0;
         ShowPartyFood = ShowPartyFood && !string.IsNullOrWhiteSpace(PartyFoodText);
+        ShowPartyTroopStrip = ShowPartyTroopStrip && InfantryCount + RangedCount + CavalryCount + HorseArcherCount > 0;
     }
 
     public void ExecuteToggle() => IsExpanded = !IsExpanded;

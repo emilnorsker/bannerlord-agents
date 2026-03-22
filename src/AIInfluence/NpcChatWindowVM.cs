@@ -223,8 +223,12 @@ public class NpcChatWindowVM : ViewModel
             section.RefreshVisibility();
             return section;
         }
-        foreach (var row in PartyTroopFormationHelper.AggregateTroopFormations(party))
-            section.GlyphLines.Add(InfoGlyphLineVM.FromTroopFormation(row.formation, row.count));
+        PartyTroopFormationHelper.GetFormationCounts(party, out int inf, out int rng, out int cav, out int ha);
+        section.InfantryCount = inf;
+        section.RangedCount = rng;
+        section.CavalryCount = cav;
+        section.HorseArcherCount = ha;
+        section.ShowPartyTroopStrip = inf + rng + cav + ha > 0;
         float days = party.GetNumDaysForFoodToLast();
         var (_, col) = NpcPartyFoodSupply.Classify(days);
         string leaderName = ((object)npc.Name)?.ToString() ?? "";

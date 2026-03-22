@@ -353,11 +353,6 @@
                                                 <SkillIconVisualWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="40" SuggestedHeight="40"
                                                                        VerticalAlignment="Top" HorizontalAlignment="Left" MarginRight="6" MarginTop="2"
                                                                        IsVisible="@IsSkill" SkillId="@SkillId" UseSmallestVariation="true"/>
-                                                <!-- Clan parties tab strips: Brush resolves sprites via SpriteData (same as OrderFormationClassVisualBrushWidget in vanilla). -->
-                                                <OrderFormationClassVisualBrushWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="40" SuggestedHeight="40"
-                                                                                      VerticalAlignment="Top" HorizontalAlignment="Left" MarginRight="6" MarginTop="2"
-                                                                                      DoNotAcceptEvents="true" IsVisible="@IsTroopFormationGlyph"
-                                                                                      Brush="AIInfluence.ClanPartyFormationStrip" FormationClassValue="@FormationClassIndex"/>
                                                 <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" VerticalAlignment="Center"
                                                                 Brush="Encyclopedia.SubPage.Info.Text" Brush.FontSize="15" Brush.TextHorizontalAlignment="Left"
                                                                 Color="@Color" Text="@Text" IsDisabled="true"/>
@@ -376,6 +371,57 @@
                                               </Children>
                                             </Widget>
                                           </ItemTemplate>
+                                        </ListPanel>
+                                        <!-- Same layout as SandBox/Clan/ClanPartiesRightPanel.xml TroopCountsParent / TroopCountsList (General\TroopTypeIcons). -->
+                                        <ListPanel Id="NpcPartyTroopCountsParent" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                   StackLayout.LayoutMethod="VerticalBottomToTop" IsVisible="@ShowPartyTroopStrip" MarginBottom="4">
+                                          <Children>
+                                            <ListPanel Id="NpcPartyTroopCountsList" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                       MarginBottom="0" StackLayout.LayoutMethod="HorizontalCentered">
+                                              <Children>
+                                                <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="32" MinWidth="80" DoNotPassEventsToChildren="true">
+                                                  <Children>
+                                                    <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginRight="4">
+                                                      <Children>
+                                                        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="26" SuggestedHeight="26" VerticalAlignment="Center" Sprite="General\TroopTypeIcons\icon_troop_type_infantry"/>
+                                                        <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" IntText="@InfantryCount" VerticalAlignment="Center" Brush="Clan.TroopCount.Text" MarginLeft="4"/>
+                                                      </Children>
+                                                    </ListPanel>
+                                                  </Children>
+                                                </Widget>
+                                                <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="32" MinWidth="80" DoNotPassEventsToChildren="true">
+                                                  <Children>
+                                                    <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginRight="4">
+                                                      <Children>
+                                                        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="26" SuggestedHeight="26" VerticalAlignment="Center" Sprite="General\TroopTypeIcons\icon_troop_type_bow"/>
+                                                        <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" IntText="@RangedCount" VerticalAlignment="Center" Brush="Clan.TroopCount.Text" MarginLeft="4"/>
+                                                      </Children>
+                                                    </ListPanel>
+                                                  </Children>
+                                                </Widget>
+                                                <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="32" MinWidth="80" DoNotPassEventsToChildren="true">
+                                                  <Children>
+                                                    <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginRight="4">
+                                                      <Children>
+                                                        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="26" SuggestedHeight="26" VerticalAlignment="Center" Sprite="General\TroopTypeIcons\icon_troop_type_cavalry"/>
+                                                        <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" IntText="@CavalryCount" VerticalAlignment="Center" Brush="Clan.TroopCount.Text" MarginLeft="4"/>
+                                                      </Children>
+                                                    </ListPanel>
+                                                  </Children>
+                                                </Widget>
+                                                <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="32" MinWidth="80" DoNotPassEventsToChildren="true">
+                                                  <Children>
+                                                    <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginRight="4">
+                                                      <Children>
+                                                        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="26" SuggestedHeight="26" VerticalAlignment="Center" Sprite="General\TroopTypeIcons\icon_troop_type_horse_archer"/>
+                                                        <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" IntText="@HorseArcherCount" VerticalAlignment="Center" Brush="Clan.TroopCount.Text" MarginLeft="4"/>
+                                                      </Children>
+                                                    </ListPanel>
+                                                  </Children>
+                                                </Widget>
+                                              </Children>
+                                            </ListPanel>
+                                          </Children>
                                         </ListPanel>
                                         <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" IsVisible="@ShowPartyFood"
                                                         MarginLeft="0" MarginBottom="4" Brush="Encyclopedia.SubPage.Info.Text" Brush.FontSize="15"

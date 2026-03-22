@@ -1,16 +1,13 @@
-using TaleWorlds.Core;
 using TaleWorlds.Library;
 
 namespace AIInfluence;
 
 /// <summary>
-/// One row: skill icon (world events) or clan party formation strip (OrderFormationClassVisualBrushWidget + AIInfluence.ClanPartyFormationStrip) + text.
+/// One row: skill icon (world events) + text.
 /// </summary>
 public sealed class InfoGlyphLineVM : ViewModel
 {
     private bool _isSkill;
-    private bool _isTroopFormationGlyph;
-    private int _formationClassIndex;
     private string _skillId = "";
     private string _text = "";
     private string _color = "#C6AC8DFF";
@@ -25,33 +22,6 @@ public sealed class InfoGlyphLineVM : ViewModel
                 return;
             _isSkill = value;
             OnPropertyChangedWithValue(value, nameof(IsSkill));
-        }
-    }
-
-    [DataSourceProperty]
-    public bool IsTroopFormationGlyph
-    {
-        get => _isTroopFormationGlyph;
-        set
-        {
-            if (value == _isTroopFormationGlyph)
-                return;
-            _isTroopFormationGlyph = value;
-            OnPropertyChangedWithValue(value, nameof(IsTroopFormationGlyph));
-        }
-    }
-
-    /// <summary>0–3 = Infantry…HorseArcher; matches TaleWorlds mission formation-class strip widget.</summary>
-    [DataSourceProperty]
-    public int FormationClassIndex
-    {
-        get => _formationClassIndex;
-        set
-        {
-            if (value == _formationClassIndex)
-                return;
-            _formationClassIndex = value;
-            OnPropertyChangedWithValue(value, nameof(FormationClassIndex));
         }
     }
 
@@ -102,36 +72,9 @@ public sealed class InfoGlyphLineVM : ViewModel
         return new InfoGlyphLineVM
         {
             IsSkill = true,
-            IsTroopFormationGlyph = false,
-            FormationClassIndex = 0,
             SkillId = skillId ?? "",
             Text = text ?? "",
             Color = color ?? "#C6AC8DFF"
-        };
-    }
-
-    /// <summary>Clan → parties tab strips: sprites resolved via brush layers (same paths as vanilla clan UI).</summary>
-    public static InfoGlyphLineVM FromTroopFormation(FormationClass formation, int count)
-    {
-        string label = formation switch
-        {
-            FormationClass.Infantry => "Infantry",
-            FormationClass.Ranged => "Ranged",
-            FormationClass.Cavalry => "Cavalry",
-            FormationClass.HorseArcher => "Horse archers",
-            _ => "Troops"
-        };
-        int idx = (int)formation;
-        if (idx < 0 || idx > 3)
-            idx = 0;
-        return new InfoGlyphLineVM
-        {
-            IsSkill = false,
-            IsTroopFormationGlyph = true,
-            FormationClassIndex = idx,
-            SkillId = "",
-            Text = $"{label} ({count})",
-            Color = "#C6AC8DFF"
         };
     }
 }

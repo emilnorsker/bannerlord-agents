@@ -47,13 +47,9 @@ So **`ScopeMovements="Vertical"`** is a **valid** literal for the XML loader.
 
 **Ancestor walk:** `TaleWorlds.GauntletUI.BaseTypes.Container.FindParentPanel()` walks `ParentWidget` until it finds a `ScrollablePanel`. Hierarchy here is `InfoSectionsList` → `InfoClipRect` → `InfoScrollPanel` (`ScrollablePanel`), so the lookup **succeeds**.
 
-## 5. `OrderFormationClassVisualBrushWidget` + mod brush
+## 5. NPC party troop strip (vanilla Clan layout)
 
-**Source:** `TaleWorlds.MountAndBlade.GauntletUI.Widgets.Mission.Order.OrderFormationClassVisualBrushWidget` — `FormationClassValue` switches `SetState("Infantry" | "Ranged" | "Cavalry" | "HorseArcher" | default→Infantry)`.
-
-**Our brush:** `AIInfluence.ClanPartyFormationStrip` in `GUI/Brushes/PopUpBrush.xml` defines those four style names with `Layer` + `Sprite` — `BrushFactory.LoadBrushLayerInto` resolves `Sprite` via `SpriteData.GetSprite` (same pipeline as vanilla brushes).
-
-**Remaining risk (not DLL-provable here):** runtime widget name resolution for `OrderFormationClassVisualBrushWidget` in XML (module load order / widget factory). If the game fails to instantiate the type, the log will show a prefab parse error.
+**Prefab parity:** `GUI/Prefabs/ChatInterface.xml` `NpcPartyTroopCountsParent` / `NpcPartyTroopCountsList` mirrors `Modules/SandBox/GUI/Prefabs/Clan/ClanPartiesRightPanel.xml` — `StackLayout.LayoutMethod="HorizontalCentered"` on the inner list, `General\TroopTypeIcons\icon_troop_type_*` sprites, `TextWidget` + `IntText` with `Brush="Clan.TroopCount.Text"`. No custom mod brush.
 
 ## 6. Vanilla `Encyclopedia.*` brush names
 
@@ -73,8 +69,6 @@ So **`ScopeMovements="Vertical"`** is a **valid** literal for the XML loader.
 | `Encyclopedia.Skill.Text` |
 | `Encyclopedia.TopBanner` |
 | `Encyclopedia.Frame` |
-
-**Mod-local:** `AIInfluence.ClanPartyFormationStrip` (defined in our `PopUpBrush.xml`).
 
 ## 7. Vertical stacks (`VerticalTopToBottom` vs `VerticalBottomToTop`)
 

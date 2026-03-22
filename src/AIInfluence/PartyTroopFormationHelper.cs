@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Roster;
@@ -21,29 +20,24 @@ internal static class PartyTroopFormationHelper
         return b.IsRanged ? FormationClass.Ranged : FormationClass.Infantry;
     }
 
-    public static IEnumerable<(FormationClass formation, int count, CharacterObject sample)> AggregateTroopFormations(MobileParty party)
+    /// <summary>Per-formation totals (including zeros) for the same strip as the Clan screen Parties detail panel.</summary>
+    public static void GetFormationCounts(MobileParty party, out int infantry, out int ranged, out int cavalry, out int horseArcher)
     {
+        infantry = ranged = cavalry = horseArcher = 0;
         if (party?.MemberRoster == null)
-            yield break;
-        var totals = new Dictionary<FormationClass, int>();
-        var samples = new Dictionary<FormationClass, CharacterObject>();
+            return;
         foreach (TroopRosterElement elem in party.MemberRoster.GetTroopRoster())
         {
-            CharacterObject ch = elem.Character;
-            if (ch == null || elem.Number <= 0)
+            if (elem.Character == null || elem.Number <= 0)
                 continue;
-            FormationClass fc = DetermineFormationClass(ch);
-            if (!totals.ContainsKey(fc))
+            FormationClass fc = DetermineFormationClass(elem.Character);
+            switch (fc)
             {
-                totals[fc] = 0;
-                samples[fc] = ch;
+                case FormationClass.Infantry: infantry += elem.Number; break;
+                case FormationClass.Ranged: ranged += elem.Number; break;
+                case FormationClass.Cavalry: cavalry += elem.Number; break;
+                case FormationClass.HorseArcher: horseArcher += elem.Number; break;
             }
-            totals[fc] += elem.Number;
-        }
-        foreach (FormationClass fc in new[] { FormationClass.Infantry, FormationClass.Ranged, FormationClass.Cavalry, FormationClass.HorseArcher })
-        {
-            if (totals.TryGetValue(fc, out int n) && n > 0 && samples.TryGetValue(fc, out CharacterObject sample))
-                yield return (fc, n, sample);
         }
     }
 }
