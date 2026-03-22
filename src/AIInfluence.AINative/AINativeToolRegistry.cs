@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 
-namespace AIInfluence.AINative;
+namespace AIInfluence.NpcInteraction;
 
-public sealed class AINativeToolRegistry
+public sealed class InteractionToolRegistry
 {
-	private readonly Dictionary<string, IAINativeTool> _tools = new Dictionary<string, IAINativeTool>(StringComparer.OrdinalIgnoreCase);
+	private readonly Dictionary<string, IInteractionTool> _tools = new Dictionary<string, IInteractionTool>(StringComparer.OrdinalIgnoreCase);
 
-	public void Register(IAINativeTool tool)
+	public void Register(IInteractionTool tool)
 	{
 		if (tool == null)
 		{
@@ -20,7 +20,7 @@ public sealed class AINativeToolRegistry
 		_tools.Add(tool.Name, tool);
 	}
 
-	public IAINativeTool Resolve(string toolName)
+	public IInteractionTool Resolve(string toolName)
 	{
 		if (string.IsNullOrWhiteSpace(toolName))
 		{

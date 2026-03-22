@@ -1,11 +1,11 @@
-namespace AIInfluence.AINative;
+namespace AIInfluence.NpcInteraction;
 
-public interface IAINativeTool
+public interface IInteractionTool
 {
 	string Name { get; }
 
 	bool IsLongRunning { get; }
 
-	void Execute(AINativeToolContext context, AINativeQueue queue);
+	void Execute(InteractionToolContext context, InteractionEventStream stream);
 }
 

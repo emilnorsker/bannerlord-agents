@@ -1,27 +1,27 @@
 using System.Collections.Generic;
 
-namespace AIInfluence.AINative;
+namespace AIInfluence.NpcInteraction;
 
-public sealed class AINativeLlmCompletion
+public sealed class ModelTurnResult
 {
 	public string Text { get; }
 
-	public IReadOnlyList<AINativeLlmToolCall> ToolCalls { get; }
+	public IReadOnlyList<ModelToolCall> ToolCalls { get; }
 
-	public AINativeLlmCompletion(string text, IReadOnlyList<AINativeLlmToolCall> toolCalls)
+	public ModelTurnResult(string text, IReadOnlyList<ModelToolCall> toolCalls)
 	{
 		Text = text;
 		ToolCalls = toolCalls;
 	}
 }
 
-public sealed class AINativeLlmToolCall
+public sealed class ModelToolCall
 {
 	public string Name { get; }
 
 	public IReadOnlyDictionary<string, string> Arguments { get; }
 
-	public AINativeLlmToolCall(string name, IReadOnlyDictionary<string, string> arguments)
+	public ModelToolCall(string name, IReadOnlyDictionary<string, string> arguments)
 	{
 		Name = name;
 		Arguments = arguments;

@@ -1,8 +1,8 @@
 using System;
 
-namespace AIInfluence.AINative;
+namespace AIInfluence.NpcInteraction;
 
-public sealed class AINativeEvent
+public sealed class InteractionEvent
 {
 	public long Sequence { get; private set; }
 
@@ -12,13 +12,13 @@ public sealed class AINativeEvent
 
 	public string NpcId { get; }
 
-	public AINativeEventType Type { get; }
+	public InteractionEventType Type { get; }
 
 	public string Name { get; }
 
 	public string Message { get; }
 
-	public AINativeEvent(AINativeEventType type, string correlationId, string npcId, string name, string message)
+	public InteractionEvent(InteractionEventType type, string correlationId, string npcId, string name, string message)
 	{
 		if (string.IsNullOrWhiteSpace(correlationId))
 		{

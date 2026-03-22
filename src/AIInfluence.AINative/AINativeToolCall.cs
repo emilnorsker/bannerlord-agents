@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 
-namespace AIInfluence.AINative;
+namespace AIInfluence.NpcInteraction;
 
-public sealed class AINativeToolCall
+public sealed class InteractionToolCall
 {
 	public string Name { get; }
 
@@ -11,7 +11,7 @@ public sealed class AINativeToolCall
 
 	public IReadOnlyDictionary<string, string> Arguments { get; }
 
-	public AINativeToolCall(string name, string correlationId, IReadOnlyDictionary<string, string> arguments)
+	public InteractionToolCall(string name, string correlationId, IReadOnlyDictionary<string, string> arguments)
 	{
 		if (string.IsNullOrWhiteSpace(name))
 		{

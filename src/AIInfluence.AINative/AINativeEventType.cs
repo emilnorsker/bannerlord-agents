@@ -1,6 +1,6 @@
-namespace AIInfluence.AINative;
+namespace AIInfluence.NpcInteraction;
 
-public enum AINativeEventType
+public enum InteractionEventType
 {
 	DialogueSpoken,
 	ActionStarted,

@@ -1,16 +1,16 @@
 using System.Collections.Generic;
 
-namespace AIInfluence.AINative.Consumers;
+namespace AIInfluence.NpcInteraction.Consumers;
 
 public sealed class DialogueEventConsumer
 {
-	private readonly List<AINativeEvent> _events = new List<AINativeEvent>();
+	private readonly List<InteractionEvent> _events = new List<InteractionEvent>();
 
-	public IReadOnlyList<AINativeEvent> Events => _events;
+	public IReadOnlyList<InteractionEvent> Events => _events;
 
-	public void Consume(AINativeEvent item)
+	public void Consume(InteractionEvent item)
 	{
-		if (item.Type == AINativeEventType.DialogueSpoken)
+		if (item.Type == InteractionEventType.DialogueSpoken)
 		{
 			_events.Add(item);
 		}

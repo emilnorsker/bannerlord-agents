@@ -1,19 +1,19 @@
 using System;
 using System.Collections.Generic;
 
-namespace AIInfluence.AINative;
+namespace AIInfluence.NpcInteraction;
 
-public sealed class AINativeQueue
+public sealed class InteractionEventStream
 {
 	private sealed class Subscription : IDisposable
 	{
-		private readonly AINativeQueue _queue;
+		private readonly InteractionEventStream _queue;
 
-		private readonly Action<AINativeEvent> _consumer;
+		private readonly Action<InteractionEvent> _consumer;
 
 		private bool _disposed;
 
-		public Subscription(AINativeQueue queue, Action<AINativeEvent> consumer)
+		public Subscription(InteractionEventStream queue, Action<InteractionEvent> consumer)
 		{
 			_queue = queue;
 			_consumer = consumer;
@@ -32,9 +32,9 @@ public sealed class AINativeQueue
 
 	private readonly object _sync = new object();
 
-	private readonly Queue<AINativeEvent> _events = new Queue<AINativeEvent>();
+	private readonly Queue<InteractionEvent> _events = new Queue<InteractionEvent>();
 
-	private readonly List<Action<AINativeEvent>> _subscribers = new List<Action<AINativeEvent>>();
+	private readonly List<Action<InteractionEvent>> _subscribers = new List<Action<InteractionEvent>>();
 
 	private long _sequence;
 
@@ -49,7 +49,7 @@ public sealed class AINativeQueue
 		}
 	}
 
-	public IDisposable Subscribe(Action<AINativeEvent> consumer)
+	public IDisposable Subscribe(Action<InteractionEvent> consumer)
 	{
 		if (consumer == null)
 		{
@@ -62,13 +62,13 @@ public sealed class AINativeQueue
 		return new Subscription(this, consumer);
 	}
 
-	public long Enqueue(AINativeEvent item)
+	public long Enqueue(InteractionEvent item)
 	{
 		if (item == null)
 		{
 			throw new ArgumentNullException("item");
 		}
-		Action<AINativeEvent>[] subscribers;
+		Action<InteractionEvent>[] subscribers;
 		lock (_sync)
 		{
 			_sequence++;
@@ -76,14 +76,14 @@ public sealed class AINativeQueue
 			_events.Enqueue(item);
 			subscribers = _subscribers.ToArray();
 		}
-		foreach (Action<AINativeEvent> subscriber in subscribers)
+		foreach (Action<InteractionEvent> subscriber in subscribers)
 		{
 			subscriber(item);
 		}
 		return item.Sequence;
 	}
 
-	public bool TryDequeue(out AINativeEvent item)
+	public bool TryDequeue(out InteractionEvent item)
 	{
 		lock (_sync)
 		{
@@ -97,7 +97,7 @@ public sealed class AINativeQueue
 		}
 	}
 
-	private void Unsubscribe(Action<AINativeEvent> consumer)
+	private void Unsubscribe(Action<InteractionEvent> consumer)
 	{
 		lock (_sync)
 		{

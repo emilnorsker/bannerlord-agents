@@ -1,4 +1,4 @@
-namespace AIInfluence.AINative.Tools;
+namespace AIInfluence.NpcInteraction.Tools;
 
 public sealed class FollowPlayerTool : LongRunningActionTool
 {

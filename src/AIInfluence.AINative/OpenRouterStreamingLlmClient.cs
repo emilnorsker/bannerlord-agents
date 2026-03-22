@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace AIInfluence.AINative;
+namespace AIInfluence.NpcInteraction;
 
-public sealed class OpenRouterStreamingLlmClient
+public sealed class OpenRouterModelClient
 {
 	private readonly HttpClient _httpClient;
 
@@ -18,14 +18,14 @@ public sealed class OpenRouterStreamingLlmClient
 
 	private readonly string _model;
 
-	public OpenRouterStreamingLlmClient(string apiKey, string model, HttpClient httpClient = null)
+	public OpenRouterModelClient(string apiKey, string model, HttpClient httpClient = null)
 	{
 		_apiKey = apiKey;
 		_model = model;
 		_httpClient = httpClient ?? new HttpClient();
 	}
 
-	public async Task<AINativeLlmCompletion> StreamCompletionAsync(string systemPrompt, string userPrompt, Action<string> onTextDelta = null)
+	public async Task<ModelTurnResult> StreamTurnAsync(string systemPrompt, string userPrompt, Action<string> onTextDelta = null)
 	{
 		var requestBody = new JObject
 		{
@@ -77,7 +77,7 @@ public sealed class OpenRouterStreamingLlmClient
 				onTextDelta?.Invoke(deltaText);
 			}
 		}
-		return new AINativeLlmCompletion(textBuilder.ToString(), new List<AINativeLlmToolCall>());
+		return new ModelTurnResult(textBuilder.ToString(), new List<ModelToolCall>());
 	}
 }
 

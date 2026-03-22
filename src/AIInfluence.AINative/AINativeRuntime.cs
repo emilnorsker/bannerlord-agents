@@ -1,19 +1,19 @@
 using System;
 using System.Threading.Tasks;
-using AIInfluence.AINative.Tools;
+using AIInfluence.NpcInteraction.Tools;
 
-namespace AIInfluence.AINative;
+namespace AIInfluence.NpcInteraction;
 
-public sealed class AINativeRuntime
+public sealed class NpcInteractionEngine
 {
-	private readonly AINativeToolRegistry _tools;
+	private readonly InteractionToolRegistry _tools;
 
-	public AINativeQueue Queue { get; }
+	public InteractionEventStream Stream { get; }
 
-	public AINativeRuntime()
+	public NpcInteractionEngine()
 	{
-		Queue = new AINativeQueue();
-		_tools = new AINativeToolRegistry();
+		Stream = new InteractionEventStream();
+		_tools = new InteractionToolRegistry();
 		_tools.Register(new NpcSayTool());
 		_tools.Register(new FollowPlayerTool());
 		_tools.Register(new GoToSettlementTool());
@@ -26,37 +26,37 @@ public sealed class AINativeRuntime
 		{
 			return;
 		}
-		Queue.Enqueue(new AINativeEvent(AINativeEventType.DialogueSpoken, correlationId, npcId, "assistant_text", text));
+		Stream.Enqueue(new InteractionEvent(InteractionEventType.DialogueSpoken, correlationId, npcId, "assistant_text", text));
 	}
 
-	public void HandleToolCall(string playerId, string npcId, AINativeToolCall toolCall)
+	public void HandleToolCall(string playerId, string npcId, InteractionToolCall toolCall)
 	{
 		if (toolCall == null)
 		{
 			throw new ArgumentNullException("toolCall");
 		}
 		var tool = _tools.Resolve(toolCall.Name);
-		var context = new AINativeToolContext(playerId, npcId, toolCall.CorrelationId, toolCall.Arguments);
-		tool.Execute(context, Queue);
+		var context = new InteractionToolContext(playerId, npcId, toolCall.CorrelationId, toolCall.Arguments);
+		tool.Execute(context, Stream);
 	}
 
 	public void CompleteAction(string correlationId, string npcId, string actionName, string message)
 	{
-		Queue.Enqueue(new AINativeEvent(AINativeEventType.ActionCompleted, correlationId, npcId, actionName, message));
+		Stream.Enqueue(new InteractionEvent(InteractionEventType.ActionCompleted, correlationId, npcId, actionName, message));
 	}
 
 	public void FailAction(string correlationId, string npcId, string actionName, string reason)
 	{
-		Queue.Enqueue(new AINativeEvent(AINativeEventType.ActionFailed, correlationId, npcId, actionName, reason));
+		Stream.Enqueue(new InteractionEvent(InteractionEventType.ActionFailed, correlationId, npcId, actionName, reason));
 	}
 
-	public async Task<AINativeLlmCompletion> RunOpenRouterTurnAsync(OpenRouterStreamingLlmClient llmClient, string playerId, string npcId, string correlationId, string systemPrompt, string userPrompt, Action<string> onTextDelta = null)
+	public async Task<ModelTurnResult> RunOpenRouterTurnAsync(OpenRouterModelClient llmClient, string playerId, string npcId, string correlationId, string systemPrompt, string userPrompt, Action<string> onTextDelta = null)
 	{
-		var completion = await llmClient.StreamCompletionAsync(systemPrompt, userPrompt, onTextDelta).ConfigureAwait(false);
+		var completion = await llmClient.StreamTurnAsync(systemPrompt, userPrompt, onTextDelta).ConfigureAwait(false);
 		HandleAssistantText(correlationId, npcId, completion.Text);
-		foreach (AINativeLlmToolCall toolCall in completion.ToolCalls)
+		foreach (ModelToolCall toolCall in completion.ToolCalls)
 		{
-			HandleToolCall(playerId, npcId, new AINativeToolCall(toolCall.Name, correlationId, toolCall.Arguments));
+			HandleToolCall(playerId, npcId, new InteractionToolCall(toolCall.Name, correlationId, toolCall.Arguments));
 		}
 		return completion;
 	}
