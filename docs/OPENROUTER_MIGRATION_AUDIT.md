@@ -74,7 +74,7 @@ Read: full file `src/AIInfluence.API/AIClient.cs` (305 lines).
 
 ## 4. `SendAIRequest` / dialogue failure detection — **SRC** (addressed)
 
-`AIClient.IsDialogueFailureResponse` / `IsRawTextFailureResponse` classify **`GetAIResponse`** JSON envelopes (`ai_error`, legacy `response` text) and **raw** paths (`Error:`, `API key is missing.`). `SendAIRequest` uses them instead of **`StartsWith("Error:")`** alone. `ProcessChatInput` retry / empty guards use **`IsDialogueFailureResponse`** for **`GetAIResponse`** results.
+`AIClient.IsDialogueFailureResponse` / `IsRawTextFailureResponse` classify **`GetAIResponse`** JSON envelopes (`ai_error`, legacy `response` text) and **raw** paths (`Error:`, `API key is missing.`). `SendAIRequest` uses them instead of **`StartsWith("Error:")`** alone. `ProcessChatInput` retry / empty guards use **`IsDialogueFailureResponse`** for **`GetAIResponse`** results. Call sites (`NPCInitiativeSystem`, `DeathHistoryBehavior`) use **`IsSendAIRequestResultFailure`** so they do not rely on **`StartsWith("Error:")`** alone.
 
 **SRC:** `GenerateErrorResponse` sets **`AiError = true`** on `AIResponse` (serialized as **`ai_error`**).
 

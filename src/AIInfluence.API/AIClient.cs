@@ -312,6 +312,29 @@ public static class AIClient
 		return string.Equals(response, "API key is missing.", StringComparison.Ordinal);
 	}
 
+	/// <summary>Unified check for <c>SendAIRequest</c> results: null/empty, dialogue error JSON, exception <c>Error:</c> strings, or raw-path failures.</summary>
+	public static bool IsSendAIRequestResultFailure(string response)
+	{
+		if (string.IsNullOrEmpty(response))
+		{
+			return true;
+		}
+		string trimmed = response.TrimStart();
+		if (trimmed.Length == 0)
+		{
+			return true;
+		}
+		if (IsDialogueFailureResponse(trimmed))
+		{
+			return true;
+		}
+		if (trimmed[0] != '{')
+		{
+			return IsRawTextFailureResponse(response);
+		}
+		return false;
+	}
+
 	private static void LogError(string message)
 	{
 		AIInfluenceBehavior.Instance?.LogMessage("[ERROR] AIClient: " + message);
