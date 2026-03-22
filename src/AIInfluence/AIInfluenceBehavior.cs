@@ -478,7 +478,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			_npcInitiativeSystem.Tick(dt);
 		}
 		Action result;
-		while (TtsLipSyncService.MainThreadQueue.TryDequeue(out result))
+		while (MainThreadDispatcher.Queue.TryDequeue(out result))
 		{
 			try
 			{
@@ -486,7 +486,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			}
 			catch (Exception ex)
 			{
-				LogMessage("[LipSync] MainThread action error: " + ex.Message);
+				LogMessage("[MainThread] Queued action error: " + ex.Message);
 			}
 		}
 	}
@@ -3179,67 +3179,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			LogMessage($"[DEBUG] Lie detected by AI. Trust penalty: {trustPenalty:F2}, LiePenaltySum: {context.LiePenaltySum:F2}, TrustLevel: {context.TrustLevel:F3}. Scheduled result decrease by {relationPenalty} for 'What do you say?'.");
 		}
 		SaveNPCContext(npcId, npc, context);
-		if ((GlobalSettings<ModSettings>.Instance?.EnableTTS ?? false) && !string.IsNullOrEmpty(context.AssignedTTSVoice))
-		{
-			string responseText = context.LastDynamicResponse;
-			string ttsInstructions = context.PendingAIResponse?.TTSInstructions ?? "";
-			if (!string.IsNullOrEmpty(responseText))
-			{
-				if (!string.IsNullOrEmpty(context.LastTTSPlayedText) && string.Equals(context.LastTTSPlayedText, responseText, StringComparison.Ordinal) && string.Equals(context.LastTTSInstructions ?? "", ttsInstructions, StringComparison.Ordinal))
-				{
-					LogMessage("[TTS] Skipping TTS preparation: same text and instructions already played.");
-					context.PreparedTts = null;
-				}
-				else
-				{
-					LogMessage("[TTS] Pre-generating TTS for " + npcName + " before showing 'NPC ready'...");
-					try
-					{
-						bool voiceExists = await Player2Client.VoiceExistsAsync(context.AssignedTTSVoice);
-						string voiceToUse = context.AssignedTTSVoice;
-						if (!voiceExists)
-						{
-							LogMessage("[TTS] Voice " + context.AssignedTTSVoice + " no longer exists. Replacing.");
-							string newVoice = await Player2Client.GetRandomVoiceAsync(context.Gender);
-							if (!string.IsNullOrEmpty(newVoice))
-							{
-								voiceToUse = newVoice;
-								context.AssignedTTSVoice = newVoice;
-								LogMessage("[TTS] Replaced voice for " + npcName + ": " + newVoice);
-							}
-							else
-							{
-								LogMessage("[TTS] Failed to assign new voice for " + npcName + ". Skipping TTS.");
-								voiceToUse = null;
-							}
-						}
-						if (!string.IsNullOrEmpty(voiceToUse))
-						{
-							TtsPreparedData prepared = await TtsLipSyncService.PrepareAsync(responseText, voiceToUse, npcName, ttsInstructions, context.EscalationState ?? "neutral");
-							if (prepared != null)
-							{
-								context.PreparedTts = prepared;
-								context.LastTTSPlayedText = responseText;
-								context.LastTTSInstructions = ttsInstructions;
-								SaveNPCContext(npcId, npc, context);
-								LogMessage("[TTS] TTS prepared successfully for " + npcName + ".");
-							}
-							else
-							{
-								context.PreparedTts = null;
-								LogMessage("[TTS] TTS preparation failed for " + npcName + ".");
-							}
-						}
-					}
-					catch (Exception ex5)
-					{
-						Exception ex8 = ex5;
-						context.PreparedTts = null;
-						LogMessage("[TTS_ERROR] TTS preparation failed for " + npcName + ": " + ex8.Message);
-					}
-				}
-			}
-		}
 		string messageText = ((object)new TextObject("{=AIInfluence_NPCReady}{npcName} is ready to respond.", new Dictionary<string, object> { { "npcName", npcName } })).ToString();
 		LogMessage("[DEBUG] Displayed notification: " + npcName + " is ready to respond.");
 		InformationManager.DisplayMessage(new InformationMessage(messageText, Colors.White));
@@ -3842,11 +3781,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					nPCContext.AIGeneratedSpeechQuirks = null;
 					LogMessage("[DEBUG] Converted empty AIGeneratedSpeechQuirks to null for " + stringId + " (from memory)");
 				}
-				if (!string.IsNullOrEmpty(nPCContext2.AssignedTTSVoice) && nPCContext2.AssignedTTSVoice != nPCContext.AssignedTTSVoice)
-				{
-					LogMessage("[TTS] Voice updated from file for " + stringId + ": '" + nPCContext.AssignedTTSVoice + "' → '" + nPCContext2.AssignedTTSVoice + "'");
-					nPCContext.AssignedTTSVoice = nPCContext2.AssignedTTSVoice;
-				}
 			}
 			else
 			{
@@ -3867,7 +3801,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				}
 			}
 			CharacterInfo.UpdateEncyclopediaDescription(npc, nPCContext.AIGeneratedBackstory, nPCContext.AIGeneratedPersonality);
-			EnsureValidTTSVoice(nPCContext, npc);
 			LogMessage("[DEBUG] Found existing context for " + stringId);
 			return nPCContext;
 		}
@@ -3884,7 +3817,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 		nPCContext.StringId = npcId;
 		nPCContext.Gender = (npc.IsFemale ? "female" : "male");
-		EnsureValidTTSVoice(nPCContext, npc);
 		nPCContext.PlayerInfo.RealName = ((object)Hero.MainHero.Name).ToString();
 		PlayerInfo playerInfo = nPCContext.PlayerInfo;
 		Clan clan = Hero.MainHero.Clan;
@@ -4934,7 +4866,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				Task completedTask = await Task.WhenAny(requestTask, timeoutTask);
 				string rawResponse = (completedTask == timeoutTask) ? "Error: Timeout (45s)" : await requestTask;
 
-				TtsLipSyncService.MainThreadQueue.Enqueue(() =>
+				MainThreadDispatcher.Queue.Enqueue(() =>
 				{
 					try
 					{
@@ -5929,78 +5861,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		catch (Exception ex2)
 		{
 			LogMessage("[ERROR] CleanupDeadNPCs failed: " + ex2.Message);
-		}
-	}
-
-	private void EnsureValidTTSVoice(NPCContext context, Hero npc)
-	{
-		ModSettings instance = GlobalSettings<ModSettings>.Instance;
-		if (instance == null || !instance.EnableTTS)
-		{
-			return;
-		}
-		if (string.IsNullOrEmpty(context.Gender))
-		{
-			context.Gender = (npc.IsFemale ? "female" : "male");
-		}
-		Task.Run(async delegate
-		{
-			try
-			{
-				if (string.IsNullOrEmpty(context.AssignedTTSVoice))
-				{
-					string assignedVoice = await Player2Client.GetRandomVoiceAsync(context.Gender);
-					if (!string.IsNullOrEmpty(assignedVoice))
-					{
-						context.AssignedTTSVoice = assignedVoice;
-					}
-					else
-					{
-						LogMessage("[WARNING] Failed to assign TTS voice to " + context.Name + " (gender: " + context.Gender + "). TTS will be disabled for this NPC.");
-					}
-				}
-				else if (!(await Player2Client.VoiceExistsAsync(context.AssignedTTSVoice)))
-				{
-					LogMessage("[TTS] Voice " + context.AssignedTTSVoice + " for " + context.Name + " no longer exists in API. Replacing with new voice.");
-					string newVoice = await Player2Client.GetRandomVoiceAsync(context.Gender);
-					if (!string.IsNullOrEmpty(newVoice))
-					{
-						context.AssignedTTSVoice = newVoice;
-						LogMessage("[TTS] Replaced voice for " + context.Name + ": " + newVoice);
-					}
-					else
-					{
-						LogMessage("[WARNING] Failed to assign new voice for " + context.Name + ". TTS will be disabled.");
-						context.AssignedTTSVoice = null;
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				Exception ex2 = ex;
-				LogMessage("[TTS_ERROR] Exception while ensuring voice for " + context.Name + ": " + ex2.Message);
-			}
-		});
-	}
-
-	public string AssignRandomVoiceForGender(string gender)
-	{
-		try
-		{
-			string randomVoice = Player2Client.GetRandomVoice(gender);
-			if (string.IsNullOrEmpty(randomVoice))
-			{
-				LogMessage("[TTS_ERROR] Failed to assign voice for gender " + gender + ". GetRandomVoice returned null or empty string.");
-				return null;
-			}
-			LogMessage("[TTS] Successfully assigned voice " + randomVoice + " for gender " + gender);
-			return randomVoice;
-		}
-		catch (Exception ex)
-		{
-			LogMessage("[TTS_ERROR] Exception while assigning voice for gender " + gender + ": " + ex.Message);
-			LogMessage("[TTS_ERROR] StackTrace: " + ex.StackTrace);
-			return null;
 		}
 	}
 
