@@ -6,9 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-
 namespace AIInfluence.NpcInteraction;
-
 public sealed class OpenRouterClient
 {
 	public const string SayTool = "say";
@@ -16,21 +14,7 @@ public sealed class OpenRouterClient
 	private readonly HttpClient _httpClient;
 	private readonly string _apiKey;
 	private readonly string _model;
-
-	public OpenRouterClient(string apiKey, string model, HttpClient httpClient = null)
-	{
-		_apiKey = apiKey;
-		_model = model;
-		if (httpClient == null)
-		{
-			_httpClient = new HttpClient();
-		}
-		else
-		{
-			_httpClient = httpClient;
-		}
-	}
-
+	public OpenRouterClient(string apiKey, string model, HttpClient httpClient = null) { _apiKey = apiKey; _model = model; _httpClient = httpClient; if (httpClient == null) _httpClient = new HttpClient(); }
 	public async Task<string> GenerateNpcReplyAsync(string systemPrompt, string userPrompt, Action<string> onTextDelta = null)
 	{
 		var body = new JObject
