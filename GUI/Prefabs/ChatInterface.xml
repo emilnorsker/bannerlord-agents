@@ -1,13 +1,16 @@
 <Prefab>
   <!--
-    NPC chat = encyclopedia-first shell (mirror SandBox EncyclopediaHeroPage / Gauntlet encyclopedia subpage patterns), not the old frame-first layout.
-    Root: Encyclopedia.Page.SoundBrush. Row: vanilla hero left strip (370) | conversation column | information column.
+    NPC chat = encyclopedia-first shell (mirror SandBox EncyclopediaHeroPage).
+    Root: Encyclopedia.Page (full parchment; vanilla lays out sections — avoid extra full-column sprites on top).
+    Row: hero strip (370) | Encyclopedia divider | conversation | divider | information.
     Bindings: NpcChatWindowVM — HeroCharacter, Traits, HeroSkillList, MessageList, InfoSections, etc.
   -->
   <Constants>
     <Constant Name="EncyLeft.W" Value="370" />
     <Constant Name="Info.W" Value="540" />
     <Constant Name="Sep.W" Value="2" />
+    <!-- Column dividers: vanilla encyclopedia vertical rule (wider than thin tint strips for clear separation). -->
+    <Constant Name="Sep.Divider" Value="4" />
     <Constant Name="Inset" Value="20" />
     <Constant Name="Header.H" Value="72" />
     <Constant Name="Input.H" Value="52" />
@@ -20,7 +23,7 @@
 
   <Window Id="ChatInterfaceWindow" Layer="Overlay">
     <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                 DoNotAcceptEvents="true" Brush="Encyclopedia.Page.SoundBrush">
+                 DoNotAcceptEvents="true" Brush="Encyclopedia.Page">
       <Children>
         <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                 MarginLeft="!Inset" MarginRight="!Inset" MarginTop="!Inset" MarginBottom="!Inset"
@@ -31,8 +34,7 @@
               <Children>
 
                 <!-- ══ Left: vanilla encyclopedia hero column (unchanged structure) ══ -->
-                <Widget HeightSizePolicy="StretchToParent" WidthSizePolicy="Fixed" SuggestedWidth="!EncyLeft.W"
-                        Sprite="General\CharacterCreation\character_creation_background_gradient">
+                <Widget HeightSizePolicy="StretchToParent" WidthSizePolicy="Fixed" SuggestedWidth="!EncyLeft.W">
                   <Children>
                     <Widget WidthSizePolicy="Fixed" SuggestedWidth="!EncyLeft.W" HeightSizePolicy="StretchToParent"
                             HorizontalAlignment="Left" MarginBottom="1" VerticalAlignment="Center" IsEnabled="false" ClipContents="true">
@@ -119,18 +121,16 @@
                   </Children>
                 </Widget>
 
-                <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Sep.W" HeightSizePolicy="StretchToParent"
-                        Sprite="BlankWhiteSquare_9" Color="!SepColor"/>
+                <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Sep.Divider" HeightSizePolicy="StretchToParent"
+                        Sprite="Encyclopedia\divider_vertical"/>
 
                 <!-- ══ Center: conversation (replaces encyclopedia’s main scroll body) ══ -->
                 <Widget Id="CenterColumn" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent">
                   <Children>
-                    <Widget Id="ChatBackground" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                            Sprite="General\CharacterCreation\character_creation_background_gradient" DoNotAcceptEvents="true"/>
                     <Widget Id="ChatContent" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" DoNotAcceptEvents="false">
                       <Children>
-                        <Widget Id="ChatHeaderBand" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="!Header.H" VerticalAlignment="Top"
-                                Sprite="BlankWhiteSquare_9" Color="#1A1A1AFF">
+                        <BrushWidget Id="ChatHeaderBand" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="!Header.H" VerticalAlignment="Top"
+                                     Brush="Encyclopedia.TopBanner" Color="#0F141FFF" DoNotAcceptEvents="true">
                           <Children>
                             <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                         HorizontalAlignment="Left" VerticalAlignment="Top" PositionXOffset="14" PositionYOffset="8"
@@ -146,7 +146,7 @@
                                         HorizontalAlignment="Left" VerticalAlignment="Bottom" PositionXOffset="14" PositionYOffset="-14"
                                         Brush="SPScoreboard.Subtitle.Text" Brush.FontSize="12" Text="@EmotionLabel" IsDisabled="true"/>
                           </Children>
-                        </Widget>
+                        </BrushWidget>
                         <!-- ChatScrollWrapper: scroll region + invisible bar; siblings below = separator strip, then input bar. -->
                         <Widget Id="ChatScrollWrapper" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                 MarginTop="!Header.H" MarginBottom="!Input.H" MarginLeft="4">
@@ -282,8 +282,8 @@
                   </Children>
                 </Widget>
 
-                <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Sep.W" HeightSizePolicy="StretchToParent"
-                        Sprite="BlankWhiteSquare_9" Color="!SepColor"/>
+                <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Sep.Divider" HeightSizePolicy="StretchToParent"
+                        Sprite="Encyclopedia\divider_vertical"/>
 
                 <!-- ══ Right: information panel (fixed title band | framed scroll | close) ══ -->
                 <Widget Id="RightColumn" WidthSizePolicy="Fixed" SuggestedWidth="!Info.W" HeightSizePolicy="StretchToParent">
