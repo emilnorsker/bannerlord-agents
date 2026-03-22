@@ -17,7 +17,7 @@
 
 | VM | Gauntlet |
 |----|----------|
-| `InfoSectionVM.GlyphLines` (`InfoGlyphLineVM`) | One template: **skill icon** (`IsSkill`) **or** **formation sprite** (`IsFormation`) + `Text` + `Color`. World events and party troops use the same list. |
+| `InfoSectionVM.GlyphLines` (`InfoGlyphLineVM`) | **World events:** `IsSkill` + `SkillIconVisualWidget`. **Party troops:** `IsClanParty*` flags drive **literal** `SPGeneral\Clan\party_troop_*_9` sprites in XML (same assets as clan → parties tab; VM string→`Sprite` bind is unreliable). |
 | `InfoSectionVM.TextLines` (`TextItemVM`) | Plain rich-text bullets (no left glyph). |
 | `PartyFoodText` / `PartyFoodColor` + `ShowPartyFood` | Single optional line under the lists. |
 

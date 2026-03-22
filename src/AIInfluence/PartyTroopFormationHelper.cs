@@ -8,19 +8,6 @@ namespace AIInfluence;
 
 internal static class PartyTroopFormationHelper
 {
-    /// <summary>Clan party troop strip sprites (same asset family as clan UI; nine-slice _9).</summary>
-    public static string GetFormationSpritePath(FormationClass fc)
-    {
-        return fc switch
-        {
-            FormationClass.Infantry => "SPGeneral\\Clan\\party_troop_infantry_9",
-            FormationClass.Ranged => "SPGeneral\\Clan\\party_troop_ranged_9",
-            FormationClass.Cavalry => "SPGeneral\\Clan\\party_troop_cavalry_9",
-            FormationClass.HorseArcher => "SPGeneral\\Clan\\party_troop_horse_archer_9",
-            _ => "SPGeneral\\Clan\\party_troop_infantry_9"
-        };
-    }
-
     /// <summary>Same logic as settlement combat: foot ranged / foot melee / mounted ranged / mounted melee.</summary>
     public static FormationClass DetermineFormationClass(CharacterObject character)
     {

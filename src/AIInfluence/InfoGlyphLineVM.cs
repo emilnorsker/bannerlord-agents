@@ -4,15 +4,16 @@ using TaleWorlds.Library;
 namespace AIInfluence;
 
 /// <summary>
-/// One row with a left glyph (skill icon or formation sprite) + text — same binding pattern for
-/// world events and party troop strips (icon vs sprite is the same UI shape).
+/// One row: skill icon (world events) or clan party formation strip (literal SPGeneral\Clan\party_troop_* in XML) + text.
 /// </summary>
 public sealed class InfoGlyphLineVM : ViewModel
 {
     private bool _isSkill;
-    private bool _isFormation;
+    private bool _isClanPartyInfantry;
+    private bool _isClanPartyRanged;
+    private bool _isClanPartyCavalry;
+    private bool _isClanPartyHorseArcher;
     private string _skillId = "";
-    private string _formationSprite = "";
     private string _text = "";
     private string _color = "#C6AC8DFF";
 
@@ -30,15 +31,54 @@ public sealed class InfoGlyphLineVM : ViewModel
     }
 
     [DataSourceProperty]
-    public bool IsFormation
+    public bool IsClanPartyInfantry
     {
-        get => _isFormation;
+        get => _isClanPartyInfantry;
         set
         {
-            if (value == _isFormation)
+            if (value == _isClanPartyInfantry)
                 return;
-            _isFormation = value;
-            OnPropertyChangedWithValue(value, nameof(IsFormation));
+            _isClanPartyInfantry = value;
+            OnPropertyChangedWithValue(value, nameof(IsClanPartyInfantry));
+        }
+    }
+
+    [DataSourceProperty]
+    public bool IsClanPartyRanged
+    {
+        get => _isClanPartyRanged;
+        set
+        {
+            if (value == _isClanPartyRanged)
+                return;
+            _isClanPartyRanged = value;
+            OnPropertyChangedWithValue(value, nameof(IsClanPartyRanged));
+        }
+    }
+
+    [DataSourceProperty]
+    public bool IsClanPartyCavalry
+    {
+        get => _isClanPartyCavalry;
+        set
+        {
+            if (value == _isClanPartyCavalry)
+                return;
+            _isClanPartyCavalry = value;
+            OnPropertyChangedWithValue(value, nameof(IsClanPartyCavalry));
+        }
+    }
+
+    [DataSourceProperty]
+    public bool IsClanPartyHorseArcher
+    {
+        get => _isClanPartyHorseArcher;
+        set
+        {
+            if (value == _isClanPartyHorseArcher)
+                return;
+            _isClanPartyHorseArcher = value;
+            OnPropertyChangedWithValue(value, nameof(IsClanPartyHorseArcher));
         }
     }
 
@@ -53,20 +93,6 @@ public sealed class InfoGlyphLineVM : ViewModel
                 return;
             _skillId = value;
             OnPropertyChangedWithValue(_skillId, nameof(SkillId));
-        }
-    }
-
-    [DataSourceProperty]
-    public string FormationSprite
-    {
-        get => _formationSprite;
-        set
-        {
-            value ??= "";
-            if (value == _formationSprite)
-                return;
-            _formationSprite = value;
-            OnPropertyChangedWithValue(_formationSprite, nameof(FormationSprite));
         }
     }
 
@@ -103,24 +129,19 @@ public sealed class InfoGlyphLineVM : ViewModel
         return new InfoGlyphLineVM
         {
             IsSkill = true,
-            IsFormation = false,
+            IsClanPartyInfantry = false,
+            IsClanPartyRanged = false,
+            IsClanPartyCavalry = false,
+            IsClanPartyHorseArcher = false,
             SkillId = skillId ?? "",
-            FormationSprite = "",
             Text = text ?? "",
             Color = color ?? "#C6AC8DFF"
         };
     }
 
-    /// <summary>Uses <see cref="SkillIconVisualWidget"/> (same as world events). Plain <c>Widget</c> + <c>Sprite=@FormationSprite</c> does not reliably bind game sprite paths in Gauntlet.</summary>
+    /// <summary>Same formation strips as clan screen parties tab: <see cref="PartyTroopFormationHelper"/> paths, rendered via literal prefab sprites (not VM string → Sprite bind).</summary>
     public static InfoGlyphLineVM FromTroopFormation(FormationClass formation, int count)
     {
-        string skillId = formation switch
-        {
-            FormationClass.Ranged => DefaultSkills.Bow.StringId,
-            FormationClass.Cavalry => DefaultSkills.Riding.StringId,
-            FormationClass.HorseArcher => DefaultSkills.Bow.StringId,
-            _ => DefaultSkills.OneHanded.StringId
-        };
         string label = formation switch
         {
             FormationClass.Infantry => "Infantry",
@@ -131,10 +152,12 @@ public sealed class InfoGlyphLineVM : ViewModel
         };
         return new InfoGlyphLineVM
         {
-            IsSkill = true,
-            IsFormation = false,
-            SkillId = skillId,
-            FormationSprite = "",
+            IsSkill = false,
+            SkillId = "",
+            IsClanPartyInfantry = formation == FormationClass.Infantry,
+            IsClanPartyRanged = formation == FormationClass.Ranged,
+            IsClanPartyCavalry = formation == FormationClass.Cavalry,
+            IsClanPartyHorseArcher = formation == FormationClass.HorseArcher,
             Text = $"{label} ({count})",
             Color = "#C6AC8DFF"
         };
