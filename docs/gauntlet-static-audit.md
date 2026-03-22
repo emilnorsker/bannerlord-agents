@@ -76,7 +76,27 @@ So **`ScopeMovements="Vertical"`** is a **valid** literal for the XML loader.
 
 **Mod-local:** `AIInfluence.ClanPartyFormationStrip` (defined in our `PopUpBrush.xml`).
 
-## 7. What still needs a real client (honest list)
+## 7. Vertical stack order (`VerticalTopToBottom` vs `VerticalBottomToTop`)
+
+**Source:** `TaleWorlds.GauntletUI.Layout.StackLayout.LayoutLinearVertical` (`TaleWorlds.GauntletUI.dll`). Children are laid out in **XML / `ChildCount` order** (`j = 0 .. ChildCount-1`).
+
+From the implementation:
+
+- **`VerticalTopToBottom`:** each child is placed **below** the previous one (working from the **top** of the parent downward). **First child in the container = visually at the top** (reading order = declaration order).
+- **`VerticalBottomToTop`:** each child is placed **above** the previous one (working from the **bottom** upward). **First child = visually at the bottom** of the parent; **last child = visually at the top**.
+
+**`ChatInterface.xml` usage (intentional split):**
+
+| Region | `ListPanel` | Meaning |
+|--------|-------------|--------|
+| **`InfoSectionsList`** | `VerticalTopToBottom` | `NpcChatWindowVM` pushes sections in reading order (Character → … → Party). **First in `InfoSections` = top of the column.** Matches `RebuildInfoPanelSections` comment. |
+| **Section item template** (header + body) | `VerticalTopToBottom` | Header `ButtonWidget` is declared **first**, expanded body **second** → **header above body** (not reversed). |
+| **GlyphLines / TextLines** | `VerticalTopToBottom` | Lines appear in list order top-to-bottom. |
+| **`ChatMessageList`** | `VerticalBottomToTop` | **Not** the same as the info column: first `MessageList` item is anchored to the **bottom** of the inner stack; appending messages (`MessageList.Add`) puts **older messages lower** and **newer higher** in the scroll area. Do **not** “fix” the info column to match this unless you also change chat UX on purpose. |
+
+**Gamepad index caveat:** `NavigatableListPanel` assigns `GamepadNavigationIndex` using **different formulas** for `VerticalTopToBottom` vs other layouts (`SetNavigationIndexForChild` in `NavigatableListPanel`). Focus order can **feel** different from mouse hit order — that is separate from **visual** stacking.
+
+## 8. What still needs a real client (honest list)
 
 - **Visuals:** pixel alignment, alpha stacking, and font metrics.
 - **Input devices:** physical gamepad focus order and Steam Deck quirks.
