@@ -27,7 +27,7 @@ public static class OpenRouterNpcResponseSchema
 		{
 			["type"] = "object",
 			["properties"] = BuildDialogueProperties(),
-			["required"] = new JArray("response"),
+			["required"] = new JArray(),
 			["additionalProperties"] = true
 		};
 	}

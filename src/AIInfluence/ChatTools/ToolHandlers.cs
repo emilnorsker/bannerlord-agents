@@ -14,7 +14,7 @@ public static class ToolHandlers
 {
 	public static string Run(string name, string argsJson, Hero npc, NPCContext context, AIInfluenceBehavior behavior)
 	{
-		return name switch
+		string result = name switch
 		{
 			"find_settlements" => RunFindSettlements(argsJson),
 			"find_parties" => RunFindParties(argsJson, npc),
@@ -36,6 +36,7 @@ public static class ToolHandlers
 			"quest_action" => RunQuestAction(argsJson, npc, context, behavior),
 			"character_death" => RunCharacterDeath(argsJson, context),
 			"technical_action" => RunTechnicalAction(argsJson, context),
+			"map_command" => RunMapCommand(argsJson, context),
 			"npc_say" => RunNpcSay(argsJson, context),
 			"suspected_lie" => RunSuspectedLie(argsJson, context),
 			"dialogue_decision" => RunDialogueDecision(argsJson, context),
@@ -44,6 +45,8 @@ public static class ToolHandlers
 			"allows_letters" => RunAllowsLetters(argsJson, context),
 			_ => "unknown"
 		};
+		ToolCallTelemetry.RaiseCompleted("npc_chat", name, argsJson, result, null);
+		return result;
 	}
 
 	private static string RunFindSettlements(string argsJson)
@@ -306,6 +309,20 @@ public static class ToolHandlers
 		if (string.IsNullOrEmpty(npcMapCommandLine))
 			return "ok";
 		context.DeferredTechnicalActionFromTools = npcMapCommandLine;
+		return "ok";
+	}
+
+	/// <summary>Structured map command: <c>action</c> + optional <c>payload</c> (replaces stringly <c>technical_action</c> for new prompts).</summary>
+	private static string RunMapCommand(string argsJson, NPCContext context)
+	{
+		JObject parsedArgs = ParseOrEmpty(argsJson);
+		string actionName = parsedArgs["action"]?.ToString();
+		if (string.IsNullOrEmpty(actionName))
+			return "missing_action";
+		JToken payloadToken = parsedArgs["payload"];
+		string payload = payloadToken == null || payloadToken.Type == JTokenType.Null ? null : payloadToken.ToString();
+		string line = string.IsNullOrEmpty(payload) ? actionName : actionName + ":" + payload;
+		context.DeferredTechnicalActionFromTools = line;
 		return "ok";
 	}
 

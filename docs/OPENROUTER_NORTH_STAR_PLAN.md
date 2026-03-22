@@ -25,13 +25,13 @@ Everything that duplicates authority (legacy envelope on `AIResponse`, stringly-
 
 ## Phase 0 — Repo + contract groundwork
 
-**Goal:** One way to call OpenRouter with streaming and **tools**; `response_format` only where a feature is **not** fully tool-expressed (e.g. diplomacy text-only) or the API requires a minimal final message.
+**Status:** **In progress.** OpenRouter-only transport is in place. **`ToolCallTelemetry.ToolCompleted`** (`feature`, `toolName`, `argsJson`, `resultJson`, `error`) fires after each NPC chat tool handler completes; subscribe for logging/analytics. Per-domain tool **registries** (diplomacy/events) and routing **`SendAIRequestWithBackend`** through tool catalogs are **not done**.
 
 | Deliverable | Notes |
 |-------------|--------|
-| Replace `SendAIRequestWithBackend` / `GetRawTextResponseWithBackend` for in-mod features | Route diplomacy, dynamic events, etc. through `GetAIResponse` (or one OpenRouter facade) with per-call **`tools`**; add optional `response_format` per domain only when needed. |
-| Per-domain tool registries | e.g. NPC chat, diplomacy, dynamic events — compose into the request body; overlap only where intentional. |
-| Tool telemetry | `OnToolInvoked` / `OnToolCompleted(feature, name, argsJson, resultJson, error)` — single hook all handlers use. |
+| Replace `SendAIRequestWithBackend` / `GetRawTextResponseWithBackend` for in-mod features | Raw OpenRouter only today; still no shared tool catalog for diplomacy/events. |
+| Per-domain tool registries | Pending. |
+| Tool telemetry | **`ToolCallTelemetry`** added; handlers invoke it from `ToolHandlers.Run`. |
 
 **Exit:** No production path uses a separate “diplomacy backend” HTTP shape; OpenRouter is the only completion API.
 
@@ -39,84 +39,46 @@ Everything that duplicates authority (legacy envelope on `AIResponse`, stringly-
 
 ## Phase 1 — NPC chat: tool-first dialogue (speech + social + flow)
 
-**Goal:** No monolithic `AIResponse` / dialogue JSON for **speech, tone, lies, escalation, romance, decisions**. Those become **tools** with small schemas (e.g. `npc_say` with `line` + optional `tone`; `lie_suspect` / `lie_resolve`; `conflict_update`; `dialogue_decision`; `romance_set_intent`; …). World tools (`transfer_money`, `quest_action`, map tools, …) stay **only** as tools.
-
-**Implemented (slice):** Dialogue tools: `npc_say`, `suspected_lie`, `dialogue_decision`, `romance_intent`, `escalation_update`, `allows_letters` (+ world tools unchanged). `ApplyNpcDialogueToolsToAiResponse` merges into `AIResponse` after deserialize; `ClearNpcTurnDialogueTools` resets scratch each turn. OpenRouter agent loop returns `{}` when final assistant content is empty.
-
-**Pruning:** For OpenRouter + NPC chat, `PromptGenerator` omits long optional JSON field paragraphs (money/items/workshop/death/quest prose) at **generation time**—smaller prompts, not always smaller source file until non-OpenRouter paths are deleted. `HandlePlayerInput` skips legacy money/item/workshop-from-JSON handling when backend is OpenRouter (tools + strip already handle it).
+**Status:** **In progress.** Dialogue tools + merge + `ClearNpcTurnDialogueTools` remain. **`NpcOpenRouterAssistantParser`** is the single entry for assistant text → `AIResponse`: tries raw JSON, then **`JsonCleaner` only on parse failure**, then **`OpenRouterDialogueJson.StripGameEffectKeys`**. **`OpenRouterNpcResponseSchema`** no longer requires `response` (tool-only `{}` turns). **`PrepareForAiResponseDeserialize`** removed (use parser + `StripGameEffectKeys`).
 
 | Deliverable | Notes |
 |-------------|--------|
-| Define tool schemas + handlers | Speech/emote stream via **tool argument deltas** where supported; handlers update `NPCContext` and UI. |
-| Remove `DeserializeObject<AIResponse>` for NPC final message | No `OpenRouterNpcResponseSchema` envelope for **dialogue** (delete or shrink to API-required ack only). |
-| Remove `JsonCleaner` / `OpenRouterDialogueJson` on default NPC path | No big blob to clean or strip. |
-| **Optional** minimal `response_format` | Only if provider requires non-empty assistant `content`; prefer **empty** or trivial `turn_done` tool instead of a 20-field JSON. |
+| Define tool schemas + handlers | Ongoing; `map_command` added (structured map line; `technical_action` legacy). |
+| Remove `DeserializeObject<AIResponse>` for NPC final message | **Not complete** — still deserialize after strip; goal is context-only + minimal ack. |
+| Remove `JsonCleaner` on default NPC path | **Reduced** — not first resort; fallback only inside parser. |
+| **Optional** minimal `response_format` | Relaxed required list; can narrow further later. |
 
-**Exit:** NPC chat turn is **tool calls + context updates**, not one parsed dialogue object.
+**Exit:** NPC chat turn is **tool calls + context updates**, not one parsed dialogue object. **Not fully at exit yet.**
 
 ---
 
 ## Phase 2 — NPC chat: world effects + deferrals only via tools
 
-**Goal:** No money / items / quests / kingdom / workshop / death from any **legacy JSON envelope**.
-
-| Deliverable | Notes |
-|-------------|--------|
-| Remove `ProcessChatInput` blocks that read envelope fields from parsed `aiResult` | Already redundant once Phase 1 removes deserialize. |
-| Remove merging deferrals onto `AIResponse` | Death / map → `NPCContext` or apply in handler + bus. |
-
-**Exit:** No game-effect fields on `AIResponse` for the NPC path.
+**Status:** **Partial.** Envelope fields stripped before deserialize; deferrals merged from `NPCContext`. **`HandlePlayerInput`** no longer applies legacy money/item/workshop from JSON. Full removal of game-effect fields from `AIResponse` usage in NPC path **pending**.
 
 ---
 
 ## Phase 3 — Map: end `technical_action` string protocol
 
-**Goal:** No `name:payload:STOP` mini-language as the contract.
-
-| Option A | Use existing map tools only; DialogManager does not parse command strings. |
-| Option B | One `map_command` tool with strict JSON `{ "action", "payload" }`. |
-| Remove DialogManager `TechnicalAction` parsing once behavior comes only from tools + typed pending. |
-
-**Exit:** No reliance on `PendingAIResponse.TechnicalAction` as a command string.
+**Status:** **Started.** New **`map_command`** tool (`action` + optional `payload`) writes the same deferred line format as `technical_action`. DialogManager still consumes **`AIResponse.TechnicalAction`** after merge — **exit not met** until consumers read typed/tool-only data only.
 
 ---
 
 ## Phase 4 — `DialogManager` + pending payload shrink
 
-**Goal:** Pending payload is not a god object.
-
-| Deliverable | Notes |
-|-------------|--------|
-| `PendingNpcTurn` / context fields | Only what conversation menus need — **filled from tool handlers**, not from a JSON envelope. |
-| Quest / kingdom from pending envelope | Remove if execution is tools-only. |
-| Unify `HandlePlayerInput` and `ProcessChatInput` internals | One orchestrator; two UI entry points. |
-
-**Exit:** `DialogManager` does not re-run effects from legacy envelope duplicates.
+**Status:** **Not started** (design in plan; implementation pending).
 
 ---
 
 ## Phase 5 — Diplomacy & dynamic events (OpenRouter-native)
 
-**Goal:** Same stack as NPC chat; different prompts and tools.
-
-| Deliverable | Notes |
-|-------------|--------|
-| Diplomacy | `GetAIResponse` + diplomacy tools; optional small `response_format` only if needed. |
-| Dynamic events | Same + event tools. |
-| Subscribers | React via tool bus, not string parsing. |
-
-**Exit:** No default `JsonCleaner` path for these features; failures are explicit.
+**Status:** **Not started** — still raw completions + local JSON cleanup in diplomacy files. Subscribers via **`ToolCallTelemetry`** can be added when these flows use tools.
 
 ---
 
 ## Phase 6 — Prompts + streaming UX
 
-**Goal:** Prompts describe **tools**, not “put these keys in JSON.”
-
-| Deliverable | Notes |
-|-------------|--------|
-| Trim `PromptGenerator` envelope prose for NPC. |
-| Streaming preview | **Tool args** for `npc_say` / `npc_emote` (not regex on partial dialogue JSON). |
+**Status:** **Partial** — NPC prompt prose trimmed earlier; **`GetNpcMessagePreview`** still uses partial JSON heuristics where not driven by tool-arg streaming.
 
 ---
 

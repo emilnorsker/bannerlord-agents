@@ -2841,55 +2841,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			return;
 		}
 		LogMessage("[DEBUG] Raw AI response: " + aiResponse);
-		string cleanedResponse = JsonCleaner.CleanJsonResponse(aiResponse);
-		LogMessage("[DEBUG] Cleaned AI response: " + cleanedResponse);
-		AIResponse aiResult;
-		try
-		{
-			if (!JsonCleaner.IsValidJson(cleanedResponse))
-			{
-				throw new JsonException("Cleaned response is not valid JSON.");
-			}
-			cleanedResponse = OpenRouterDialogueJson.PrepareForAiResponseDeserialize(cleanedResponse);
-			aiResult = JsonConvert.DeserializeObject<AIResponse>(cleanedResponse);
-			if (aiResult == null)
-			{
-				LogMessage("[WARNING] AI response is null after parsing. Falling back to default response.");
-				aiResult = new AIResponse
-				{
-					Response = "I have nothing to say right now.",
-					SuspectedLie = false,
-					ClaimedName = null,
-					ClaimedClan = null,
-					ClaimedAge = null,
-					Tone = "neutral",
-					ThreatLevel = "none",
-					EscalationState = "neutral",
-					DeescalationAttempt = false,
-					Decision = "none"
-				};
-			}
-		}
-		catch (JsonException ex2)
-		{
-			JsonException ex3 = ex2;
-			JsonException ex4 = ex3;
-			LogMessage("[ERROR] Failed to parse AI response: " + ((Exception)(object)ex4).Message + ". Cleaned response: " + cleanedResponse);
-			string fallbackResponse = JsonCleaner.ExtractFallbackResponse(aiResponse, npcName);
-			aiResult = new AIResponse
-			{
-				Response = fallbackResponse,
-				SuspectedLie = false,
-				ClaimedName = null,
-				ClaimedClan = null,
-				ClaimedAge = null,
-				Tone = "neutral",
-				ThreatLevel = "none",
-				EscalationState = "neutral",
-				DeescalationAttempt = false,
-				Decision = "none"
-			};
-		}
+		AIResponse aiResult = NpcOpenRouterAssistantParser.Parse(aiResponse, npcName);
 		ApplyNpcContextToolDeferralsToAiResponse(context, aiResult);
 		ApplyNpcDialogueToolsToAiResponse(context, aiResult);
 		if (!string.IsNullOrEmpty(aiResult.RomanceIntent) && aiResult.RomanceIntent != "none")
@@ -3032,7 +2984,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			InformationManager.DisplayMessage(new InformationMessage(((object)new TextObject("{=AIInfluence_ConflictError}{npcName} seems unsettled, but no fight breaks out.", new Dictionary<string, object> { { "npcName", npcName } })).ToString(), Colors.Yellow));
 		}
 		context.PendingAIResponse = aiResult;
-		context.LastAIResponseJson = cleanedResponse;
+		context.LastAIResponseJson = JsonConvert.SerializeObject(aiResult);
 		MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", aiResult.Response, false);
 		context.LastDynamicResponse = aiResult.Response;
 		LogMessage("[DEBUG] Set DYNAMIC_NPC_RESPONSE: " + aiResult.Response);
@@ -3265,7 +3217,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	/// <summary>
 	/// During an OpenRouter tool round, tools may store results on <paramref name="context"/> (see
 	/// <see cref="NPCContext.DeferredCharacterDeathFromTools"/> and <see cref="NPCContext.DeferredTechnicalActionFromTools"/>).
-	/// For OpenRouter, <see cref="OpenRouterDialogueJson.PrepareForAiResponseDeserialize"/> strips those keys from the assistant JSON before deserialize;
+	/// <see cref="OpenRouterDialogueJson.StripGameEffectKeys"/> removes those keys from the assistant JSON before deserialize in <c>NpcOpenRouterAssistantParser</c>;
 	/// this method copies deferrals onto <paramref name="aiResult"/> so <see cref="DialogManager"/> and death scheduling still see <see cref="AIResponse.CharacterDeath"/> and <see cref="AIResponse.TechnicalAction"/>.
 	/// </summary>
 	public static void ApplyNpcContextToolDeferralsToAiResponse(NPCContext context, AIResponse aiResult)
@@ -3422,20 +3374,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 		if (string.IsNullOrEmpty(aiResponse) || aiResponse.StartsWith("Error:"))
 			return "";
-		string cleaned = JsonCleaner.CleanJsonResponse(aiResponse);
-		if (JsonCleaner.IsValidJson(cleaned))
-			cleaned = OpenRouterDialogueJson.PrepareForAiResponseDeserialize(cleaned);
-		AIResponse aiResult;
-		try
-		{
-			aiResult = JsonCleaner.IsValidJson(cleaned)
-				? JsonConvert.DeserializeObject<AIResponse>(cleaned)
-				: new AIResponse { Response = JsonCleaner.ExtractFallbackResponse(aiResponse, npcName), Decision = "none" };
-		}
-		catch (Exception)
-		{
-			aiResult = new AIResponse { Response = JsonCleaner.ExtractFallbackResponse(aiResponse, npcName), Decision = "none" };
-		}
+		AIResponse aiResult = NpcOpenRouterAssistantParser.Parse(aiResponse, npcName);
 		if (aiResult == null)
 			return "";
 		ApplyNpcContextToolDeferralsToAiResponse(context, aiResult);
@@ -3520,7 +3459,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		if (aiResult.ClaimedAge.HasValue) context.PlayerInfo.ClaimedAge = aiResult.ClaimedAge.Value;
 		if (aiResult.ClaimedGold > 0) context.PlayerInfo.ClaimedGold = aiResult.ClaimedGold;
 		context.PendingAIResponse = aiResult;
-		context.LastAIResponseJson = cleaned;
+		context.LastAIResponseJson = JsonConvert.SerializeObject(aiResult);
 		context.LastDynamicResponse = reply;
 		context.AddMessage(npcName + ": " + reply);
 		if (Campaign.Current?.ConversationManager != null)
@@ -3575,8 +3514,16 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	private Task<string> ExecuteChatTool(string name, string argsJson, Hero npc, NPCContext context)
 	{
-		try { return Task.FromResult(ToolHandlers.Run(name, argsJson, npc, context, this)); }
-		catch (Exception ex) { LogMessage("[ChatTool] " + name + ": " + ex.Message); return Task.FromResult("error"); }
+		try
+		{
+			return Task.FromResult(ToolHandlers.Run(name, argsJson, npc, context, this));
+		}
+		catch (Exception ex)
+		{
+			ChatTools.ToolCallTelemetry.RaiseCompleted("npc_chat", name, argsJson, null, ex);
+			LogMessage("[ChatTool] " + name + ": " + ex.Message);
+			return Task.FromResult("error");
+		}
 	}
 
 	public async Task HandlePlayerDiplomaticInput()

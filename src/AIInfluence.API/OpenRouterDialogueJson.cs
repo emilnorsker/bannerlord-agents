@@ -26,15 +26,7 @@ public static class OpenRouterDialogueJson
 		"settlement_id"
 	};
 
-	/// <summary>When AI backend is OpenRouter, remove tool-backed root keys from cleaned assistant JSON before deserializing to <c>AIResponse</c>.</summary>
-	public static string PrepareForAiResponseDeserialize(string cleanedJson)
-	{
-		if (string.IsNullOrWhiteSpace(cleanedJson))
-			return cleanedJson;
-		return StripGameEffectKeys(cleanedJson);
-	}
-
-	/// <summary>Removes tool-backed root keys; pair with <c>ApplyNpcContextToolDeferralsToAiResponse</c> after deserialize when deferrals exist on <c>NPCContext</c>.</summary>
+	/// <summary>Removes tool-backed root keys from assistant JSON before deserializing to <c>AIResponse</c>; pair with <c>ApplyNpcContextToolDeferralsToAiResponse</c>.</summary>
 	public static string StripGameEffectKeys(string cleanedJson)
 	{
 		JObject o = JObject.Parse(cleanedJson);

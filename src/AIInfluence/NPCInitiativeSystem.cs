@@ -969,15 +969,12 @@ public class NPCInitiativeSystem
 				LogMessage("[ERROR] Failed to generate messenger message from " + npcName);
 				return;
 			}
-			string cleanedResponse = JsonCleaner.CleanJsonResponse(aiResponse);
-			if (JsonCleaner.IsValidJson(cleanedResponse))
-				cleanedResponse = OpenRouterDialogueJson.PrepareForAiResponseDeserialize(cleanedResponse);
-			AIResponse response = JsonConvert.DeserializeObject<AIResponse>(cleanedResponse);
+			AIResponse response = NpcOpenRouterAssistantParser.Parse(aiResponse, npcName);
 			AIInfluenceBehavior.ApplyNpcContextToolDeferralsToAiResponse(request.Context, response);
 			AIInfluenceBehavior.ApplyNpcDialogueToolsToAiResponse(request.Context, response);
 			string message = response?.Response ?? "The messenger failed to deliver the message.";
 			message = UnescapeFormatting(message);
-			request.Context.LastAIResponseJson = cleanedResponse;
+			request.Context.LastAIResponseJson = JsonConvert.SerializeObject(response);
 			if (!string.IsNullOrEmpty(response.CharacterPersonality) && string.IsNullOrEmpty(request.Context.AIGeneratedPersonality))
 			{
 				string trimmedPersonality = response.CharacterPersonality.Trim();
@@ -1534,26 +1531,13 @@ public class NPCInitiativeSystem
 				LogMessage("[ERROR] Failed to generate letter response from " + npcName);
 				return;
 			}
-			string cleanedResponse = JsonCleaner.CleanJsonResponse(aiResponse);
-			AIResponse response;
-			try
-			{
-				if (JsonCleaner.IsValidJson(cleanedResponse))
-					cleanedResponse = OpenRouterDialogueJson.PrepareForAiResponseDeserialize(cleanedResponse);
-				response = JsonConvert.DeserializeObject<AIResponse>(cleanedResponse);
-				AIInfluenceBehavior.ApplyNpcContextToolDeferralsToAiResponse(context, response);
-				AIInfluenceBehavior.ApplyNpcDialogueToolsToAiResponse(context, response);
-				LogMessage("[NPC_MESSENGER_DEBUG] Parsed response from " + npcName + ":");
-				LogMessage("  - response: " + (response?.Response?.Substring(0, Math.Min(100, (response?.Response?.Length).GetValueOrDefault())) ?? "null") + "...");
-				LogMessage("  - technical_action: " + (response?.TechnicalAction ?? "null"));
-				LogMessage("  - romance_intent: " + (response?.RomanceIntent ?? "null"));
-			}
-			catch (Exception ex)
-			{
-				Exception ex2 = ex;
-				LogMessage("[ERROR] Failed to parse letter response JSON: " + ex2.Message);
-				return;
-			}
+			AIResponse response = NpcOpenRouterAssistantParser.Parse(aiResponse, npcName);
+			AIInfluenceBehavior.ApplyNpcContextToolDeferralsToAiResponse(context, response);
+			AIInfluenceBehavior.ApplyNpcDialogueToolsToAiResponse(context, response);
+			LogMessage("[NPC_MESSENGER_DEBUG] Parsed response from " + npcName + ":");
+			LogMessage("  - response: " + (response?.Response?.Substring(0, Math.Min(100, (response?.Response?.Length).GetValueOrDefault())) ?? "null") + "...");
+			LogMessage("  - technical_action: " + (response?.TechnicalAction ?? "null"));
+			LogMessage("  - romance_intent: " + (response?.RomanceIntent ?? "null"));
 			if (response == null || string.IsNullOrEmpty(response.Response) || response.Response.Equals("null", StringComparison.OrdinalIgnoreCase) || response.Response.Equals("no_response", StringComparison.OrdinalIgnoreCase))
 			{
 				LogMessage("[NPC_MESSENGER] " + npcName + " chose not to respond to player's letter");
@@ -1564,7 +1548,7 @@ public class NPCInitiativeSystem
 			CampaignTime now = CampaignTime.Now;
 			double sentAtDays = (now).ToDays;
 			context.ConversationHistory.Add($"{npcName}: {message} [SENT VIA MESSENGER AS REPLY] [sent_at_days={sentAtDays:F3}]");
-			context.LastAIResponseJson = cleanedResponse;
+			context.LastAIResponseJson = JsonConvert.SerializeObject(response);
 			if (!string.IsNullOrEmpty(response.CharacterPersonality) && string.IsNullOrEmpty(context.AIGeneratedPersonality))
 			{
 				context.AIGeneratedPersonality = response.CharacterPersonality.Trim();
@@ -1981,24 +1965,13 @@ public class NPCInitiativeSystem
 				MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", "Get out of my sight!", false);
 				return;
 			}
-			string cleanedResponse = JsonCleaner.CleanJsonResponse(aiResponse);
-			AIResponse response;
-			try
-			{
-				if (JsonCleaner.IsValidJson(cleanedResponse))
-					cleanedResponse = OpenRouterDialogueJson.PrepareForAiResponseDeserialize(cleanedResponse);
-				response = JsonConvert.DeserializeObject<AIResponse>(cleanedResponse);
-				AIInfluenceBehavior.ApplyNpcContextToolDeferralsToAiResponse(context, response);
-				AIInfluenceBehavior.ApplyNpcDialogueToolsToAiResponse(context, response);
-			}
-			catch
-			{
-				MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", "I have nothing to say to you.", false);
-				return;
-			}
+			string npcNameStr = ((object)npc.Name)?.ToString() ?? "NPC";
+			AIResponse response = NpcOpenRouterAssistantParser.Parse(aiResponse, npcNameStr);
+			AIInfluenceBehavior.ApplyNpcContextToolDeferralsToAiResponse(context, response);
+			AIInfluenceBehavior.ApplyNpcDialogueToolsToAiResponse(context, response);
 			string message = response?.Response ?? "...";
 			message = UnescapeFormatting(message);
-			context.LastAIResponseJson = cleanedResponse;
+			context.LastAIResponseJson = JsonConvert.SerializeObject(response);
 			context.ConversationHistory.Add($"{npc.Name}: {message}");
 			if (!string.IsNullOrEmpty(response.CharacterPersonality) && string.IsNullOrEmpty(context.AIGeneratedPersonality))
 			{
@@ -2047,7 +2020,6 @@ public class NPCInitiativeSystem
 				context.IsSurrendering = true;
 				LogMessage($"[NPC_HOSTILE_INITIATIVE] NPC {npc.Name} surrenders. Clearing CombatResponse.");
 			}
-			string npcNameStr = ((object)npc.Name).ToString();
 			if (response?.Tone == "positive")
 			{
 				int relationChange = _random.Next(GlobalSettings<ModSettings>.Instance.MinPositiveRelationChange, GlobalSettings<ModSettings>.Instance.MaxPositiveRelationChange + 1);
@@ -2202,24 +2174,13 @@ public class NPCInitiativeSystem
 				MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", "I wanted to talk, but I'm not sure what to say...", false);
 				return;
 			}
-			string cleanedResponse = JsonCleaner.CleanJsonResponse(aiResponse);
-			AIResponse response;
-			try
-			{
-				if (JsonCleaner.IsValidJson(cleanedResponse))
-					cleanedResponse = OpenRouterDialogueJson.PrepareForAiResponseDeserialize(cleanedResponse);
-				response = JsonConvert.DeserializeObject<AIResponse>(cleanedResponse);
-				AIInfluenceBehavior.ApplyNpcContextToolDeferralsToAiResponse(context, response);
-				AIInfluenceBehavior.ApplyNpcDialogueToolsToAiResponse(context, response);
-			}
-			catch
-			{
-				MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", "I have nothing to say right now.", false);
-				return;
-			}
+			string npcNameStr = ((object)npc.Name)?.ToString() ?? "NPC";
+			AIResponse response = NpcOpenRouterAssistantParser.Parse(aiResponse, npcNameStr);
+			AIInfluenceBehavior.ApplyNpcContextToolDeferralsToAiResponse(context, response);
+			AIInfluenceBehavior.ApplyNpcDialogueToolsToAiResponse(context, response);
 			string message = response?.Response ?? "...";
 			message = UnescapeFormatting(message);
-			context.LastAIResponseJson = cleanedResponse;
+			context.LastAIResponseJson = JsonConvert.SerializeObject(response);
 			context.ConversationHistory.Add($"{npc.Name}: {message}");
 			if (!string.IsNullOrEmpty(response.CharacterPersonality) && string.IsNullOrEmpty(context.AIGeneratedPersonality))
 			{
@@ -2246,7 +2207,6 @@ public class NPCInitiativeSystem
 			MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", message, false);
 			context.LastDynamicResponse = message;
 			context.PendingAIResponse = response;
-			string npcNameStr = ((object)npc.Name).ToString();
 			if (response?.Tone == "positive")
 			{
 				int relationChange = _random.Next(GlobalSettings<ModSettings>.Instance.MinPositiveRelationChange, GlobalSettings<ModSettings>.Instance.MaxPositiveRelationChange + 1);
