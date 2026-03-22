@@ -331,7 +331,8 @@ public static class AIClient
 	{
 		foreach (JToken token in deltaToolCalls)
 		{
-			JObject tc = (JObject)token;
+			JObject tc = token as JObject;
+			if (tc == null) continue;
 			int index = tc["index"]?.Value<int>() ?? 0;
 			if (!toolByIndex.TryGetValue(index, out ToolCallPart part))
 			{
