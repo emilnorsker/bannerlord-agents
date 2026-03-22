@@ -156,66 +156,13 @@
                             <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                         HorizontalAlignment="Left" VerticalAlignment="Top" PositionXOffset="14" PositionYOffset="8"
                                         Brush="Chat.Header.Label" Text="Conversation" IsDisabled="true"/>
-                            <!-- Relation −100…+100 and trust 0…100%: vanilla SPOptions slider art (read-only). -->
-                            <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                       MarginLeft="10" MarginRight="10" MarginTop="34" MarginBottom="22"
-                                       StackLayout.LayoutMethod="VerticalTopToBottom">
-                              <Children>
-                                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                           StackLayout.LayoutMethod="HorizontalLeftToRight">
-                                  <Children>
-                                    <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="CoverChildren" SuggestedWidth="64" VerticalAlignment="Center"
-                                                Brush="SPOptions.OptionName.Text" Brush.FontSize="13" Text="Relation" IsDisabled="true"/>
-                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="18" VerticalAlignment="Center" MarginLeft="4" MarginRight="4" DoNotPassEventsToChildren="true">
-                                      <Children>
-                                        <SliderWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="18" VerticalAlignment="Center"
-                                                      DoNotUpdateHandleSize="true" Filler="RelationSliderFiller" Handle="RelationSliderHandle" Locked="true" DoNotAcceptEvents="true"
-                                                      MinValueFloat="-100" MaxValueFloat="100" ValueFloat="@RelationValueFloat">
-                                          <Children>
-                                            <!-- Same SPOptions sprites as OptionItem.xml; heights ~13–14px to match OptionName text line. -->
-                                            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="14" HorizontalAlignment="Center" VerticalAlignment="Center" Sprite="SPGeneral\SPOptions\standart_slider_canvas" DoNotAcceptEvents="true"/>
-                                            <Widget Id="RelationSliderFiller" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="12" VerticalAlignment="Center" MarginLeft="2" MarginRight="2" Sprite="SPGeneral\SPOptions\standart_slider_fill" ClipContents="true">
-                                              <Children>
-                                                <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="400" SuggestedHeight="12" HorizontalAlignment="Left" VerticalAlignment="Center" Sprite="SPGeneral\SPOptions\standart_slider_fill"/>
-                                              </Children>
-                                            </Widget>
-                                            <ImageWidget Id="RelationSliderHandle" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="10" SuggestedHeight="14" HorizontalAlignment="Left" VerticalAlignment="Center" Brush="SPOptions.Slider.Handle" DoNotAcceptEvents="true"/>
-                                          </Children>
-                                        </SliderWidget>
-                                      </Children>
-                                    </Widget>
-                                    <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="CoverChildren" SuggestedWidth="48" VerticalAlignment="Center" HorizontalAlignment="Right"
-                                                Brush="SPOptions.Slider.Value.Text" Brush.FontSize="13" Text="@RelationValueText" IsDisabled="true"/>
-                                  </Children>
-                                </ListPanel>
-                                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" MarginTop="2"
-                                           StackLayout.LayoutMethod="HorizontalLeftToRight">
-                                  <Children>
-                                    <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="CoverChildren" SuggestedWidth="64" VerticalAlignment="Center"
-                                                Brush="SPOptions.OptionName.Text" Brush.FontSize="13" Text="Trust" IsDisabled="true"/>
-                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="18" VerticalAlignment="Center" MarginLeft="4" MarginRight="4" DoNotPassEventsToChildren="true">
-                                      <Children>
-                                        <SliderWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="18" VerticalAlignment="Center"
-                                                      DoNotUpdateHandleSize="true" Filler="TrustSliderFiller" Handle="TrustSliderHandle" Locked="true" DoNotAcceptEvents="true"
-                                                      MinValueFloat="0" MaxValueFloat="100" ValueFloat="@TrustPercentFloat">
-                                          <Children>
-                                            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="14" HorizontalAlignment="Center" VerticalAlignment="Center" Sprite="SPGeneral\SPOptions\standart_slider_canvas" DoNotAcceptEvents="true"/>
-                                            <Widget Id="TrustSliderFiller" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="12" VerticalAlignment="Center" MarginLeft="2" MarginRight="2" Sprite="SPGeneral\SPOptions\standart_slider_fill" ClipContents="true">
-                                              <Children>
-                                                <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="400" SuggestedHeight="12" HorizontalAlignment="Left" VerticalAlignment="Center" Sprite="SPGeneral\SPOptions\standart_slider_fill"/>
-                                              </Children>
-                                            </Widget>
-                                            <ImageWidget Id="TrustSliderHandle" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="10" SuggestedHeight="14" HorizontalAlignment="Left" VerticalAlignment="Center" Brush="SPOptions.Slider.Handle" DoNotAcceptEvents="true"/>
-                                          </Children>
-                                        </SliderWidget>
-                                      </Children>
-                                    </Widget>
-                                    <TextWidget WidthSizePolicy="Fixed" HeightSizePolicy="CoverChildren" SuggestedWidth="48" VerticalAlignment="Center" HorizontalAlignment="Right"
-                                                Brush="SPOptions.Slider.Value.Text" Brush.FontSize="13" Text="@TrustPercentText" IsDisabled="true"/>
-                                  </Children>
-                                </ListPanel>
-                              </Children>
-                            </ListPanel>
+                            <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                            HorizontalAlignment="Left" VerticalAlignment="Bottom" PositionXOffset="14" PositionYOffset="-36"
+                                            Brush="Encyclopedia.SubPage.Info.Text" Brush.FontSize="14" Color="@RelationColor"
+                                            Text="@RelationText" IsDisabled="true"/>
+                            <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                            HorizontalAlignment="Right" VerticalAlignment="Bottom" PositionXOffset="-14" PositionYOffset="-36"
+                                            Brush="Encyclopedia.SubPage.Info.Text" Brush.FontSize="14" Text="@TrustLabel" IsDisabled="true"/>
                             <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                         HorizontalAlignment="Left" VerticalAlignment="Bottom" PositionXOffset="14" PositionYOffset="-4"
                                         Brush="SPScoreboard.Subtitle.Text" Brush.FontSize="12" Text="@EmotionLabel" IsDisabled="true"/>
