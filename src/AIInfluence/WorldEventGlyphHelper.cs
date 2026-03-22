@@ -44,7 +44,8 @@ internal static class WorldEventGlyphHelper
         byte rL = (byte)(22 + t * 165);
         byte gL = (byte)(58 + t * (28 - 58));
         byte bL = (byte)(48 + t * (32 - 48));
-        const byte a = 0x66;
+        // ~10% opacity (255 * 0.1 ≈ 26)
+        const byte a = 0x1A;
         left = $"#{rL:X2}{gL:X2}{bL:X2}{a:X2}";
         byte rR = (byte)Math.Min(255, rL + 40);
         byte gR = (byte)Math.Max(0, gL - 22);
