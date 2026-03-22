@@ -1,16 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using AIInfluence.ChatTools;
 using AIInfluence.Services;
 using AIInfluence.Util;
 using MCM.Abstractions.Base.Global;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using TaleWorlds.Library;
+using TaleWorlds.MountAndBlade;
 
 namespace AIInfluence.API;
 
@@ -18,70 +21,47 @@ public static class AIClient
 {
 	private static readonly HttpClient httpClient = new HttpClient();
 
-	private const string GAME_KEY = "0199bcdd-3f9f-7a67-947e-ca10021b94ce";
-
-	public static async Task<string> GetAIResponse(string npcName, string faction, string prompt, Action<string> onOpenRouterStreamUpdate = null)
+	/// <summary>Fetches the assistant <b>message</b> for NPC chat (or tools loop). When set, <paramref name="notifyMessageChunk"/> is invoked for each fragment of the message draft as it arrives (incremental delivery).</summary>
+	/// <param name="notifyMessageChunk">Optional; called with each new text fragment to append to the message draft (drives message preview in chat).</param>
+	public static async Task<string> GetAIResponse(string npcName, string faction, string prompt, Action<string> notifyMessageChunk = null, Func<string, string, Task<string>> onToolCall = null)
 	{
-		string backend = GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue ?? "Player2";
 		try
 		{
-			return backend switch
-			{
-				"OpenRouter" => await GetOpenRouterResponse(npcName, faction, prompt, onOpenRouterStreamUpdate), 
-				"DeepSeek" => await GetDeepSeekResponse(npcName, faction, prompt), 
-				"Player2" => await GetPlayer2Response(npcName, faction, prompt), 
-				"Ollama" => await GetOllamaResponse(npcName, faction, prompt), 
-				"KoboldCpp" => await GetKoboldCppResponse(npcName, faction, prompt), 
-				_ => GenerateErrorResponse("Unknown AI backend selected: " + backend), 
-			};
+			if (onToolCall != null)
+				return await GetOpenRouterResponseWithTools(npcName, faction, prompt, notifyMessageChunk, onToolCall);
+			return await GetOpenRouterResponse(npcName, faction, prompt, notifyMessageChunk);
 		}
 		catch (Exception ex)
 		{
-			AIInfluenceBehavior.Instance?.LogMessage("[ERROR] AI request failed for " + backend + ": " + ex.Message);
+			AIInfluenceBehavior.Instance?.LogMessage("[ERROR] AI request failed for OpenRouter: " + ex.Message);
 			return GenerateErrorResponse("AI request failed: " + ex.Message);
 		}
 	}
 
 	public static async Task<string> GetRawTextResponse(string prompt)
 	{
-		string backend = GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue ?? "Player2";
 		try
 		{
-			return backend switch
-			{
-				"OpenRouter" => await GetOpenRouterRawResponse(prompt), 
-				"DeepSeek" => await GetDeepSeekRawResponse(prompt), 
-				"Player2" => await GetPlayer2RawResponse(prompt), 
-				"Ollama" => await GetOllamaRawResponse(prompt), 
-				"KoboldCpp" => await GetKoboldCppRawResponse(prompt), 
-				_ => "Error: Unknown AI backend selected", 
-			};
+			return await GetOpenRouterRawResponse(prompt);
 		}
 		catch (Exception ex)
 		{
-			AIInfluenceBehavior.Instance?.LogMessage("[ERROR] Raw AI request failed for " + backend + ": " + ex.Message);
+			AIInfluenceBehavior.Instance?.LogMessage("[ERROR] Raw AI request failed for OpenRouter: " + ex.Message);
 			return "Error: AI request failed: " + ex.Message;
 		}
 	}
 
+	/// <summary>Uses OpenRouter; <paramref name="backend"/> is ignored (kept for call-site compatibility).</summary>
 	public static async Task<string> GetRawTextResponseWithBackend(string prompt, string backend, int cachePrefixLength = 0)
 	{
 		try
 		{
-			return backend switch
-			{
-				"OpenRouter" => await GetOpenRouterRawResponse(prompt, cachePrefixLength), 
-				"DeepSeek" => await GetDeepSeekRawResponse(prompt, cachePrefixLength), 
-				"Player2" => await GetPlayer2RawResponse(prompt, cachePrefixLength), 
-				"Ollama" => await GetOllamaRawResponse(prompt, cachePrefixLength), 
-				"KoboldCpp" => await GetKoboldCppRawResponse(prompt, cachePrefixLength), 
-				_ => "Error: Unknown AI backend selected", 
-			};
+			return await GetOpenRouterRawResponse(prompt, cachePrefixLength);
 		}
 		catch (Exception ex)
 		{
 			Exception ex2 = ex;
-			AIInfluenceBehavior.Instance?.LogMessage("[ERROR] Raw AI request failed for " + backend + ": " + ex2.Message);
+			AIInfluenceBehavior.Instance?.LogMessage("[ERROR] Raw AI request failed for OpenRouter: " + ex2.Message);
 			return "Error: AI request failed: " + ex2.Message;
 		}
 	}
@@ -89,7 +69,7 @@ public static class AIClient
 	private static (string systemPrompt, string userMessage, bool extracted) ExtractLastPlayerMessage(string prompt)
 	{
 		string item = prompt;
-		string item2 = "Respond to the player's latest message in character, following the instructions provided. Format your response as JSON with all required fields.";
+		string item2 = "Respond to the player's latest message in character, following the instructions provided.";
 		int num = prompt.LastIndexOf("\nPlayer: ");
 		if (num >= 0)
 		{
@@ -100,7 +80,7 @@ public static class AIClient
 				if (string.IsNullOrEmpty(text2) || text2.StartsWith("Last Interaction:", StringComparison.OrdinalIgnoreCase))
 				{
 					item = prompt.Substring(0, num).TrimEnd(Array.Empty<char>());
-					item2 = "Player: " + text + "\n\nRespond to this message in character, following all instructions in the system message above. Format your response as JSON with all required fields.";
+					item2 = "Player: " + text + "\n\nRespond to this message in character, following all instructions in the system message above.";
 					AIInfluenceBehavior.Instance?.LogMessage($"[AI_CLIENT] Extracted last player message to user role ({text.Length} chars): {text.Substring(0, Math.Min(100, text.Length))}...");
 					return (systemPrompt: item, userMessage: item2, extracted: true);
 				}
@@ -109,7 +89,8 @@ public static class AIClient
 		return (systemPrompt: item, userMessage: item2, extracted: false);
 	}
 
-	private static async Task<string> GetOpenRouterResponse(string npcName, string faction, string prompt, Action<string> onOpenRouterStreamUpdate = null)
+	/// <summary>OpenRouter chat completion (always SSE). Assistant text is delivered incrementally when <paramref name="notifyMessageChunk"/> is set.</summary>
+	private static async Task<string> GetOpenRouterResponse(string npcName, string faction, string prompt, Action<string> notifyMessageChunk = null)
 	{
 		if (string.IsNullOrEmpty(GlobalSettings<ModSettings>.Instance?.ApiKey))
 		{
@@ -137,12 +118,8 @@ public static class AIClient
 			["content"] = (JToken)(userMessage)
 		});
 		val["messages"] = (JToken)val2;
-		bool isStreaming = onOpenRouterStreamUpdate != null;
-		// Do not force json_object while streaming: some providers buffer until
-		// the object is complete, which collapses visible token-by-token updates.
-		if (!isStreaming)
-			val["response_format"] = (JToken)new JObject { ["type"] = (JToken)("json_object") };
-		val["stream"] = (JToken)isStreaming;
+		val["stream"] = true;
+		// No response_format here: json_schema + stream can buffer on some providers and break token-by-token preview (notifyMessageChunk).
 		JObject requestBody = val;
 		string json = ((JToken)requestBody).ToString((Formatting)0, Array.Empty<JsonConverter>());
 		StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -151,71 +128,40 @@ public static class AIClient
 		{
 			HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "https://openrouter.ai/api/v1/chat/completions");
 			request.Content = (HttpContent)(object)content;
-			HttpResponseMessage response = ((onOpenRouterStreamUpdate != null) ? (await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false)) : (await httpClient.SendAsync(request).ConfigureAwait(false)));
-			response.EnsureSuccessStatusCode();
-			if (onOpenRouterStreamUpdate != null)
+			using (HttpResponseMessage response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false))
 			{
-				StringBuilder stringBuilder = new StringBuilder();
+				response.EnsureSuccessStatusCode();
 				StringBuilder debugStreamBuffer = (GlobalSettings<ModSettings>.Instance?.DebugStreamToGameLog ?? false) ? new StringBuilder() : null;
-				using (Stream stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+				void NotifyAndDebug(string chunk)
 				{
-					using StreamReader streamReader = new StreamReader(stream);
-					while (!streamReader.EndOfStream)
+					notifyMessageChunk?.Invoke(chunk);
+					if (debugStreamBuffer != null)
 					{
-						string text = await streamReader.ReadLineAsync().ConfigureAwait(false);
-						if (string.IsNullOrWhiteSpace(text) || !text.StartsWith("data:", StringComparison.Ordinal))
+						debugStreamBuffer.Append(chunk);
+						if (debugStreamBuffer.Length >= 120)
 						{
-							continue;
+							string batchedChunk = debugStreamBuffer.ToString().Replace("\n", "\\n");
+							debugStreamBuffer.Clear();
+							MainThreadDispatcher.Queue.Enqueue(() => InformationManager.DisplayMessage(new InformationMessage("[LLM STREAM] " + batchedChunk)));
 						}
-						string text2 = text.Substring(5).Trim();
-						if (text2 == "[DONE]")
-						{
-							break;
-						}
-						JObject val3 = JObject.Parse(text2);
-						string text3 = val3?["error"]?["message"]?.ToString();
-						if (!string.IsNullOrEmpty(text3))
-						{
-							throw new InvalidOperationException("OpenRouter stream error: " + text3);
-						}
-						JToken val4 = val3?["choices"]?[0];
-						if (string.Equals(val4?["finish_reason"]?.ToString(), "error", StringComparison.OrdinalIgnoreCase))
-						{
-							throw new InvalidOperationException("OpenRouter stream terminated with finish_reason=error.");
-						}
-						string text4 = val4?["delta"]?["content"]?.ToString();
-						if (string.IsNullOrEmpty(text4))
-						{
-							continue;
-						}
-						stringBuilder.Append(text4);
-						if (debugStreamBuffer != null)
-						{
-							debugStreamBuffer.Append(text4);
-							if (debugStreamBuffer.Length >= 120)
-							{
-								string batchedChunk = debugStreamBuffer.ToString().Replace("\n", "\\n");
-								debugStreamBuffer.Clear();
-								MainThreadDispatcher.Queue.Enqueue(() => InformationManager.DisplayMessage(new InformationMessage("[LLM STREAM] " + batchedChunk)));
-							}
-						}
-						onOpenRouterStreamUpdate(text4);
 					}
 				}
-				if (debugStreamBuffer != null && debugStreamBuffer.Length > 0)
+				using (Stream stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
 				{
-					string remainingChunk = debugStreamBuffer.ToString().Replace("\n", "\\n");
-					MainThreadDispatcher.Queue.Enqueue(() => InformationManager.DisplayMessage(new InformationMessage("[LLM STREAM] " + remainingChunk)));
+					(JObject assistantMessage, _) = await ReadOpenRouterChatCompletionStreamAsync(stream, NotifyAndDebug, collectToolCallDeltas: false).ConfigureAwait(false);
+					if (debugStreamBuffer != null && debugStreamBuffer.Length > 0)
+					{
+						string remainingChunk = debugStreamBuffer.ToString().Replace("\n", "\\n");
+						MainThreadDispatcher.Queue.Enqueue(() => InformationManager.DisplayMessage(new InformationMessage("[LLM STREAM] " + remainingChunk)));
+					}
+					if (assistantMessage["tool_calls"] != null)
+						LogWarning("OpenRouter returned tool_calls without tools in request; using content only.");
+					string text5 = assistantMessage["content"]?.ToString() ?? "";
+					if (!text5.TrimStart(Array.Empty<char>()).StartsWith("{", StringComparison.Ordinal))
+						LogWarning("OpenRouter streaming completed without JSON object output. Falling back to plain-text preview mode.");
+					return text5;
 				}
-				string text5 = stringBuilder.ToString();
-				if (!text5.TrimStart(Array.Empty<char>()).StartsWith("{", StringComparison.Ordinal))
-				{
-					LogWarning("OpenRouter streaming completed without JSON object output. Falling back to plain-text preview mode.");
-				}
-				return text5;
 			}
-			dynamic responseObject = JsonConvert.DeserializeObject<object>(await response.Content.ReadAsStringAsync());
-			return responseObject.choices[0].message.content.ToString();
 		}
 		catch (Exception ex)
 		{
@@ -224,112 +170,85 @@ public static class AIClient
 		}
 	}
 
-	private static async Task<string> GetDeepSeekResponse(string npcName, string faction, string prompt)
+	private static async Task<string> GetOpenRouterResponseWithTools(string npcName, string faction, string prompt, Action<string> notifyMessageChunk, Func<string, string, Task<string>> onToolCall)
 	{
-		if (string.IsNullOrEmpty(GlobalSettings<ModSettings>.Instance?.DeepSeekApiKey))
+		if (string.IsNullOrEmpty(GlobalSettings<ModSettings>.Instance?.ApiKey))
 		{
-			LogError("DeepSeek API Key is not set in Mod Settings.");
+			InformationManager.DisplayMessage(new InformationMessage("Please set your OpenRouter API key in Mod Settings (AI Influence).", TaleWorlds.Library.Colors.Red));
 			return GenerateErrorResponse("I cannot respond right now. Something is amiss.");
 		}
 		if (!GlobalSettings<ModSettings>.Instance.EnableModification)
 		{
-			LogError("Mod is disabled in settings.");
+			InformationManager.DisplayMessage(new InformationMessage("AI Influence mod is disabled in Mod Settings. Enable it to use chat.", TaleWorlds.Library.Colors.Red));
 			return GenerateErrorResponse("I am not inclined to speak at this moment.");
 		}
-		(string, string, bool) tuple = ExtractLastPlayerMessage(prompt);
-		var (systemPrompt, userMessage, _) = tuple;
-		_ = tuple.Item3;
-		DeepSeekChatRequest requestBody = new DeepSeekChatRequest
+		var (systemPrompt, userMessage, _) = ExtractLastPlayerMessage(prompt);
+		var messages = new JArray
 		{
-			Model = GlobalSettings<ModSettings>.Instance.DeepSeekModel,
-			Messages = new List<DeepSeekMessage>
-			{
-				new DeepSeekMessage
-				{
-					Role = "system",
-					Content = systemPrompt
-				},
-				new DeepSeekMessage
-				{
-					Role = "user",
-					Content = userMessage
-				}
-			}
+			new JObject { ["role"] = "system", ["content"] = systemPrompt + "\n\n**TOOLS:** Prefer tools over stuffing fields into JSON. **Dialogue:** `suspected_lie`, `dialogue_decision`, `romance_intent`, `escalation_update`, `allows_letters`. **World:** transfers, quests, kingdom, workshops, travel, search, character_death. **Map:** prefer `map_command` with action + optional payload; `technical_action` is legacy. Final assistant JSON may be `{}` if you used tools for everything.\n" },
+			new JObject { ["role"] = "user", ["content"] = userMessage }
 		};
-		string json = JsonConvert.SerializeObject((object)requestBody);
-		StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
-		httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GlobalSettings<ModSettings>.Instance.DeepSeekApiKey);
-		try
+		var tools = ChatTools.ToolCatalog.GetToolsForApi();
+
+		// Agent loop: call model until it returns final text (not tool calls).
+		// Guard against model looping over tools forever – abort after 50 rounds.
+		for (int round = 0; round < 50; round++)
 		{
-			HttpResponseMessage response = await httpClient.PostAsync("https://api.deepseek.com/chat/completions", (HttpContent)(object)content);
-			response.EnsureSuccessStatusCode();
-			DeepSeekChatResponse responseObject = JsonConvert.DeserializeObject<DeepSeekChatResponse>(await response.Content.ReadAsStringAsync());
-			if (responseObject?.Choices != null && responseObject.Choices.Count > 0 && responseObject.Choices[0].Message != null)
+			JToken assistantMessage = await SendToolRequest(messages, tools, notifyMessageChunk).ConfigureAwait(false);
+			if (assistantMessage == null)
+				return GenerateErrorResponse("Invalid response.");
+
+			JArray toolCalls = assistantMessage["tool_calls"] as JArray;
+			if (toolCalls != null && toolCalls.Count > 0)
 			{
-				return responseObject.Choices[0].Message.Content ?? GenerateErrorResponse("Empty response from DeepSeek.");
+				messages.Add(assistantMessage);
+				foreach (JToken toolCall in toolCalls)
+				{
+					string toolName = toolCall["function"]?["name"]?.ToString() ?? "";
+					string toolArgs = toolCall["function"]?["arguments"]?.ToString() ?? "{}";
+					string result = await onToolCall(toolName, toolArgs).ConfigureAwait(false);
+					messages.Add(new JObject
+					{
+						["role"] = "tool",
+						["tool_call_id"] = toolCall["id"]?.ToString() ?? "",
+						["content"] = result ?? ""
+					});
+				}
+				continue;
 			}
-			LogError("DeepSeek response format is invalid or empty.");
-			return GenerateErrorResponse("I am unable to respond right now. Try again later.");
+
+			string content = assistantMessage["content"]?.ToString() ?? "";
+			if (!string.IsNullOrWhiteSpace(content))
+				return content;
+			// Tool-only turn: dialogue tools may carry metadata; merge fills AIResponse downstream.
+			return "{}";
 		}
-		catch (Exception ex)
-		{
-			LogError("DeepSeek request failed: " + ex.Message);
-			return GenerateErrorResponse("I am unable to respond right now. Try again later.");
-		}
+
+		return GenerateErrorResponse("Too many tool turns.");
 	}
 
-	private static async Task<string> GetPlayer2Response(string npcName, string faction, string prompt)
+	private static async Task<JToken> SendToolRequest(JArray messages, JArray tools, Action<string> notifyMessageChunk)
 	{
-		if (!GlobalSettings<ModSettings>.Instance.EnableModification)
+		// OpenRouter: tools on every request; tool_choice / parallel_tool_calls per https://openrouter.ai/docs/guides/features/tool-calling
+		JObject body = new JObject
 		{
-			LogError("Mod is disabled in settings.");
-			return GeneratePlayer2ErrorResponse("I am not inclined to speak at this moment.");
-		}
-		string baseUrl = GlobalSettings<ModSettings>.Instance?.Player2ApiUrl ?? "http://127.0.0.1:4315";
-		string url = baseUrl + "/v1/chat/completions";
-		(string, string, bool) tuple = ExtractLastPlayerMessage(prompt);
-		var (systemPrompt, userMessage, _) = tuple;
-		_ = tuple.Item3;
-		JObject val = new JObject();
-		JArray val2 = new JArray();
-		val2.Add((JToken)new JObject
-		{
-			["role"] = (JToken)("system"),
-			["content"] = (JToken)(systemPrompt)
-		});
-		val2.Add((JToken)new JObject
-		{
-			["role"] = (JToken)("user"),
-			["content"] = (JToken)(userMessage)
-		});
-		val["messages"] = (JToken)val2;
-		JObject requestBody = val;
-		string json = ((JToken)requestBody).ToString((Formatting)0, Array.Empty<JsonConverter>());
-		StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
-		try
-		{
-			HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url);
-			request.Content = (HttpContent)(object)content;
-			((HttpHeaders)request.Headers).Add("player2-game-key", "0199bcdd-3f9f-7a67-947e-ca10021b94ce");
-			HttpResponseMessage response = await httpClient.SendAsync(request);
-			if (!response.IsSuccessStatusCode)
-			{
-				LogError(string.Format(arg1: await response.Content.ReadAsStringAsync(), format: "Player2 HTTP {0}: {1}", arg0: response.StatusCode));
-				return GeneratePlayer2ErrorResponse("I am unable to respond right now. Try again later.");
-			}
-			dynamic responseObject = JsonConvert.DeserializeObject<object>(await response.Content.ReadAsStringAsync());
-			if (responseObject?.choices != null && responseObject.choices.Count > 0)
-			{
-				return responseObject.choices[0].message.content?.ToString() ?? "";
-			}
-			LogError("Player2 response format is invalid");
-			return GeneratePlayer2ErrorResponse("Something troubles me, and I cannot speak now.");
-		}
-		catch (Exception ex)
-		{
-			LogError("Player2 request failed: " + ex.Message);
-			return GeneratePlayer2ErrorResponse("I am unable to respond right now. Try again later.");
-		}
+			["model"] = GlobalSettings<ModSettings>.Instance.AIModel,
+			["messages"] = messages,
+			["tools"] = tools,
+			["tool_choice"] = "auto",
+			["parallel_tool_calls"] = true,
+			["stream"] = true,
+			["response_format"] = OpenRouterNpcResponseSchema.GetResponseFormat()
+		};
+		using StringContent content = new StringContent(body.ToString(), Encoding.UTF8, "application/json");
+		httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GlobalSettings<ModSettings>.Instance.ApiKey);
+		using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "https://openrouter.ai/api/v1/chat/completions");
+		request.Content = content;
+		using HttpResponseMessage response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
+		response.EnsureSuccessStatusCode();
+		using Stream stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+		(JObject assistantMessage, _) = await ReadOpenRouterChatCompletionStreamAsync(stream, notifyMessageChunk, collectToolCallDeltas: true).ConfigureAwait(false);
+		return assistantMessage;
 	}
 
 	private static async Task<string> GetOpenRouterRawResponse(string prompt, int cachePrefixLength = 0)
@@ -370,17 +289,25 @@ public static class AIClient
 		JObject requestBody = new JObject
 		{
 			["model"] = (JToken)(GlobalSettings<ModSettings>.Instance.AIModel),
-			["messages"] = (JToken)(object)messages
+			["messages"] = (JToken)(object)messages,
+			["stream"] = true
 		};
 		string json = ((JToken)requestBody).ToString((Formatting)0, Array.Empty<JsonConverter>());
 		StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
 		httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GlobalSettings<ModSettings>.Instance.ApiKey);
 		try
 		{
-			HttpResponseMessage response = await httpClient.PostAsync("https://openrouter.ai/api/v1/chat/completions", (HttpContent)(object)content);
-			response.EnsureSuccessStatusCode();
-			dynamic responseObject = JsonConvert.DeserializeObject<object>(await response.Content.ReadAsStringAsync());
-			return responseObject.choices[0].message.content.ToString().Trim();
+			using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "https://openrouter.ai/api/v1/chat/completions");
+			request.Content = (HttpContent)(object)content;
+			using (HttpResponseMessage response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false))
+			{
+				response.EnsureSuccessStatusCode();
+				using (Stream stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+				{
+					(JObject assistantMessage, _) = await ReadOpenRouterChatCompletionStreamAsync(stream, null, collectToolCallDeltas: false).ConfigureAwait(false);
+					return assistantMessage["content"]?.ToString().Trim() ?? "";
+				}
+			}
 		}
 		catch (Exception ex)
 		{
@@ -389,401 +316,128 @@ public static class AIClient
 		}
 	}
 
-	private static async Task<string> GetDeepSeekRawResponse(string prompt, int cachePrefixLength = 0)
+	private sealed class ToolCallPart
 	{
-		if (string.IsNullOrEmpty(GlobalSettings<ModSettings>.Instance?.DeepSeekApiKey))
+		public string Id;
+
+		public string Type = "function";
+
+		public string Name;
+
+		public readonly StringBuilder Arguments = new StringBuilder();
+	}
+
+	private static void MergeToolCallDeltas(JArray deltaToolCalls, Dictionary<int, ToolCallPart> toolByIndex)
+	{
+		foreach (JToken token in deltaToolCalls)
 		{
-			LogError("DeepSeek API Key is not set in Mod Settings.");
-			return "API key is missing.";
-		}
-		List<DeepSeekMessage> messages;
-		if (cachePrefixLength > 0 && cachePrefixLength < prompt.Length)
-		{
-			string systemPrompt = prompt.Substring(0, cachePrefixLength);
-			string userMessage = prompt.Substring(cachePrefixLength);
-			messages = new List<DeepSeekMessage>
+			JObject toolCallObject = token as JObject;
+			if (toolCallObject == null) continue;
+			int index = toolCallObject["index"]?.Value<int>() ?? 0;
+			if (!toolByIndex.TryGetValue(index, out ToolCallPart part))
 			{
-				new DeepSeekMessage
+				part = new ToolCallPart();
+				toolByIndex[index] = part;
+			}
+			if (toolCallObject["id"] != null)
+				part.Id = toolCallObject["id"].ToString();
+			if (toolCallObject["type"] != null)
+				part.Type = toolCallObject["type"].ToString();
+			JObject functionObject = toolCallObject["function"] as JObject;
+			if (functionObject == null)
+				continue;
+			if (functionObject["name"] != null)
+				part.Name = functionObject["name"].ToString();
+			if (functionObject["arguments"] != null)
+				part.Arguments.Append(functionObject["arguments"].ToString());
+		}
+	}
+
+	private static JObject BuildAssistantMessageFromStream(StringBuilder content, Dictionary<int, ToolCallPart> toolByIndex)
+	{
+		if (toolByIndex.Count > 0)
+		{
+			JArray arr = new JArray();
+			foreach (KeyValuePair<int, ToolCallPart> indexedPart in toolByIndex.OrderBy(entry => entry.Key))
+			{
+				ToolCallPart toolCallPart = indexedPart.Value;
+				arr.Add(new JObject
 				{
-					Role = "system",
-					Content = systemPrompt
-				},
-				new DeepSeekMessage
-				{
-					Role = "user",
-					Content = userMessage
-				}
+					["id"] = toolCallPart.Id ?? "",
+					["type"] = toolCallPart.Type ?? "function",
+					["function"] = new JObject
+					{
+						["name"] = toolCallPart.Name ?? "",
+						["arguments"] = toolCallPart.Arguments.ToString()
+					}
+				});
+			}
+			return new JObject
+			{
+				["role"] = "assistant",
+				["content"] = JValue.CreateNull(),
+				["tool_calls"] = arr
 			};
 		}
-		else
+		return new JObject
 		{
-			messages = new List<DeepSeekMessage>
-			{
-				new DeepSeekMessage
-				{
-					Role = "user",
-					Content = prompt
-				}
-			};
-		}
-		DeepSeekChatRequest requestBody = new DeepSeekChatRequest
-		{
-			Model = GlobalSettings<ModSettings>.Instance.DeepSeekModel,
-			Messages = messages
+			["role"] = "assistant",
+			["content"] = content.ToString()
 		};
-		string json = JsonConvert.SerializeObject((object)requestBody);
-		StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
-		httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GlobalSettings<ModSettings>.Instance.DeepSeekApiKey);
-		try
-		{
-			HttpResponseMessage response = await httpClient.PostAsync("https://api.deepseek.com/chat/completions", (HttpContent)(object)content);
-			response.EnsureSuccessStatusCode();
-			DeepSeekChatResponse responseObject = JsonConvert.DeserializeObject<DeepSeekChatResponse>(await response.Content.ReadAsStringAsync());
-			if (responseObject?.Choices != null && responseObject.Choices.Count > 0 && responseObject.Choices[0].Message != null)
-			{
-				return responseObject.Choices[0].Message.Content?.Trim() ?? "Error: Empty content in DeepSeek response";
-			}
-			LogError("DeepSeek raw response format is invalid or empty.");
-			return "Error: Invalid response format";
-		}
-		catch (Exception ex)
-		{
-			LogError("DeepSeek raw response failed: " + ex.Message);
-			return "Error: " + ex.Message;
-		}
 	}
 
-	private static async Task<string> GetPlayer2RawResponse(string prompt, int cachePrefixLength = 0)
+	private static async Task<(JObject assistantMessage, string finishReason)> ReadOpenRouterChatCompletionStreamAsync(Stream stream, Action<string> notifyContentDelta, bool collectToolCallDeltas)
 	{
-		string baseUrl = GlobalSettings<ModSettings>.Instance?.Player2ApiUrl ?? "http://127.0.0.1:4315";
-		string url = baseUrl + "/v1/chat/completions";
-		JArray messages;
-		if (cachePrefixLength > 0 && cachePrefixLength < prompt.Length)
+		StringBuilder content = new StringBuilder();
+		Dictionary<int, ToolCallPart> toolByIndex = new Dictionary<int, ToolCallPart>();
+		string finishReason = null;
+		using (StreamReader reader = new StreamReader(stream))
 		{
-			string systemPrompt = prompt.Substring(0, cachePrefixLength);
-			string userMessage = prompt.Substring(cachePrefixLength);
-			JArray val = new JArray();
-			val.Add((JToken)new JObject
+			while (!reader.EndOfStream)
 			{
-				["role"] = (JToken)("system"),
-				["content"] = (JToken)(systemPrompt)
-			});
-			val.Add((JToken)new JObject
-			{
-				["role"] = (JToken)("user"),
-				["content"] = (JToken)(userMessage)
-			});
-			messages = val;
-		}
-		else
-		{
-			JArray val2 = new JArray();
-			val2.Add((JToken)new JObject
-			{
-				["role"] = (JToken)("user"),
-				["content"] = (JToken)(prompt)
-			});
-			messages = val2;
-		}
-		JObject requestBody = new JObject { ["messages"] = (JToken)(object)messages };
-		string json = ((JToken)requestBody).ToString((Formatting)0, Array.Empty<JsonConverter>());
-		StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
-		try
-		{
-			HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url);
-			request.Content = (HttpContent)(object)content;
-			((HttpHeaders)request.Headers).Add("player2-game-key", "0199bcdd-3f9f-7a67-947e-ca10021b94ce");
-			HttpResponseMessage response = await httpClient.SendAsync(request);
-			if (!response.IsSuccessStatusCode)
-			{
-				string errorText = await response.Content.ReadAsStringAsync();
-				AIInfluenceBehavior.Instance?.LogMessage($"[PLAYER2_ERROR] Status: {response.StatusCode}");
-				AIInfluenceBehavior.Instance?.LogMessage("[PLAYER2_ERROR] Error text: " + errorText);
-				AIInfluenceBehavior.Instance?.LogMessage($"[PLAYER2_ERROR] Prompt length: {prompt.Length} characters");
-				return $"Error: HTTP {response.StatusCode} - {errorText}";
-			}
-			dynamic responseObject = JsonConvert.DeserializeObject<object>(await response.Content.ReadAsStringAsync());
-			if (responseObject?.choices != null && responseObject.choices.Count > 0)
-			{
-				return responseObject.choices[0].message.content?.ToString() ?? "Error: No content in response";
-			}
-			return "Error: Invalid response format";
-		}
-		catch (Exception ex)
-		{
-			return "Error: " + ex.Message;
-		}
-	}
-
-	private static async Task<string> GetOllamaResponse(string npcName, string faction, string prompt)
-	{
-		string model = GlobalSettings<ModSettings>.Instance?.OllamaModel ?? "llama2";
-		string baseUrl = GlobalSettings<ModSettings>.Instance?.OllamaApiUrl ?? "http://localhost:11434";
-		(string, string, bool) tuple = ExtractLastPlayerMessage(prompt);
-		string systemPrompt = tuple.Item1;
-		string userMessage = tuple.Item2;
-		bool extracted = tuple.Item3;
-		string chatUrl = baseUrl + "/api/chat";
-		JObject val = new JObject { ["model"] = (JToken)(model) };
-		JArray val2 = new JArray();
-		val2.Add((JToken)new JObject
-		{
-			["role"] = (JToken)("system"),
-			["content"] = (JToken)(systemPrompt)
-		});
-		val2.Add((JToken)new JObject
-		{
-			["role"] = (JToken)("user"),
-			["content"] = (JToken)(userMessage)
-		});
-		val["messages"] = (JToken)val2;
-		val["stream"] = (JToken)(false);
-		val["options"] = (JToken)new JObject
-		{
-			["temperature"] = (JToken)(0.7),
-			["top_p"] = (JToken)(0.9)
-		};
-		JObject chatRequestBody = val;
-		try
-		{
-			StringContent chatContent = new StringContent(((JToken)chatRequestBody).ToString((Formatting)0, Array.Empty<JsonConverter>()), Encoding.UTF8, "application/json");
-			HttpResponseMessage chatResponse = await httpClient.PostAsync(chatUrl, (HttpContent)(object)chatContent);
-			if (chatResponse.IsSuccessStatusCode)
-			{
-				dynamic chatResponseObj = JsonConvert.DeserializeObject<object>(await chatResponse.Content.ReadAsStringAsync());
-				if (chatResponseObj?.message?.content != null)
+				string line = await reader.ReadLineAsync().ConfigureAwait(false);
+				if (string.IsNullOrWhiteSpace(line) || !line.StartsWith("data:", StringComparison.Ordinal))
+					continue;
+				string data = line.Substring(5).Trim();
+				if (data == "[DONE]")
+					break;
+				JObject chunk;
+				try
 				{
-					dynamic responseText = chatResponseObj.message.content.ToString();
-					return responseText;
+					chunk = JObject.Parse(data);
 				}
-			}
-			else
-			{
-				LogWarning($"Ollama chat endpoint failed with status {chatResponse.StatusCode}, trying generate endpoint");
-			}
-		}
-		catch (Exception ex)
-		{
-			LogWarning("Ollama chat endpoint failed: " + ex.Message + ", trying generate endpoint");
-		}
-		string generatePrompt = (extracted ? (systemPrompt + "\n\n### Your Response ###\n" + userMessage) : (prompt + "\n\nRespond to the player's latest message in character, following the instructions provided. Format your response as JSON with all required fields."));
-		string generateUrl = baseUrl + "/api/generate";
-		JObject generateRequestBody = new JObject
-		{
-			["model"] = (JToken)(model),
-			["prompt"] = (JToken)(generatePrompt),
-			["stream"] = (JToken)(false),
-			["options"] = (JToken)new JObject
-			{
-				["temperature"] = (JToken)(0.7),
-				["top_p"] = (JToken)(0.9)
-			}
-		};
-		try
-		{
-			StringContent generateContent = new StringContent(((JToken)generateRequestBody).ToString((Formatting)0, Array.Empty<JsonConverter>()), Encoding.UTF8, "application/json");
-			HttpResponseMessage generateResponse = await httpClient.PostAsync(generateUrl, (HttpContent)(object)generateContent);
-			if (generateResponse.IsSuccessStatusCode)
-			{
-				OllamaResponse ollamaResponse = JsonConvert.DeserializeObject<OllamaResponse>(await generateResponse.Content.ReadAsStringAsync());
-				if (ollamaResponse?.Response != null)
+				catch (JsonException ex)
 				{
-					return ollamaResponse.Response;
+					LogWarning("OpenRouter SSE: skipped malformed JSON line: " + ex.Message);
+					continue;
 				}
-			}
-			else
-			{
-				LogError(string.Format(arg1: await generateResponse.Content.ReadAsStringAsync(), format: "Ollama generate endpoint failed with status {0}: {1}", arg0: generateResponse.StatusCode));
-			}
-		}
-		catch (Exception ex2)
-		{
-			LogError("Ollama generate endpoint failed: " + ex2.Message);
-		}
-		return GenerateErrorResponse("Failed to get response from Ollama. Check if Ollama is running and the model is loaded.");
-	}
-
-	private static async Task<string> GetOllamaRawResponse(string prompt, int cachePrefixLength = 0)
-	{
-		string model = GlobalSettings<ModSettings>.Instance?.OllamaModel ?? "llama2";
-		string baseUrl = GlobalSettings<ModSettings>.Instance?.OllamaApiUrl ?? "http://localhost:11434";
-		JArray chatMessages;
-		if (cachePrefixLength > 0 && cachePrefixLength < prompt.Length)
-		{
-			string systemPrompt = prompt.Substring(0, cachePrefixLength);
-			string userMessage = prompt.Substring(cachePrefixLength);
-			JArray val = new JArray();
-			val.Add((JToken)new JObject
-			{
-				["role"] = (JToken)("system"),
-				["content"] = (JToken)(systemPrompt)
-			});
-			val.Add((JToken)new JObject
-			{
-				["role"] = (JToken)("user"),
-				["content"] = (JToken)(userMessage)
-			});
-			chatMessages = val;
-		}
-		else
-		{
-			JArray val2 = new JArray();
-			val2.Add((JToken)new JObject
-			{
-				["role"] = (JToken)("user"),
-				["content"] = (JToken)(prompt)
-			});
-			chatMessages = val2;
-		}
-		string chatUrl = baseUrl + "/api/chat";
-		JObject chatRequestBody = new JObject
-		{
-			["model"] = (JToken)(model),
-			["messages"] = (JToken)(object)chatMessages,
-			["stream"] = (JToken)(false),
-			["options"] = (JToken)new JObject
-			{
-				["temperature"] = (JToken)(0.7),
-				["top_p"] = (JToken)(0.9)
-			}
-		};
-		try
-		{
-			StringContent chatContent = new StringContent(((JToken)chatRequestBody).ToString((Formatting)0, Array.Empty<JsonConverter>()), Encoding.UTF8, "application/json");
-			HttpResponseMessage chatResponse = await httpClient.PostAsync(chatUrl, (HttpContent)(object)chatContent);
-			if (chatResponse.IsSuccessStatusCode)
-			{
-				dynamic chatResponseObj = JsonConvert.DeserializeObject<object>(await chatResponse.Content.ReadAsStringAsync());
-				if (chatResponseObj?.message?.content != null)
+				string err = chunk["error"]?["message"]?.ToString();
+				if (!string.IsNullOrEmpty(err))
+					throw new InvalidOperationException("OpenRouter stream error: " + err);
+				JToken choice0 = chunk["choices"]?[0];
+				if (choice0 == null)
+					continue;
+				string finishReasonValue = choice0["finish_reason"]?.ToString();
+				if (!string.IsNullOrEmpty(finishReasonValue))
+					finishReason = finishReasonValue;
+				if (string.Equals(finishReasonValue, "error", StringComparison.OrdinalIgnoreCase))
+					throw new InvalidOperationException("OpenRouter stream terminated with finish_reason=error.");
+				JObject delta = choice0["delta"] as JObject;
+				if (delta == null)
+					continue;
+				string text = delta["content"]?.ToString();
+				if (!string.IsNullOrEmpty(text))
 				{
-					return chatResponseObj.message.content.ToString().Trim();
+					content.Append(text);
+					notifyContentDelta?.Invoke(text);
 				}
-			}
-			else
-			{
-				LogWarning($"Ollama chat endpoint failed with status {chatResponse.StatusCode}, trying generate endpoint");
+				if (collectToolCallDeltas && delta["tool_calls"] is JArray toolCallsDelta)
+					MergeToolCallDeltas(toolCallsDelta, toolByIndex);
 			}
 		}
-		catch (Exception ex)
-		{
-			LogWarning("Ollama chat endpoint failed: " + ex.Message + ", trying generate endpoint");
-		}
-		string generateUrl = baseUrl + "/api/generate";
-		JObject generateRequestBody = new JObject
-		{
-			["model"] = (JToken)(model),
-			["prompt"] = (JToken)(prompt),
-			["stream"] = (JToken)(false),
-			["options"] = (JToken)new JObject
-			{
-				["temperature"] = (JToken)(0.7),
-				["top_p"] = (JToken)(0.9)
-			}
-		};
-		try
-		{
-			StringContent generateContent = new StringContent(((JToken)generateRequestBody).ToString((Formatting)0, Array.Empty<JsonConverter>()), Encoding.UTF8, "application/json");
-			HttpResponseMessage generateResponse = await httpClient.PostAsync(generateUrl, (HttpContent)(object)generateContent);
-			if (generateResponse.IsSuccessStatusCode)
-			{
-				return JsonConvert.DeserializeObject<OllamaResponse>(await generateResponse.Content.ReadAsStringAsync())?.Response ?? "No response from Ollama";
-			}
-			LogError(string.Format(arg1: await generateResponse.Content.ReadAsStringAsync(), format: "Ollama generate endpoint failed with status {0}: {1}", arg0: generateResponse.StatusCode));
-		}
-		catch (Exception ex2)
-		{
-			LogError("Ollama generate endpoint failed: " + ex2.Message);
-		}
-		return "Error: Failed to get response from Ollama. Check if Ollama is running and the model is loaded.";
-	}
-
-	private static async Task<string> GetKoboldCppResponse(string npcName, string faction, string prompt)
-	{
-		string baseUrl = GlobalSettings<ModSettings>.Instance?.KoboldCppApiUrl ?? "http://localhost:5001";
-		string url = baseUrl + "/api/v1/generate";
-		(string, string, bool) tuple = ExtractLastPlayerMessage(prompt);
-		string systemPrompt = tuple.Item1;
-		string userMessage = tuple.Item2;
-		string koboldPrompt = (tuple.Item3 ? (systemPrompt + "\n\n### Player's Latest Message ###\n" + userMessage + "\n\n### Your Response ###\nRespond as the character in JSON format:") : (prompt + "\n\nRespond to the player's latest message in character, following the instructions provided. Format your response as JSON with all required fields."));
-		JObject val = new JObject
-		{
-			["prompt"] = (JToken)(koboldPrompt),
-			["temperature"] = (JToken)(0.7),
-			["top_p"] = (JToken)(0.9),
-			["stream"] = (JToken)(false)
-		};
-		JArray val2 = new JArray();
-		val2.Add((JToken)("Human:"));
-		val2.Add((JToken)("Assistant:"));
-		val2.Add((JToken)("\n\nPlayer:"));
-		val2.Add((JToken)("### Player's Latest Message ###"));
-		val["stop_sequence"] = (JToken)val2;
-		JObject requestBody = val;
-		try
-		{
-			StringContent content = new StringContent(((JToken)requestBody).ToString((Formatting)0, Array.Empty<JsonConverter>()), Encoding.UTF8, "application/json");
-			HttpResponseMessage response = await httpClient.PostAsync(url, (HttpContent)(object)content);
-			if (response.IsSuccessStatusCode)
-			{
-				KoboldCppResponse koboldResponse = JsonConvert.DeserializeObject<KoboldCppResponse>(await response.Content.ReadAsStringAsync());
-				if (koboldResponse != null && koboldResponse.Results?.Length > 0 && !string.IsNullOrEmpty(koboldResponse.Results[0].Text))
-				{
-					return koboldResponse.Results[0].Text.Trim();
-				}
-				LogWarning("KoboldCpp returned empty or invalid response");
-			}
-			else
-			{
-				LogError(string.Format(arg1: await response.Content.ReadAsStringAsync(), format: "KoboldCpp request failed with status {0}: {1}", arg0: response.StatusCode));
-			}
-		}
-		catch (Exception ex)
-		{
-			LogError("KoboldCpp request failed: " + ex.Message);
-		}
-		return GenerateErrorResponse("Failed to get response from KoboldCpp. Check if KoboldCpp is running and accessible.");
-	}
-
-	private static async Task<string> GetKoboldCppRawResponse(string prompt, int cachePrefixLength = 0)
-	{
-		string baseUrl = GlobalSettings<ModSettings>.Instance?.KoboldCppApiUrl ?? "http://localhost:5001";
-		string url = baseUrl + "/api/v1/generate";
-		JObject val = new JObject
-		{
-			["prompt"] = (JToken)(prompt),
-			["temperature"] = (JToken)(0.7),
-			["top_p"] = (JToken)(0.9),
-			["stream"] = (JToken)(false)
-		};
-		JArray val2 = new JArray();
-		val2.Add((JToken)("Human:"));
-		val2.Add((JToken)("Assistant:"));
-		val2.Add((JToken)("\n\n"));
-		val["stop_sequence"] = (JToken)val2;
-		JObject requestBody = val;
-		try
-		{
-			StringContent content = new StringContent(((JToken)requestBody).ToString((Formatting)0, Array.Empty<JsonConverter>()), Encoding.UTF8, "application/json");
-			HttpResponseMessage response = await httpClient.PostAsync(url, (HttpContent)(object)content);
-			if (response.IsSuccessStatusCode)
-			{
-				KoboldCppResponse koboldResponse = JsonConvert.DeserializeObject<KoboldCppResponse>(await response.Content.ReadAsStringAsync());
-				if (koboldResponse != null && koboldResponse.Results?.Length > 0 && !string.IsNullOrEmpty(koboldResponse.Results[0].Text))
-				{
-					return koboldResponse.Results[0].Text.Trim();
-				}
-				LogWarning("KoboldCpp returned empty or invalid response");
-			}
-			else
-			{
-				LogError(string.Format(arg1: await response.Content.ReadAsStringAsync(), format: "KoboldCpp request failed with status {0}: {1}", arg0: response.StatusCode));
-			}
-		}
-		catch (Exception ex)
-		{
-			LogError("KoboldCpp request failed: " + ex.Message);
-		}
-		return "Error: Failed to get response from KoboldCpp. Check if KoboldCpp is running and accessible.";
+		if (collectToolCallDeltas && toolByIndex.Count > 0 && !string.IsNullOrEmpty(finishReason) && !string.Equals(finishReason, "tool_calls", StringComparison.OrdinalIgnoreCase))
+			LogWarning("OpenRouter SSE: assembled tool_calls but finish_reason='" + finishReason + "' (docs: expect tool_calls when the model returns tools).");
+		return (BuildAssistantMessageFromStream(content, toolByIndex), finishReason);
 	}
 
 	private static string GenerateErrorResponse(string message)
@@ -802,12 +456,6 @@ public static class AIClient
 		});
 	}
 
-	private static string GeneratePlayer2ErrorResponse(string baseMessage)
-	{
-		string message = baseMessage + " Please check if Player2 application is installed and running, and ensure your device has sufficient battery charge.";
-		return GenerateErrorResponse(message);
-	}
-
 	private static void LogError(string message)
 	{
 		AIInfluenceBehavior.Instance?.LogMessage("[ERROR] AIClient: " + message);
@@ -818,32 +466,9 @@ public static class AIClient
 		AIInfluenceBehavior.Instance?.LogMessage("[WARNING] AIClient: " + message);
 	}
 
-	public static async Task<bool> TestOllamaConnection()
-	{
-		return await OllamaClient.TestConnection();
-	}
-
-	public static async Task<bool> TestKoboldCppConnection()
-	{
-		return await KoboldCppClient.TestConnection();
-	}
-
 	public static async Task<bool> TestCurrentBackendConnection()
 	{
-		return (GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue ?? "Player2") switch
-		{
-			"Ollama" => await TestOllamaConnection(), 
-			"KoboldCpp" => await TestKoboldCppConnection(), 
-			"Player2" => await TestPlayer2Connection(), 
-			"DeepSeek" => await TestDeepSeekConnection(), 
-			"OpenRouter" => await TestOpenRouterConnection(), 
-			_ => false, 
-		};
-	}
-
-	public static async Task<bool> TestPlayer2Connection()
-	{
-		return await Player2Client.TestConnection();
+		return await TestOpenRouterConnection();
 	}
 
 	public static async Task<bool> TestOpenRouterConnection()
@@ -863,17 +488,31 @@ public static class AIClient
 				["content"] = (JToken)("Hello")
 			});
 			val["messages"] = (JToken)val2;
+			val["stream"] = true;
 			JObject requestBody = val;
 			string json = ((JToken)requestBody).ToString((Formatting)0, Array.Empty<JsonConverter>());
 			StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
 			httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GlobalSettings<ModSettings>.Instance.ApiKey);
-			HttpResponseMessage response = await httpClient.PostAsync("https://openrouter.ai/api/v1/chat/completions", (HttpContent)(object)content);
-			if (response.IsSuccessStatusCode)
+			using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "https://openrouter.ai/api/v1/chat/completions");
+			request.Content = (HttpContent)(object)content;
+			using (HttpResponseMessage response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false))
 			{
-				InformationManager.DisplayMessage(new InformationMessage("OpenRouter: Connection test successful", ExtraColors.GreenAIInfluence));
-				return true;
+				if (response.IsSuccessStatusCode)
+				{
+					using (Stream stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+					{
+						(JObject assistantMessage, _) = await ReadOpenRouterChatCompletionStreamAsync(stream, null, collectToolCallDeltas: false).ConfigureAwait(false);
+						if (assistantMessage["content"] != null || assistantMessage["tool_calls"] != null)
+						{
+							InformationManager.DisplayMessage(new InformationMessage("OpenRouter: Connection test successful", ExtraColors.GreenAIInfluence));
+							return true;
+						}
+					}
+					InformationManager.DisplayMessage(new InformationMessage("OpenRouter: Test request returned empty body", ExtraColors.RedAIInfluence));
+					return false;
+				}
+				InformationManager.DisplayMessage(new InformationMessage(string.Format(arg1: await response.Content.ReadAsStringAsync(), format: "OpenRouter: Test request failed: {0} - {1}", arg0: response.StatusCode), ExtraColors.RedAIInfluence));
 			}
-			InformationManager.DisplayMessage(new InformationMessage(string.Format(arg1: await response.Content.ReadAsStringAsync(), format: "OpenRouter: Test request failed: {0} - {1}", arg0: response.StatusCode), ExtraColors.RedAIInfluence));
 		}
 		catch (Exception ex)
 		{
@@ -881,11 +520,6 @@ public static class AIClient
 			InformationManager.DisplayMessage(new InformationMessage("OpenRouter: Connection test failed: " + ex2.Message, ExtraColors.RedAIInfluence));
 		}
 		return false;
-	}
-
-	public static async Task<bool> TestDeepSeekConnection()
-	{
-		return await DeepSeekClient.TestConnection();
 	}
 
 	private static void LogMessage(string message)

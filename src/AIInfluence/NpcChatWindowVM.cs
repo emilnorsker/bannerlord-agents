@@ -717,6 +717,7 @@ public class NpcChatWindowVM : ViewModel
 
         string playerName = ((object)Hero.MainHero?.Name)?.ToString() ?? "You";
 
+        bool releaseSendLockInFinally = true;
         try
         {
             if (AIInfluenceBehavior.Instance == null)
@@ -734,7 +735,6 @@ public class NpcChatWindowVM : ViewModel
                 playerHistoryIdx = preCtx?.ConversationHistory?.Count ?? -1;
             }
             catch (Exception) { }
-            bool useOpenRouterStreaming = string.Equals(GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue, "OpenRouter", StringComparison.Ordinal);
             ChatMessageItemVM streamingItem = null;
             bool streamingRetired = false;
             string streamingTargetText = "";
@@ -744,59 +744,56 @@ public class NpcChatWindowVM : ViewModel
             // Set by the reply handler; the pump calls this once the typewriter animation reaches
             // the final target text so the message is only swapped out after the full animation.
             Action finalizeNpcMessage = null;
-            if (useOpenRouterStreaming)
+            streamingItem = ParseLine($"{npcName}: ", "");
+            streamingItem.ContentSegments.Add(new ContentSegmentVM(""));
+            AddNewestMessage(streamingItem);
+            streamPumpStep = () =>
             {
-                streamingItem = ParseLine($"{npcName}: ", "");
-                streamingItem.ContentSegments.Add(new ContentSegmentVM(""));
-                AddNewestMessage(streamingItem);
-                streamPumpStep = () =>
+                if (streamingRetired || streamingItem == null)
                 {
-                    if (streamingRetired || streamingItem == null)
+                    streamPumpActive = false;
+                    return;
+                }
+                if (streamingVisibleText.Length < streamingTargetText.Length)
+                {
+                    streamingVisibleText = streamingTargetText.Substring(0, streamingVisibleText.Length + 1);
+                    ReplaceStreamingSegments(streamingItem, npcName, streamingVisibleText);
+                    DelayedTaskManager taskManager = AIInfluenceBehavior.Instance?.GetDelayedTaskManager();
+                    if (taskManager != null)
                     {
-                        streamPumpActive = false;
-                        return;
+                        double revealInterval = Math.Max(0.005f, GlobalSettings<ModSettings>.Instance?.ChatStreamCharacterInterval ?? 0.05f);
+                        taskManager.AddTask(revealInterval, streamPumpStep);
                     }
-                    if (streamingVisibleText.Length < streamingTargetText.Length)
-                    {
-                        streamingVisibleText = streamingTargetText.Substring(0, streamingVisibleText.Length + 1);
-                        ReplaceStreamingSegments(streamingItem, npcName, streamingVisibleText);
-                        DelayedTaskManager taskManager = AIInfluenceBehavior.Instance?.GetDelayedTaskManager();
-                        if (taskManager != null)
-                        {
-                            double revealInterval = Math.Max(0.005f, GlobalSettings<ModSettings>.Instance?.ChatStreamCharacterInterval ?? 0.05f);
-                            taskManager.AddTask(revealInterval, streamPumpStep);
-                        }
-                        else
-                        {
-                            streamingVisibleText = streamingTargetText;
-                            ReplaceStreamingSegments(streamingItem, npcName, streamingVisibleText);
-                            streamPumpActive = false;
-                            Action fin = finalizeNpcMessage;
-                            finalizeNpcMessage = null;
-                            fin?.Invoke();
-                        }
-                    }
-                    else if (streamingVisibleText.Length > streamingTargetText.Length)
+                    else
                     {
                         streamingVisibleText = streamingTargetText;
                         ReplaceStreamingSegments(streamingItem, npcName, streamingVisibleText);
-                    }
-                    else // visible == target: animation complete
-                    {
                         streamPumpActive = false;
                         Action fin = finalizeNpcMessage;
                         finalizeNpcMessage = null;
                         fin?.Invoke();
                     }
-                };
-            }
-            string reply = await AIInfluenceBehavior.Instance.ProcessChatInput(_npc, message, partial =>
+                }
+                else if (streamingVisibleText.Length > streamingTargetText.Length)
+                {
+                    streamingVisibleText = streamingTargetText;
+                    ReplaceStreamingSegments(streamingItem, npcName, streamingVisibleText);
+                }
+                else // visible == target: animation complete
+                {
+                    streamPumpActive = false;
+                    Action fin = finalizeNpcMessage;
+                    finalizeNpcMessage = null;
+                    fin?.Invoke();
+                }
+            };
+            string reply = await AIInfluenceBehavior.Instance.ProcessChatInput(_npc, message, messagePreviewText =>
             {
                 MainThreadDispatcher.Queue.Enqueue(() =>
                 {
                     if (!streamingRetired && streamingItem != null)
                     {
-                        streamingTargetText = partial ?? "";
+                        streamingTargetText = messagePreviewText ?? "";
                         if (!streamPumpActive && streamPumpStep != null)
                         {
                             streamPumpActive = true;
@@ -805,6 +802,8 @@ public class NpcChatWindowVM : ViewModel
                     }
                 });
             });
+            // Keep _isSending true until doFinalize runs so a second send cannot start ProcessChatInput
+            // and ClearNpcTurnDialogueTools before quest_action is applied (see ApplyPendingQuestActionFromTools).
             if (!string.IsNullOrEmpty(reply))
             {
                 // Call GetOrCreateNPCContext once — avoids two off-thread calls and a
@@ -867,6 +866,7 @@ public class NpcChatWindowVM : ViewModel
                             try { AIInfluenceBehavior.Instance?.SaveNPCContext(((MBObjectBase)_npc).StringId, _npc, ctx); }
                             catch (Exception ex) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] SaveNPCContext after pill persist failed: " + ex.Message); }
                         }
+                        AIInfluenceBehavior.Instance?.ApplyPendingQuestActionFromTools(_npc, ctx);
                         if (ctx != null && AIInfluenceBehavior.Instance != null)
                         {
                             try
@@ -888,10 +888,16 @@ public class NpcChatWindowVM : ViewModel
                     {
                         AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] UI mutation after reply failed: " + ex.Message);
                     }
+                    finally
+                    {
+                        _isSending = false;
+                        ((ViewModel)this).OnPropertyChangedWithValue(true, "IsSendEnabled");
+                    }
                 };
 
-                if (useOpenRouterStreaming && streamingItem != null)
+                if (streamingItem != null)
                 {
+                    releaseSendLockInFinally = false;
                     // Let the typewriter pump finish animating to the full reply, then finalize.
                     finalizeNpcMessage = doFinalize;
                     streamingTargetText = reply;
@@ -904,6 +910,7 @@ public class NpcChatWindowVM : ViewModel
                 else
                 {
                     doFinalize();
+                    releaseSendLockInFinally = false;
                 }
             }
             else
@@ -916,6 +923,7 @@ public class NpcChatWindowVM : ViewModel
                 NPCContext ctx = null;
                 try { ctx = AIInfluenceBehavior.Instance?.GetOrCreateNPCContext(_npc); }
                 catch (Exception ex) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] GetOrCreateNPCContext (empty reply) failed: " + ex.Message); }
+                AIInfluenceBehavior.Instance?.ApplyPendingQuestActionFromTools(_npc, ctx);
                 if (ctx != null && AIInfluenceBehavior.Instance != null)
                     MainThreadDispatcher.Queue.Enqueue(() =>
                     {
@@ -931,8 +939,11 @@ public class NpcChatWindowVM : ViewModel
         }
         finally
         {
-            _isSending = false;
-            ((ViewModel)this).OnPropertyChangedWithValue(true, "IsSendEnabled");
+            if (releaseSendLockInFinally)
+            {
+                _isSending = false;
+                ((ViewModel)this).OnPropertyChangedWithValue(true, "IsSendEnabled");
+            }
         }
     }
 

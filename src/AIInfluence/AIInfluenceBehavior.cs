@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AIInfluence.API;
 using AIInfluence.Behaviors.AIActions;
+using AIInfluence.ChatTools;
 using AIInfluence.Behaviors.AIActions.TaskSystem;
 using AIInfluence.Behaviors.RolePlay;
 using AIInfluence.Diplomacy;
@@ -24,6 +25,7 @@ using AIInfluence.Util;
 using Helpers;
 using MCM.Abstractions.Base.Global;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.Encounters;
@@ -101,7 +103,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	private const string WelcomeMarkerFileName = "welcome_popup_shown.txt";
 
-	private static readonly Regex StreamingResponseFieldRegex = new Regex("\"response\"\\s*:\\s*\"(?<text>(?:\\\\.|[^\"\\\\])*)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+	/// <summary>Matches the <c>response</c> JSON string field used for the NPC message preview in chat.</summary>
+	private static readonly Regex NpcMessagePreviewResponseFieldRegex = new Regex("\"response\"\\s*:\\s*\"(?<text>(?:\\\\.|[^\"\\\\])*)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
 	private bool _welcomeCheckedThisSession = false;
 
@@ -204,13 +207,22 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		return _npcContexts;
 	}
 
-	public async Task<string> SendAIRequest(string prompt, string requestType)
+	public async Task<string> SendAIRequest(string prompt, string requestType, Hero npcForTools = null, NPCContext contextForTools = null)
 	{
 		try
 		{
 			LogMessage("[SEND_AI_REQUEST] Отправляем запрос типа '" + requestType + "' к ИИ");
 			LogMessage($"[SEND_AI_REQUEST] Длина промта: {prompt.Length} символов");
-			string response = ((!(requestType == "multi_dialogue_analysis")) ? (await AIClient.GetAIResponse("System", "Analysis", prompt)) : (await AIClient.GetRawTextResponse(prompt)));
+			string response;
+			if (requestType == "multi_dialogue_analysis")
+				response = await AIClient.GetRawTextResponse(prompt);
+			else
+			{
+				Func<string, string, Task<string>> toolExecutor = null;
+				if (npcForTools != null && contextForTools != null)
+					toolExecutor = (name, args) => ExecuteChatTool(name, args, npcForTools, contextForTools);
+				response = await AIClient.GetAIResponse("System", "Analysis", prompt, null, toolExecutor);
+			}
 			LogMessage($"[SEND_AI_REQUEST] Получен ответ от ИИ для '{requestType}': {response?.Length ?? 0} символов");
 			if (!string.IsNullOrEmpty(response) && !response.StartsWith("Error:"))
 			{
@@ -907,6 +919,23 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				}
 			}
 		});
+	}
+
+	/// <summary>Runs <see cref="ProcessQuestAction"/> for a <c>quest_action</c> stored on <paramref name="context"/> during the tool round. Call from the chat UI after the typewriter finalizes so quest pop-ups align with the visible NPC line.</summary>
+	public void ApplyPendingQuestActionFromTools(Hero npc, NPCContext context)
+	{
+		if (npc == null || context?.PendingQuestActionFromTools == null)
+			return;
+		QuestActionData questData = context.PendingQuestActionFromTools;
+		context.PendingQuestActionFromTools = null;
+		try
+		{
+			ProcessQuestAction(npc, context, questData);
+		}
+		catch (Exception ex)
+		{
+			LogMessage("[ERROR] Chat quest action failed: " + ex.Message);
+		}
 	}
 
 	public void ProcessQuestAction(Hero npc, NPCContext context, QuestActionData questAction)
@@ -2068,7 +2097,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 	}
 
-	private void ProcessWorkshopSale(Hero npc, NPCContext context, string workshopStringId, int agreedPrice)
+	internal void ProcessWorkshopSale(Hero npc, NPCContext context, string workshopStringId, int agreedPrice)
 	{
 		if (npc == null || string.IsNullOrEmpty(workshopStringId) || agreedPrice <= 0)
 		{
@@ -2773,6 +2802,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 		LogMessage("[PLAYER_INPUT] " + playerInput);
 		context.AddMessage("Player: " + playerInput);
+		ClearNpcTurnDialogueTools(context);
 		SaveNPCContext(npcId, npc, context);
 		WorldInfoManager.Instance.UpdateTimeContext(context);
 		WorldInfoManager.Instance.UpdateWarStatus(context);
@@ -2790,11 +2820,12 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		context.LastInteractionTime = CampaignTime.Now;
 		string aiResponse = null;
 		int maxRetries = 3;
+		Func<string, string, Task<string>> openRouterTools = (name, args) => ExecuteChatTool(name, args, npc, context);
 		for (int attempt = 1; attempt <= maxRetries; attempt++)
 		{
 			try
 			{
-				aiResponse = await AIClient.GetAIResponse(npcName, faction, prompt + "\nPlayer: " + playerInput);
+				aiResponse = await AIClient.GetAIResponse(npcName, faction, prompt + "\nPlayer: " + playerInput, null, openRouterTools);
 				if (!string.IsNullOrEmpty(aiResponse) && !aiResponse.StartsWith("Error:"))
 				{
 					break;
@@ -2827,54 +2858,9 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			return;
 		}
 		LogMessage("[DEBUG] Raw AI response: " + aiResponse);
-		string cleanedResponse = JsonCleaner.CleanJsonResponse(aiResponse);
-		LogMessage("[DEBUG] Cleaned AI response: " + cleanedResponse);
-		AIResponse aiResult;
-		try
-		{
-			if (!JsonCleaner.IsValidJson(cleanedResponse))
-			{
-				throw new JsonException("Cleaned response is not valid JSON.");
-			}
-			aiResult = JsonConvert.DeserializeObject<AIResponse>(cleanedResponse);
-			if (aiResult == null)
-			{
-				LogMessage("[WARNING] AI response is null after parsing. Falling back to default response.");
-				aiResult = new AIResponse
-				{
-					Response = "I have nothing to say right now.",
-					SuspectedLie = false,
-					ClaimedName = null,
-					ClaimedClan = null,
-					ClaimedAge = null,
-					Tone = "neutral",
-					ThreatLevel = "none",
-					EscalationState = "neutral",
-					DeescalationAttempt = false,
-					Decision = "none"
-				};
-			}
-		}
-		catch (JsonException ex2)
-		{
-			JsonException ex3 = ex2;
-			JsonException ex4 = ex3;
-			LogMessage("[ERROR] Failed to parse AI response: " + ((Exception)(object)ex4).Message + ". Cleaned response: " + cleanedResponse);
-			string fallbackResponse = JsonCleaner.ExtractFallbackResponse(aiResponse, npcName);
-			aiResult = new AIResponse
-			{
-				Response = fallbackResponse,
-				SuspectedLie = false,
-				ClaimedName = null,
-				ClaimedClan = null,
-				ClaimedAge = null,
-				Tone = "neutral",
-				ThreatLevel = "none",
-				EscalationState = "neutral",
-				DeescalationAttempt = false,
-				Decision = "none"
-			};
-		}
+		AIResponse aiResult = NpcOpenRouterAssistantParser.Parse(aiResponse, npcName);
+		ApplyNpcContextToolDeferralsToAiResponse(context, aiResult);
+		ApplyNpcDialogueToolsToAiResponse(context, aiResult);
 		if (!string.IsNullOrEmpty(aiResult.RomanceIntent) && aiResult.RomanceIntent != "none")
 		{
 			CampaignTime now = CampaignTime.Now;
@@ -3015,7 +3001,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			InformationManager.DisplayMessage(new InformationMessage(((object)new TextObject("{=AIInfluence_ConflictError}{npcName} seems unsettled, but no fight breaks out.", new Dictionary<string, object> { { "npcName", npcName } })).ToString(), Colors.Yellow));
 		}
 		context.PendingAIResponse = aiResult;
-		context.LastAIResponseJson = cleanedResponse;
+		context.LastAIResponseJson = JsonConvert.SerializeObject(aiResult);
 		MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", aiResult.Response, false);
 		context.LastDynamicResponse = aiResult.Response;
 		LogMessage("[DEBUG] Set DYNAMIC_NPC_RESPONSE: " + aiResult.Response);
@@ -3095,46 +3081,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			context.PlayerInfo.ClaimedGold = aiResult.ClaimedGold;
 			LogMessage($"[DEBUG] Player claimed to have {context.PlayerInfo.ClaimedGold} denars");
 		}
-		bool isSellingWorkshop = !string.IsNullOrEmpty(aiResult.WorkshopAction) && aiResult.WorkshopAction.ToLower() == "sell";
-		if (aiResult.MoneyTransfer != null && aiResult.MoneyTransfer.Amount > 0)
-		{
-			if (isSellingWorkshop)
-			{
-				LogMessage("[MONEY_TRANSFER] Ignoring money_transfer because workshop is being sold (money transfer happens automatically in workshop sale)");
-			}
-			else
-			{
-				context.PendingMoneyTransfer = aiResult.MoneyTransfer;
-				LogMessage($"[MONEY_TRANSFER] Saved pending money transfer: {aiResult.MoneyTransfer.Action} {aiResult.MoneyTransfer.Amount} denars for NPC {npc.Name}");
-			}
-		}
-		else if (aiResult.MoneyTransfer != null)
-		{
-			LogMessage($"[MONEY_TRANSFER] MoneyTransfer exists but Amount <= 0: Action={aiResult.MoneyTransfer.Action}, Amount={aiResult.MoneyTransfer.Amount}");
-		}
-		else
-		{
-			LogMessage("[MONEY_TRANSFER] MoneyTransfer is null in aiResult");
-		}
-		if (aiResult.ItemTransfers != null && aiResult.ItemTransfers.Count > 0)
-		{
-			context.PendingItemTransfers = aiResult.ItemTransfers;
-			context.PendingItemTransfersOpposedAttribute = aiResult.ItemTransfersOpposedAttribute
-				?? aiResult.ItemTransfers.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.OpposedAttribute))?.OpposedAttribute;
-			LogMessage($"[ITEM_TRANSFER] Saved pending item transfers: {aiResult.ItemTransfers.Count} items for NPC {npc.Name}");
-		}
-		else if (aiResult.ItemTransfers != null)
-		{
-			LogMessage($"[ITEM_TRANSFER] ItemTransfers exists but Count <= 0: {aiResult.ItemTransfers.Count} items");
-		}
-		else
-		{
-			LogMessage("[ITEM_TRANSFER] ItemTransfers is null in aiResult");
-		}
-		if (isSellingWorkshop)
-		{
-			ProcessWorkshopSale(npc, context, aiResult.WorkshopStringId, aiResult.WorkshopPrice);
-		}
 		if (aiResult.Tone == "positive")
 		{
 			int relationChange = _random.Next(GlobalSettings<ModSettings>.Instance.MinPositiveRelationChange, GlobalSettings<ModSettings>.Instance.MaxPositiveRelationChange + 1);
@@ -3179,6 +3125,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			LogMessage($"[DEBUG] Lie detected by AI. Trust penalty: {trustPenalty:F2}, LiePenaltySum: {context.LiePenaltySum:F2}, TrustLevel: {context.TrustLevel:F3}. Scheduled result decrease by {relationPenalty} for 'What do you say?'.");
 		}
 		SaveNPCContext(npcId, npc, context);
+		ApplyPendingQuestActionFromTools(npc, context);
 		string messageText = ((object)new TextObject("{=AIInfluence_NPCReady}{npcName} is ready to respond.", new Dictionary<string, object> { { "npcName", npcName } })).ToString();
 		LogMessage("[DEBUG] Displayed notification: " + npcName + " is ready to respond.");
 		InformationManager.DisplayMessage(new InformationMessage(messageText, Colors.White));
@@ -3196,17 +3143,19 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 	}
 
-	private static string TryExtractStreamingResponseText(string partialJson)
+	/// <summary>Returns the NPC message preview for the chat bubble from the in-progress message draft. The model emits JSON; this reads the <c>response</c> field before the message JSON is complete.</summary>
+	/// <param name="messageDraftText">Raw text of the assistant message so far (growing JSON).</param>
+	private static string GetNpcMessagePreview(string messageDraftText)
 	{
-		if (string.IsNullOrEmpty(partialJson))
+		if (string.IsNullOrEmpty(messageDraftText))
 		{
 			return "";
 		}
-		Match match = StreamingResponseFieldRegex.Match(partialJson);
+		Match match = NpcMessagePreviewResponseFieldRegex.Match(messageDraftText);
 		if (!match.Success)
 		{
-			if (!partialJson.TrimStart(Array.Empty<char>()).StartsWith("{", StringComparison.Ordinal))
-				return partialJson;
+			if (!messageDraftText.TrimStart(Array.Empty<char>()).StartsWith("{", StringComparison.Ordinal))
+				return messageDraftText;
 			return "";
 		}
 		string value = match.Groups["text"].Value;
@@ -3222,7 +3171,88 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 	}
 
-	public async Task<string> ProcessChatInput(Hero npc, string playerMessage, Action<string> onPartialResponse = null)
+	/// <summary>
+	/// During an OpenRouter tool round, tools may store results on <paramref name="context"/> (see
+	/// <see cref="NPCContext.DeferredCharacterDeathFromTools"/> and <see cref="NPCContext.DeferredTechnicalActionFromTools"/>).
+	/// <see cref="OpenRouterDialogueJson.StripGameEffectKeys"/> removes those keys from the assistant JSON before deserialize in <c>NpcOpenRouterAssistantParser</c>;
+	/// this method copies deferrals onto <paramref name="aiResult"/> so <see cref="DialogManager"/> and death scheduling still see <see cref="AIResponse.CharacterDeath"/> and <see cref="AIResponse.TechnicalAction"/>.
+	/// </summary>
+	public static void ApplyNpcContextToolDeferralsToAiResponse(NPCContext context, AIResponse aiResult)
+	{
+		if (context == null || aiResult == null)
+			return;
+		if (context.DeferredCharacterDeathFromTools != null)
+		{
+			aiResult.CharacterDeath = context.DeferredCharacterDeathFromTools;
+			context.DeferredCharacterDeathFromTools = null;
+		}
+		if (!string.IsNullOrEmpty(context.DeferredTechnicalActionFromTools))
+		{
+			aiResult.TechnicalAction = context.DeferredTechnicalActionFromTools;
+			context.DeferredTechnicalActionFromTools = null;
+		}
+	}
+
+	/// <summary>Clears per-turn scratch from OpenRouter dialogue tools (<c>suspected_lie</c>, …).</summary>
+	public static void ClearNpcTurnDialogueTools(NPCContext context)
+	{
+		if (context == null)
+			return;
+		context.DialogueToolSuspectedLie = null;
+		context.DialogueToolDecision = null;
+		context.DialogueToolRomanceIntent = null;
+		context.DialogueToolThreatLevel = null;
+		context.DialogueToolEscalationState = null;
+		context.DialogueToolDeescalationAttempt = null;
+		context.DialogueToolAllowsLetters = null;
+		context.PendingQuestActionFromTools = null;
+	}
+
+	/// <summary>Merges OpenRouter dialogue tool results into <paramref name="aiResult"/> after deserialize (tools override duplicate JSON fields).</summary>
+	public static void ApplyNpcDialogueToolsToAiResponse(NPCContext context, AIResponse aiResult)
+	{
+		if (context == null || aiResult == null)
+			return;
+		if (context.DialogueToolSuspectedLie.HasValue)
+		{
+			aiResult.SuspectedLie = context.DialogueToolSuspectedLie.Value;
+			context.DialogueToolSuspectedLie = null;
+		}
+		if (!string.IsNullOrEmpty(context.DialogueToolDecision))
+		{
+			aiResult.Decision = context.DialogueToolDecision;
+			context.DialogueToolDecision = null;
+		}
+		if (!string.IsNullOrEmpty(context.DialogueToolRomanceIntent))
+		{
+			aiResult.RomanceIntent = context.DialogueToolRomanceIntent;
+			context.DialogueToolRomanceIntent = null;
+		}
+		if (context.DialogueToolThreatLevel != null)
+		{
+			aiResult.ThreatLevel = context.DialogueToolThreatLevel;
+			context.DialogueToolThreatLevel = null;
+		}
+		if (context.DialogueToolEscalationState != null)
+		{
+			aiResult.EscalationState = context.DialogueToolEscalationState;
+			context.DialogueToolEscalationState = null;
+		}
+		if (context.DialogueToolDeescalationAttempt.HasValue)
+		{
+			aiResult.DeescalationAttempt = context.DialogueToolDeescalationAttempt.Value;
+			context.DialogueToolDeescalationAttempt = null;
+		}
+		if (context.DialogueToolAllowsLetters.HasValue)
+		{
+			aiResult.AllowsLettersFromNPC = context.DialogueToolAllowsLetters;
+			context.DialogueToolAllowsLetters = null;
+		}
+	}
+
+	/// <summary>Runs one player turn in NPC chat. Returns the final assistant <b>message</b> body when complete.</summary>
+	/// <param name="notifyNpcMessagePreviewChanged">Optional; invoked when the NPC message preview for the chat bubble changes while the <b>message draft</b> is still growing.</param>
+	public async Task<string> ProcessChatInput(Hero npc, string playerMessage, Action<string> notifyNpcMessagePreviewChanged = null)
 	{
 		if (npc == null || string.IsNullOrEmpty(playerMessage))
 			return "";
@@ -3232,6 +3262,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		string faction = ((clan == null) ? null : ((object)clan.Name)?.ToString()) ?? "No faction";
 		NPCContext context = GetOrCreateNPCContext(npc);
 		UpdateContextData(context, npc);
+		ClearNpcTurnDialogueTools(context);
 		string heroDisplayName = ((object)Hero.MainHero?.Name)?.ToString() ?? "Player";
 		context.AddMessage(heroDisplayName + ": " + playerMessage);
 		SaveNPCContext(npcId, npc, context);
@@ -3240,37 +3271,43 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		context.PendingRelationChange = null;
 		context.PendingLiePenalty = null;
 		string prompt = PromptGenerator.GeneratePrompt(npc, context);
-		StringBuilder streamJsonBuilder = (onPartialResponse == null) ? null : new StringBuilder();
-		string lastStreamPreview = "";
-		Action<string> streamCallback = (onPartialResponse == null) ? null : (Action<string>)delegate(string streamDelta)
+		StringBuilder messageDraft = (notifyNpcMessagePreviewChanged == null) ? null : new StringBuilder();
+		string lastNpcMessagePreview = "";
+		Action<string> notifyMessageChunk = null;
+		if (notifyNpcMessagePreviewChanged != null)
 		{
-			streamJsonBuilder.Append(streamDelta ?? "");
-			string text = TryExtractStreamingResponseText(streamJsonBuilder.ToString());
-			if (!string.IsNullOrEmpty(text) && !string.Equals(text, lastStreamPreview, StringComparison.Ordinal))
+			void AppendMessageChunk(string messageChunk)
 			{
-				lastStreamPreview = text;
-				try
+				messageDraft.Append(messageChunk ?? "");
+				string text = GetNpcMessagePreview(messageDraft.ToString());
+				if (!string.IsNullOrEmpty(text) && !string.Equals(text, lastNpcMessagePreview, StringComparison.Ordinal))
 				{
-					onPartialResponse(text);
-				}
-				catch (Exception ex2)
-				{
-					LogMessage("[ChatWindow] Stream update callback failed: " + ex2.Message);
+					lastNpcMessagePreview = text;
+					try
+					{
+						notifyNpcMessagePreviewChanged(text);
+					}
+					catch (Exception ex2)
+					{
+						LogMessage("[ChatWindow] Stream update callback failed: " + ex2.Message);
+					}
 				}
 			}
-		};
+			notifyMessageChunk = AppendMessageChunk;
+		}
 		string aiResponse = null;
+		Func<string, string, Task<string>> toolExecutor = (name, args) => ExecuteChatTool(name, args, npc, context);
 		for (int attempt = 1; attempt <= 3; attempt++)
 		{
 			try
 			{
 				if (attempt > 1)
 				{
-					streamJsonBuilder?.Clear();
-					lastStreamPreview = "";
-					onPartialResponse?.Invoke("");
+					messageDraft?.Clear();
+					lastNpcMessagePreview = "";
+					notifyNpcMessagePreviewChanged?.Invoke("");
 				}
-				aiResponse = await AIClient.GetAIResponse(npcName, faction, prompt + "\nPlayer: " + playerMessage, streamCallback);
+				aiResponse = await AIClient.GetAIResponse(npcName, faction, prompt + "\nPlayer: " + playerMessage, notifyMessageChunk, toolExecutor);
 				if (!string.IsNullOrEmpty(aiResponse) && !aiResponse.StartsWith("Error:"))
 					break;
 				if (attempt < 3)
@@ -3285,32 +3322,14 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 		if (string.IsNullOrEmpty(aiResponse) || aiResponse.StartsWith("Error:"))
 			return "";
-		string cleaned = JsonCleaner.CleanJsonResponse(aiResponse);
-		AIResponse aiResult;
-		try
-		{
-			aiResult = JsonCleaner.IsValidJson(cleaned)
-				? JsonConvert.DeserializeObject<AIResponse>(cleaned)
-				: new AIResponse { Response = JsonCleaner.ExtractFallbackResponse(aiResponse, npcName), Decision = "none" };
-		}
-		catch (Exception)
-		{
-			aiResult = new AIResponse { Response = JsonCleaner.ExtractFallbackResponse(aiResponse, npcName), Decision = "none" };
-		}
+		AIResponse aiResult = NpcOpenRouterAssistantParser.Parse(aiResponse, npcName);
 		if (aiResult == null)
 			return "";
+		ApplyNpcContextToolDeferralsToAiResponse(context, aiResult);
+		ApplyNpcDialogueToolsToAiResponse(context, aiResult);
 		string reply = aiResult.Response ?? "";
 		context.LastInteractionTime = CampaignTime.Now;
 		context.InteractionCount++;
-		LogMessage("[DEBUG][CHAT_ACTION_AUDIT] ── AI response fields for chat window ──");
-		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] decision        = '{aiResult.Decision}'");
-		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] technical_action= '{aiResult.TechnicalAction}'");
-		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] money_transfer  = {(aiResult.MoneyTransfer != null ? $"action={aiResult.MoneyTransfer.Action} amount={aiResult.MoneyTransfer.Amount}" : "null")}");
-		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] item_transfers  = {(aiResult.ItemTransfers != null ? $"{aiResult.ItemTransfers.Count} item(s)" : "null")}");
-		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] kingdom_action  = '{aiResult.KingdomAction}'");
-		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] quest_action    = {(aiResult.QuestAction != null ? $"action={aiResult.QuestAction.Action}" : "null")}");
-		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] tone            = '{aiResult.Tone}'");
-		LogMessage($"[DEBUG][CHAT_ACTION_AUDIT] workshop_action = '{aiResult.WorkshopAction}'");
 		if (aiResult.CharacterDeath != null && aiResult.CharacterDeath.ShouldDie && CanNPCBeKilledThroughRoleplay(npc))
 		{
 			context.DeathReason = aiResult.CharacterDeath.DeathReason ?? "unknown causes";
@@ -3388,7 +3407,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		if (aiResult.ClaimedAge.HasValue) context.PlayerInfo.ClaimedAge = aiResult.ClaimedAge.Value;
 		if (aiResult.ClaimedGold > 0) context.PlayerInfo.ClaimedGold = aiResult.ClaimedGold;
 		context.PendingAIResponse = aiResult;
-		context.LastAIResponseJson = cleaned;
+		context.LastAIResponseJson = JsonConvert.SerializeObject(aiResult);
 		context.LastDynamicResponse = reply;
 		context.AddMessage(npcName + ": " + reply);
 		if (Campaign.Current?.ConversationManager != null)
@@ -3406,59 +3425,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			LogMessage("[ChatWindow] HandleAIDecision failed: " + ex3.Message);
 		}
-		context.LastTechnicalActionForDisplay = null;
-		if (!string.IsNullOrEmpty(aiResult.TechnicalAction) && !aiResult.TechnicalAction.Equals("none", StringComparison.OrdinalIgnoreCase))
-		{
-			context.LastTechnicalActionForDisplay = aiResult.TechnicalAction;
-			foreach (string action in aiResult.TechnicalAction.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
-			{
-				string[] parts = action.Trim().Split(new[] { ':' }, 2);
-				string actionName = parts[0].Trim();
-				string payload = parts.Length > 1 ? parts[1].Trim() : "";
-			bool isStop = payload.Equals("STOP", StringComparison.OrdinalIgnoreCase);
-			if (npc.IsPrisoner && !isStop)
-			{
-				LogMessage($"[TECHNICAL_ACTION] Skipping action '{actionName}' for prisoner {npc.Name}");
-				continue;
-			}
-			if (isStop)
-			{
-				AIActionManager.Instance?.StopAction(npc, actionName, showMessage: true);
-				LogMessage($"[TECHNICAL_ACTION] Stopped '{actionName}' for {npc.Name}");
-			}
-			else
-			{
-				AIActionManager.Instance?.StopAction(npc, actionName);
-			if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, actionName, payload) == true)
-				AIActionManager.Instance?.StartAction(npc, actionName);
-			}
-			}
-			aiResult.TechnicalAction = null;
-		}
-		if (aiResult.AllowsLettersFromNPC.HasValue && aiResult.AllowsLettersFromNPC.Value != context.AllowsLettersFromNPC)
-			context.AllowsLettersFromNPC = aiResult.AllowsLettersFromNPC.Value;
-		if (!string.IsNullOrEmpty(aiResult.RomanceIntent) && aiResult.RomanceIntent != "none")
-		{
-			context.LastRomanceInteractionDays = (int)CampaignTime.Now.ToDays;
-			context.RomanceLevel = Math.Min(100f, context.RomanceLevel + _random.Next(GlobalSettings<ModSettings>.Instance.MinRomanceChange, GlobalSettings<ModSettings>.Instance.MaxRomanceChange + 1) + (aiResult.RomanceIntent == "romance" ? 2 : 0));
-		}
-		if (!string.IsNullOrEmpty(aiResult.WorkshopAction) && aiResult.WorkshopAction.Equals("sell", StringComparison.OrdinalIgnoreCase))
-			ProcessWorkshopSale(npc, context, aiResult.WorkshopStringId, aiResult.WorkshopPrice);
-		if (aiResult.MoneyTransfer != null && aiResult.MoneyTransfer.Amount > 0)
-			ProcessMoneyTransfer(npc, context, aiResult.MoneyTransfer);
-		if (aiResult.ItemTransfers != null && aiResult.ItemTransfers.Count > 0)
-		{
-			context.PendingItemTransfersOpposedAttribute = aiResult.ItemTransfersOpposedAttribute
-				?? aiResult.ItemTransfers.FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.OpposedAttribute))?.OpposedAttribute;
-			ProcessItemTransfers(npc, context, aiResult.ItemTransfers);
-		}
-		if (!string.IsNullOrEmpty(aiResult.KingdomAction) && !aiResult.KingdomAction.Equals("none", StringComparison.OrdinalIgnoreCase))
-			ProcessKingdomAction(npc, aiResult, context);
-		if (aiResult.QuestAction != null && !string.IsNullOrEmpty(aiResult.QuestAction.Action))
-		{
-			QuestActionData capturedQuestAction = aiResult.QuestAction;
-			GetDelayedTaskManager().AddTask(5.0, delegate { try { ProcessQuestAction(npc, GetOrCreateNPCContext(npc), capturedQuestAction); } catch (Exception ex7) { LogMessage("[ERROR] Chat quest action failed: " + ex7.Message); } });
-		}
+		ApplyResponseMetadata(npc, npcName, context, aiResult);
 		if (aiResult.Tone == "positive")
 		{
 			int rel = _random.Next(GlobalSettings<ModSettings>.Instance.MinPositiveRelationChange, GlobalSettings<ModSettings>.Instance.MaxPositiveRelationChange + 1);
@@ -3481,6 +3448,30 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		if (decisionHandled && string.Equals(aiResult.Decision, "attack", StringComparison.OrdinalIgnoreCase))
 			InitiateCombatLogic(npc, context);
 		return reply;
+	}
+
+	private void ApplyResponseMetadata(Hero npc, string npcName, NPCContext context, AIResponse r)
+	{
+		if (r.AllowsLettersFromNPC.HasValue && r.AllowsLettersFromNPC.Value != context.AllowsLettersFromNPC) context.AllowsLettersFromNPC = r.AllowsLettersFromNPC.Value;
+		if (!string.IsNullOrEmpty(r.RomanceIntent) && !r.RomanceIntent.Equals("none", StringComparison.OrdinalIgnoreCase))
+		{
+			context.LastRomanceInteractionDays = (int)CampaignTime.Now.ToDays;
+			context.RomanceLevel = Math.Min(100f, context.RomanceLevel + _random.Next(GlobalSettings<ModSettings>.Instance.MinRomanceChange, GlobalSettings<ModSettings>.Instance.MaxRomanceChange + 1) + (r.RomanceIntent == "romance" ? 2 : 0));
+		}
+	}
+
+	private Task<string> ExecuteChatTool(string name, string argsJson, Hero npc, NPCContext context)
+	{
+		try
+		{
+			return Task.FromResult(ToolHandlers.Run(name, argsJson, npc, context, this));
+		}
+		catch (Exception ex)
+		{
+			ChatTools.ToolCallTelemetry.RaiseCompleted("npc_chat", name, argsJson, null, ex);
+			LogMessage("[ChatTool] " + name + ": " + ex.Message);
+			return Task.FromResult("error");
+		}
 	}
 
 	public async Task HandlePlayerDiplomaticInput()
@@ -6210,7 +6201,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			AIResponse snapshot = new AIResponse
 			{
 				KingdomAction = aiResult.KingdomAction,
-				KingdomActionReason = aiResult.KingdomActionReason
+				KingdomActionReason = aiResult.KingdomActionReason,
+				SettlementId = aiResult.SettlementId
 			};
 			string text = ((object)npc.Name)?.ToString() ?? "Unknown";
 			LogMessage("[KINGDOM_ACTION] Scheduled '" + snapshot.KingdomAction + "' from " + text + " to execute in 6 seconds.");

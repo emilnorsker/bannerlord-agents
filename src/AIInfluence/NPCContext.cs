@@ -88,10 +88,48 @@ public class NPCContext
 
 	public AIResponse PendingAIResponse { get; set; }
 
-	/// <summary>Technical action string captured before processing (for chat UI pills).</summary>
-	/// <summary>Technical action string captured before processing (for chat UI pills).</summary>
+	/// <summary>Last NPC map-command label shown in chat UI (follow, travel, etc.).</summary>
 	[JsonIgnore]
 	public string LastTechnicalActionForDisplay { get; set; }
+
+	/// <summary>
+	/// Temporary hold for roleplay death data from the OpenRouter <c>character_death</c> tool. Copied onto <see cref="AIResponse.CharacterDeath"/>
+	/// by <see cref="AIInfluenceBehavior.ApplyNpcContextToolDeferralsToAiResponse"/> before the rest of the mod runs.
+	/// </summary>
+	[JsonIgnore]
+	public CharacterDeathInfo DeferredCharacterDeathFromTools { get; set; }
+
+	/// <summary>
+	/// Temporary hold for the NPC map-command string from the OpenRouter <c>technical_action</c> tool (same text as <see cref="AIResponse.TechnicalAction"/>).
+	/// </summary>
+	[JsonIgnore]
+	public string DeferredTechnicalActionFromTools { get; set; }
+
+	/// <summary>Set by <c>quest_action</c> tool; applied when the chat UI finishes the typewriter and finalizes the NPC line (not during the async tool round).</summary>
+	[JsonIgnore]
+	public QuestActionData PendingQuestActionFromTools { get; set; }
+
+	/// <summary>OpenRouter dialogue tools: merged into <see cref="AIResponse"/> after deserialize (tools override JSON when set).</summary>
+	[JsonIgnore]
+	public bool? DialogueToolSuspectedLie { get; set; }
+
+	[JsonIgnore]
+	public string DialogueToolDecision { get; set; }
+
+	[JsonIgnore]
+	public string DialogueToolRomanceIntent { get; set; }
+
+	[JsonIgnore]
+	public string DialogueToolThreatLevel { get; set; }
+
+	[JsonIgnore]
+	public string DialogueToolEscalationState { get; set; }
+
+	[JsonIgnore]
+	public bool? DialogueToolDeescalationAttempt { get; set; }
+
+	[JsonIgnore]
+	public bool? DialogueToolAllowsLetters { get; set; }
 
 	public PendingRelationChange PendingRelationChange { get; set; }
 

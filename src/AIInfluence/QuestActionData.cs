@@ -10,6 +10,9 @@ public class QuestActionData
 	[JsonProperty("action")]
 	public string Action { get; set; }
 
+	[JsonProperty("category")]
+	public string Category { get; set; }
+
 	[JsonProperty("title")]
 	public string Title { get; set; }
 
