@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AIInfluence.Behaviors.AIActions;
 using AIInfluence;
+using AIInfluence.Services;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using TaleWorlds.CampaignSystem;
@@ -268,15 +270,15 @@ public static class ToolHandlers
 	private static string RunEscalationUpdate(string argsJson, NPCContext context)
 	{
 		JObject parsedArgs = ParseOrEmpty(argsJson);
-		JToken t = parsedArgs["threat_level"];
-		if (t != null && t.Type != JTokenType.Null)
-			context.DialogueToolThreatLevel = t.ToString();
-		t = parsedArgs["escalation_state"];
-		if (t != null && t.Type != JTokenType.Null)
-			context.DialogueToolEscalationState = t.ToString();
-		t = parsedArgs["deescalation_attempt"];
-		if (t != null && t.Type != JTokenType.Null)
-			context.DialogueToolDeescalationAttempt = t.Value<bool>();
+		JToken threatLevelToken = parsedArgs["threat_level"];
+		if (threatLevelToken != null && threatLevelToken.Type != JTokenType.Null)
+			context.DialogueToolThreatLevel = threatLevelToken.ToString();
+		JToken escalationStateToken = parsedArgs["escalation_state"];
+		if (escalationStateToken != null && escalationStateToken.Type != JTokenType.Null)
+			context.DialogueToolEscalationState = escalationStateToken.ToString();
+		JToken deescalationAttemptToken = parsedArgs["deescalation_attempt"];
+		if (deescalationAttemptToken != null && deescalationAttemptToken.Type != JTokenType.Null)
+			context.DialogueToolDeescalationAttempt = deescalationAttemptToken.Value<bool>();
 		return "ok";
 	}
 
@@ -335,7 +337,18 @@ public static class ToolHandlers
 		if (questAction != null)
 		{
 			questAction.Category = parsedArgs["category"]?.ToString();
-			behavior.ProcessQuestAction(npc, context, questAction);
+			QuestActionData capturedQuestAction = questAction;
+			MainThreadDispatcher.Queue.Enqueue(() =>
+			{
+				try
+				{
+					behavior.ProcessQuestAction(npc, context, capturedQuestAction);
+				}
+				catch (Exception ex)
+				{
+					behavior.LogMessage("[ERROR] Chat quest action failed: " + ex.Message);
+				}
+			});
 		}
 		return "ok";
 	}
