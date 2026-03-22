@@ -17,7 +17,7 @@
 
 | VM | Gauntlet |
 |----|----------|
-| `InfoSectionVM.GlyphLines` (`InfoGlyphLineVM`) | **World events:** `IsSkill` + `SkillIconVisualWidget`. **Party troops:** `IsClanParty*` flags drive **literal** `SPGeneral\Clan\party_troop_*_9` sprites in XML (same assets as clan → parties tab; VM string→`Sprite` bind is unreliable). |
+| `InfoSectionVM.GlyphLines` (`InfoGlyphLineVM`) | **World events:** `IsSkill` + `SkillIconVisualWidget`. **Party troops:** `IsTroopFormationGlyph` + `FormationClassIndex` (0–3) on `OrderFormationClassVisualBrushWidget` with brush `AIInfluence.ClanPartyFormationStrip` (clan parties tab `SPGeneral\Clan\party_troop_*_9` via brush layers / `SpriteData.GetSprite`). |
 | `InfoSectionVM.TextLines` (`TextItemVM`) | Plain rich-text bullets (no left glyph). |
 | `PartyFoodText` / `PartyFoodColor` + `ShowPartyFood` | Single optional line under the lists. |
 

@@ -4,15 +4,13 @@ using TaleWorlds.Library;
 namespace AIInfluence;
 
 /// <summary>
-/// One row: skill icon (world events) or clan party formation strip (literal SPGeneral\Clan\party_troop_* in XML) + text.
+/// One row: skill icon (world events) or clan party formation strip (OrderFormationClassVisualBrushWidget + AIInfluence.ClanPartyFormationStrip) + text.
 /// </summary>
 public sealed class InfoGlyphLineVM : ViewModel
 {
     private bool _isSkill;
-    private bool _isClanPartyInfantry;
-    private bool _isClanPartyRanged;
-    private bool _isClanPartyCavalry;
-    private bool _isClanPartyHorseArcher;
+    private bool _isTroopFormationGlyph;
+    private int _formationClassIndex;
     private string _skillId = "";
     private string _text = "";
     private string _color = "#C6AC8DFF";
@@ -31,54 +29,29 @@ public sealed class InfoGlyphLineVM : ViewModel
     }
 
     [DataSourceProperty]
-    public bool IsClanPartyInfantry
+    public bool IsTroopFormationGlyph
     {
-        get => _isClanPartyInfantry;
+        get => _isTroopFormationGlyph;
         set
         {
-            if (value == _isClanPartyInfantry)
+            if (value == _isTroopFormationGlyph)
                 return;
-            _isClanPartyInfantry = value;
-            OnPropertyChangedWithValue(value, nameof(IsClanPartyInfantry));
+            _isTroopFormationGlyph = value;
+            OnPropertyChangedWithValue(value, nameof(IsTroopFormationGlyph));
         }
     }
 
+    /// <summary>0–3 = Infantry…HorseArcher; matches TaleWorlds mission formation-class strip widget.</summary>
     [DataSourceProperty]
-    public bool IsClanPartyRanged
+    public int FormationClassIndex
     {
-        get => _isClanPartyRanged;
+        get => _formationClassIndex;
         set
         {
-            if (value == _isClanPartyRanged)
+            if (value == _formationClassIndex)
                 return;
-            _isClanPartyRanged = value;
-            OnPropertyChangedWithValue(value, nameof(IsClanPartyRanged));
-        }
-    }
-
-    [DataSourceProperty]
-    public bool IsClanPartyCavalry
-    {
-        get => _isClanPartyCavalry;
-        set
-        {
-            if (value == _isClanPartyCavalry)
-                return;
-            _isClanPartyCavalry = value;
-            OnPropertyChangedWithValue(value, nameof(IsClanPartyCavalry));
-        }
-    }
-
-    [DataSourceProperty]
-    public bool IsClanPartyHorseArcher
-    {
-        get => _isClanPartyHorseArcher;
-        set
-        {
-            if (value == _isClanPartyHorseArcher)
-                return;
-            _isClanPartyHorseArcher = value;
-            OnPropertyChangedWithValue(value, nameof(IsClanPartyHorseArcher));
+            _formationClassIndex = value;
+            OnPropertyChangedWithValue(value, nameof(FormationClassIndex));
         }
     }
 
@@ -129,26 +102,17 @@ public sealed class InfoGlyphLineVM : ViewModel
         return new InfoGlyphLineVM
         {
             IsSkill = true,
-            IsClanPartyInfantry = false,
-            IsClanPartyRanged = false,
-            IsClanPartyCavalry = false,
-            IsClanPartyHorseArcher = false,
+            IsTroopFormationGlyph = false,
+            FormationClassIndex = 0,
             SkillId = skillId ?? "",
             Text = text ?? "",
             Color = color ?? "#C6AC8DFF"
         };
     }
 
-    /// <summary>Clan → parties tab strips: literal sprite paths in <c>ChatInterface.xml</c> (engine resolves <c>Sprite</c> from string in prefab load, not from VM string binding).</summary>
+    /// <summary>Clan → parties tab strips: sprites resolved via brush layers (same paths as vanilla clan UI).</summary>
     public static InfoGlyphLineVM FromTroopFormation(FormationClass formation, int count)
     {
-        // AggregateTroopFormations only yields the four default classes; unknown values still get an icon (infantry strip).
-        bool inf = formation == FormationClass.Infantry;
-        bool rng = formation == FormationClass.Ranged;
-        bool cav = formation == FormationClass.Cavalry;
-        bool ha = formation == FormationClass.HorseArcher;
-        if (!inf && !rng && !cav && !ha)
-            inf = true;
         string label = formation switch
         {
             FormationClass.Infantry => "Infantry",
@@ -157,14 +121,15 @@ public sealed class InfoGlyphLineVM : ViewModel
             FormationClass.HorseArcher => "Horse archers",
             _ => "Troops"
         };
+        int idx = (int)formation;
+        if (idx < 0 || idx > 3)
+            idx = 0;
         return new InfoGlyphLineVM
         {
             IsSkill = false,
+            IsTroopFormationGlyph = true,
+            FormationClassIndex = idx,
             SkillId = "",
-            IsClanPartyInfantry = inf,
-            IsClanPartyRanged = rng,
-            IsClanPartyCavalry = cav,
-            IsClanPartyHorseArcher = ha,
             Text = $"{label} ({count})",
             Color = "#C6AC8DFF"
         };

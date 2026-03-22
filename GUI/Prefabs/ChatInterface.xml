@@ -351,15 +351,11 @@
                                                 <SkillIconVisualWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="40" SuggestedHeight="40"
                                                                        VerticalAlignment="Top" HorizontalAlignment="Left" MarginRight="6" MarginTop="2"
                                                                        IsVisible="@IsSkill" SkillId="@SkillId" UseSmallestVariation="true"/>
-                                                <!-- Clan screen party strips: literal sprite paths per formation (Gauntlet binds Sprite from string paths unreliably). -->
-                                                <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="32" SuggestedHeight="32"
-                                                        VerticalAlignment="Center" HorizontalAlignment="Left" MarginRight="6" Sprite="SPGeneral\Clan\party_troop_infantry_9" IsVisible="@IsClanPartyInfantry"/>
-                                                <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="32" SuggestedHeight="32"
-                                                        VerticalAlignment="Center" HorizontalAlignment="Left" MarginRight="6" Sprite="SPGeneral\Clan\party_troop_ranged_9" IsVisible="@IsClanPartyRanged"/>
-                                                <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="32" SuggestedHeight="32"
-                                                        VerticalAlignment="Center" HorizontalAlignment="Left" MarginRight="6" Sprite="SPGeneral\Clan\party_troop_cavalry_9" IsVisible="@IsClanPartyCavalry"/>
-                                                <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="32" SuggestedHeight="32"
-                                                        VerticalAlignment="Center" HorizontalAlignment="Left" MarginRight="6" Sprite="SPGeneral\Clan\party_troop_horse_archer_9" IsVisible="@IsClanPartyHorseArcher"/>
+                                                <!-- Clan parties tab strips: Brush resolves sprites via SpriteData (same as OrderFormationClassVisualBrushWidget in vanilla). -->
+                                                <OrderFormationClassVisualBrushWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="40" SuggestedHeight="40"
+                                                                                      VerticalAlignment="Top" HorizontalAlignment="Left" MarginRight="6" MarginTop="2"
+                                                                                      DoNotAcceptEvents="true" IsVisible="@IsTroopFormationGlyph"
+                                                                                      Brush="AIInfluence.ClanPartyFormationStrip" FormationClassValue="@FormationClassIndex"/>
                                                 <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" VerticalAlignment="Center"
                                                                 Brush="Encyclopedia.SubPage.Info.Text" Brush.FontSize="15" Brush.TextHorizontalAlignment="Left"
                                                                 Color="@Color" Text="@Text" IsDisabled="true"/>
