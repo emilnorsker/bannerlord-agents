@@ -145,11 +145,16 @@ Produced by repository search for `SendAIRequest`, `AIClient.Get`, `GetRawTextRe
 |------|------|---------|
 | `NpcChatWindowVM.cs` | (was ~736) | **Addressed** — logs `GetOrCreateNPCContext (playerHistoryIdx) failed` |
 | `NpcChatWindowManager.cs` | (was ~75) | **Addressed** — logs `EndConversation on close failed` |
-| `SubModule.cs` | 61–63, 77–79 | `catch (Exception) { }` around Harmony |
+| `SubModule.cs` | (was ~61–79) | **Addressed** — `System.Diagnostics.Debug.WriteLine` on Harmony patch failures (no `InformationManager` at module load) |
+| `DialogManager.cs` | (was ~417–421) | **Addressed** — `_behavior.LogMessage` on `Show` / `EndConversation` failures |
 
 **INF:** Whether those hide user-visible failures — depends on what exceptions occur.
 
 **SRC:** Post-`await` streaming finalize in `NpcChatWindowVM` runs on **`MainThreadDispatcher.Queue`** so it orders after enqueued partials and avoids finalizing on a thread-pool continuation before the pump starts.
+
+**SRC:** `ParseAIResponse` / similar helpers in **PlayerStatementAnalyzer**, **KingdomStatementGenerator**, **DynamicEventsGenerator**, **PostCombatEventCreator** guard with **`AIClient.IsRawTextFailureResponse`** before `Trim()` / JSON parse (same class of bug as **`DynamicEventsAnalyzer.ProcessAIResponse`** — null, `Error:`, `API key is missing.`).
+
+**SRC:** **DeathHistoryBehavior.ExtractHistoryText** JSON try/catch now logs instead of an empty `catch`.
 
 ---
 

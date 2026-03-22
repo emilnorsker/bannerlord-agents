@@ -57,8 +57,9 @@ public class SubModule : MBSubModuleBase
 		{
 			harmony.PatchAll();
 		}
-		catch (Exception)
+		catch (Exception ex)
 		{
+			System.Diagnostics.Debug.WriteLine("[AIInfluence] Harmony PatchAll failed: " + ex);
 		}
 		try
 		{
@@ -73,8 +74,9 @@ public class SubModule : MBSubModuleBase
 				}
 			}
 		}
-		catch (Exception)
+		catch (Exception ex)
 		{
+			System.Diagnostics.Debug.WriteLine("[AIInfluence] Optional Harmony patch (GetQuestsRelatedToSettlement) failed: " + ex);
 		}
 	}
 

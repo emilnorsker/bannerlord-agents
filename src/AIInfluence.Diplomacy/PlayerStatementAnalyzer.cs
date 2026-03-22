@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using AIInfluence.API;
 using AIInfluence.Diseases;
 using AIInfluence.DynamicEvents;
 using MCM.Abstractions.Base.Global;
@@ -437,6 +438,11 @@ public class PlayerStatementAnalyzer
 
 	private PlayerStatementResult ParseAIResponse(string aiResponse, Kingdom playerKingdom)
 	{
+		if (AIClient.IsRawTextFailureResponse(aiResponse))
+		{
+			DiplomacyLogger.Instance.Log("[PLAYER_ANALYZER] AI response missing or error: " + (aiResponse ?? "(null)"));
+			return null;
+		}
 		string text = "";
 		string text2 = "";
 		try

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using AIInfluence.API;
 using AIInfluence.Diseases;
 using AIInfluence.DynamicEvents;
 using AIInfluence.Util;
@@ -1886,6 +1887,11 @@ public class KingdomStatementGenerator
 	private KingdomStatement ParseAIResponse(string aiResponse, Kingdom kingdom, DynamicEvent diplomaticEvent)
 	{
 		//IL_03dd: Unknown result type (might be due to invalid IL or missing references)
+		if (AIClient.IsRawTextFailureResponse(aiResponse))
+		{
+			DiplomacyLogger.Instance.Log($"[STATEMENT_GEN] AI response missing or error for {kingdom.Name}: " + (aiResponse ?? "(null)"));
+			return null;
+		}
 		string text = "";
 		string text2 = "";
 		try

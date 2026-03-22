@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using AIInfluence.API;
 using AIInfluence.Diplomacy;
 using AIInfluence.Diseases;
 using AIInfluence.Util;
@@ -2458,6 +2459,11 @@ public class DynamicEventsGenerator
 
 	private DynamicEventsResponse ParseAIResponse(string aiResponse)
 	{
+		if (AIClient.IsRawTextFailureResponse(aiResponse))
+		{
+			DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS_GEN] AI response missing or error: " + (aiResponse ?? "(null)"));
+			return null;
+		}
 		try
 		{
 			string text = aiResponse.Trim();

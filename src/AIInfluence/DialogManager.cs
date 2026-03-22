@@ -414,11 +414,17 @@ public class DialogManager
 					NPCContext context = _behavior.GetOrCreateNPCContext(npc);
 					NpcChatWindowManager.Show(npc, context, onReturn: null);
 				}
-				catch (Exception)
+				catch (Exception ex)
 				{
-					// If Show() fails the conversation is parked at aiinfluence_processing.
-					// End it immediately so the player is not trapped.
-					try { Campaign.Current?.ConversationManager?.EndConversation(); } catch (Exception) { }
+					_behavior?.LogMessage("[DialogManager] NpcChatWindowManager.Show failed: " + ex.Message);
+					try
+					{
+						Campaign.Current?.ConversationManager?.EndConversation();
+					}
+					catch (Exception ex2)
+					{
+						_behavior?.LogMessage("[DialogManager] EndConversation after Show failure failed: " + ex2.Message);
+					}
 				}
 			});
 			SafeAddPlayerLine(starter, "aiinfluence_input", "aiinfluence_input", "aiinfluence_processing", "{=AIInfluence_PlayerThink}Speak", (OnConditionDelegate)(() => Hero.OneToOneConversationHero != null && IsNonCombatConversation(Hero.OneToOneConversationHero)), (OnConsequenceDelegate)delegate

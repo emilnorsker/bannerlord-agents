@@ -177,8 +177,9 @@ public class DeathHistoryBehavior : CampaignBehaviorBase
 				}
 			}
 		}
-		catch
+		catch (Exception ex)
 		{
+			AIInfluenceBehavior.Instance?.LogMessage("[DEATH_HISTORY] ExtractHistoryText JSON branch failed: " + ex.Message);
 		}
 		return RemoveJsonFromText(input);
 	}
