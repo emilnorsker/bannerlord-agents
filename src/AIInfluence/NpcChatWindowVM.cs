@@ -717,6 +717,7 @@ public class NpcChatWindowVM : ViewModel
 
         string playerName = ((object)Hero.MainHero?.Name)?.ToString() ?? "You";
 
+        bool releaseSendLockInFinally = true;
         try
         {
             if (AIInfluenceBehavior.Instance == null)
@@ -801,6 +802,8 @@ public class NpcChatWindowVM : ViewModel
                     }
                 });
             });
+            // Keep _isSending true until doFinalize runs so a second send cannot start ProcessChatInput
+            // and ClearNpcTurnDialogueTools before quest_action is applied (see ApplyPendingQuestActionFromTools).
             if (!string.IsNullOrEmpty(reply))
             {
                 // Call GetOrCreateNPCContext once — avoids two off-thread calls and a
@@ -885,10 +888,16 @@ public class NpcChatWindowVM : ViewModel
                     {
                         AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] UI mutation after reply failed: " + ex.Message);
                     }
+                    finally
+                    {
+                        _isSending = false;
+                        ((ViewModel)this).OnPropertyChangedWithValue(true, "IsSendEnabled");
+                    }
                 };
 
                 if (streamingItem != null)
                 {
+                    releaseSendLockInFinally = false;
                     // Let the typewriter pump finish animating to the full reply, then finalize.
                     finalizeNpcMessage = doFinalize;
                     streamingTargetText = reply;
@@ -901,6 +910,7 @@ public class NpcChatWindowVM : ViewModel
                 else
                 {
                     doFinalize();
+                    releaseSendLockInFinally = false;
                 }
             }
             else
@@ -929,8 +939,11 @@ public class NpcChatWindowVM : ViewModel
         }
         finally
         {
-            _isSending = false;
-            ((ViewModel)this).OnPropertyChangedWithValue(true, "IsSendEnabled");
+            if (releaseSendLockInFinally)
+            {
+                _isSending = false;
+                ((ViewModel)this).OnPropertyChangedWithValue(true, "IsSendEnabled");
+            }
         }
     }
 
