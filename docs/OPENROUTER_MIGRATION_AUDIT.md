@@ -72,25 +72,11 @@ Read: full file `src/AIInfluence.API/AIClient.cs` (305 lines).
 
 ---
 
-## 4. `SendAIRequest` predicate — **SRC**
+## 4. `SendAIRequest` / dialogue failure detection — **SRC** (addressed)
 
-`src/AIInfluence/AIInfluenceBehavior.cs` lines 215–222:
+`AIClient.IsDialogueFailureResponse` / `IsRawTextFailureResponse` classify **`GetAIResponse`** JSON envelopes (`ai_error`, legacy `response` text) and **raw** paths (`Error:`, `API key is missing.`). `SendAIRequest` uses them instead of **`StartsWith("Error:")`** alone. `ProcessChatInput` retry / empty guards use **`IsDialogueFailureResponse`** for **`GetAIResponse`** results.
 
-```csharp
-if (!string.IsNullOrEmpty(response) && !response.StartsWith("Error:"))
-{
-    LogMessage("[SEND_AI_REQUEST_SUCCESS] ...");
-    return response;
-}
-LogMessage("[SEND_AI_REQUEST_ERROR] ...");
-return null;
-```
-
-**SRC:** Any string returned from `GetAIResponse` that is **`GenerateErrorResponse` JSON** begins with `{`, not `"Error:"`. Therefore `!response.StartsWith("Error:")` is **true** for that failure mode, and the method takes the **first** branch and logs **SUCCESS** (lines 217–218).
-
-**INF:** Callers that only use `StartsWith("Error:")` to detect failure may **not** treat JSON error envelopes as errors.
-
-**NRV:** Whether this mismatch existed **before** the OpenRouter-only branch (requires `git blame` / old `AIClient`).
+**SRC:** `GenerateErrorResponse` sets **`AiError = true`** on `AIResponse` (serialized as **`ai_error`**).
 
 ---
 

@@ -212,7 +212,10 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			LogMessage($"[SEND_AI_REQUEST] Длина промта: {prompt.Length} символов");
 			string response = ((!(requestType == "multi_dialogue_analysis")) ? (await AIClient.GetAIResponse("System", "Analysis", prompt)) : (await AIClient.GetRawTextResponse(prompt)));
 			LogMessage($"[SEND_AI_REQUEST] Получен ответ от ИИ для '{requestType}': {response?.Length ?? 0} символов");
-			if (!string.IsNullOrEmpty(response) && !response.StartsWith("Error:"))
+			bool ok = (requestType == "multi_dialogue_analysis")
+				? !AIClient.IsRawTextFailureResponse(response)
+				: !AIClient.IsDialogueFailureResponse(response);
+			if (ok)
 			{
 				LogMessage("[SEND_AI_REQUEST_SUCCESS] Успешный ответ для " + requestType);
 				LogMessage("[SEND_AI_REQUEST_FULL_RESPONSE] Полный ответ: " + response);
@@ -2791,7 +2794,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			try
 			{
 				aiResponse = await AIClient.GetAIResponse(npcName, faction, prompt + "\nPlayer: " + playerInput);
-				if (!string.IsNullOrEmpty(aiResponse) && !aiResponse.StartsWith("Error:"))
+				if (!string.IsNullOrEmpty(aiResponse) && !AIClient.IsDialogueFailureResponse(aiResponse))
 				{
 					break;
 				}
@@ -2815,7 +2818,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				continue;
 			}
 		}
-		if (string.IsNullOrEmpty(aiResponse) || aiResponse.StartsWith("Error:"))
+		if (string.IsNullOrEmpty(aiResponse) || AIClient.IsDialogueFailureResponse(aiResponse))
 		{
 			InformationManager.DisplayMessage(new InformationMessage(((object)new TextObject("{=AIInfluence_AIError}{npcName} is silent, as if lost in thought. Try again later.", new Dictionary<string, object> { { "npcName", npcName } })).ToString(), Colors.Yellow));
 			LogMessage("[ERROR] AI response error: " + (aiResponse ?? "Empty response"));
@@ -3267,7 +3270,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					onPartialResponse?.Invoke("");
 				}
 				aiResponse = await AIClient.GetAIResponse(npcName, faction, prompt + "\nPlayer: " + playerMessage, streamCallback);
-				if (!string.IsNullOrEmpty(aiResponse) && !aiResponse.StartsWith("Error:"))
+				if (!string.IsNullOrEmpty(aiResponse) && !AIClient.IsDialogueFailureResponse(aiResponse))
 					break;
 				if (attempt < 3)
 					await Task.Delay(1000 * attempt);
@@ -3279,7 +3282,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					await Task.Delay(1000 * attempt);
 			}
 		}
-		if (string.IsNullOrEmpty(aiResponse) || aiResponse.StartsWith("Error:"))
+		if (string.IsNullOrEmpty(aiResponse) || AIClient.IsDialogueFailureResponse(aiResponse))
 			return "";
 		string cleaned = JsonCleaner.CleanJsonResponse(aiResponse);
 		AIResponse aiResult;
