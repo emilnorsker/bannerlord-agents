@@ -49,10 +49,68 @@ public class NpcChatWindowVM : ViewModel
     [DataSourceProperty] public string SkillsText { get; set; } = "";
     [DataSourceProperty] public bool HasAnySkills { get; set; }
 
-    // ── Chat column header (relation / trust / mood) ─────────────────────
-    [DataSourceProperty] public string RelationText { get; set; } = "";
-    [DataSourceProperty] public string RelationColor { get; set; } = "#FFFFFFFF";
-    [DataSourceProperty] public string TrustLabel { get; set; } = "";
+    // ── Chat column header (relation / trust / mood) — sliders use SPOptions-style bars in XML ──
+    private float _relationValueFloat;
+    private float _trustPercentFloat;
+    private string _relationValueText = "0";
+    private string _trustPercentText = "0%";
+
+    /// <summary>Relation slider value in [-100, 100] (clamped from campaign relation).</summary>
+    [DataSourceProperty]
+    public float RelationValueFloat
+    {
+        get => _relationValueFloat;
+        set
+        {
+            if (Math.Abs(value - _relationValueFloat) < 0.001f)
+                return;
+            _relationValueFloat = value;
+            OnPropertyChangedWithValue(value, nameof(RelationValueFloat));
+        }
+    }
+
+    /// <summary>Trust slider value in [0, 100] (<see cref="NPCContext.TrustLevel"/> × 100).</summary>
+    [DataSourceProperty]
+    public float TrustPercentFloat
+    {
+        get => _trustPercentFloat;
+        set
+        {
+            if (Math.Abs(value - _trustPercentFloat) < 0.001f)
+                return;
+            _trustPercentFloat = value;
+            OnPropertyChangedWithValue(value, nameof(TrustPercentFloat));
+        }
+    }
+
+    [DataSourceProperty]
+    public string RelationValueText
+    {
+        get => _relationValueText;
+        set
+        {
+            value ??= "";
+            if (value == _relationValueText)
+                return;
+            _relationValueText = value;
+            OnPropertyChangedWithValue(value, nameof(RelationValueText));
+        }
+    }
+
+    [DataSourceProperty]
+    public string TrustPercentText
+    {
+        get => _trustPercentText;
+        set
+        {
+            value ??= "";
+            if (value == _trustPercentText)
+                return;
+            _trustPercentText = value;
+            OnPropertyChangedWithValue(value, nameof(TrustPercentText));
+        }
+    }
+
     [DataSourceProperty] public string EmotionLabel { get; set; } = "";
 
     // ── Center ────────────────────────────────────────────────────────────
@@ -159,21 +217,29 @@ public class NpcChatWindowVM : ViewModel
 
     private void PopulateTraitOverlay(Hero npc, NPCContext context)
     {
-        int relation = (int)npc.GetRelation(Hero.MainHero);
-        string label = relation >= 20 ? "Friendly" : relation >= 0 ? "Neutral" : relation >= -20 ? "Cautious" : "Hostile";
-        RelationText = $"{label} ({relation:+#;-#;0})";
-        RelationColor = relation >= 0 ? "#6FCF6FFF" : "#CF6F6FFF";
-        float trust = context?.TrustLevel ?? 0f;
-        TrustLabel = trust >= 0.6f ? "High Trust" : trust >= 0.3f ? "Moderate Trust" : "Low Trust";
+        int relRaw = (int)npc.GetRelation(Hero.MainHero);
+        float rel = relRaw;
+        if (rel > 100f)
+            rel = 100f;
+        if (rel < -100f)
+            rel = -100f;
+        RelationValueFloat = rel;
+        RelationValueText = $"{(int)rel:+#;-#;0}";
+
+        float trust01 = context?.TrustLevel ?? 0f;
+        if (trust01 < 0f)
+            trust01 = 0f;
+        if (trust01 > 1f)
+            trust01 = 1f;
+        TrustPercentFloat = trust01 * 100f;
+        TrustPercentText = $"{trust01 * 100f:F0}%";
+
         EmotionLabel = context?.EmotionalState?.Mood ?? "";
     }
 
     private void RefreshTraitOverlay(Hero npc, NPCContext context)
     {
         PopulateTraitOverlay(npc, context);
-        ((ViewModel)this).OnPropertyChangedWithValue<string>(RelationText, "RelationText");
-        ((ViewModel)this).OnPropertyChangedWithValue<string>(RelationColor, "RelationColor");
-        ((ViewModel)this).OnPropertyChangedWithValue<string>(TrustLabel, "TrustLabel");
         ((ViewModel)this).OnPropertyChangedWithValue<string>(EmotionLabel, "EmotionLabel");
     }
 
