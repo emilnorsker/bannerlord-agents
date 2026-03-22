@@ -898,11 +898,7 @@ public class NpcChatWindowVM : ViewModel
                     {
                         // Let the typewriter pump finish animating to the full reply, then finalize.
                         finalizeNpcMessage = doFinalize;
-                        if (streamPumpStep != null)
-                        {
-                            streamPumpActive = true;
-                            streamPumpStep();
-                        }
+                        // Pump already running; taskManager will tick it — do not call streamPumpStep() again (would double speed).
                     }
                 }
                 else
