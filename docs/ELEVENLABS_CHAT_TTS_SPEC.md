@@ -12,7 +12,7 @@ The mod does **not** have one generic “speak this string” pipeline. Any desi
 
 **NPC Chat path (this document’s focus)** — Audio tied to **player↔NPC chat window** output: streamed or final `response` text from the **NPC Chat** LLM completion, typewriter-visible text, and optional **player-typed** line. Snapshots are **conversation-scoped** (current `Hero`, current NPC, and the **native voice attributes** those entities use for lookup). If ElevenLabs is used here, API keys and rate limits are **mod** policy; **`voice_id`** values come from the **lookup table**, not from the LLM.
 
-**Other TTS paths (out of scope unless explicitly bridged)** — Examples: **Player2**-backed flows (`PrepareAsync` / initiative / “NPC ready”), **mission conversation** audio, or any future surface. They may keep **different** backends, **lip-sync** (rhubarb), and **different** threading assumptions. **Do not** silently merge those paths with NPC Chat without a written decision in this doc’s “Bridging” section.
+**Other TTS paths (out of scope unless explicitly bridged)** — Examples: **NPC initiative** (“NPC ready”) flows, **mission conversation** audio, or any future surface. They may use **different** providers, **optional lip-sync** in a future slice, and **different** threading assumptions. **Do not** silently merge those paths with NPC Chat without a written decision in this doc’s “Bridging” section.
 
 In the rest of this document, **utterance** means **one speakable unit** our system sends to a provider for the **NPC Chat path** only.
 
@@ -20,7 +20,7 @@ In the rest of this document, **utterance** means **one speakable unit** our sys
 
 ## What we are actually building
 
-We are **not** simulating dialogue. We are adding a **bounded audio channel**: text that the player already sees (or will see under defined rules) is converted to **PCM/OGG (or provider-native)** and played via the same **main-thread** playback hook the mod already uses (`OnConversationPlay` or successor), with **no requirement** for rhubarb/lip-sync on the **new chat UI** path unless a future slice explicitly re-enables it.
+We are **not** simulating dialogue. We are adding a **bounded audio channel**: text that the player already sees (or will see under defined rules) is converted to **PCM/OGG (or provider-native)** and played via the same **main-thread** playback hook the mod already uses (`OnConversationPlay` or successor), with **no requirement** for third-party lip-sync tooling on the **new chat UI** path unless a future slice explicitly adds it.
 
 The **LLM** produces **text** (and any JSON the chat feature already uses). The **TTS provider** produces **audio**. **Our system** (mod code + data) decides **when** a clip is requested, **how** `voice_id` is resolved (see **Voice resolution**), and **when** playback starts. The model does **not** output ElevenLabs `voice_id` strings.
 
@@ -28,11 +28,11 @@ The **LLM** produces **text** (and any JSON the chat feature already uses). The 
 
 ## Hard constraints from Bannerlord + this mod
 
-1. **Campaign / UI mutation** (including starting sound playback that touches `CampaignMission` or Gauntlet-bound state) belongs on expectations aligned with **existing** `TtsLipSyncService.MainThreadQueue` usage — **do not** call `PlayPrepared` from arbitrary thread-pool threads without enqueueing to the main thread if current engine behavior requires it.
+1. **Campaign / UI mutation** (including starting sound playback that touches `CampaignMission` or Gauntlet-bound state) must follow the same **main-thread marshaling** pattern as the rest of the mod: enqueue onto **`MainThreadDispatch.MainThreadQueue`** (see `AIClient` streaming, `NpcChatWindowVM`, `AIInfluenceBehavior` tick dequeue). **Do not** invoke conversation/UI/audio entry points from arbitrary thread-pool threads without that queue (or an equivalent documented hook).
 
 2. **Network** (ElevenLabs HTTP/WebSocket) stays **async** on worker threads. **Never** block the main simulation thread waiting on `HttpClient`.
 
-3. **New chat UI path:** **lip-sync / rhubarb is not a goal** for the initial NPC Chat ElevenLabs slice. Clips should set **`UseAnimations = false`** (or equivalent) so playback is **audio-first**. Re-enabling lip-sync is a **separate slice** with its own performance and UX acceptance.
+3. **New chat UI path:** **Lip-sync** is **not** a goal for the initial NPC Chat ElevenLabs slice. Playback should be **audio-first** (skip body/lip-sync animation hooks unless a future slice wires them). Re-enabling lip-sync is a **separate slice** with its own performance and UX acceptance.
 
 4. **Errors must not be swallowed** in a way that hides provider or serialization failures from logs; mod log should record HTTP status, truncated body, and correlation context (e.g. NPC id, chunk index).
 
@@ -88,7 +88,7 @@ When a **new** committed chunk appears (or an existing committed chunk’s **tex
 
 - **Rate limits** (provider + fair use),
 - **Cancellation** when the user sends a new message or leaves the chat,
-- **Generation id** (`_gen` or equivalent): completions from stale generations must **not** write into current `TtsPreparedData` slots.
+- **Generation id** (`_gen` or equivalent): completions from stale generations must **not** write into current **prepared-audio** slots for the active chat session (whatever structure the implementation uses; name is illustrative).
 
 **Invalidation:** If chunk *i* changes, cancel or ignore in-flight work for indices `>= i`, clear prepared audio slots `>= i`, and re-queue prefetch.
 
@@ -141,8 +141,8 @@ When a clip **fails** (HTTP 4xx/5xx, empty body, invalid PCM), the next **observ
 
 ## Explicitly out of scope (initial delivery)
 
-- **Lip-sync / rhubarb** for NPC Chat ElevenLabs path.
-- **Synching** NPC Chat TTS with **Player2** initiative TTS in one queue (unless a slice says so).
+- **Lip-sync** for the NPC Chat ElevenLabs path (audio-only first).
+- **Synching** NPC Chat TTS with **other** mod audio surfaces (e.g. initiative / mission) in one unified queue (unless a slice explicitly defines bridging).
 - **Per-token** alignment between LLM tokenizer and TTS (chunks are **string/sentence**-based).
 - **MissionGM** or **non-chat** surfaces.
 - **Automatic** voice cloning from Bannerlord native assets.
@@ -166,7 +166,7 @@ Later slices assume earlier unless noted. **None are “done”** until explicit
 | **1** | **Config + secret** | Decide MCM vs constants; store API key safely; document in mod hint text. |
 | **1b** | **Voice lookup table** | `ModuleData` JSON (or equivalent): native attribute keys → ElevenLabs `voice_id`; narrator profile row(s); load/validate at startup; used by `ResolveVoiceId`. |
 | **2** | **HTTP client minimal** | One method: `voice_id`, `text`, `model_id`, `output_format` → `byte[]` PCM on thread pool; structured errors logged. |
-| **3** | **PCM → playable file** | Reuse or add **one** small path: PCM → OGG, `UseAnimations=false`, enqueue `PlayPrepared` on main thread. |
+| **3** | **PCM → playable file** | Reuse or add **one** small path: PCM → playable asset, **audio-first** playback, enqueue **playback start** on the main thread via **`MainThreadDispatch`** (same pattern as existing UI callbacks). |
 | **4** | **Chunk parser unit** | Pure function: `(string partial, bool llm_done) → List<Chunk>` with rules in **Committed chunks**; each chunk carries **role** for voice resolution; golden tests or fixed strings in dev menu. |
 | **5** | **Prefetch + generation id** | On chunk list change, parallel fetch; stale generation discarded. |
 | **6** | **Typewriter cap** | `visible_length` bounded by `committed_end` until `llm_done`; pump schedules retries when stalled. |
