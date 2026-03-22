@@ -331,25 +331,25 @@ public static class AIClient
 	{
 		foreach (JToken token in deltaToolCalls)
 		{
-			JObject tc = token as JObject;
-			if (tc == null) continue;
-			int index = tc["index"]?.Value<int>() ?? 0;
+			JObject toolCallObject = token as JObject;
+			if (toolCallObject == null) continue;
+			int index = toolCallObject["index"]?.Value<int>() ?? 0;
 			if (!toolByIndex.TryGetValue(index, out ToolCallPart part))
 			{
 				part = new ToolCallPart();
 				toolByIndex[index] = part;
 			}
-			if (tc["id"] != null)
-				part.Id = tc["id"].ToString();
-			if (tc["type"] != null)
-				part.Type = tc["type"].ToString();
-			JObject fn = tc["function"] as JObject;
-			if (fn == null)
+			if (toolCallObject["id"] != null)
+				part.Id = toolCallObject["id"].ToString();
+			if (toolCallObject["type"] != null)
+				part.Type = toolCallObject["type"].ToString();
+			JObject functionObject = toolCallObject["function"] as JObject;
+			if (functionObject == null)
 				continue;
-			if (fn["name"] != null)
-				part.Name = fn["name"].ToString();
-			if (fn["arguments"] != null)
-				part.Arguments.Append(fn["arguments"].ToString());
+			if (functionObject["name"] != null)
+				part.Name = functionObject["name"].ToString();
+			if (functionObject["arguments"] != null)
+				part.Arguments.Append(functionObject["arguments"].ToString());
 		}
 	}
 
@@ -358,17 +358,17 @@ public static class AIClient
 		if (toolByIndex.Count > 0)
 		{
 			JArray arr = new JArray();
-			foreach (KeyValuePair<int, ToolCallPart> kv in toolByIndex.OrderBy(k => k.Key))
+			foreach (KeyValuePair<int, ToolCallPart> indexedPart in toolByIndex.OrderBy(entry => entry.Key))
 			{
-				ToolCallPart t = kv.Value;
+				ToolCallPart toolCallPart = indexedPart.Value;
 				arr.Add(new JObject
 				{
-					["id"] = t.Id ?? "",
-					["type"] = t.Type ?? "function",
+					["id"] = toolCallPart.Id ?? "",
+					["type"] = toolCallPart.Type ?? "function",
 					["function"] = new JObject
 					{
-						["name"] = t.Name ?? "",
-						["arguments"] = t.Arguments.ToString()
+						["name"] = toolCallPart.Name ?? "",
+						["arguments"] = toolCallPart.Arguments.ToString()
 					}
 				});
 			}
@@ -417,10 +417,10 @@ public static class AIClient
 				JToken choice0 = chunk["choices"]?[0];
 				if (choice0 == null)
 					continue;
-				string fr = choice0["finish_reason"]?.ToString();
-				if (!string.IsNullOrEmpty(fr))
-					finishReason = fr;
-				if (string.Equals(fr, "error", StringComparison.OrdinalIgnoreCase))
+				string finishReasonValue = choice0["finish_reason"]?.ToString();
+				if (!string.IsNullOrEmpty(finishReasonValue))
+					finishReason = finishReasonValue;
+				if (string.Equals(finishReasonValue, "error", StringComparison.OrdinalIgnoreCase))
 					throw new InvalidOperationException("OpenRouter stream terminated with finish_reason=error.");
 				JObject delta = choice0["delta"] as JObject;
 				if (delta == null)
@@ -431,8 +431,8 @@ public static class AIClient
 					content.Append(text);
 					notifyContentDelta?.Invoke(text);
 				}
-				if (collectToolCallDeltas && delta["tool_calls"] is JArray tca)
-					MergeToolCallDeltas(tca, toolByIndex);
+				if (collectToolCallDeltas && delta["tool_calls"] is JArray toolCallsDelta)
+					MergeToolCallDeltas(toolCallsDelta, toolByIndex);
 			}
 		}
 		if (collectToolCallDeltas && toolByIndex.Count > 0 && !string.IsNullOrEmpty(finishReason) && !string.Equals(finishReason, "tool_calls", StringComparison.OrdinalIgnoreCase))
