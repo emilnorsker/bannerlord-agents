@@ -4,7 +4,7 @@ using TaleWorlds.Core;
 namespace AIInfluence;
 
 /// <summary>
-/// World event info rows: <see cref="DynamicEvent.Type"/> → skill icon; <see cref="DynamicEvent.Importance"/> → left/right background gradient.
+/// World event info rows: <see cref="DynamicEvent.Type"/> → skill icon; <see cref="DynamicEvent.Importance"/> → two-tone split tint (two half-width quads, not a blended gradient).
 /// </summary>
 internal static class WorldEventGlyphHelper
 {
@@ -36,8 +36,8 @@ internal static class WorldEventGlyphHelper
         }
     }
 
-    /// <summary>Left→right gradient behind the row; <paramref name="importance"/> is typically 1–10 (clamped).</summary>
-    public static void GetSeverityGradientColors(int importance, out string left, out string right)
+    /// <summary>Left/right tint colors for a 50/50 split row underlay; <paramref name="importance"/> is typically 1–10 (clamped).</summary>
+    public static void GetSeveritySplitTintColors(int importance, out string left, out string right)
     {
         float t = (Math.Max(1, Math.Min(10, importance)) - 1) / 9f;
         // Low importance: cooler/dimmer greens; high: warmer reds (left slightly darker than right).

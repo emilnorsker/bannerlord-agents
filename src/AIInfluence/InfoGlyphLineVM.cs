@@ -13,7 +13,7 @@ public sealed class InfoGlyphLineVM : ViewModel
     private string _color = "#C6AC8DFF";
     private string _backgroundColorLeft = "#00000000";
     private string _backgroundColorRight = "#00000000";
-    private bool _hasGradientBackground;
+    private bool _hasSplitTintBackground;
 
     [DataSourceProperty]
     public bool IsSkill
@@ -70,7 +70,7 @@ public sealed class InfoGlyphLineVM : ViewModel
         }
     }
 
-    /// <summary>Left half of row background (world events: severity gradient).</summary>
+    /// <summary>Left half of the split-tint underlay (world events).</summary>
     [DataSourceProperty]
     public string BackgroundColorLeft
     {
@@ -85,7 +85,7 @@ public sealed class InfoGlyphLineVM : ViewModel
         }
     }
 
-    /// <summary>Right half of row background (world events: severity gradient).</summary>
+    /// <summary>Right half of the split-tint underlay (world events).</summary>
     [DataSourceProperty]
     public string BackgroundColorRight
     {
@@ -100,16 +100,17 @@ public sealed class InfoGlyphLineVM : ViewModel
         }
     }
 
+    /// <summary>True when the row uses the two-tone underlay (50/50 quads), not a continuous gradient.</summary>
     [DataSourceProperty]
-    public bool HasGradientBackground
+    public bool HasSplitTintBackground
     {
-        get => _hasGradientBackground;
+        get => _hasSplitTintBackground;
         set
         {
-            if (value == _hasGradientBackground)
+            if (value == _hasSplitTintBackground)
                 return;
-            _hasGradientBackground = value;
-            OnPropertyChangedWithValue(value, nameof(HasGradientBackground));
+            _hasSplitTintBackground = value;
+            OnPropertyChangedWithValue(value, nameof(HasSplitTintBackground));
         }
     }
 
@@ -134,7 +135,7 @@ public sealed class InfoGlyphLineVM : ViewModel
             Color = textColor ?? "#C6AC8DFF",
             BackgroundColorLeft = backgroundLeft ?? "#00000000",
             BackgroundColorRight = backgroundRight ?? "#00000000",
-            HasGradientBackground = true
+            HasSplitTintBackground = true
         };
     }
 }

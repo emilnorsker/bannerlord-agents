@@ -356,9 +356,10 @@
                                         <ListPanel DataSource="{GlyphLines}" IsVisible="@HasGlyphLines" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                    StackLayout.LayoutMethod="VerticalBottomToTop" Spacing="8" MarginLeft="0" MarginRight="0" MarginTop="0" MarginBottom="0">
                                           <ItemTemplate>
+                                            <!-- Split tint: two abutting half-width quads (not a blended gradient). -->
                                             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren">
                                               <Children>
-                                                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" IsVisible="@HasGradientBackground"
+                                                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" IsVisible="@HasSplitTintBackground"
                                                            StackLayout.LayoutMethod="HorizontalLeftToRight" DoNotAcceptEvents="true">
                                                   <Children>
                                                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare_9" Color="@BackgroundColorLeft"/>

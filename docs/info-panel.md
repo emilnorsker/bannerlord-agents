@@ -8,7 +8,7 @@
 | 2 | Character history | AI `character_backstory` → `NPCContext.AIGeneratedBackstory` (`TextLines`; newline-split). Roguery. |
 | 3 | Behavior          | AI personality, quirks, speech, mood (`TextLines`). Steward. |
 | 4 | Quests            | Active / incoming AI quests (`TextLines` only). Trade. |
-| 5 | World events      | Recent dynamic events (`GlyphLines`): icon from `DynamicEvent.Type` (political/military/economic/local/rumor/news/social, etc. → `DefaultSkills`); left→right severity gradient from `Importance`. Section header icon: Scouting. “None” uses `TextLines`. |
+| 5 | World events      | Recent dynamic events (`GlyphLines`): icon from `DynamicEvent.Type` (political/military/economic/local/rumor/news/social, etc. → `DefaultSkills`); **two-tone split tint** from `Importance` (int): two half-width `BlankWhiteSquare_9` quads, left darker than right — **not** a smooth gradient. Section header icon: Scouting. “None” uses `TextLines`. |
 | 6 | NPC party info    | Vanilla-style troop count strip (`ShowPartyTroopStrip` + `InfantryCount`…`HorseArcherCount`, same layout as Clan → Parties detail) + optional food line. Leadership. |
 
 `SectionPanelColor` is a **single** subtle tint for all sections (encyclopedia frame provides the main chrome; no alternating zebra).
@@ -17,7 +17,7 @@
 
 | VM | Gauntlet |
 |----|----------|
-| `InfoSectionVM.GlyphLines` (`InfoGlyphLineVM`) | **World events only:** `IsSkill` + `SkillIconVisualWidget` + text; optional `HasGradientBackground` + `BackgroundColorLeft` / `BackgroundColorRight` (two half-width `BlankWhiteSquare_9` underlay). |
+| `InfoSectionVM.GlyphLines` (`InfoGlyphLineVM`) | **World events only:** `IsSkill` + `SkillIconVisualWidget` + text; optional `HasSplitTintBackground` + `BackgroundColorLeft` / `BackgroundColorRight` (50/50 split tint underlay). |
 | `ShowPartyTroopStrip` + `InfantryCount` / `RangedCount` / `CavalryCount` / `HorseArcherCount` + `InfantryHint`…`HorseArcherHint` (`HintViewModel`) | **NPC party info:** same widget tree as vanilla `ClanPartiesRightPanel` `TroopCountsParent` / `TroopCountsList` — `General\TroopTypeIcons\icon_troop_type_*`, `GamepadNavigationIndex` 0–3, `HintWidget` + `str_formation_class_string.*` tooltips, `Clan.TroopCount.Text` `IntText`. |
 | `InfoSectionVM.TextLines` (`TextItemVM`) | Plain rich-text bullets (no left glyph). |
 | `PartyFoodText` / `PartyFoodColor` + `ShowPartyFood` | Single optional line under the lists. |
