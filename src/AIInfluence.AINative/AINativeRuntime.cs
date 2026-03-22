@@ -17,7 +17,6 @@ public sealed class AINativeRuntime
 		_tools.Register(new FollowPlayerTool());
 		_tools.Register(new GoToSettlementTool());
 		_tools.Register(new AttackPartyTool());
-		_tools.Register(new ReturnToPlayerTool());
 	}
 
 	public void HandleAssistantText(string correlationId, string npcId, string text)

@@ -11,7 +11,6 @@ This document defines only the patterns required for the new NPC dialogue + NPC 
   - `follow_player`
   - `go_to_settlement`
   - `attack_party`
-  - `return_to_player`
 
 ## Non-goals
 
@@ -56,7 +55,7 @@ Instant tools:
 
 Long-running tools:
 
-- `follow_player`, `go_to_settlement`, `attack_party`, `return_to_player` emit `action_started` when accepted.
+- `follow_player`, `go_to_settlement`, `attack_party` emit `action_started` when accepted.
 - World systems emit `action_completed` or `action_failed` later when resolved.
 
 ## Producer and consumer model
