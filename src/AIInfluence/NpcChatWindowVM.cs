@@ -863,6 +863,7 @@ public class NpcChatWindowVM : ViewModel
                             try { AIInfluenceBehavior.Instance?.SaveNPCContext(((MBObjectBase)_npc).StringId, _npc, ctx); }
                             catch (Exception ex) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] SaveNPCContext after pill persist failed: " + ex.Message); }
                         }
+                        AIInfluenceBehavior.Instance?.ApplyPendingQuestActionFromTools(_npc, ctx);
                         if (ctx != null && AIInfluenceBehavior.Instance != null)
                         {
                             try
@@ -912,6 +913,7 @@ public class NpcChatWindowVM : ViewModel
                 NPCContext ctx = null;
                 try { ctx = AIInfluenceBehavior.Instance?.GetOrCreateNPCContext(_npc); }
                 catch (Exception ex) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] GetOrCreateNPCContext (empty reply) failed: " + ex.Message); }
+                AIInfluenceBehavior.Instance?.ApplyPendingQuestActionFromTools(_npc, ctx);
                 if (ctx != null && AIInfluenceBehavior.Instance != null)
                     MainThreadDispatcher.Queue.Enqueue(() =>
                     {

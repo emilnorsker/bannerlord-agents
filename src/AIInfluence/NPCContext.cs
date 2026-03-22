@@ -105,6 +105,10 @@ public class NPCContext
 	[JsonIgnore]
 	public string DeferredTechnicalActionFromTools { get; set; }
 
+	/// <summary>Set by <c>quest_action</c> tool; applied when the chat UI finishes the typewriter and finalizes the NPC line (not during the async tool round).</summary>
+	[JsonIgnore]
+	public QuestActionData PendingQuestActionFromTools { get; set; }
+
 	/// <summary>OpenRouter <c>npc_say</c> tool: last spoken line for this turn (merged into <see cref="AIResponse.Response"/>).</summary>
 	[JsonIgnore]
 	public string LastNpcSayLine { get; set; }

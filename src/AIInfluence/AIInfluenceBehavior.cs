@@ -921,6 +921,23 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		});
 	}
 
+	/// <summary>Runs <see cref="ProcessQuestAction"/> for a <c>quest_action</c> stored on <paramref name="context"/> during the tool round. Call from the chat UI after the typewriter finalizes so quest pop-ups align with the visible NPC line.</summary>
+	public void ApplyPendingQuestActionFromTools(Hero npc, NPCContext context)
+	{
+		if (npc == null || context?.PendingQuestActionFromTools == null)
+			return;
+		QuestActionData questData = context.PendingQuestActionFromTools;
+		context.PendingQuestActionFromTools = null;
+		try
+		{
+			ProcessQuestAction(npc, context, questData);
+		}
+		catch (Exception ex)
+		{
+			LogMessage("[ERROR] Chat quest action failed: " + ex.Message);
+		}
+	}
+
 	public void ProcessQuestAction(Hero npc, NPCContext context, QuestActionData questAction)
 	{
 		string text = ((npc == null) ? null : ((object)npc.Name)?.ToString()) ?? "Unknown";
@@ -3108,6 +3125,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			LogMessage($"[DEBUG] Lie detected by AI. Trust penalty: {trustPenalty:F2}, LiePenaltySum: {context.LiePenaltySum:F2}, TrustLevel: {context.TrustLevel:F3}. Scheduled result decrease by {relationPenalty} for 'What do you say?'.");
 		}
 		SaveNPCContext(npcId, npc, context);
+		ApplyPendingQuestActionFromTools(npc, context);
 		string messageText = ((object)new TextObject("{=AIInfluence_NPCReady}{npcName} is ready to respond.", new Dictionary<string, object> { { "npcName", npcName } })).ToString();
 		LogMessage("[DEBUG] Displayed notification: " + npcName + " is ready to respond.");
 		InformationManager.DisplayMessage(new InformationMessage(messageText, Colors.White));
@@ -3189,6 +3207,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		context.DialogueToolEscalationState = null;
 		context.DialogueToolDeescalationAttempt = null;
 		context.DialogueToolAllowsLetters = null;
+		context.PendingQuestActionFromTools = null;
 	}
 
 	/// <summary>Merges OpenRouter dialogue tool results into <paramref name="aiResult"/> after deserialize (tools override duplicate JSON fields).</summary>

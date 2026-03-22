@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using AIInfluence.Behaviors.AIActions;
 using AIInfluence;
-using AIInfluence.Services;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using TaleWorlds.CampaignSystem;
@@ -337,18 +336,7 @@ public static class ToolHandlers
 		if (questAction != null)
 		{
 			questAction.Category = parsedArgs["category"]?.ToString();
-			QuestActionData capturedQuestAction = questAction;
-			MainThreadDispatcher.Queue.Enqueue(() =>
-			{
-				try
-				{
-					behavior.ProcessQuestAction(npc, context, capturedQuestAction);
-				}
-				catch (Exception ex)
-				{
-					behavior.LogMessage("[ERROR] Chat quest action failed: " + ex.Message);
-				}
-			});
+			context.PendingQuestActionFromTools = questAction;
 		}
 		return "ok";
 	}

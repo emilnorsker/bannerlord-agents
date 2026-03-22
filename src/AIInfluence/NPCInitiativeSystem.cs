@@ -1030,6 +1030,7 @@ public class NPCInitiativeSystem
 			request.Context.ConversationHistory.Add($"{npcName}: {message} [YOU ALREADY SENT THIS MESSAGE VIA MESSENGER EARLIER - DO NOT REPEAT IT] [sent_at_days={sentAtDays:F3}]");
 			request.Context.LastDynamicResponse = message;
 			_behavior.SaveNPCContext(((MBObjectBase)request.NPC).StringId, request.NPC, request.Context);
+			_behavior.ApplyPendingQuestActionFromTools(request.NPC, request.Context);
 			float distanceToNPC = CalculateDistanceToNPC(request.NPC);
 			int messengerCost = CalculateMessengerCost(distanceToNPC);
 			bool canAffordMessenger = Hero.MainHero.Gold >= messengerCost;
@@ -1548,6 +1549,7 @@ public class NPCInitiativeSystem
 			double sentAtDays = (now).ToDays;
 			context.ConversationHistory.Add($"{npcName}: {message} [SENT VIA MESSENGER AS REPLY] [sent_at_days={sentAtDays:F3}]");
 			context.LastAIResponseJson = JsonConvert.SerializeObject(response);
+			_behavior.ApplyPendingQuestActionFromTools(npc, context);
 			if (!string.IsNullOrEmpty(response.CharacterPersonality) && string.IsNullOrEmpty(context.AIGeneratedPersonality))
 			{
 				context.AIGeneratedPersonality = response.CharacterPersonality.Trim();
@@ -1972,6 +1974,7 @@ public class NPCInitiativeSystem
 			message = UnescapeFormatting(message);
 			context.LastAIResponseJson = JsonConvert.SerializeObject(response);
 			context.ConversationHistory.Add($"{npc.Name}: {message}");
+			_behavior.ApplyPendingQuestActionFromTools(npc, context);
 			if (!string.IsNullOrEmpty(response.CharacterPersonality) && string.IsNullOrEmpty(context.AIGeneratedPersonality))
 			{
 				LogMessage(string.Format(arg1: context.AIGeneratedPersonality = response.CharacterPersonality.Trim(), format: "[NPC_HOSTILE_INITIATIVE] [CHARACTER_PERSONALITY] AI generated personality for {0}: {1}", arg0: npc.Name));
@@ -2125,6 +2128,7 @@ public class NPCInitiativeSystem
 			message = UnescapeFormatting(message);
 			context.LastAIResponseJson = JsonConvert.SerializeObject(response);
 			context.ConversationHistory.Add($"{npc.Name}: {message}");
+			_behavior.ApplyPendingQuestActionFromTools(npc, context);
 			if (!string.IsNullOrEmpty(response.CharacterPersonality) && string.IsNullOrEmpty(context.AIGeneratedPersonality))
 			{
 				LogMessage(string.Format(arg1: context.AIGeneratedPersonality = response.CharacterPersonality.Trim(), format: "[NPC_INITIATIVE] [CHARACTER_PERSONALITY] AI generated personality for {0}: {1}", arg0: npc.Name));
