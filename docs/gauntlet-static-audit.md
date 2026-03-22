@@ -45,6 +45,8 @@ So **`ScopeMovements="Vertical"`** is a **valid** literal for the XML loader.
 
 **Our prefab:** `InfoSectionsList` is inside `InfoScrollPanel`; **no explicit `ParentPanel` attribute is required** for auto-linking, assuming the ancestor `ScrollablePanel` is found.
 
+**Ancestor walk:** `TaleWorlds.GauntletUI.BaseTypes.Container.FindParentPanel()` walks `ParentWidget` until it finds a `ScrollablePanel`. Hierarchy here is `InfoSectionsList` → `InfoClipRect` → `InfoScrollPanel` (`ScrollablePanel`), so the lookup **succeeds**.
+
 ## 5. `OrderFormationClassVisualBrushWidget` + mod brush
 
 **Source:** `TaleWorlds.MountAndBlade.GauntletUI.Widgets.Mission.Order.OrderFormationClassVisualBrushWidget` — `FormationClassValue` switches `SetState("Infantry" | "Ranged" | "Cavalry" | "HorseArcher" | default→Infantry)`.
