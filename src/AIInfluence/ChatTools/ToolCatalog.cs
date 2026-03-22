@@ -68,8 +68,8 @@ public static class ToolCatalog
 				"{\"value\":{\"type\":\"string\"}}", new[] { "value" }),
 			Tool("map_command", "Campaign map behavior: action name plus optional payload (typed; replaces stringly technical_action).",
 				"{\"action\":{\"type\":\"string\"},\"payload\":{\"type\":\"string\"}}", new[] { "action" }),
-			Tool("npc_say", "The NPC's spoken line to the player (in-character dialogue). Call each turn you produce speech; optional tone.",
-				"{\"line\":{\"type\":\"string\"},\"tone\":{\"type\":\"string\"}}", new[] { "line" }),
+			Tool("npc_say", "The NPC's spoken line to the player (in-character dialogue). Call each turn you produce speech; optional tone (must be positive, negative, or neutral for relation effects).",
+				"{\"line\":{\"type\":\"string\"},\"tone\":{\"type\":\"string\",\"enum\":[\"positive\",\"negative\",\"neutral\"]}}", new[] { "line" }),
 			Tool("suspected_lie", "Set whether you believe the player's last statement is a lie (lie detection).",
 				"{\"suspected\":{\"type\":\"boolean\"}}", new[] { "suspected" }),
 			Tool("dialogue_decision", "Conversation flow: release, attack, surrender, accept_surrender, propose_marriage, accept_marriage, reject_marriage, intimate, or none.",
@@ -116,9 +116,9 @@ public static class ToolCatalog
 			.Where(candidate => candidate != null)
 			.Where(candidate =>
 			{
-				var id = getId(candidate)?.ToLowerInvariant() ?? "";
+				var candidateId = getId(candidate)?.ToLowerInvariant() ?? "";
 				var displayText = getDisplayName(candidate)?.ToLowerInvariant() ?? "";
-				return id.Contains(queryNormalized) || displayText.Contains(queryNormalized);
+				return candidateId.Contains(queryNormalized) || displayText.Contains(queryNormalized);
 			})
 			.Take(limit)
 			.Select(candidate => (getId(candidate) ?? "", getDisplayName(candidate) ?? getId(candidate) ?? ""))

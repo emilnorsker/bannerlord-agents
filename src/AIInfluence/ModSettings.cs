@@ -664,7 +664,7 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 	};
 
 	[SettingPropertyBool("Enable TTS (Text-to-Speech)", Order = 1, RequireRestart = false, HintText = "Enable text-to-speech for NPC dialogue responses. Voices are assigned automatically based on gender.")]
-	[SettingPropertyGroup("API Settings/Player2 Settings", GroupOrder = 2)]
+	[SettingPropertyGroup("API Settings/TTS Settings", GroupOrder = 3)]
 	public bool EnableTTS
 	{
 		get
@@ -682,7 +682,7 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 	}
 
 	[SettingPropertyBool("{=AIInfluence_EnableTTSAnimations}Enable TTS Animations (Lip Sync)", Order = 2, RequireRestart = false, HintText = "{=AIInfluence_EnableTTSAnimations_Hint}Enable body and lip-sync animations during TTS playback. When disabled, only audio is played without animations.")]
-	[SettingPropertyGroup("API Settings/Player2 Settings", GroupOrder = 2)]
+	[SettingPropertyGroup("API Settings/TTS Settings", GroupOrder = 3)]
 	public bool EnableTTSAnimations
 	{
 		get
@@ -700,7 +700,7 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 	}
 
 	[SettingPropertyFloatingInteger("TTS Speed", 0.25f, 4f, "0.00", Order = 3, RequireRestart = false, HintText = "Speed of text-to-speech (0.25 to 4.0)")]
-	[SettingPropertyGroup("API Settings/Player2 Settings", GroupOrder = 2)]
+	[SettingPropertyGroup("API Settings/TTS Settings", GroupOrder = 3)]
 	public float TTSSpeed
 	{
 		get
@@ -718,7 +718,7 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 	}
 
 	[SettingPropertyFloatingInteger("TTS Volume", 0.1f, 3f, "0.00", Order = 4, RequireRestart = false, HintText = "Volume multiplier for TTS voice (0.1 = quiet, 1.0 = normal, 3.0 = very loud). The gain is applied during audio encoding.")]
-	[SettingPropertyGroup("API Settings/Player2 Settings", GroupOrder = 2)]
+	[SettingPropertyGroup("API Settings/TTS Settings", GroupOrder = 3)]
 	public float TTSVolume
 	{
 		get
@@ -736,7 +736,7 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 	}
 
 	[SettingPropertyButton("Export Available Voices", 0, true, "Export Voices", Content = "Export Available Voices", RequireRestart = false, HintText = "Export available TTS voices to a text file in the mod folder. You can use this list to manually edit NPC .json files and assign custom voices.")]
-	[SettingPropertyGroup("API Settings/Player2 Settings", GroupOrder = 2)]
+	[SettingPropertyGroup("API Settings/TTS Settings", GroupOrder = 3)]
 	public Action ExportTTSVoices { get; set; } = delegate
 	{
 		InformationManager.DisplayMessage(new InformationMessage("Voice list export is unavailable: the Player2 client in this build does not expose GetAvailableVoices. Set AssignedTTSVoice in NPC JSON manually.", Colors.Yellow));
