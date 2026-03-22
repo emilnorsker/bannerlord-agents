@@ -926,10 +926,9 @@ public static class PromptGenerator
 			stringBuilder.Append("### Task Logic ###\n- Completion: After finishing tasks (gather info, deliver message, errand), use 'return_to_player' when appropriate.\n- Travel: 'go_to_settlement' ONLY for independent travel (own party, leaving player's group). Don't use if already in player's party.\n- Following: 'follow_player'=stay continuously (in party). 'return_to_player'=go back after absence. Can't do both.\n- Combat orders: Use combat actions ('attack_party', 'siege_settlement') only when player explicitly orders. Append ',then:return' to return after.\n- Sequence: Go → Task → Return (when makes sense). New task while busy? Finish current first.\n- Independence: Decide when to return based on personality/situation and what player asked.\n\n");
 			stringBuilder.Append(GetAvailableActionsPrompt(npc));
 		}
-		bool openRouterDialogue = string.Equals(GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue, "OpenRouter", StringComparison.Ordinal);
-		if (openRouterDialogue && !isMessengerMode)
+		if (!isMessengerMode)
 		{
-			stringBuilder.Append("### Response fields ###\n**OpenRouter:** Prefer **dialogue tools** (`npc_say`, `suspected_lie`, `dialogue_decision`, …) and world tools. Final JSON may be `{}` if tools carried the turn. Optional JSON: `response` if you did not use `npc_say`, plus `claimed_*`, `tts_instructions` when needed.\n\n**REQUIRED fields (always include):**\n");
+			stringBuilder.Append("### Response fields ###\nPrefer **dialogue tools** (`npc_say`, `suspected_lie`, `dialogue_decision`, …) and world tools. Final JSON may be `{}` if tools carried the turn. Optional JSON: `response` if you did not use `npc_say`, plus `claimed_*`, `tts_instructions` when needed.\n\n**REQUIRED fields (always include):**\n");
 		}
 		else
 		{
@@ -940,14 +939,14 @@ public static class PromptGenerator
 		{
 			stringBuilder.Append("- `internal_thoughts`: (string) **REQUIRED** - 500-1500 chars. Your PRIVATE reasoning process from the thought steps above. Summarize your character's internal perspective, motivations, conflicts, and strategy. The player will NEVER see this - be honest and introspective.\n");
 		}
-		if (context.IsRomanceEligible && !(openRouterDialogue && !isMessengerMode))
+		if (context.IsRomanceEligible && isMessengerMode)
 		{
 			stringBuilder.Append("- `romance_intent`: (string) 'none'|'flirt'|'romance'|'proposal'. See Romance Rules.\n");
 		}
 		string[] obj8 = new string[11]
 		{
-			isMessengerMode ? "" : (openRouterDialogue ? "" : (context.IsRomanceEligible ? ("- `decision`: (string) 'none'|'attack'" + ((npc.IsPrisoner || npc.CurrentSettlement != null) ? "" : "|'surrender'|'accept_surrender'") + "|'release'|'propose_marriage'|'accept_marriage'|'reject_marriage'|'intimate'.\n") : ("- `decision`: (string) 'none'|'attack'" + ((npc.IsPrisoner || npc.CurrentSettlement != null) ? "" : "|'surrender'|'accept_surrender'") + "|'release'.\n"))),
-			isMessengerMode ? "" : (openRouterDialogue ? "" : "- `tone`: (string) 'positive'|'negative'|'neutral'. How this exchange changed your attitude.\n- `threat_level`: (string) 'high'|'low'|'none'. Threat from player.\n- `escalation_state`: (string) 'neutral'|'tense'|'critical'. Current tension.\n- `suspected_lie`: (boolean) true ONLY when you are CERTAIN they are lying - clear and undeniable contradiction with verified facts. Do NOT use for suspicions or doubts.\n- `deescalation_attempt`: (boolean) true if player apologizes/calms.\n- `claimed_name`, `claimed_clan`, `claimed_age`: (string/int/null) Update ONLY when player EXPLICITLY states this information in their SPOKEN dialogue. **CRITICAL: Do NOT extract names or identity information from action descriptions (text in `**`). Actions are narrative descriptions of physical movements, NOT dialogue statements. Do NOT infer from meta-information like kingdom names, nearby parties, troop names, or actions. Set to null if player hasn't explicitly told you in spoken words. Don't invent.**\n- `claimed_gold`: (int) Amount player states they have. 0 if not mentioned.\n- `allows_letters`: (boolean) **REQUIRED** - Your current correspondence preference. Keep `true` to allow sending letters, set to `false` to stop. Change ONLY if your relationship or player's requests justify it.\n"),
+			"",
+			"",
 			null,
 			null,
 			null,
@@ -960,13 +959,13 @@ public static class PromptGenerator
 		};
 		ModSettings instance11 = GlobalSettings<ModSettings>.Instance;
 		obj8[2] = ((instance11 != null && instance11.EnableTTS && !isMessengerMode) ? "- `tts_instructions`: (string) **REQUIRED** - 20-120 chars in ENGLISH. Describe tone, emotion, pace, delivery style. Examples: \"Speak cheerfully and energetically\", \"Speak slowly with sadness\".\n" : "");
-		obj8[3] = "\n**OPTIONAL fields (include ONLY if relevant, NEVER repeat actions from Previous Response — they are ALREADY EXECUTED):**\n" + ((!isMessengerMode && openRouterDialogue) ? "**OpenRouter:** Gold, items, workshop, map, death, quests, kingdom use **tools**. Spoken line, tone, lie detection, decisions, romance, escalation, letters use **dialogue tools** (`npc_say`, `suspected_lie`, `dialogue_decision`, …) — prefer those over duplicating the same data in JSON below.\n" : "");
-		obj8[4] = (isMessengerMode ? "" : (openRouterDialogue ? "" : $"- `money_transfer`: (object) {{\"action\": \"give\"|\"receive\", \"amount\": number, \"opposed_attribute\": \"...\"?}}. ONLY when you ACCEPT transfer. \"give\"=you pay player, \"receive\"=player pays you. Max: {npc.Gold} denars. Add **opposed_attribute** (vigor|endurance|control|cunning|intelligence|social) ONLY when contested—player forces/extorts you. When set, the game rolls dice; if player wins, transfer succeeds; if they lose, you refuse. Omit for agreements (quest reward, trade, gift). **Omit if no money transfer.**\n"));
-		obj8[5] = (isMessengerMode ? "" : (openRouterDialogue ? "" : "- `item_transfers`: (array) `[{\"item_id\": \"...\", \"amount\": N, \"action\": \"give\"|\"take\"}]`. 'give'=you→player, 'take'=player→you. Use exact item IDs from inventories. Add **`item_transfers_opposed_attribute`** as a TOP-LEVEL sibling (same level as item_transfers), e.g. `{\"item_transfers\": [...], \"item_transfers_opposed_attribute\": \"social\"}`. ONLY when contested—player forces you. When set, the game rolls dice; if player wins, transfer succeeds; if they lose, you refuse. Omit for agreements. **Omit if no item exchange.**\n"));
-		obj8[6] = ((text14 != null && !isMessengerMode && !openRouterDialogue) ? GetWorkshopJsonFields() : "");
-		obj8[7] = (isMessengerMode ? "" : (openRouterDialogue ? "- **Map AI (`technical_action` tool):** `value` is one command line for this NPC on the campaign map (action name, or `name:payload`, or `name:STOP`). Same text the game stores on `AIResponse.TechnicalAction`. **Omit if no map behavior change.**\n" : "- `technical_action`: (string) \"ACTION_NAME\" to start, \"ACTION_NAME:STOP\" to stop. **Omit if no action change.**\n"));
-		obj8[8] = ((!isMessengerMode && CanNPCBeKilledThroughRoleplay(npc) && !openRouterDialogue) ? "- `character_death`: (object) {\"should_die\": true, \"death_reason\": \"...\", \"killer_string_id\": \"...\", \"opposed_attribute\": \"vigor\"|\"endurance\"|\"control\"|\"cunning\"|\"intelligence\"|\"social\"} for permanent death. Use player's ID if they killed you (e.g., \"lord_1_1\"), null for natural/unknown. **opposed_attribute** REQUIRED when killer is player: ONE attribute that best fits HOW they killed you (vigor=strength/combat, cunning=deception/poison, control=precision, etc). When set, the game rolls dice; if player wins, death occurs; if they lose, you survive. Omit if killer is null. Valid death_reason: lethal attacks, suicide, assassination, natural death, sacrifice. If set, `decision` MUST be 'none'. **Omit if not dying.**\n" : "");
-		obj8[9] = (GlobalSettings<ModSettings>.Instance.PromptEnableQuests ? (openRouterDialogue && !isMessengerMode ? "" : GetQuestJsonFieldDescription(npc, context, isMessengerMode)) : "");
+		obj8[3] = "\n**OPTIONAL fields (include ONLY if relevant, NEVER repeat actions from Previous Response — they are ALREADY EXECUTED):**\n" + (!isMessengerMode ? "Gold, items, workshop, map, death, quests, kingdom use **tools**. Spoken line, tone, lie detection, decisions, romance, escalation, letters use **dialogue tools** (`npc_say`, `suspected_lie`, `dialogue_decision`, …) — prefer those over duplicating the same data in JSON below.\n" : "");
+		obj8[4] = (isMessengerMode ? "" : "");
+		obj8[5] = (isMessengerMode ? "" : "");
+		obj8[6] = "";
+		obj8[7] = (isMessengerMode ? "" : "- **Map AI (`technical_action` tool):** `value` is one command line for this NPC on the campaign map (action name, or `name:payload`, or `name:STOP`). Same text the game stores on `AIResponse.TechnicalAction`. **Omit if no map behavior change.**\n");
+		obj8[8] = "";
+		obj8[9] = (GlobalSettings<ModSettings>.Instance.PromptEnableQuests ? (isMessengerMode ? GetQuestJsonFieldDescription(npc, context, isMessengerMode) : "") : "");
 		obj8[10] = "\n";
 		stringBuilder.Append(string.Concat(obj8));
 		if (flag2 || flag3 || flag4)
@@ -3050,7 +3049,6 @@ public static class PromptGenerator
 			return string.Empty;
 		}
 		StringBuilder stringBuilder = new StringBuilder();
-		bool openRouterDialogue = string.Equals(GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue, "OpenRouter", StringComparison.Ordinal);
 		stringBuilder.AppendLine();
 		stringBuilder.AppendLine("### Kingdom Actions ###");
 		stringBuilder.AppendLine("- **`kingdom_action`**: (string) Your political/recruitment action. Must be one of:");
@@ -3253,7 +3251,7 @@ public static class PromptGenerator
 		stringBuilder.AppendLine("- **`kingdom_action_reason`**: (string or null) Brief reason for your diplomatic action (required if kingdom_action is not 'none').");
 		if (GlobalSettings<ModSettings>.Instance.EnableDiplomacy && flag && isKingdomLeader)
 		{
-			stringBuilder.AppendLine("- `settlement_id`: (string/null) Settlement ID for 'demand_territory', 'transfer_territory', 'grant_fief', 'receive_fief'." + (openRouterDialogue ? " With OpenRouter, pass this field in the `kingdom_action` tool arguments instead of the reply JSON." : ""));
+			stringBuilder.AppendLine("- `settlement_id`: (string/null) Settlement ID for 'demand_territory', 'transfer_territory', 'grant_fief', 'receive_fief'. Pass this field in the `kingdom_action` tool arguments instead of the reply JSON.");
 			stringBuilder.AppendLine("- `target_clan_id`: (string/null) Clan ID for fief transfers. Required for 'receive_fief'.");
 			stringBuilder.AppendLine("- `daily_tribute_amount`: (int/0) Gold per day for 'demand_tribute'.");
 			stringBuilder.AppendLine("- `tribute_duration_days`: (int/0) Tribute duration in days for 'demand_tribute'. Recommended: 90-365.");

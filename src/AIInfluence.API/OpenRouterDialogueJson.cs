@@ -1,5 +1,4 @@
 using System;
-using MCM.Abstractions.Base.Global;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -31,8 +30,6 @@ public static class OpenRouterDialogueJson
 	public static string PrepareForAiResponseDeserialize(string cleanedJson)
 	{
 		if (string.IsNullOrWhiteSpace(cleanedJson))
-			return cleanedJson;
-		if (!string.Equals(GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue, "OpenRouter", StringComparison.Ordinal))
 			return cleanedJson;
 		return StripGameEffectKeys(cleanedJson);
 	}
