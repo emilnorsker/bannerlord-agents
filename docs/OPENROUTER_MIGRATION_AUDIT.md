@@ -80,26 +80,15 @@ Read: full file `src/AIInfluence.API/AIClient.cs` (305 lines).
 
 ---
 
-## 5. Retry loops using `StartsWith("Error:")` — **SRC**
+## 5. Retry loops — **SRC** (addressed)
 
-| Location | Lines (approx.) | Condition to break retry |
-|----------|------------------|---------------------------|
-| World / dynamic NPC | `AIInfluenceBehavior.cs` ~2794 | `!IsNullOrEmpty && !StartsWith("Error:")` |
-| `ProcessChatInput` | ~3331 | same |
-
-**SRC:** JSON error from `GenerateErrorResponse` does **not** start with `"Error:"`, so the break condition can fire on **error JSON** as if it were a successful model response.
-
-**INF:** Transient HTTP failures that return JSON error bodies may **not** trigger retries.
+`AIInfluenceBehavior` retry / empty guards use **`AIClient.IsDialogueFailureResponse`** (e.g. ~2797, ~2821, ~3273, ~3285) instead of **`StartsWith("Error:")`** alone, so JSON error envelopes from **`GenerateErrorResponse`** are classified as failures.
 
 ---
 
-## 6. `SendAIRequestForFeature` / `SendAIRequestRaw` — **SRC**
+## 6. `SendAIRequestForFeature` / `SendAIRequestRaw` consumers — **SRC** (addressed)
 
-Lines 246–253 (`ForFeature`): failure detected with `response.StartsWith("Error:")` **after** empty check.
-
-**SRC:** The literal `"API key is missing."` (from `GetOpenRouterRawResponse` line 190) **does not** start with `"Error:"` → **ForFeature** treats it as **success path** (251–253) and returns that string to callers.
-
-**INF:** Downstream code may try to parse that as JSON for events/diplomacy.
+**`SendAIRequestForFeature`** and **`SendAIRequestRaw`** in **`AIInfluenceBehavior`** use **`AIClient.IsRawTextFailureResponse`** after the empty-response branch, so **`"API key is missing."`** (no `Error:` prefix) is treated as failure. **`SettlementCombatManager`** (`SendAIRequestRaw`) and the **`[QuestDebug]`** raw path use **`IsRawTextFailureResponse`** instead of **`StartsWith("Error:")`** only.
 
 ---
 
@@ -184,9 +173,9 @@ Use this table to **track fixes**. Each row is **SRC** for the mechanism; **INF/
 
 | ID | Mechanism (SRC) | Risk (INF/NRV) |
 |----|-----------------|----------------|
-| R1 | `SendAIRequest` uses `StartsWith("Error:")`; `GenerateErrorResponse` returns `{` | Callers may mis-classify JSON errors **INF**; pre-existed **NRV** |
-| R2 | Retry loops use same `StartsWith` test | May not retry on JSON error **INF** |
-| R3 | `"API key is missing."` not prefixed `Error:` | `SendAIRequestForFeature` success branch **SRC** |
+| R1 | `SendAIRequest` + JSON envelopes | **Addressed** — `IsDialogueFailureResponse` / `IsSendAIRequestResultFailure` **SRC** |
+| R2 | Retry loops | **Addressed** — `IsDialogueFailureResponse` **SRC** |
+| R3 | `"API key is missing."` on raw paths | **Addressed** — `IsRawTextFailureResponse` on **ForFeature** / **Raw** / **SettlementCombat** / **QuestDebug** **SRC** |
 | R4 | `GetOpenRouterRawResponse` no `EnableModification` | Policy gap **INF** |
 | R5 | `SendAIRequestForFeature` catch returns `null` | Callers conflate with empty **INF** |
 | R6 | HTTP error bodies dropped in inner catch of `GetOpenRouterResponse` | Debugging harder **INF** |

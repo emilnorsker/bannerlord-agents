@@ -246,7 +246,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage("[SEND_AI_REQUEST_ERROR] " + error);
 				return error;
 			}
-			if (response.StartsWith("Error:"))
+			if (AIClient.IsRawTextFailureResponse(response))
 			{
 				LogMessage("[SEND_AI_REQUEST_ERROR] Ошибка ИИ для " + requestType + ": " + response);
 				return response;
@@ -276,7 +276,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage("[SEND_AI_REQUEST_RAW_ERROR] Error: Empty response from OpenRouter");
 				return "Error: Empty response from OpenRouter";
 			}
-			if (response.StartsWith("Error:"))
+			if (AIClient.IsRawTextFailureResponse(response))
 			{
 				LogMessage("[SEND_AI_REQUEST_RAW_ERROR] Ошибка ИИ: " + response);
 				return response;
@@ -4863,7 +4863,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				{
 					try
 					{
-						if (string.IsNullOrEmpty(rawResponse) || rawResponse.StartsWith("Error:"))
+						if (AIClient.IsRawTextFailureResponse(rawResponse))
 						{
 							LogMessage("[QuestDebug] AI request failed: " + (rawResponse ?? "empty"));
 							InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Failed: " + (rawResponse ?? "empty"), ExtraColors.RedAIInfluence));
