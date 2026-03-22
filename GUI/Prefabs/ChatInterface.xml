@@ -316,31 +316,11 @@
                             <NavigatableListPanel Id="InfoSectionsList" DataSource="{InfoSections}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                   StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="6" MarginLeft="0" MarginRight="0" MarginTop="0" MarginBottom="0">
                               <ItemTemplate>
-                                <!-- Section: subtle tint only; spacing from list + Encyclopedia.Frame inset. Item VM = InfoSectionVM (ExecuteToggle). -->
+                                <!-- Section shell: VerticalBottomToTop + body-before-header in XML matches ChatMessageList stack semantics (header bar ends up above body). Inner lists stay TopToBottom for reading order. -->
                                 <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" Sprite="BlankWhiteSquare_9" Color="@SectionPanelColor"
-                                           StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="0" MarginLeft="0" MarginRight="0" MarginBottom="6">
+                                           StackLayout.LayoutMethod="VerticalBottomToTop" Spacing="0" MarginLeft="0" MarginRight="0" MarginBottom="6">
                                   <Children>
-                                    <ButtonWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" MarginLeft="0" MarginRight="0"
-                                                  Brush="Encyclopedia.TopBanner" Color="#0F141FFF" Command.Click="ExecuteToggle"
-                                                  DoNotPassEventsToChildren="true" UpdateChildrenStates="true">
-                                      <Children>
-                                        <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                                                   StackLayout.LayoutMethod="HorizontalLeftToRight" MarginLeft="6" MarginRight="8">
-                                          <Children>
-                                            <SkillIconVisualWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="32" SuggestedHeight="32"
-                                                                   VerticalAlignment="Center" HorizontalAlignment="Left" MarginRight="8"
-                                                                   IsVisible="@ShowHeaderSkillIcon" SkillId="@HeaderSkillId" UseSmallestVariation="true"/>
-                                            <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                            Brush="Encyclopedia.SubPage.Title.Text" Brush.FontSize="16" Brush.TextHorizontalAlignment="Left"
-                                                            Color="#EAE2D4FF" VerticalAlignment="Center" Text="@HeaderText" IsDisabled="true" DoNotAcceptEvents="true"/>
-                                            <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                                        HorizontalAlignment="Right" VerticalAlignment="Center"
-                                                        Brush="SPScoreboard.Subtitle.Text" Brush.FontSize="18" Brush.FontColor="#C6AC8DFF" Text="@ExpandGlyph" DoNotAcceptEvents="true"/>
-                                          </Children>
-                                        </ListPanel>
-                                      </Children>
-                                    </ButtonWidget>
-                                    <!-- Expanded body: visibility from InfoSectionVM.RefreshVisibility(). Padding = Info.Inset on scroll only. -->
+                                    <!-- Body first in XML: lays out under the header when using BottomToTop on the parent. -->
                                     <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" IsVisible="@IsExpanded"
                                                StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="6" MarginLeft="0" MarginRight="0" MarginTop="0" MarginBottom="0">
                                       <Children>
@@ -379,6 +359,26 @@
                                                         Brush.TextHorizontalAlignment="Left" Color="@PartyFoodColor" Text="@PartyFoodText" IsDisabled="true"/>
                                       </Children>
                                     </ListPanel>
+                                    <ButtonWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" MarginLeft="0" MarginRight="0"
+                                                  Brush="Encyclopedia.TopBanner" Color="#0F141FFF" Command.Click="ExecuteToggle"
+                                                  DoNotPassEventsToChildren="true" UpdateChildrenStates="true">
+                                      <Children>
+                                        <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                                                   StackLayout.LayoutMethod="HorizontalLeftToRight" MarginLeft="6" MarginRight="8">
+                                          <Children>
+                                            <SkillIconVisualWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="32" SuggestedHeight="32"
+                                                                   VerticalAlignment="Center" HorizontalAlignment="Left" MarginRight="8"
+                                                                   IsVisible="@ShowHeaderSkillIcon" SkillId="@HeaderSkillId" UseSmallestVariation="true"/>
+                                            <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                            Brush="Encyclopedia.SubPage.Title.Text" Brush.FontSize="16" Brush.TextHorizontalAlignment="Left"
+                                                            Color="#EAE2D4FF" VerticalAlignment="Center" Text="@HeaderText" IsDisabled="true" DoNotAcceptEvents="true"/>
+                                            <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
+                                                        HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                        Brush="SPScoreboard.Subtitle.Text" Brush.FontSize="18" Brush.FontColor="#C6AC8DFF" Text="@ExpandGlyph" DoNotAcceptEvents="true"/>
+                                          </Children>
+                                        </ListPanel>
+                                      </Children>
+                                    </ButtonWidget>
                                   </Children>
                                 </ListPanel>
                               </ItemTemplate>
