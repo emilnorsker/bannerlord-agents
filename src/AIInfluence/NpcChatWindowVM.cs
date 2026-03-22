@@ -303,16 +303,17 @@ public class NpcChatWindowVM : ViewModel
 
     private InfoSectionVM BuildWorldEventsSection(string headerMuted)
     {
-        var section = new InfoSectionVM { HeaderText = "World events", HeaderSkillId = DefaultSkills.Engineering.StringId };
+        var section = new InfoSectionVM { HeaderText = "World events", HeaderSkillId = DefaultSkills.Scouting.StringId };
         try
         {
-            string engineering = DefaultSkills.Engineering.StringId;
             foreach (var e in GetMergedEvents().OrderByDescending(ev => ev.CreationCampaignDays).Take(5))
             {
                 string text = FormatWorldEventDisplayText(e);
                 if (string.IsNullOrWhiteSpace(text))
                     continue;
-                section.GlyphLines.Add(InfoGlyphLineVM.FromWorldEvent(engineering, "• " + text));
+                string skillId = WorldEventGlyphHelper.GetSkillIdForEventType(e.Type);
+                WorldEventGlyphHelper.GetSeverityGradientColors(e.Importance, out string bgL, out string bgR);
+                section.GlyphLines.Add(InfoGlyphLineVM.FromWorldEvent(skillId, "• " + text, "#E8DCC8FF", bgL, bgR));
             }
         }
         catch (Exception ex)

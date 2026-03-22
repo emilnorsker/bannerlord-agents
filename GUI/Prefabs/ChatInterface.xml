@@ -356,17 +356,28 @@
                                         <ListPanel DataSource="{GlyphLines}" IsVisible="@HasGlyphLines" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                    StackLayout.LayoutMethod="VerticalBottomToTop" Spacing="8" MarginLeft="0" MarginRight="0" MarginTop="0" MarginBottom="0">
                                           <ItemTemplate>
-                                            <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                       StackLayout.LayoutMethod="HorizontalLeftToRight" MarginLeft="0" MarginRight="0">
+                                            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren">
                                               <Children>
-                                                <SkillIconVisualWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="40" SuggestedHeight="40"
-                                                                       VerticalAlignment="Top" HorizontalAlignment="Left" MarginRight="6" MarginTop="2"
-                                                                       IsVisible="@IsSkill" SkillId="@SkillId" UseSmallestVariation="true"/>
-                                                <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" VerticalAlignment="Center"
-                                                                Brush="Encyclopedia.SubPage.Info.Text" Brush.FontSize="15" Brush.TextHorizontalAlignment="Left"
-                                                                Color="@Color" Text="@Text" IsDisabled="true"/>
+                                                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" IsVisible="@HasGradientBackground"
+                                                           StackLayout.LayoutMethod="HorizontalLeftToRight" DoNotAcceptEvents="true">
+                                                  <Children>
+                                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare_9" Color="@BackgroundColorLeft"/>
+                                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" Sprite="BlankWhiteSquare_9" Color="@BackgroundColorRight"/>
+                                                  </Children>
+                                                </ListPanel>
+                                                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                           StackLayout.LayoutMethod="HorizontalLeftToRight" MarginLeft="4" MarginRight="4" MarginTop="2" MarginBottom="2">
+                                                  <Children>
+                                                    <SkillIconVisualWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="40" SuggestedHeight="40"
+                                                                           VerticalAlignment="Top" HorizontalAlignment="Left" MarginRight="6" MarginTop="2"
+                                                                           IsVisible="@IsSkill" SkillId="@SkillId" UseSmallestVariation="true"/>
+                                                    <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" VerticalAlignment="Center"
+                                                                    Brush="Encyclopedia.SubPage.Info.Text" Brush.FontSize="15" Brush.TextHorizontalAlignment="Left"
+                                                                    Color="@Color" Text="@Text" IsDisabled="true"/>
+                                                  </Children>
+                                                </ListPanel>
                                               </Children>
-                                            </ListPanel>
+                                            </Widget>
                                           </ItemTemplate>
                                         </ListPanel>
                                         <ListPanel DataSource="{TextLines}" IsVisible="@HasStandardTextLines" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"

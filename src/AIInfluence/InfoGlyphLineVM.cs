@@ -11,6 +11,9 @@ public sealed class InfoGlyphLineVM : ViewModel
     private string _skillId = "";
     private string _text = "";
     private string _color = "#C6AC8DFF";
+    private string _backgroundColorLeft = "#00000000";
+    private string _backgroundColorRight = "#00000000";
+    private bool _hasGradientBackground;
 
     [DataSourceProperty]
     public bool IsSkill
@@ -67,6 +70,49 @@ public sealed class InfoGlyphLineVM : ViewModel
         }
     }
 
+    /// <summary>Left half of row background (world events: severity gradient).</summary>
+    [DataSourceProperty]
+    public string BackgroundColorLeft
+    {
+        get => _backgroundColorLeft;
+        set
+        {
+            value ??= "#00000000";
+            if (value == _backgroundColorLeft)
+                return;
+            _backgroundColorLeft = value;
+            OnPropertyChangedWithValue(_backgroundColorLeft, nameof(BackgroundColorLeft));
+        }
+    }
+
+    /// <summary>Right half of row background (world events: severity gradient).</summary>
+    [DataSourceProperty]
+    public string BackgroundColorRight
+    {
+        get => _backgroundColorRight;
+        set
+        {
+            value ??= "#00000000";
+            if (value == _backgroundColorRight)
+                return;
+            _backgroundColorRight = value;
+            OnPropertyChangedWithValue(_backgroundColorRight, nameof(BackgroundColorRight));
+        }
+    }
+
+    [DataSourceProperty]
+    public bool HasGradientBackground
+    {
+        get => _hasGradientBackground;
+        set
+        {
+            if (value == _hasGradientBackground)
+                return;
+            _hasGradientBackground = value;
+            OnPropertyChangedWithValue(value, nameof(HasGradientBackground));
+        }
+    }
+
     public static InfoGlyphLineVM FromWorldEvent(string skillId, string text, string color = "#C6AC8DFF")
     {
         return new InfoGlyphLineVM
@@ -75,6 +121,20 @@ public sealed class InfoGlyphLineVM : ViewModel
             SkillId = skillId ?? "",
             Text = text ?? "",
             Color = color ?? "#C6AC8DFF"
+        };
+    }
+
+    public static InfoGlyphLineVM FromWorldEvent(string skillId, string text, string textColor, string backgroundLeft, string backgroundRight)
+    {
+        return new InfoGlyphLineVM
+        {
+            IsSkill = true,
+            SkillId = skillId ?? "",
+            Text = text ?? "",
+            Color = textColor ?? "#C6AC8DFF",
+            BackgroundColorLeft = backgroundLeft ?? "#00000000",
+            BackgroundColorRight = backgroundRight ?? "#00000000",
+            HasGradientBackground = true
         };
     }
 }
