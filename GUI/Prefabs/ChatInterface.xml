@@ -383,40 +383,44 @@
                                                   <Children>
                                                     <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginRight="4">
                                                       <Children>
-                                                        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="26" SuggestedHeight="26" VerticalAlignment="Center" Sprite="General\TroopTypeIcons\icon_troop_type_infantry"/>
+                                                        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="26" SuggestedHeight="26" VerticalAlignment="Center" Sprite="General\TroopTypeIcons\icon_troop_type_infantry" GamepadNavigationIndex="0"/>
                                                         <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" IntText="@InfantryCount" VerticalAlignment="Center" Brush="Clan.TroopCount.Text" MarginLeft="4"/>
                                                       </Children>
                                                     </ListPanel>
+                                                    <HintWidget DataSource="{InfantryHint}" WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" DoNotAcceptEvents="true"/>
                                                   </Children>
                                                 </Widget>
                                                 <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="32" MinWidth="80" DoNotPassEventsToChildren="true">
                                                   <Children>
                                                     <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginRight="4">
                                                       <Children>
-                                                        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="26" SuggestedHeight="26" VerticalAlignment="Center" Sprite="General\TroopTypeIcons\icon_troop_type_bow"/>
+                                                        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="26" SuggestedHeight="26" VerticalAlignment="Center" Sprite="General\TroopTypeIcons\icon_troop_type_bow" GamepadNavigationIndex="1"/>
                                                         <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" IntText="@RangedCount" VerticalAlignment="Center" Brush="Clan.TroopCount.Text" MarginLeft="4"/>
                                                       </Children>
                                                     </ListPanel>
+                                                    <HintWidget DataSource="{RangedHint}" WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" DoNotAcceptEvents="true"/>
                                                   </Children>
                                                 </Widget>
                                                 <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="32" MinWidth="80" DoNotPassEventsToChildren="true">
                                                   <Children>
                                                     <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginRight="4">
                                                       <Children>
-                                                        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="26" SuggestedHeight="26" VerticalAlignment="Center" Sprite="General\TroopTypeIcons\icon_troop_type_cavalry"/>
+                                                        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="26" SuggestedHeight="26" VerticalAlignment="Center" Sprite="General\TroopTypeIcons\icon_troop_type_cavalry" GamepadNavigationIndex="2"/>
                                                         <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" IntText="@CavalryCount" VerticalAlignment="Center" Brush="Clan.TroopCount.Text" MarginLeft="4"/>
                                                       </Children>
                                                     </ListPanel>
+                                                    <HintWidget DataSource="{CavalryHint}" WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" DoNotAcceptEvents="true"/>
                                                   </Children>
                                                 </Widget>
                                                 <Widget WidthSizePolicy="CoverChildren" HeightSizePolicy="Fixed" SuggestedHeight="32" MinWidth="80" DoNotPassEventsToChildren="true">
                                                   <Children>
                                                     <ListPanel WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginRight="4">
                                                       <Children>
-                                                        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="26" SuggestedHeight="26" VerticalAlignment="Center" Sprite="General\TroopTypeIcons\icon_troop_type_horse_archer"/>
+                                                        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="26" SuggestedHeight="26" VerticalAlignment="Center" Sprite="General\TroopTypeIcons\icon_troop_type_horse_archer" GamepadNavigationIndex="3"/>
                                                         <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" IntText="@HorseArcherCount" VerticalAlignment="Center" Brush="Clan.TroopCount.Text" MarginLeft="4"/>
                                                       </Children>
                                                     </ListPanel>
+                                                    <HintWidget DataSource="{HorseArcherHint}" WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" Command.HoverBegin="ExecuteBeginHint" Command.HoverEnd="ExecuteEndHint" DoNotAcceptEvents="true"/>
                                                   </Children>
                                                 </Widget>
                                               </Children>

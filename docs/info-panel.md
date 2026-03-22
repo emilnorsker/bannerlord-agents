@@ -18,7 +18,7 @@
 | VM | Gauntlet |
 |----|----------|
 | `InfoSectionVM.GlyphLines` (`InfoGlyphLineVM`) | **World events only:** `IsSkill` + `SkillIconVisualWidget` + text. |
-| `ShowPartyTroopStrip` + `InfantryCount` / `RangedCount` / `CavalryCount` / `HorseArcherCount` | **NPC party info:** same widget tree as vanilla `ClanPartiesRightPanel` `TroopCountsParent` / `TroopCountsList` — `General\TroopTypeIcons\icon_troop_type_*` + `Clan.TroopCount.Text` `IntText`. |
+| `ShowPartyTroopStrip` + `InfantryCount` / `RangedCount` / `CavalryCount` / `HorseArcherCount` + `InfantryHint`…`HorseArcherHint` (`HintViewModel`) | **NPC party info:** same widget tree as vanilla `ClanPartiesRightPanel` `TroopCountsParent` / `TroopCountsList` — `General\TroopTypeIcons\icon_troop_type_*`, `GamepadNavigationIndex` 0–3, `HintWidget` + `str_formation_class_string.*` tooltips, `Clan.TroopCount.Text` `IntText`. |
 | `InfoSectionVM.TextLines` (`TextItemVM`) | Plain rich-text bullets (no left glyph). |
 | `PartyFoodText` / `PartyFoodColor` + `ShowPartyFood` | Single optional line under the lists. |
 

@@ -1,5 +1,7 @@
 using TaleWorlds.Core;
+using TaleWorlds.Core.ViewModelCollection.Information;
 using TaleWorlds.Library;
+using TaleWorlds.Localization;
 
 namespace AIInfluence;
 
@@ -24,6 +26,19 @@ public class InfoSectionVM : ViewModel
     private int _rangedCount;
     private int _cavalryCount;
     private int _horseArcherCount;
+    private HintViewModel _infantryHint = null!;
+    private HintViewModel _rangedHint = null!;
+    private HintViewModel _cavalryHint = null!;
+    private HintViewModel _horseArcherHint = null!;
+
+    public InfoSectionVM()
+    {
+        var empty = new TextObject("");
+        _infantryHint = new HintViewModel(empty);
+        _rangedHint = new HintViewModel(empty);
+        _cavalryHint = new HintViewModel(empty);
+        _horseArcherHint = new HintViewModel(empty);
+    }
 
     /// <summary>Background tint for this section block (same subtle value for all sections in <c>RebuildInfoPanelSections</c>).</summary>
     [DataSourceProperty]
@@ -224,6 +239,59 @@ public class InfoSectionVM : ViewModel
                 return;
             _horseArcherCount = value;
             OnPropertyChangedWithValue(value, nameof(HorseArcherCount));
+        }
+    }
+
+    /// <summary>Tooltips on troop-type icons (same binding as Clan <c>ClanPartiesRightPanel</c>).</summary>
+    [DataSourceProperty]
+    public HintViewModel InfantryHint
+    {
+        get => _infantryHint;
+        set
+        {
+            if (value == _infantryHint)
+                return;
+            _infantryHint = value;
+            OnPropertyChangedWithValue(value, nameof(InfantryHint));
+        }
+    }
+
+    [DataSourceProperty]
+    public HintViewModel RangedHint
+    {
+        get => _rangedHint;
+        set
+        {
+            if (value == _rangedHint)
+                return;
+            _rangedHint = value;
+            OnPropertyChangedWithValue(value, nameof(RangedHint));
+        }
+    }
+
+    [DataSourceProperty]
+    public HintViewModel CavalryHint
+    {
+        get => _cavalryHint;
+        set
+        {
+            if (value == _cavalryHint)
+                return;
+            _cavalryHint = value;
+            OnPropertyChangedWithValue(value, nameof(CavalryHint));
+        }
+    }
+
+    [DataSourceProperty]
+    public HintViewModel HorseArcherHint
+    {
+        get => _horseArcherHint;
+        set
+        {
+            if (value == _horseArcherHint)
+                return;
+            _horseArcherHint = value;
+            OnPropertyChangedWithValue(value, nameof(HorseArcherHint));
         }
     }
 

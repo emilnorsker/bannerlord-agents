@@ -229,6 +229,10 @@ public class NpcChatWindowVM : ViewModel
         section.CavalryCount = cav;
         section.HorseArcherCount = ha;
         section.ShowPartyTroopStrip = inf + rng + cav + ha > 0;
+        section.InfantryHint = new HintViewModel(GameTexts.FindText("str_formation_class_string", "Infantry"));
+        section.RangedHint = new HintViewModel(GameTexts.FindText("str_formation_class_string", "Ranged"));
+        section.CavalryHint = new HintViewModel(GameTexts.FindText("str_formation_class_string", "Cavalry"));
+        section.HorseArcherHint = new HintViewModel(GameTexts.FindText("str_formation_class_string", "HorseArcher"));
         float days = party.GetNumDaysForFoodToLast();
         var (_, col) = NpcPartyFoodSupply.Classify(days);
         string leaderName = ((object)npc.Name)?.ToString() ?? "";
