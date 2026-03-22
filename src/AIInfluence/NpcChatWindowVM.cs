@@ -192,7 +192,7 @@ public class NpcChatWindowVM : ViewModel
     {
         const string headerMuted = "#888888FF";
         const string questGold = "#D0A96BFF";
-        // One subtle panel tint (Encyclopedia.Frame carries the main chrome; avoid heavy zebra stripes).
+        // One subtle panel tint per section row (no encyclopedia frame layer on the column).
         const string sectionStripe = "#0C101868";
         InfoSections.Clear();
         // InfoSectionsList uses VerticalBottomToTop in ChatInterface.xml; sections added in build order (Character … Party) without VM reordering.

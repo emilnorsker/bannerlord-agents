@@ -1,8 +1,8 @@
 <Prefab>
   <!--
-    NPC chat = encyclopedia-first shell (mirror SandBox EncyclopediaHeroPage).
-    Root: Encyclopedia.Page.SoundBrush (vanilla encyclopedia page + sound layer; not interchangeable with Page alone).
-    Row: hero strip (370) | Encyclopedia divider | conversation | divider | information.
+    NPC chat: root Encyclopedia.Page.SoundBrush; main content lives in ChatMainInset (flat fill + frame_9 border).
+    Avoid Encyclopedia.Frame / full-page encyclopedia bodies on the right — they use a strong top band vs body split.
+    Row: hero strip (370) | divider | conversation | divider | information.
     Bindings: NpcChatWindowVM — HeroCharacter, Traits, HeroSkillList, MessageList, InfoSections, etc.
   -->
   <Constants>
@@ -17,7 +17,7 @@
     <Constant Name="Msg.Margin" Value="30" />
     <Constant Name="Gold" Value="#FFE6B685" />
     <Constant Name="SepColor" Value="#FFFFFF22" />
-    <!-- Single horizontal inset for scroll content inside Encyclopedia.Frame (matches encyclopedia subpage rhythm). -->
+    <!-- Horizontal inset for InfoScrollPanel inside the right column (flat body; no Encyclopedia.Frame). -->
     <Constant Name="Info.Inset" Value="24" />
   </Constants>
 
@@ -25,10 +25,17 @@
     <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                  DoNotAcceptEvents="true" Brush="Encyclopedia.Page.SoundBrush">
       <Children>
-        <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+        <Widget Id="ChatMainInset" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                 MarginLeft="!Inset" MarginRight="!Inset" MarginTop="!Inset" MarginBottom="!Inset"
                 DoNotAcceptEvents="false">
           <Children>
+            <!-- Uniform flat panel (no encyclopedia subpage / page gradient split). -->
+            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                    Sprite="BlankWhiteSquare_9" Color="#141820FF" DoNotAcceptEvents="true"/>
+            <!-- Border around inset (same frame_9 pattern as input bar). -->
+            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                    Sprite="frame_9" ExtendLeft="6" ExtendTop="6" ExtendRight="6" ExtendBottom="6"
+                    AlphaFactor="0.5" IsEnabled="false" DoNotAcceptEvents="true"/>
             <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                        StackLayout.LayoutMethod="HorizontalLeftToRight" DoNotAcceptEvents="false">
               <Children>
@@ -286,10 +293,10 @@
                 <Widget WidthSizePolicy="Fixed" SuggestedWidth="!Sep.Divider" HeightSizePolicy="StretchToParent"
                         Sprite="Encyclopedia\divider_vertical"/>
 
-                <!-- ══ Right: information panel (fixed title band | framed scroll | close) ══ -->
+                <!-- ══ Right: information panel (title band | scroll body | close) — no Encyclopedia.Frame (avoids top/body split art). ══ -->
                 <Widget Id="RightColumn" WidthSizePolicy="Fixed" SuggestedWidth="!Info.W" HeightSizePolicy="StretchToParent">
                   <Children>
-                    <!-- No separate full-column gradient: Encyclopedia.Frame + parent page fill the chrome; section rows use @SectionPanelColor only. -->
+                    <!-- Section rows use @SectionPanelColor on each block; no extra encyclopedia frame layer. -->
                     <!-- Non-collapsible title strip (vanilla encyclopedia banner; distinct from per-section headers inside the scroll). -->
                     <BrushWidget Id="InfoTitleBand" WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="46" VerticalAlignment="Top"
                                  MarginLeft="4" MarginRight="4" MarginTop="4" Brush="Encyclopedia.TopBanner" Color="#0F141FFF" DoNotAcceptEvents="true">
@@ -299,12 +306,12 @@
                                         Brush.FontSize="23" Brush.TextHorizontalAlignment="Left" Color="!Gold" Text="Information" IsDisabled="true"/>
                       </Children>
                     </BrushWidget>
-                    <!-- Title + underline merged: frame top margin = title band (46) + margins (4+4). No extra separator strip. -->
-                    <BrushWidget Id="InfoFrame" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                    <!-- Title band (46) + margins (4+4) → body top; flat container only (no Frame brush). -->
+                    <Widget Id="InfoBody" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                  MarginTop="54" MarginBottom="50" MarginLeft="4" MarginRight="4"
-                                 Brush="Encyclopedia.Frame" DoNotAcceptEvents="true">
+                                 DoNotAcceptEvents="false">
                       <Children>
-                        <!-- InfoScrollBar is sibling of InfoFrame; wheel uses VerticalScrollbar link (audit doc). -->
+                        <!-- InfoScrollBar is sibling of InfoBody; wheel uses VerticalScrollbar link (audit doc). -->
                         <ScrollablePanel Id="InfoScrollPanel" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                          MarginLeft="!Info.Inset" MarginRight="!Info.Inset" MarginTop="!Info.Inset" MarginBottom="!Info.Inset"
                                          ClipRect="InfoClipRect" InnerPanel="InfoClipRect\InfoSectionsList"
@@ -441,7 +448,7 @@
                           </Children>
                         </ScrollablePanel>
                       </Children>
-                    </BrushWidget>
+                    </Widget>
                     <Standard.VerticalScrollbar Id="InfoScrollBar" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent"
                                                 SuggestedWidth="22" HorizontalAlignment="Right" VerticalAlignment="Center"
                                                 MarginRight="2" MarginBottom="54" MarginTop="54" AlphaFactor="0"/>
