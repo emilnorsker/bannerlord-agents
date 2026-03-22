@@ -111,15 +111,31 @@ public sealed class InfoGlyphLineVM : ViewModel
         };
     }
 
+    /// <summary>Uses <see cref="SkillIconVisualWidget"/> (same as world events). Plain <c>Widget</c> + <c>Sprite=@FormationSprite</c> does not reliably bind game sprite paths in Gauntlet.</summary>
     public static InfoGlyphLineVM FromTroopFormation(FormationClass formation, int count)
     {
+        string skillId = formation switch
+        {
+            FormationClass.Ranged => DefaultSkills.Bow.StringId,
+            FormationClass.Cavalry => DefaultSkills.Riding.StringId,
+            FormationClass.HorseArcher => DefaultSkills.Bow.StringId,
+            _ => DefaultSkills.OneHanded.StringId
+        };
+        string label = formation switch
+        {
+            FormationClass.Infantry => "Infantry",
+            FormationClass.Ranged => "Ranged",
+            FormationClass.Cavalry => "Cavalry",
+            FormationClass.HorseArcher => "Horse archers",
+            _ => "Troops"
+        };
         return new InfoGlyphLineVM
         {
-            IsSkill = false,
-            IsFormation = true,
-            SkillId = "",
-            FormationSprite = PartyTroopFormationHelper.GetFormationSpritePath(formation),
-            Text = "(" + count + ")",
+            IsSkill = true,
+            IsFormation = false,
+            SkillId = skillId,
+            FormationSprite = "",
+            Text = $"{label} ({count})",
             Color = "#C6AC8DFF"
         };
     }
