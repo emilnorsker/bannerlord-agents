@@ -148,6 +148,7 @@
                           </Children>
                         </BrushWidget>
                         <!-- ChatScrollWrapper: scroll region + invisible bar; siblings below = separator strip, then input bar. -->
+                        <!-- ScrollablePanel wheel: engine ScrollablePanel.OnMouseScroll uses VerticalScrollbar when set (see docs/gauntlet-static-audit.md). -->
                         <Widget Id="ChatScrollWrapper" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                 MarginTop="!Header.H" MarginBottom="!Input.H" MarginLeft="4">
                           <Children>
@@ -303,10 +304,11 @@
                                  MarginTop="54" MarginBottom="50" MarginLeft="4" MarginRight="4"
                                  Brush="Encyclopedia.Frame" DoNotAcceptEvents="true">
                       <Children>
+                        <!-- InfoScrollBar is sibling of InfoFrame (see VerticalScrollbar path); wheel uses VerticalScrollbar link, not MouseScrollAxis (audit doc). -->
                         <ScrollablePanel Id="InfoScrollPanel" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                          MarginLeft="!Info.Inset" MarginRight="!Info.Inset" MarginTop="!Info.Inset" MarginBottom="!Info.Inset"
                                          ClipRect="InfoClipRect" InnerPanel="InfoClipRect\InfoSectionsList"
-                                         MouseScrollAxis="Vertical" VerticalScrollbar="..\..\InfoScrollBar\Scrollbar" AutoHideScrollBars="true">
+                                         VerticalScrollbar="..\..\InfoScrollBar\Scrollbar" AutoHideScrollBars="true">
                           <Children>
                         <Widget Id="InfoClipRect" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" DoNotAcceptEvents="false" ClipContents="true">
                           <Children>
