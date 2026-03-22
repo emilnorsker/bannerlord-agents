@@ -733,7 +733,10 @@ public class NpcChatWindowVM : ViewModel
                 var preCtx = AIInfluenceBehavior.Instance.GetOrCreateNPCContext(_npc);
                 playerHistoryIdx = preCtx?.ConversationHistory?.Count ?? -1;
             }
-            catch (Exception) { }
+            catch (Exception ex)
+            {
+                AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] GetOrCreateNPCContext (playerHistoryIdx) failed: " + ex.Message);
+            }
             ChatMessageItemVM streamingItem = null;
             bool streamingRetired = false;
             string streamingTargetText = "";
@@ -892,18 +895,21 @@ public class NpcChatWindowVM : ViewModel
 
                 if (streamingItem != null)
                 {
-                    streamingTargetText = reply;
-                    if (!streamPumpActive)
+                    // Defer to main-thread queue so this runs after any enqueued stream partials (continuation may not be on main thread).
+                    MainThreadDispatcher.Queue.Enqueue(() =>
                     {
-                        // No partial stream chunks (e.g. error before SSE, or non-streaming path).
-                        doFinalize();
-                    }
-                    else
-                    {
-                        // Let the typewriter pump finish animating to the full reply, then finalize.
-                        finalizeNpcMessage = doFinalize;
-                        // Pump already running; taskManager will tick it — do not call streamPumpStep() again (would double speed).
-                    }
+                        if (streamingRetired) return;
+                        streamingTargetText = reply;
+                        if (!streamPumpActive)
+                        {
+                            // No partial chunks processed yet (error before SSE, or only this lambda runs first).
+                            doFinalize();
+                        }
+                        else
+                        {
+                            finalizeNpcMessage = doFinalize;
+                        }
+                    });
                 }
                 else
                 {

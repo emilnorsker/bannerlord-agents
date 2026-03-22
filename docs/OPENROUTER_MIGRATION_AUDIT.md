@@ -143,11 +143,13 @@ Produced by repository search for `SendAIRequest`, `AIClient.Get`, `GetRawTextRe
 
 | File | Line | Pattern |
 |------|------|---------|
-| `NpcChatWindowVM.cs` | 736 | `catch (Exception) { }` |
-| `NpcChatWindowManager.cs` | 75 | `catch (Exception) { }` |
+| `NpcChatWindowVM.cs` | (was ~736) | **Addressed** — logs `GetOrCreateNPCContext (playerHistoryIdx) failed` |
+| `NpcChatWindowManager.cs` | (was ~75) | **Addressed** — logs `EndConversation on close failed` |
 | `SubModule.cs` | 61–63, 77–79 | `catch (Exception) { }` around Harmony |
 
 **INF:** Whether those hide user-visible failures — depends on what exceptions occur.
+
+**SRC:** Post-`await` streaming finalize in `NpcChatWindowVM` runs on **`MainThreadDispatcher.Queue`** so it orders after enqueued partials and avoids finalizing on a thread-pool continuation before the pump starts.
 
 ---
 
