@@ -312,7 +312,7 @@ public class NpcChatWindowVM : ViewModel
                 if (string.IsNullOrWhiteSpace(text))
                     continue;
                 string skillId = WorldEventGlyphHelper.GetSkillIdForEventType(e.Type);
-                section.GlyphLines.Add(InfoGlyphLineVM.FromWorldEvent(skillId, "• " + text));
+                section.GlyphLines.Add(InfoGlyphLineVM.FromWorldEvent(skillId, "• " + text, e.Importance));
             }
         }
         catch (Exception ex)
