@@ -169,7 +169,7 @@
                                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="42" VerticalAlignment="Center" MarginLeft="4" MarginRight="4" DoNotPassEventsToChildren="true">
                                       <Children>
                                         <SliderWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="42" VerticalAlignment="Center"
-                                                      DoNotUpdateHandleSize="true" Filler="RelationSliderFiller" Handle="RelationSliderHandle" Locked="true"
+                                                      DoNotUpdateHandleSize="true" Filler="RelationSliderFiller" Handle="RelationSliderHandle" Locked="true" DoNotAcceptEvents="true"
                                                       MinValueFloat="-100" MaxValueFloat="100" ValueFloat="@RelationValueFloat">
                                           <Children>
                                             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="38" HorizontalAlignment="Center" VerticalAlignment="Center" Sprite="SPGeneral\SPOptions\standart_slider_canvas" DoNotAcceptEvents="true"/>
@@ -196,7 +196,7 @@
                                     <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="42" VerticalAlignment="Center" MarginLeft="4" MarginRight="4" DoNotPassEventsToChildren="true">
                                       <Children>
                                         <SliderWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="42" VerticalAlignment="Center"
-                                                      DoNotUpdateHandleSize="true" Filler="TrustSliderFiller" Handle="TrustSliderHandle" Locked="true"
+                                                      DoNotUpdateHandleSize="true" Filler="TrustSliderFiller" Handle="TrustSliderHandle" Locked="true" DoNotAcceptEvents="true"
                                                       MinValueFloat="0" MaxValueFloat="100" ValueFloat="@TrustPercentFloat">
                                           <Children>
                                             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="38" HorizontalAlignment="Center" VerticalAlignment="Center" Sprite="SPGeneral\SPOptions\standart_slider_canvas" DoNotAcceptEvents="true"/>
