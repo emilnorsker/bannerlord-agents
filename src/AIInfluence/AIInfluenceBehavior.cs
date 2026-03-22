@@ -481,7 +481,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			_npcInitiativeSystem.Tick(dt);
 		}
 		Action result;
-		while (MainThreadDispatch.MainThreadQueue.TryDequeue(out result))
+		while (MainThreadDispatcher.Queue.TryDequeue(out result))
 		{
 			try
 			{
@@ -489,7 +489,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			}
 			catch (Exception ex)
 			{
-				LogMessage("[MainThreadDispatch] queued action error: " + ex.Message);
+				LogMessage("[MainThread] Queued action error: " + ex.Message);
 			}
 		}
 	}
@@ -4859,7 +4859,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				Task completedTask = await Task.WhenAny(requestTask, timeoutTask);
 				string rawResponse = (completedTask == timeoutTask) ? "Error: Timeout (45s)" : await requestTask;
 
-				MainThreadDispatch.MainThreadQueue.Enqueue(() =>
+				MainThreadDispatcher.Queue.Enqueue(() =>
 				{
 					try
 					{

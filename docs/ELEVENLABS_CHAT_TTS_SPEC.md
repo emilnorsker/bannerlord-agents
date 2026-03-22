@@ -28,7 +28,7 @@ The **LLM** produces **text** (and any JSON the chat feature already uses). The 
 
 ## Hard constraints from Bannerlord + this mod
 
-1. **Campaign / UI mutation** (including starting sound playback that touches `CampaignMission` or Gauntlet-bound state) must follow the same **main-thread marshaling** pattern as the rest of the mod: enqueue onto **`MainThreadDispatch.MainThreadQueue`** (see `AIClient` streaming, `NpcChatWindowVM`, `AIInfluenceBehavior` tick dequeue). **Do not** invoke conversation/UI/audio entry points from arbitrary thread-pool threads without that queue (or an equivalent documented hook).
+1. **Campaign / UI mutation** (including starting sound playback that touches `CampaignMission` or Gauntlet-bound state) must follow the same **main-thread marshaling** pattern as the rest of the mod: enqueue onto **`MainThreadDispatcher.Queue`** (see `AIClient` streaming, `NpcChatWindowVM`, `AIInfluenceBehavior` tick dequeue). **Do not** invoke conversation/UI/audio entry points from arbitrary thread-pool threads without that queue (or an equivalent documented hook).
 
 2. **Network** (ElevenLabs HTTP/WebSocket) stays **async** on worker threads. **Never** block the main simulation thread waiting on `HttpClient`.
 
@@ -166,7 +166,7 @@ Later slices assume earlier unless noted. **None are “done”** until explicit
 | **1** | **Config + secret** | Decide MCM vs constants; store API key safely; document in mod hint text. |
 | **1b** | **Voice lookup table** | `ModuleData` JSON (or equivalent): native attribute keys → ElevenLabs `voice_id`; narrator profile row(s); load/validate at startup; used by `ResolveVoiceId`. |
 | **2** | **HTTP client minimal** | One method: `voice_id`, `text`, `model_id`, `output_format` → `byte[]` PCM on thread pool; structured errors logged. |
-| **3** | **PCM → playable file** | Reuse or add **one** small path: PCM → playable asset, **audio-first** playback, enqueue **playback start** on the main thread via **`MainThreadDispatch`** (same pattern as existing UI callbacks). |
+| **3** | **PCM → playable file** | Reuse or add **one** small path: PCM → playable asset, **audio-first** playback, enqueue **playback start** on the main thread via **`MainThreadDispatcher.Queue`** (same pattern as existing UI callbacks). |
 | **4** | **Chunk parser unit** | Pure function: `(string partial, bool llm_done) → List<Chunk>` with rules in **Committed chunks**; each chunk carries **role** for voice resolution; golden tests or fixed strings in dev menu. |
 | **5** | **Prefetch + generation id** | On chunk list change, parallel fetch; stale generation discarded. |
 | **6** | **Typewriter cap** | `visible_length` bounded by `committed_end` until `llm_done`; pump schedules retries when stalled. |

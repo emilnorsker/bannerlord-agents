@@ -154,7 +154,7 @@ public static class AIClient
 							{
 								string batchedChunk = debugStreamBuffer.ToString().Replace("\n", "\\n");
 								debugStreamBuffer.Clear();
-								MainThreadDispatch.MainThreadQueue.Enqueue(() => InformationManager.DisplayMessage(new InformationMessage("[LLM STREAM] " + batchedChunk)));
+								MainThreadDispatcher.Queue.Enqueue(() => InformationManager.DisplayMessage(new InformationMessage("[LLM STREAM] " + batchedChunk)));
 							}
 						}
 						onOpenRouterStreamUpdate(text4);
@@ -163,7 +163,7 @@ public static class AIClient
 				if (debugStreamBuffer != null && debugStreamBuffer.Length > 0)
 				{
 					string remainingChunk = debugStreamBuffer.ToString().Replace("\n", "\\n");
-					MainThreadDispatch.MainThreadQueue.Enqueue(() => InformationManager.DisplayMessage(new InformationMessage("[LLM STREAM] " + remainingChunk)));
+					MainThreadDispatcher.Queue.Enqueue(() => InformationManager.DisplayMessage(new InformationMessage("[LLM STREAM] " + remainingChunk)));
 				}
 				string text5 = stringBuilder.ToString();
 				if (!text5.TrimStart(Array.Empty<char>()).StartsWith("{", StringComparison.Ordinal))

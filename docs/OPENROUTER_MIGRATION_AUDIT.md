@@ -20,7 +20,7 @@ If a line has **no tag**, treat it as **narrative** (organizational only), not e
 
 **Command used:** `git diff 179768f^..HEAD --name-status` on migration-related paths (see repo history).
 
-**Files touched by OpenRouter-only commits** include: `AIClient.cs`, deleted alternate-provider files, **deleted** `Player2Client.cs` + `VoiceInfo.cs`, deleted `Player2UsageTracker.cs`, `ModSettings.cs`, `AIInfluenceBehavior.cs`, `NpcChatWindowVM.cs`, `SubModule.cs`, **deleted** `TtsLipSyncService.cs` + `TtsPreparedData.cs`, added `MainThreadDispatch.cs` (main-thread queue for LLM stream UI only), `NPCInitiativeSystem.cs`, `DialogManager.cs`, `PromptGenerator.cs`, `AIResponse.cs`, `JsonCleaner.cs`, `NPCContext.cs`, diplomacy + `DynamicEventsGenerator.cs`, and this doc.
+**Files touched by OpenRouter-only commits** include: `AIClient.cs`, deleted alternate-provider files, **deleted** `Player2Client.cs` + `VoiceInfo.cs`, deleted `Player2UsageTracker.cs`, `ModSettings.cs`, `AIInfluenceBehavior.cs`, `NpcChatWindowVM.cs`, `SubModule.cs`, **deleted** `TtsLipSyncService.cs` + `TtsPreparedData.cs`, `MainThreadDispatcher.cs` (main-thread queue for LLM stream UI; merged from `main`, replaces the earlier `MainThreadDispatch` helper), `NPCInitiativeSystem.cs`, `DialogManager.cs`, `PromptGenerator.cs`, `AIResponse.cs`, `JsonCleaner.cs`, `NPCContext.cs`, diplomacy + `DynamicEventsGenerator.cs`, and this doc.
 
 **SRC:** TTS / `tts_instructions` / NPC voice fields were **removed** from prompts, JSON schema, `AIResponse`, `NPCContext`, and dialog; no TTS stub settings remain in `ModSettings`.
 
@@ -33,7 +33,7 @@ Searches used: ripgrep on `src/`, `docs/`, `.github/` for `tts`, `TTS`, `Player2
 | Area | Removed / changed |
 |------|-------------------|
 | **Deleted C#** | `Player2Client.cs`, `VoiceInfo.cs`, `Player2UsageTracker.cs`, `TtsLipSyncService.cs`, `TtsPreparedData.cs`, `OggEncoder.cs` |
-| **Added C#** | `MainThreadDispatch.cs` only (queue for LLM stream / UI; not audio) |
+| **Added C#** | `MainThreadDispatcher.cs` (queue for LLM stream / UI; not audio) |
 | **Project** | `AIInfluence.csproj` — no `OggVorbisEncoder` reference (**SRC:** current csproj `ItemGroup` is `System.Net.Http` only besides packages) |
 | **MCM** | No TTS / Player2 API groups; no `EnableTTS` / speed / volume properties on `ModSettings` |
 | **Model / state** | `AIResponse.TTSInstructions`; `NPCContext` voice / prepared-audio fields |
@@ -42,7 +42,7 @@ Searches used: ripgrep on `src/`, `docs/`, `.github/` for `tts`, `TTS`, `Player2
 | **JSON hygiene** | `JsonCleaner` default object and optional-field list — no `tts_instructions` |
 | **Death history** | `DeathHistoryBehavior` JSON field regex — no `tts_instructions` alternative |
 | **CI / release** | `.github/workflows/publish.yml` — no copy of `OggVorbisEncoder.dll`, `System.Buffers.dll`, `System.Memory.dll`, `rhubarb.exe`, or `bin/Win64_Shipping_Client/res/` (was lip-sync / phonetic resources for rhubarb) |
-| **Logs** | Main-thread dequeue errors log as `[MainThreadDispatch]` not `[LipSync]` (`AIInfluenceBehavior`) |
+| **Logs** | Main-thread dequeue errors log as `[MainThread]` not `[LipSync]` (`AIInfluenceBehavior`) |
 
 **SRC:** `rhubarb.exe`, `res/`, `OggVorbisEncoder.dll`, `System.Buffers.dll`, and `System.Memory.dll` under `bin/Win64_Shipping_Client/` were **removed from git tracking** and listed in `.gitignore` so they are not re-committed. The **publish workflow** does not copy them (see §1a table). `AIInfluence.dll` may remain under `bin/` for local/Vortex layouts — **NRV** whether your fork still needs that file tracked.
 
