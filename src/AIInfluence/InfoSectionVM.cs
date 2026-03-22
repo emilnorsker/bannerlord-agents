@@ -1,3 +1,4 @@
+using System;
 using TaleWorlds.Core;
 using TaleWorlds.Core.ViewModelCollection.Information;
 using TaleWorlds.Library;
@@ -30,6 +31,12 @@ public class InfoSectionVM : ViewModel
     private HintViewModel _rangedHint = null!;
     private HintViewModel _cavalryHint = null!;
     private HintViewModel _horseArcherHint = null!;
+
+    private bool _showNativeRelationTrustSliders;
+    private float _relationValueFloat;
+    private float _trustPercentFloat;
+    private string _relationValueAsString = "0";
+    private string _trustValueAsString = "0%";
 
     public InfoSectionVM()
     {
@@ -292,6 +299,74 @@ public class InfoSectionVM : ViewModel
                 return;
             _horseArcherHint = value;
             OnPropertyChangedWithValue(value, nameof(HorseArcherHint));
+        }
+    }
+
+    /// <summary>Native SP <c>OptionItem.xml</c> numeric rows (Character section only).</summary>
+    [DataSourceProperty]
+    public bool ShowNativeRelationTrustSliders
+    {
+        get => _showNativeRelationTrustSliders;
+        set
+        {
+            if (value == _showNativeRelationTrustSliders)
+                return;
+            _showNativeRelationTrustSliders = value;
+            OnPropertyChangedWithValue(value, nameof(ShowNativeRelationTrustSliders));
+        }
+    }
+
+    [DataSourceProperty]
+    public float RelationValueFloat
+    {
+        get => _relationValueFloat;
+        set
+        {
+            if (Math.Abs(value - _relationValueFloat) < 0.001f)
+                return;
+            _relationValueFloat = value;
+            OnPropertyChangedWithValue(value, nameof(RelationValueFloat));
+        }
+    }
+
+    [DataSourceProperty]
+    public float TrustPercentFloat
+    {
+        get => _trustPercentFloat;
+        set
+        {
+            if (Math.Abs(value - _trustPercentFloat) < 0.001f)
+                return;
+            _trustPercentFloat = value;
+            OnPropertyChangedWithValue(value, nameof(TrustPercentFloat));
+        }
+    }
+
+    [DataSourceProperty]
+    public string RelationValueAsString
+    {
+        get => _relationValueAsString;
+        set
+        {
+            value ??= "";
+            if (value == _relationValueAsString)
+                return;
+            _relationValueAsString = value;
+            OnPropertyChangedWithValue(value, nameof(RelationValueAsString));
+        }
+    }
+
+    [DataSourceProperty]
+    public string TrustValueAsString
+    {
+        get => _trustValueAsString;
+        set
+        {
+            value ??= "";
+            if (value == _trustValueAsString)
+                return;
+            _trustValueAsString = value;
+            OnPropertyChangedWithValue(value, nameof(TrustValueAsString));
         }
     }
 

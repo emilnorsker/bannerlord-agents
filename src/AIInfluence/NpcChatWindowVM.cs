@@ -49,10 +49,7 @@ public class NpcChatWindowVM : ViewModel
     [DataSourceProperty] public string SkillsText { get; set; } = "";
     [DataSourceProperty] public bool HasAnySkills { get; set; }
 
-    // ── Chat column header (relation / trust / mood) ─────────────────────
-    [DataSourceProperty] public string RelationText { get; set; } = "";
-    [DataSourceProperty] public string RelationColor { get; set; } = "#FFFFFFFF";
-    [DataSourceProperty] public string TrustLabel { get; set; } = "";
+    // ── Chat column header (mood only; relation/trust = Character info section, native SP sliders) ──
     [DataSourceProperty] public string EmotionLabel { get; set; } = "";
 
     // ── Center ────────────────────────────────────────────────────────────
@@ -93,6 +90,7 @@ public class NpcChatWindowVM : ViewModel
         PopulateTraitOverlay(npc, context);
         PopulateHistory(context);
         PopulateRightPanel(npc, context);
+        SyncCharacterSectionRelationTrust(npc, context);
     }
 
     /// <summary>Releases tableau resources for <see cref="HeroCharacter"/>; call before clearing the view model reference.</summary>
@@ -159,22 +157,44 @@ public class NpcChatWindowVM : ViewModel
 
     private void PopulateTraitOverlay(Hero npc, NPCContext context)
     {
-        int relation = (int)npc.GetRelation(Hero.MainHero);
-        string label = relation >= 20 ? "Friendly" : relation >= 0 ? "Neutral" : relation >= -20 ? "Cautious" : "Hostile";
-        RelationText = $"{label} ({relation:+#;-#;0})";
-        RelationColor = relation >= 0 ? "#6FCF6FFF" : "#CF6F6FFF";
-        float trust = context?.TrustLevel ?? 0f;
-        TrustLabel = trust >= 0.6f ? "High Trust" : trust >= 0.3f ? "Moderate Trust" : "Low Trust";
         EmotionLabel = context?.EmotionalState?.Mood ?? "";
     }
 
     private void RefreshTraitOverlay(Hero npc, NPCContext context)
     {
         PopulateTraitOverlay(npc, context);
-        ((ViewModel)this).OnPropertyChangedWithValue<string>(RelationText, "RelationText");
-        ((ViewModel)this).OnPropertyChangedWithValue<string>(RelationColor, "RelationColor");
-        ((ViewModel)this).OnPropertyChangedWithValue<string>(TrustLabel, "TrustLabel");
+        SyncCharacterSectionRelationTrust(npc, context);
         ((ViewModel)this).OnPropertyChangedWithValue<string>(EmotionLabel, "EmotionLabel");
+    }
+
+    private static void ApplyRelationTrustSlidersToSection(InfoSectionVM section, Hero npc, NPCContext context)
+    {
+        int relRaw = Hero.MainHero != null ? (int)npc.GetRelation(Hero.MainHero) : 0;
+        float rel = relRaw;
+        if (rel > 100f)
+            rel = 100f;
+        if (rel < -100f)
+            rel = -100f;
+        section.RelationValueFloat = rel;
+        section.RelationValueAsString = $"{relRaw:+#;-#;0}";
+        float t = context?.TrustLevel ?? 0f;
+        if (t < 0f)
+            t = 0f;
+        if (t > 1f)
+            t = 1f;
+        section.TrustPercentFloat = t * 100f;
+        section.TrustValueAsString = $"{t * 100f:F0}%";
+    }
+
+    private void SyncCharacterSectionRelationTrust(Hero npc, NPCContext context)
+    {
+        foreach (InfoSectionVM s in InfoSections)
+        {
+            if (!s.ShowNativeRelationTrustSliders)
+                continue;
+            ApplyRelationTrustSlidersToSection(s, npc, context);
+            break;
+        }
     }
 
     private void PopulateHistory(NPCContext context)
@@ -365,9 +385,8 @@ public class NpcChatWindowVM : ViewModel
     private static InfoSectionVM BuildCharacterSection(Hero npc, NPCContext context)
     {
         var section = new InfoSectionVM { HeaderText = "Character", HeaderSkillId = DefaultSkills.Charm.StringId };
-        int rel = Hero.MainHero != null ? (int)npc.GetRelation(Hero.MainHero) : 0;
-        section.TextLines.Add(new TextItemVM($"Relation: {rel:+#;-#;0}", rel >= 0 ? "#6FCF6FFF" : "#CF6F6FFF"));
-        section.TextLines.Add(new TextItemVM($"Trust: {(context?.TrustLevel ?? 0f) * 100f:F0}%"));
+        section.ShowNativeRelationTrustSliders = true;
+        ApplyRelationTrustSlidersToSection(section, npc, context);
         section.TextLines.Add(new TextItemVM($"Interactions: {context?.InteractionCount ?? 0}"));
         section.RefreshVisibility();
         return section;

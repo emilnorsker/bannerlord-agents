@@ -12,7 +12,7 @@
     <!-- Column dividers: vanilla encyclopedia vertical rule (wider than thin tint strips for clear separation). -->
     <Constant Name="Sep.Divider" Value="4" />
     <Constant Name="Inset" Value="20" />
-    <!-- Conversation header: title + compact relation/trust bars (~text line height) + mood -->
+    <!-- Conversation header: title + mood (relation/trust = Information panel Character section, vanilla SP sliders). -->
     <Constant Name="Header.H" Value="100" />
     <Constant Name="Input.H" Value="52" />
     <Constant Name="Msg.Margin" Value="30" />
@@ -156,13 +156,6 @@
                             <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                         HorizontalAlignment="Left" VerticalAlignment="Top" PositionXOffset="14" PositionYOffset="8"
                                         Brush="Chat.Header.Label" Text="Conversation" IsDisabled="true"/>
-                            <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                            HorizontalAlignment="Left" VerticalAlignment="Bottom" PositionXOffset="14" PositionYOffset="-36"
-                                            Brush="Encyclopedia.SubPage.Info.Text" Brush.FontSize="14" Color="@RelationColor"
-                                            Text="@RelationText" IsDisabled="true"/>
-                            <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
-                                            HorizontalAlignment="Right" VerticalAlignment="Bottom" PositionXOffset="-14" PositionYOffset="-36"
-                                            Brush="Encyclopedia.SubPage.Info.Text" Brush.FontSize="14" Text="@TrustLabel" IsDisabled="true"/>
                             <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                         HorizontalAlignment="Left" VerticalAlignment="Bottom" PositionXOffset="14" PositionYOffset="-4"
                                         Brush="SPScoreboard.Subtitle.Text" Brush.FontSize="12" Text="@EmotionLabel" IsDisabled="true"/>
@@ -387,6 +380,63 @@
                                               </Children>
                                             </Widget>
                                           </ItemTemplate>
+                                        </ListPanel>
+                                        <!-- Native/Modules/Native/GUI/Prefabs/Options/SPOptions/OptionItem.xml NumericOption (read-only: Locked + DoNotAcceptEvents on SliderWidget). Trust row then Relation row: VerticalBottomToTop → Relation above Trust above TextLines. -->
+                                        <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" IsVisible="@ShowNativeRelationTrustSliders" DoNotAcceptEvents="true" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                                          <Children>
+                                            <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="CoverChildren" SuggestedWidth="500" HorizontalAlignment="Right" VerticalAlignment="Center" Brush="SPOptions.OptionName.Text" Text="Trust" IsEnabled="true"/>
+                                            <Widget DoNotAcceptEvents="true" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="40" IsEnabled="true">
+                                              <Children>
+                                                <ListPanel Id="TrustNumericOption" WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" HorizontalAlignment="Left" VerticalAlignment="Center" MarginLeft="20" IsVisible="true">
+                                                  <Children>
+                                                    <NavigationTargetSwitcher FromTarget="..\." ToTarget="..\TrustSlider\TrustSliderHandle" />
+                                                    <NavigationAutoScrollWidget TrackedWidget="..\TrustSlider\TrustSliderHandle" AutoScrollTopOffset="90" AutoScrollBottomOffset="90" />
+                                                    <SliderWidget Id="TrustSlider" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="338" SuggestedHeight="42" VerticalAlignment="Center" DoNotUpdateHandleSize="true" Filler="TrustFiller" Handle="TrustSliderHandle" IsDiscrete="false" MaxValueFloat="100" MinValueFloat="0" ValueFloat="@TrustPercentFloat" UpdateValueContinuously="false" Locked="true" DoNotAcceptEvents="true">
+                                                      <Children>
+                                                        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="362" SuggestedHeight="38" HorizontalAlignment="Center" VerticalAlignment="Center" Sprite="SPGeneral\SPOptions\standart_slider_canvas" DoNotAcceptEvents="true" />
+                                                        <Widget Id="TrustFiller" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="345" SuggestedHeight="35" VerticalAlignment="Center" Sprite="SPGeneral\SPOptions\standart_slider_fill" ClipContents="true">
+                                                          <Children>
+                                                            <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="345" SuggestedHeight="35" HorizontalAlignment="Left" VerticalAlignment="Center" Sprite="SPGeneral\SPOptions\standart_slider_fill" />
+                                                          </Children>
+                                                        </Widget>
+                                                        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="400" SuggestedHeight="65" HorizontalAlignment="Center" VerticalAlignment="Center" Sprite="SPGeneral\SPOptions\standart_slider_frame" DoNotAcceptEvents="true" />
+                                                        <ImageWidget Id="TrustSliderHandle" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="14" SuggestedHeight="38" HorizontalAlignment="Left" VerticalAlignment="Center" Brush="SPOptions.Slider.Handle" />
+                                                      </Children>
+                                                    </SliderWidget>
+                                                    <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" MarginLeft="60" MarginTop="8" Brush="SPOptions.Slider.Value.Text" IsEnabled="false" Text="@TrustValueAsString" />
+                                                  </Children>
+                                                </ListPanel>
+                                              </Children>
+                                            </Widget>
+                                          </Children>
+                                        </ListPanel>
+                                        <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" IsVisible="@ShowNativeRelationTrustSliders" DoNotAcceptEvents="true" StackLayout.LayoutMethod="HorizontalLeftToRight">
+                                          <Children>
+                                            <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="CoverChildren" SuggestedWidth="500" HorizontalAlignment="Right" VerticalAlignment="Center" Brush="SPOptions.OptionName.Text" Text="Relation" IsEnabled="true"/>
+                                            <Widget DoNotAcceptEvents="true" WidthSizePolicy="CoverChildren" HeightSizePolicy="StretchToParent" MarginLeft="40" IsEnabled="true">
+                                              <Children>
+                                                <ListPanel Id="RelationNumericOption" WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" HorizontalAlignment="Left" VerticalAlignment="Center" MarginLeft="20" IsVisible="true">
+                                                  <Children>
+                                                    <NavigationTargetSwitcher FromTarget="..\." ToTarget="..\RelationSlider\RelationSliderHandle" />
+                                                    <NavigationAutoScrollWidget TrackedWidget="..\RelationSlider\RelationSliderHandle" AutoScrollTopOffset="90" AutoScrollBottomOffset="90" />
+                                                    <SliderWidget Id="RelationSlider" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="338" SuggestedHeight="42" VerticalAlignment="Center" DoNotUpdateHandleSize="true" Filler="RelationFiller" Handle="RelationSliderHandle" IsDiscrete="false" MaxValueFloat="100" MinValueFloat="-100" ValueFloat="@RelationValueFloat" UpdateValueContinuously="false" Locked="true" DoNotAcceptEvents="true">
+                                                      <Children>
+                                                        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="362" SuggestedHeight="38" HorizontalAlignment="Center" VerticalAlignment="Center" Sprite="SPGeneral\SPOptions\standart_slider_canvas" DoNotAcceptEvents="true" />
+                                                        <Widget Id="RelationFiller" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="345" SuggestedHeight="35" VerticalAlignment="Center" Sprite="SPGeneral\SPOptions\standart_slider_fill" ClipContents="true">
+                                                          <Children>
+                                                            <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="345" SuggestedHeight="35" HorizontalAlignment="Left" VerticalAlignment="Center" Sprite="SPGeneral\SPOptions\standart_slider_fill" />
+                                                          </Children>
+                                                        </Widget>
+                                                        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="400" SuggestedHeight="65" HorizontalAlignment="Center" VerticalAlignment="Center" Sprite="SPGeneral\SPOptions\standart_slider_frame" DoNotAcceptEvents="true" />
+                                                        <ImageWidget Id="RelationSliderHandle" DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="14" SuggestedHeight="38" HorizontalAlignment="Left" VerticalAlignment="Center" Brush="SPOptions.Slider.Handle" />
+                                                      </Children>
+                                                    </SliderWidget>
+                                                    <RichTextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren" MarginLeft="60" MarginTop="8" Brush="SPOptions.Slider.Value.Text" IsEnabled="false" Text="@RelationValueAsString" />
+                                                  </Children>
+                                                </ListPanel>
+                                              </Children>
+                                            </Widget>
+                                          </Children>
                                         </ListPanel>
                                         <!-- Same layout as SandBox/Clan/ClanPartiesRightPanel.xml TroopCountsParent / TroopCountsList (General\TroopTypeIcons). -->
                                         <ListPanel Id="NpcPartyTroopCountsParent" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
