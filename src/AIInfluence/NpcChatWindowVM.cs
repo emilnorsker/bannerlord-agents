@@ -195,7 +195,7 @@ public class NpcChatWindowVM : ViewModel
         // One subtle panel tint (Encyclopedia.Frame carries the main chrome; avoid heavy zebra stripes).
         const string sectionStripe = "#0C101868";
         InfoSections.Clear();
-        // InfoSectionsList is VerticalTopToBottom: reading order (character-first), party last.
+        // InfoSectionsList uses VerticalBottomToTop in ChatInterface.xml; sections added in build order (Character … Party) without VM reordering.
         var built = new[]
         {
             BuildCharacterSection(npc, context),

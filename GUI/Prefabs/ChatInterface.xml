@@ -315,11 +315,11 @@
                             <NavigationScopeTargeter ScopeID="NpcChatInfoSectionsScope" ScopeParent="..\InfoSectionsList" ScopeMovements="Vertical"
                                 NavigateFromScopeEdges="true" UseDiscoveryAreaAsScopeEdges="true" ExtendDiscoveryAreaTop="220" ExtendDiscoveryAreaBottom="220"/>
                             <NavigatableListPanel Id="InfoSectionsList" DataSource="{InfoSections}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                  StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="6" MarginLeft="0" MarginRight="0" MarginTop="0" MarginBottom="0">
+                                                  StackLayout.LayoutMethod="VerticalBottomToTop" Spacing="6" MarginLeft="0" MarginRight="0" MarginTop="0" MarginBottom="0">
                               <ItemTemplate>
-                                <!-- Section: VerticalTopToBottom — header first, body second (normal order; no BottomToTop inversion). -->
+                                <!-- VerticalBottomToTop on these stacks only; sibling order unchanged (header first in XML, body second). No VM list reordering. -->
                                 <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" Sprite="BlankWhiteSquare_9" Color="@SectionPanelColor"
-                                           StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="0" MarginLeft="0" MarginRight="0" MarginBottom="6">
+                                           StackLayout.LayoutMethod="VerticalBottomToTop" Spacing="0" MarginLeft="0" MarginRight="0" MarginBottom="6">
                                   <Children>
                                     <ButtonWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" MarginLeft="0" MarginRight="0"
                                                   Brush="Encyclopedia.TopBanner" Color="#0F141FFF" Command.Click="ExecuteToggle"
@@ -342,10 +342,10 @@
                                       </Children>
                                     </ButtonWidget>
                                     <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" IsVisible="@IsExpanded"
-                                               StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="6" MarginLeft="0" MarginRight="0" MarginTop="0" MarginBottom="0">
+                                               StackLayout.LayoutMethod="VerticalBottomToTop" Spacing="6" MarginLeft="0" MarginRight="0" MarginTop="0" MarginBottom="0">
                                       <Children>
                                         <ListPanel DataSource="{GlyphLines}" IsVisible="@HasGlyphLines" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                   StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="8" MarginLeft="0" MarginRight="0" MarginTop="0" MarginBottom="0">
+                                                   StackLayout.LayoutMethod="VerticalBottomToTop" Spacing="8" MarginLeft="0" MarginRight="0" MarginTop="0" MarginBottom="0">
                                           <ItemTemplate>
                                             <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
                                                        StackLayout.LayoutMethod="HorizontalLeftToRight" MarginLeft="0" MarginRight="0">
@@ -366,7 +366,7 @@
                                           </ItemTemplate>
                                         </ListPanel>
                                         <ListPanel DataSource="{TextLines}" IsVisible="@HasStandardTextLines" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                   StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="8" MarginLeft="0" MarginRight="0" MarginTop="0" MarginBottom="0">
+                                                   StackLayout.LayoutMethod="VerticalBottomToTop" Spacing="8" MarginLeft="0" MarginRight="0" MarginTop="0" MarginBottom="0">
                                           <ItemTemplate>
                                             <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren">
                                               <Children>
