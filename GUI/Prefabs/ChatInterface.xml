@@ -1,7 +1,7 @@
 <Prefab>
   <!--
-    NPC chat: root Encyclopedia.Page.SoundBrush; main content lives in ChatMainInset (flat fill + frame_9 border).
-    Avoid Encyclopedia.Frame / full-page encyclopedia bodies on the right — they use a strong top band vs body split.
+    NPC chat: root Encyclopedia.Page.SoundBrush; main content lives in ChatMainInset (Native Frame1Brush — Frame1_canvas + Frame1_frame, same family as ClanPartiesLeftPanel / Standard.Window).
+    Avoid Encyclopedia.Frame on the right — strong top/body split art.
     Row: hero strip (370) | divider | conversation | divider | information.
     Bindings: NpcChatWindowVM — HeroCharacter, Traits, HeroSkillList, MessageList, InfoSections, etc.
   -->
@@ -29,13 +29,9 @@
                 MarginLeft="!Inset" MarginRight="!Inset" MarginTop="!Inset" MarginBottom="!Inset"
                 DoNotAcceptEvents="false">
           <Children>
-            <!-- Uniform flat panel (no encyclopedia subpage / page gradient split). -->
-            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                    Sprite="BlankWhiteSquare_9" Color="#141820FF" DoNotAcceptEvents="true"/>
-            <!-- Border around inset (same frame_9 pattern as input bar). -->
-            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                    Sprite="frame_9" ExtendLeft="6" ExtendTop="6" ExtendRight="6" ExtendBottom="6"
-                    AlphaFactor="0.5" IsEnabled="false" DoNotAcceptEvents="true"/>
+            <!-- Vanilla panel chrome: Native/GUI/Brushes/Main.xml Frame1Brush (not a tint square). -->
+            <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                         Brush="Frame1Brush" DoNotAcceptEvents="true"/>
             <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                        StackLayout.LayoutMethod="HorizontalLeftToRight" DoNotAcceptEvents="false">
               <Children>
