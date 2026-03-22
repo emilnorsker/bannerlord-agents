@@ -38,7 +38,6 @@ public static class ToolHandlers
 			"character_death" => RunCharacterDeath(argsJson, context),
 			"technical_action" => RunTechnicalAction(argsJson, context),
 			"map_command" => RunMapCommand(argsJson, context),
-			"npc_say" => RunNpcSay(argsJson, context),
 			"suspected_lie" => RunSuspectedLie(argsJson, context),
 			"dialogue_decision" => RunDialogueDecision(argsJson, context),
 			"romance_intent" => RunRomanceIntent(argsJson, context),
@@ -287,19 +286,6 @@ public static class ToolHandlers
 		if (parsedArgs["allows"] == null)
 			return "missing";
 		context.DialogueToolAllowsLetters = parsedArgs["allows"].Value<bool>();
-		return "ok";
-	}
-
-	private static string RunNpcSay(string argsJson, NPCContext context)
-	{
-		JObject parsedArgs = ParseOrEmpty(argsJson);
-		string line = parsedArgs["line"]?.ToString();
-		if (string.IsNullOrEmpty(line))
-			return "missing_line";
-		context.LastNpcSayLine = line;
-		string tone = parsedArgs["tone"]?.ToString();
-		if (!string.IsNullOrEmpty(tone))
-			context.LastNpcSayTone = tone;
 		return "ok";
 	}
 

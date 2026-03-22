@@ -3193,13 +3193,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 	}
 
-	/// <summary>Clears per-turn scratch from OpenRouter dialogue tools (<c>npc_say</c>, <c>suspected_lie</c>, …).</summary>
+	/// <summary>Clears per-turn scratch from OpenRouter dialogue tools (<c>suspected_lie</c>, …).</summary>
 	public static void ClearNpcTurnDialogueTools(NPCContext context)
 	{
 		if (context == null)
 			return;
-		context.LastNpcSayLine = null;
-		context.LastNpcSayTone = null;
 		context.DialogueToolSuspectedLie = null;
 		context.DialogueToolDecision = null;
 		context.DialogueToolRomanceIntent = null;
@@ -3215,14 +3213,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	{
 		if (context == null || aiResult == null)
 			return;
-		if (!string.IsNullOrEmpty(context.LastNpcSayLine))
-		{
-			aiResult.Response = context.LastNpcSayLine;
-			if (!string.IsNullOrEmpty(context.LastNpcSayTone))
-				aiResult.Tone = context.LastNpcSayTone;
-			context.LastNpcSayLine = null;
-			context.LastNpcSayTone = null;
-		}
 		if (context.DialogueToolSuspectedLie.HasValue)
 		{
 			aiResult.SuspectedLie = context.DialogueToolSuspectedLie.Value;

@@ -109,14 +109,6 @@ public class NPCContext
 	[JsonIgnore]
 	public QuestActionData PendingQuestActionFromTools { get; set; }
 
-	/// <summary>OpenRouter <c>npc_say</c> tool: last spoken line for this turn (merged into <see cref="AIResponse.Response"/>).</summary>
-	[JsonIgnore]
-	public string LastNpcSayLine { get; set; }
-
-	/// <summary>Optional tone from <c>npc_say</c> (merged into <see cref="AIResponse.Tone"/>).</summary>
-	[JsonIgnore]
-	public string LastNpcSayTone { get; set; }
-
 	/// <summary>OpenRouter dialogue tools: merged into <see cref="AIResponse"/> after deserialize (tools override JSON when set).</summary>
 	[JsonIgnore]
 	public bool? DialogueToolSuspectedLie { get; set; }

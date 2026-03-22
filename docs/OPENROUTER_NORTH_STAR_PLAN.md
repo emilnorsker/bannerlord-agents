@@ -14,7 +14,7 @@ Think of it as a **queue of intentions**, not a **blob parser**.
 |--------|----------------|-----------|
 | **1. Generate input** | The player (or game) produces a **question, action, or event**. That payload is **enriched with a thin context layer** (system + compact world facts). The model may **gain new facts only through tools** (search, find_*, etc.)—not by inventing parallel “how to format output” rules in prose. | Prompt + context builders only describe **domain rules** and **available tools**, not a hundred conditional JSON shapes. |
 | **2. Handle (inference)** | **One** OpenRouter completion path: tools exposed, streaming as needed. **Side effects are intentional**: they occur **when a tool runs** and returns. That is the designed system—not a side effect of deserializing a string. | **Tool handlers** + optional small internal bus (`ToolCompleted` / feature-specific subscribers). |
-| **3. UI** | The UI **consumes events**: e.g. `npc_say` → chat line; `transfer_money` → action pill / banner; kingdom/quest tools → world notifications or panels. Same idea if “world events” and “chat panel” are different surfaces—they both **listen**, they do not **re-parse one giant envelope** to discover what happened. | View models / dialog nodes react to **named actions**, not to rediscovering state from `AIResponse` JSON. |
+| **3. UI** | The UI **consumes events**: e.g. assistant `response` text → chat line; `transfer_money` → action pill / banner; kingdom/quest tools → world notifications or panels. Same idea if “world events” and “chat panel” are different surfaces—they both **listen**, they do not **re-parse one giant envelope** to discover what happened. | View models / dialog nodes react to **named actions**, not to rediscovering state from `AIResponse` JSON. |
 
 **Explicit non-goals for this design**
 
@@ -125,7 +125,7 @@ The north star doc must **not** treat step 5 as a permanent home for “a little
 
 **Status:** **Partial** — NPC prompt prose trimmed earlier; **`GetNpcMessagePreview`** still uses partial JSON heuristics where not driven by tool-arg streaming.
 
-**Exit:** Preview text comes from **streamed tool arguments** (e.g. `npc_say` args) or a single non-mechanical fallback string—not regex on partial JSON.
+**Exit:** Preview text comes from **streamed assistant content** or a single non-mechanical fallback string—not regex on partial JSON.
 
 ---
 

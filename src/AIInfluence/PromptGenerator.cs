@@ -928,7 +928,7 @@ public static class PromptGenerator
 		}
 		if (!isMessengerMode)
 		{
-			stringBuilder.Append("### Response fields ###\nPrefer **dialogue tools** (`npc_say`, `suspected_lie`, `dialogue_decision`, …) and world tools. Final JSON may be `{}` if tools carried the turn. Optional JSON: `response` if you did not use `npc_say`, plus `claimed_*`, `tts_instructions` when needed.\n\n**REQUIRED fields (always include):**\n");
+			stringBuilder.Append("### Response fields ###\nPrefer **dialogue tools** (`suspected_lie`, `dialogue_decision`, …) and world tools. Final JSON may be `{}` if tools carried the turn. Optional JSON: `response` for spoken line when not fully expressed via tools, plus `claimed_*`, `tts_instructions` when needed.\n\n**REQUIRED fields (always include):**\n");
 		}
 		else
 		{
@@ -959,7 +959,7 @@ public static class PromptGenerator
 		};
 		ModSettings instance11 = GlobalSettings<ModSettings>.Instance;
 		obj8[2] = ((instance11 != null && instance11.EnableTTS && !isMessengerMode) ? "- `tts_instructions`: (string) **REQUIRED** - 20-120 chars in ENGLISH. Describe tone, emotion, pace, delivery style. Examples: \"Speak cheerfully and energetically\", \"Speak slowly with sadness\".\n" : "");
-		obj8[3] = "\n**OPTIONAL fields (include ONLY if relevant, NEVER repeat actions from Previous Response — they are ALREADY EXECUTED):**\n" + (!isMessengerMode ? "Gold, items, workshop, map, death, quests, kingdom use **tools**. Spoken line, tone, lie detection, decisions, romance, escalation, letters use **dialogue tools** (`npc_say`, `suspected_lie`, `dialogue_decision`, …) — prefer those over duplicating the same data in JSON below.\n" : "");
+		obj8[3] = "\n**OPTIONAL fields (include ONLY if relevant, NEVER repeat actions from Previous Response — they are ALREADY EXECUTED):**\n" + (!isMessengerMode ? "Gold, items, workshop, map, death, quests, kingdom use **tools**. Tone, lie detection, decisions, romance, escalation, letters use **dialogue tools** (`suspected_lie`, `dialogue_decision`, …) — prefer those over duplicating the same data in JSON below.\n" : "");
 		obj8[4] = (isMessengerMode ? "" : "");
 		obj8[5] = (isMessengerMode ? "" : "");
 		obj8[6] = "";
