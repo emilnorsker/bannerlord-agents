@@ -739,59 +739,7 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 	[SettingPropertyGroup("API Settings/Player2 Settings", GroupOrder = 2)]
 	public Action ExportTTSVoices { get; set; } = delegate
 	{
-		//IL_0302: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0307: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0311: Expected O, but got Unknown
-		//IL_0023: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0028: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0032: Expected O, but got Unknown
-		//IL_029d: Unknown result type (might be due to invalid IL or missing references)
-		//IL_02a2: Unknown result type (might be due to invalid IL or missing references)
-		//IL_02ac: Expected O, but got Unknown
-		try
-		{
-			Dictionary<string, VoiceInfo> availableVoices = Player2Client.GetAvailableVoices();
-			if (availableVoices == null || availableVoices.Count == 0)
-			{
-				InformationManager.DisplayMessage(new InformationMessage("No voices available.", Colors.Yellow));
-			}
-			else
-			{
-				string directoryName = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-				string fullName = Directory.GetParent(Directory.GetParent(directoryName).FullName).FullName;
-				string text = Path.Combine(fullName, "tts_voices.txt");
-				List<VoiceInfo> list = (from v in availableVoices.Values
-					where v.Gender?.ToLower() == "male"
-					orderby v.Name
-					select v).ToList();
-				List<VoiceInfo> list2 = (from v in availableVoices.Values
-					where v.Gender?.ToLower() == "female"
-					orderby v.Name
-					select v).ToList();
-				List<string> list3 = new List<string> { "Available TTS Voices", "====================", "", "You can manually edit NPC .json files and set 'AssignedTTSVoice' to any voice ID from this list.", "", "MALE VOICES:", "------------" };
-				foreach (VoiceInfo item in list)
-				{
-					list3.Add(item.Id + " - " + item.Name + " (" + item.Language + ")");
-				}
-				list3.Add("");
-				list3.Add("FEMALE VOICES:");
-				list3.Add("--------------");
-				foreach (VoiceInfo item2 in list2)
-				{
-					list3.Add(item2.Id + " - " + item2.Name + " (" + item2.Language + ")");
-				}
-				File.WriteAllLines(text, list3, Encoding.UTF8);
-				InformationManager.DisplayMessage(new InformationMessage("TTS voices exported to: tts_voices.txt", Colors.Green));
-				if (AIInfluenceBehavior.Instance != null)
-				{
-					AIInfluenceBehavior.Instance.LogMessage($"[TTS] Exported {list.Count} male and {list2.Count} female voices to {text}");
-				}
-			}
-		}
-		catch (Exception ex)
-		{
-			InformationManager.DisplayMessage(new InformationMessage("Error: " + ex.Message, Colors.Red));
-		}
+		InformationManager.DisplayMessage(new InformationMessage("Voice list export is unavailable: the Player2 client in this build does not expose GetAvailableVoices. Set AssignedTTSVoice in NPC JSON manually.", Colors.Yellow));
 	};
 
 	[SettingPropertyGroup("{=AIInfluence_Group_Prompt}Prompt Settings", GroupOrder = 5)]

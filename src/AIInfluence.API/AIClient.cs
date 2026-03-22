@@ -142,7 +142,7 @@ public static class AIClient
 						{
 							string batchedChunk = debugStreamBuffer.ToString().Replace("\n", "\\n");
 							debugStreamBuffer.Clear();
-							TtsLipSyncService.MainThreadQueue.Enqueue(() => InformationManager.DisplayMessage(new InformationMessage("[LLM STREAM] " + batchedChunk)));
+							MainThreadDispatcher.Queue.Enqueue(() => InformationManager.DisplayMessage(new InformationMessage("[LLM STREAM] " + batchedChunk)));
 						}
 					}
 				}
@@ -152,7 +152,7 @@ public static class AIClient
 					if (debugStreamBuffer != null && debugStreamBuffer.Length > 0)
 					{
 						string remainingChunk = debugStreamBuffer.ToString().Replace("\n", "\\n");
-						TtsLipSyncService.MainThreadQueue.Enqueue(() => InformationManager.DisplayMessage(new InformationMessage("[LLM STREAM] " + remainingChunk)));
+						MainThreadDispatcher.Queue.Enqueue(() => InformationManager.DisplayMessage(new InformationMessage("[LLM STREAM] " + remainingChunk)));
 					}
 					if (assistantMessage["tool_calls"] != null)
 						LogWarning("OpenRouter returned tool_calls without tools in request; using content only.");
