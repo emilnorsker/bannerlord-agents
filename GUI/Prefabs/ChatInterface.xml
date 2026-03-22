@@ -38,7 +38,7 @@
                     Sprite="frame_9" ExtendLeft="6" ExtendTop="6" ExtendRight="6" ExtendBottom="6"
                     AlphaFactor="0.18" IsEnabled="false" DoNotAcceptEvents="true"/>
             <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                       StackLayout.LayoutMethod="VerticalTopToBottom" DoNotAcceptEvents="false">
+                       StackLayout.LayoutMethod="VerticalBottomToTop" DoNotAcceptEvents="false">
               <Children>
 
                 <!-- Full-width: name, occupation, traits; encyclopedia divider (vanilla hero page pattern). -->
