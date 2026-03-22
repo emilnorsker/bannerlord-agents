@@ -1,8 +1,8 @@
 <Prefab>
   <!--
-    NPC chat: root Encyclopedia.Page.SoundBrush; main content lives in ChatMainInset (Native Frame1Brush — Frame1_canvas + Frame1_frame, same family as ClanPartiesLeftPanel / Standard.Window).
-    Avoid Encyclopedia.Frame on the right — strong top/body split art.
-    Row: hero strip (370) | divider | conversation | divider | information.
+    NPC chat: root Encyclopedia.Page.SoundBrush; ChatMainInset = Frame1Brush + faint frame_9.
+    Top: full-width strip (NpcName, NpcTitle, traits) + Encyclopedia\list_filters_divider; below: 3 columns (tableau+skills | chat | info).
+    Info section headers: Encyclopedia.SubPage.Info.Text @ #E1BE8FFF (occupation line styling), 17px. InfoScrollPanel margins = former InfoBody + !Info.Inset; no InfoBody wrapper.
     Bindings: NpcChatWindowVM — HeroCharacter, Traits, HeroSkillList, MessageList, InfoSections, etc.
   -->
   <Constants>
@@ -37,36 +37,15 @@
                     Sprite="frame_9" ExtendLeft="6" ExtendTop="6" ExtendRight="6" ExtendBottom="6"
                     AlphaFactor="0.18" IsEnabled="false" DoNotAcceptEvents="true"/>
             <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                       StackLayout.LayoutMethod="HorizontalLeftToRight" DoNotAcceptEvents="false">
+                       StackLayout.LayoutMethod="VerticalTopToBottom" DoNotAcceptEvents="false">
               <Children>
 
-                <!-- ══ Left: vanilla encyclopedia hero column (unchanged structure) ══ -->
-                <Widget HeightSizePolicy="StretchToParent" WidthSizePolicy="Fixed" SuggestedWidth="!EncyLeft.W">
+                <!-- Full-width: name, occupation, traits; encyclopedia divider (vanilla hero page pattern). -->
+                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                           StackLayout.LayoutMethod="VerticalTopToBottom" MarginBottom="4">
                   <Children>
-                    <Widget WidthSizePolicy="Fixed" SuggestedWidth="!EncyLeft.W" HeightSizePolicy="StretchToParent"
-                            HorizontalAlignment="Left" MarginBottom="1" VerticalAlignment="Center" IsEnabled="false" ClipContents="true">
-                      <Children>
-                        <EncyclopediaCharacterTableauWidget DataSource="{HeroCharacter}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                            BodyProperties="@BodyProperties" IsFemale="@IsFemale" EquipmentCode="@EquipmentCode" CharStringId="@CharStringId"
-                            StanceIndex="@StanceIndex" BannerCodeText="@BannerCodeText" MountCreationKey="@MountCreationKey" IsEnabled="false"
-                            IsDead="@IsDead" ArmorColor1="@ArmorColor1" ArmorColor2="@ArmorColor2" IdleAction="@IdleAction"
-                            IdleFaceAnim="@IdleFaceAnim" Race="@Race" IsHidden="@IsHidden"/>
-                        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="478" SuggestedHeight="666"
-                                HorizontalAlignment="Center" VerticalAlignment="Bottom" ValueFactor="20"
-                                Sprite="Encyclopedia\hero_silhouette" IsVisible="@IsInformationHidden"/>
-                        <ParallaxItemBrushWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="582" SuggestedHeight="380"
-                            Brush="Encyclopedia.Character.Smoke" OneDirectionDuration="5" OneDirectionDistance="100" InitialDirection="Right"
-                            IsEaseInOutEnabled="true" VerticalAlignment="Bottom" HorizontalAlignment="Center" PositionYOffset="1"/>
-                        <ParallaxItemBrushWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="582" SuggestedHeight="380"
-                            Brush="Encyclopedia.Character.Smoke2" OneDirectionDuration="5" OneDirectionDistance="100" InitialDirection="Left"
-                            IsEaseInOutEnabled="true" VerticalAlignment="Bottom" HorizontalAlignment="Center" PositionYOffset="1"/>
-                      </Children>
-                    </Widget>
-                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                Brush="Encyclopedia.SubPage.Info.Text" Brush.FontColor="#F4E1C4FF" Brush.TextHorizontalAlignment="Center"
-                                VerticalAlignment="Bottom" MarginBottom="25" IsVisible="@IsInformationHidden" Text="@InfoHiddenReasonText"/>
                     <ListPanel HeightSizePolicy="CoverChildren" WidthSizePolicy="StretchToParent"
-                               StackLayout.LayoutMethod="VerticalBottomToTop" MarginLeft="20" MarginRight="20">
+                               StackLayout.LayoutMethod="VerticalTopToBottom" MarginLeft="20" MarginRight="20">
                       <Children>
                         <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="CoverChildren" SuggestedWidth="250" MaxHeight="150"
                                     Brush="Encyclopedia.SubPage.Title.Text" HorizontalAlignment="Center"
@@ -97,6 +76,40 @@
                         </NavigatableListPanel>
                       </Children>
                     </ListPanel>
+                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="4"
+                            HorizontalAlignment="Center" Sprite="Encyclopedia\list_filters_divider"/>
+                  </Children>
+                </ListPanel>
+
+                <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                           StackLayout.LayoutMethod="HorizontalLeftToRight" DoNotAcceptEvents="false">
+              <Children>
+
+                <!-- ══ Left: tableau + skills (name / occupation / traits in strip above) ══ -->
+                <Widget HeightSizePolicy="StretchToParent" WidthSizePolicy="Fixed" SuggestedWidth="!EncyLeft.W">
+                  <Children>
+                    <Widget WidthSizePolicy="Fixed" SuggestedWidth="!EncyLeft.W" HeightSizePolicy="StretchToParent"
+                            HorizontalAlignment="Left" MarginBottom="1" VerticalAlignment="Center" IsEnabled="false" ClipContents="true">
+                      <Children>
+                        <EncyclopediaCharacterTableauWidget DataSource="{HeroCharacter}" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                            BodyProperties="@BodyProperties" IsFemale="@IsFemale" EquipmentCode="@EquipmentCode" CharStringId="@CharStringId"
+                            StanceIndex="@StanceIndex" BannerCodeText="@BannerCodeText" MountCreationKey="@MountCreationKey" IsEnabled="false"
+                            IsDead="@IsDead" ArmorColor1="@ArmorColor1" ArmorColor2="@ArmorColor2" IdleAction="@IdleAction"
+                            IdleFaceAnim="@IdleFaceAnim" Race="@Race" IsHidden="@IsHidden"/>
+                        <Widget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="478" SuggestedHeight="666"
+                                HorizontalAlignment="Center" VerticalAlignment="Bottom" ValueFactor="20"
+                                Sprite="Encyclopedia\hero_silhouette" IsVisible="@IsInformationHidden"/>
+                        <ParallaxItemBrushWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="582" SuggestedHeight="380"
+                            Brush="Encyclopedia.Character.Smoke" OneDirectionDuration="5" OneDirectionDistance="100" InitialDirection="Right"
+                            IsEaseInOutEnabled="true" VerticalAlignment="Bottom" HorizontalAlignment="Center" PositionYOffset="1"/>
+                        <ParallaxItemBrushWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="582" SuggestedHeight="380"
+                            Brush="Encyclopedia.Character.Smoke2" OneDirectionDuration="5" OneDirectionDistance="100" InitialDirection="Left"
+                            IsEaseInOutEnabled="true" VerticalAlignment="Bottom" HorizontalAlignment="Center" PositionYOffset="1"/>
+                      </Children>
+                    </Widget>
+                    <TextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                Brush="Encyclopedia.SubPage.Info.Text" Brush.FontColor="#F4E1C4FF" Brush.TextHorizontalAlignment="Center"
+                                VerticalAlignment="Bottom" MarginBottom="25" IsVisible="@IsInformationHidden" Text="@InfoHiddenReasonText"/>
                     <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" VerticalAlignment="Bottom" MarginLeft="10"
                                StackLayout.LayoutMethod="VerticalBottomToTop">
                       <Children>
@@ -306,16 +319,11 @@
                                         Brush.FontSize="23" Brush.TextHorizontalAlignment="Left" Color="!Gold" Text="Information" IsDisabled="true"/>
                       </Children>
                     </BrushWidget>
-                    <!-- Title band (46) + margins (4+4) → body top; flat container only (no Frame brush). -->
-                    <Widget Id="InfoBody" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                                 MarginTop="54" MarginBottom="50" MarginLeft="4" MarginRight="4"
-                                 DoNotAcceptEvents="false">
-                      <Children>
-                        <!-- InfoScrollBar is sibling of InfoBody; wheel uses VerticalScrollbar link (audit doc). -->
+                    <!-- Scroll area: margins were on removed InfoBody wrapper (54 top / 50 bottom / 4 sides + !Info.Inset). -->
                         <ScrollablePanel Id="InfoScrollPanel" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
-                                         MarginLeft="!Info.Inset" MarginRight="!Info.Inset" MarginTop="!Info.Inset" MarginBottom="!Info.Inset"
+                                         MarginLeft="28" MarginRight="28" MarginTop="78" MarginBottom="74"
                                          ClipRect="InfoClipRect" InnerPanel="InfoClipRect\InfoSectionsList"
-                                         VerticalScrollbar="..\..\InfoScrollBar\Scrollbar" AutoHideScrollBars="true">
+                                         VerticalScrollbar="..\InfoScrollBar\Scrollbar" AutoHideScrollBars="true">
                           <Children>
                         <Widget Id="InfoClipRect" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" DoNotAcceptEvents="false" ClipContents="true">
                           <Children>
@@ -339,11 +347,11 @@
                                                                    VerticalAlignment="Center" HorizontalAlignment="Left" MarginRight="8"
                                                                    IsVisible="@ShowHeaderSkillIcon" SkillId="@HeaderSkillId" UseSmallestVariation="true"/>
                                             <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                            Brush="Encyclopedia.SubPage.Title.Text" Brush.FontSize="16" Brush.TextHorizontalAlignment="Left"
-                                                            Color="#EAE2D4FF" VerticalAlignment="Center" Text="@HeaderText" IsDisabled="true" DoNotAcceptEvents="true"/>
+                                                            Brush="Encyclopedia.SubPage.Info.Text" Brush.FontSize="17" Brush.TextHorizontalAlignment="Left"
+                                                            Brush.FontColor="#E1BE8FFF" VerticalAlignment="Center" Text="@HeaderText" IsDisabled="true" DoNotAcceptEvents="true"/>
                                             <TextWidget WidthSizePolicy="CoverChildren" HeightSizePolicy="CoverChildren"
                                                         HorizontalAlignment="Right" VerticalAlignment="Center"
-                                                        Brush="SPScoreboard.Subtitle.Text" Brush.FontSize="18" Brush.FontColor="#C6AC8DFF" Text="@ExpandGlyph" DoNotAcceptEvents="true"/>
+                                                        Brush="SPScoreboard.Subtitle.Text" Brush.FontSize="18" Brush.FontColor="#E1BE8FFF" Text="@ExpandGlyph" DoNotAcceptEvents="true"/>
                                           </Children>
                                         </ListPanel>
                                       </Children>
@@ -447,8 +455,6 @@
                         </Widget>
                           </Children>
                         </ScrollablePanel>
-                      </Children>
-                    </Widget>
                     <Standard.VerticalScrollbar Id="InfoScrollBar" WidthSizePolicy="Fixed" HeightSizePolicy="StretchToParent"
                                                 SuggestedWidth="22" HorizontalAlignment="Right" VerticalAlignment="Center"
                                                 MarginRight="2" MarginBottom="54" MarginTop="54" AlphaFactor="0"/>
@@ -464,6 +470,8 @@
                 </Widget>
 
               </Children>
+            </ListPanel>
+          </Children>
             </ListPanel>
           </Children>
         </Widget>

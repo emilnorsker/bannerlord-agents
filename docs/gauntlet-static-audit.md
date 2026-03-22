@@ -11,7 +11,7 @@ This document replaces hand-waving about “only the real client can tell.” **
 
 **Implication:** Setting `MouseScrollAxis="Vertical"` in XML is **not** what drives wheel direction; wiring a **non-null `VerticalScrollbar`** is. Keeping `MouseScrollAxis` on a prefab is at best documentation; at worst it implies behavior the engine does not implement in this build.
 
-**Our prefabs:** `ChatInterface.xml` — `ChatScrollPanel` uses `VerticalScrollbar="..\ChatScrollBar\Scrollbar"`; `InfoScrollPanel` uses `VerticalScrollbar="..\..\InfoScrollBar\Scrollbar"` (two `..` because `InfoScrollBar` is a **sibling** of `InfoBody` under `RightColumn`, not a child of `InfoScrollPanel`).
+**Our prefabs:** `ChatInterface.xml` — `ChatScrollPanel` uses `VerticalScrollbar="..\ChatScrollBar\Scrollbar"`; `InfoScrollPanel` uses `VerticalScrollbar="..\InfoScrollBar\Scrollbar"` (`InfoScrollBar` is a **sibling** of `InfoScrollPanel` under `RightColumn`).
 
 ## 2. `OnlyAcceptScrollEventIfCanScroll`
 
