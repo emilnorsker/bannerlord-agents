@@ -44,7 +44,7 @@ Searches used: ripgrep on `src/`, `docs/`, `.github/` for `tts`, `TTS`, `Player2
 | **CI / release** | `.github/workflows/publish.yml` — no copy of `OggVorbisEncoder.dll`, `System.Buffers.dll`, `System.Memory.dll`, `rhubarb.exe`, or `bin/Win64_Shipping_Client/res/` (was lip-sync / phonetic resources for rhubarb) |
 | **Logs** | Main-thread dequeue errors log as `[MainThreadDispatch]` not `[LipSync]` (`AIInfluenceBehavior`) |
 
-**NRV:** A developer’s local `bin/Win64_Shipping_Client/` may still contain old `rhubarb.exe` / `res/` from before this change; the **release workflow no longer ships them**. Third-party dictionary files under `bin/.../res/sphinx/` are not part of `src/` and were not searched for product logic.
+**SRC:** `rhubarb.exe`, `res/`, `OggVorbisEncoder.dll`, `System.Buffers.dll`, and `System.Memory.dll` under `bin/Win64_Shipping_Client/` were **removed from git tracking** and listed in `.gitignore` so they are not re-committed. The **publish workflow** does not copy them (see §1a table). `AIInfluence.dll` may remain under `bin/` for local/Vortex layouts — **NRV** whether your fork still needs that file tracked.
 
 ---
 
