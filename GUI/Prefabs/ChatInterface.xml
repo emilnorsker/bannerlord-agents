@@ -29,9 +29,13 @@
                 MarginLeft="!Inset" MarginRight="!Inset" MarginTop="!Inset" MarginBottom="!Inset"
                 DoNotAcceptEvents="false">
           <Children>
-            <!-- Vanilla panel chrome: Native/GUI/Brushes/Main.xml Frame1Brush (not a tint square). -->
+            <!-- Vanilla panel chrome: Native Main.xml Frame1Brush. -->
             <BrushWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                          Brush="Frame1Brush" DoNotAcceptEvents="true"/>
+            <!-- Light edge (same sprite as input bar); keep AlphaFactor low — not a solid overlay. -->
+            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+                    Sprite="frame_9" ExtendLeft="6" ExtendTop="6" ExtendRight="6" ExtendBottom="6"
+                    AlphaFactor="0.18" IsEnabled="false" DoNotAcceptEvents="true"/>
             <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                        StackLayout.LayoutMethod="HorizontalLeftToRight" DoNotAcceptEvents="false">
               <Children>
