@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using AIInfluence.AINative.Tools;
 
 namespace AIInfluence.AINative;
@@ -47,6 +48,17 @@ public sealed class AINativeRuntime
 	public void FailAction(string correlationId, string npcId, string actionName, string reason)
 	{
 		Queue.Enqueue(new AINativeEvent(AINativeEventType.ActionFailed, correlationId, npcId, actionName, reason));
+	}
+
+	public async Task<AINativeLlmCompletion> RunOpenRouterTurnAsync(OpenRouterStreamingLlmClient llmClient, string playerId, string npcId, string correlationId, string systemPrompt, string userPrompt, Action<string> onTextDelta = null)
+	{
+		var completion = await llmClient.StreamCompletionAsync(systemPrompt, userPrompt, onTextDelta).ConfigureAwait(false);
+		HandleAssistantText(correlationId, npcId, completion.Text);
+		foreach (AINativeLlmToolCall toolCall in completion.ToolCalls)
+		{
+			HandleToolCall(playerId, npcId, new AINativeToolCall(toolCall.Name, correlationId, toolCall.Arguments));
+		}
+		return completion;
 	}
 }
 
