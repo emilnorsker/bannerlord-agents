@@ -76,17 +76,13 @@ So **`ScopeMovements="Vertical"`** is a **valid** literal for the XML loader.
 
 **Mod-local:** `AIInfluence.ClanPartyFormationStrip` (defined in our `PopUpBrush.xml`).
 
-## 7. Vertical stacks: **`VerticalBottomToTop` only** (project rule)
+## 7. Vertical stacks (`VerticalTopToBottom` vs `VerticalBottomToTop`)
 
-**Source:** `TaleWorlds.GauntletUI.Layout.StackLayout.LayoutLinearVertical` — children are laid out in **declaration order**; **`VerticalBottomToTop`** stacks from the **bottom** of the parent upward: **first XML child = lowest on screen**, **last XML child = highest**.
+**Source:** `TaleWorlds.GauntletUI.Layout.StackLayout.LayoutLinearVertical` — **`VerticalTopToBottom`**: first child at the **top**; **`VerticalBottomToTop`**: first child at the **bottom**, stacking upward.
 
-**Policy:** All **vertical** `ListPanel` / `NavigatableListPanel` stacks in our Gauntlet prefabs use **`VerticalBottomToTop` only.** To keep the **same** reading order as before (when some panels used `VerticalTopToBottom`), we:
+**`ChatInterface.xml` (current):** **`ChatMessageList`** uses **`VerticalBottomToTop`** (message stack anchored from the bottom of the inner panel). **`InfoSectionsList`** and section bodies use **`VerticalTopToBottom`** so **XML order matches reading order** (header above body; sections Character → Party without reordering children or reversing VM adds).
 
-- **Reorder XML children** so “what should read first / sit higher” is **later** in the file (closer to the top of the screen).
-- **Bind rows** with **`Insert(0, …)`** on `MBBindingList` when building lines in natural top-first code order (so the first line written ends up at the **top** of the panel). **World events:** reverse the sorted `List<WorldEventEntry>` once before `Add` to match the declaration list.
-- **`NpcChatWindowVM`:** `InfoSections` are **added** in reverse build order so Character remains visually **above** Party.
-
-**Gamepad:** `NavigatableListPanel` uses **`MaxIndex - siblingIndex * StepSize`** when `LayoutMethod` is **`VerticalTopToBottom`** or **`HorizontalRightToLeft`** (`SetNavigationIndexForChild`). With **`VerticalBottomToTop`**, it uses **`MinIndex + siblingIndex * StepSize`** — focus indices follow sibling order differently; validate in-game if navigation feels off.
+Changing only the `LayoutMethod` without adjusting **child order** or **data order** will **invert** the UI — do not “fix” layout by reshuffling XML unless that is an explicit request.
 
 ## 8. What still needs a real client (honest list)
 

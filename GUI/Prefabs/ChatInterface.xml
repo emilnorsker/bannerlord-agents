@@ -148,7 +148,7 @@
                           </Children>
                         </BrushWidget>
                         <!-- ChatScrollWrapper: scroll region + invisible bar; siblings below = separator strip, then input bar. -->
-                        <!-- ScrollablePanel wheel: engine ScrollablePanel.OnMouseScroll uses VerticalScrollbar when set (see docs/gauntlet-static-audit.md). -->
+                        <!-- ScrollablePanel wheel: engine uses VerticalScrollbar when set (see docs/gauntlet-static-audit.md). -->
                         <Widget Id="ChatScrollWrapper" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                 MarginTop="!Header.H" MarginBottom="!Input.H" MarginLeft="4">
                           <Children>
@@ -304,7 +304,7 @@
                                  MarginTop="54" MarginBottom="50" MarginLeft="4" MarginRight="4"
                                  Brush="Encyclopedia.Frame" DoNotAcceptEvents="true">
                       <Children>
-                        <!-- InfoScrollBar is sibling of InfoFrame (see VerticalScrollbar path); wheel uses VerticalScrollbar link, not MouseScrollAxis (audit doc). -->
+                        <!-- InfoScrollBar is sibling of InfoFrame; wheel uses VerticalScrollbar link (audit doc). -->
                         <ScrollablePanel Id="InfoScrollPanel" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
                                          MarginLeft="!Info.Inset" MarginRight="!Info.Inset" MarginTop="!Info.Inset" MarginBottom="!Info.Inset"
                                          ClipRect="InfoClipRect" InnerPanel="InfoClipRect\InfoSectionsList"
@@ -315,53 +315,12 @@
                             <NavigationScopeTargeter ScopeID="NpcChatInfoSectionsScope" ScopeParent="..\InfoSectionsList" ScopeMovements="Vertical"
                                 NavigateFromScopeEdges="true" UseDiscoveryAreaAsScopeEdges="true" ExtendDiscoveryAreaTop="220" ExtendDiscoveryAreaBottom="220"/>
                             <NavigatableListPanel Id="InfoSectionsList" DataSource="{InfoSections}" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                  StackLayout.LayoutMethod="VerticalBottomToTop" Spacing="6" MarginLeft="0" MarginRight="0" MarginTop="0" MarginBottom="0">
+                                                  StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="6" MarginLeft="0" MarginRight="0" MarginTop="0" MarginBottom="0">
                               <ItemTemplate>
-                                <!-- VerticalBottomToTop: body first (bottom), header last (top). Expanded body: food → text → glyphs (glyph rows read top-down after VM reverse). -->
+                                <!-- Section: VerticalTopToBottom — header first, body second (normal order; no BottomToTop inversion). -->
                                 <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" Sprite="BlankWhiteSquare_9" Color="@SectionPanelColor"
-                                           StackLayout.LayoutMethod="VerticalBottomToTop" Spacing="0" MarginLeft="0" MarginRight="0" MarginBottom="6">
+                                           StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="0" MarginLeft="0" MarginRight="0" MarginBottom="6">
                                   <Children>
-                                    <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" IsVisible="@IsExpanded"
-                                               StackLayout.LayoutMethod="VerticalBottomToTop" Spacing="6" MarginLeft="0" MarginRight="0" MarginTop="0" MarginBottom="0">
-                                      <Children>
-                                        <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" IsVisible="@ShowPartyFood"
-                                                        MarginLeft="0" MarginBottom="4" Brush="Encyclopedia.SubPage.Info.Text" Brush.FontSize="15"
-                                                        Brush.TextHorizontalAlignment="Left" Color="@PartyFoodColor" Text="@PartyFoodText" IsDisabled="true"/>
-                                        <ListPanel DataSource="{TextLines}" IsVisible="@HasStandardTextLines" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                   StackLayout.LayoutMethod="VerticalBottomToTop" Spacing="8" MarginLeft="0" MarginRight="0" MarginTop="0" MarginBottom="0">
-                                          <ItemTemplate>
-                                            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren">
-                                              <Children>
-                                                <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                                Brush="Encyclopedia.SubPage.Info.Text" Brush.FontSize="15" Brush.TextHorizontalAlignment="Left"
-                                                                Color="@Color" Text="@Text" IsDisabled="true"/>
-                                              </Children>
-                                            </Widget>
-                                          </ItemTemplate>
-                                        </ListPanel>
-                                        <ListPanel DataSource="{GlyphLines}" IsVisible="@HasGlyphLines" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                   StackLayout.LayoutMethod="VerticalBottomToTop" Spacing="8" MarginLeft="0" MarginRight="0" MarginTop="0" MarginBottom="0">
-                                          <ItemTemplate>
-                                            <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                                                       StackLayout.LayoutMethod="HorizontalLeftToRight" MarginLeft="0" MarginRight="0">
-                                              <Children>
-                                                <SkillIconVisualWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="40" SuggestedHeight="40"
-                                                                       VerticalAlignment="Top" HorizontalAlignment="Left" MarginRight="6" MarginTop="2"
-                                                                       IsVisible="@IsSkill" SkillId="@SkillId" UseSmallestVariation="true"/>
-                                                <!-- Clan parties tab strips: Brush resolves sprites via SpriteData (same as OrderFormationClassVisualBrushWidget in vanilla). -->
-                                                <OrderFormationClassVisualBrushWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="40" SuggestedHeight="40"
-                                                                                      VerticalAlignment="Top" HorizontalAlignment="Left" MarginRight="6" MarginTop="2"
-                                                                                      DoNotAcceptEvents="true" IsVisible="@IsTroopFormationGlyph"
-                                                                                      Brush="AIInfluence.ClanPartyFormationStrip" FormationClassValue="@FormationClassIndex"/>
-                                                <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" VerticalAlignment="Center"
-                                                                Brush="Encyclopedia.SubPage.Info.Text" Brush.FontSize="15" Brush.TextHorizontalAlignment="Left"
-                                                                Color="@Color" Text="@Text" IsDisabled="true"/>
-                                              </Children>
-                                            </ListPanel>
-                                          </ItemTemplate>
-                                        </ListPanel>
-                                      </Children>
-                                    </ListPanel>
                                     <ButtonWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" SuggestedHeight="34" MarginLeft="0" MarginRight="0"
                                                   Brush="Encyclopedia.TopBanner" Color="#0F141FFF" Command.Click="ExecuteToggle"
                                                   DoNotPassEventsToChildren="true" UpdateChildrenStates="true">
@@ -382,6 +341,47 @@
                                         </ListPanel>
                                       </Children>
                                     </ButtonWidget>
+                                    <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" IsVisible="@IsExpanded"
+                                               StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="6" MarginLeft="0" MarginRight="0" MarginTop="0" MarginBottom="0">
+                                      <Children>
+                                        <ListPanel DataSource="{GlyphLines}" IsVisible="@HasGlyphLines" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                   StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="8" MarginLeft="0" MarginRight="0" MarginTop="0" MarginBottom="0">
+                                          <ItemTemplate>
+                                            <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                       StackLayout.LayoutMethod="HorizontalLeftToRight" MarginLeft="0" MarginRight="0">
+                                              <Children>
+                                                <SkillIconVisualWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="40" SuggestedHeight="40"
+                                                                       VerticalAlignment="Top" HorizontalAlignment="Left" MarginRight="6" MarginTop="2"
+                                                                       IsVisible="@IsSkill" SkillId="@SkillId" UseSmallestVariation="true"/>
+                                                <!-- Clan parties tab strips: Brush resolves sprites via SpriteData (same as OrderFormationClassVisualBrushWidget in vanilla). -->
+                                                <OrderFormationClassVisualBrushWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="40" SuggestedHeight="40"
+                                                                                      VerticalAlignment="Top" HorizontalAlignment="Left" MarginRight="6" MarginTop="2"
+                                                                                      DoNotAcceptEvents="true" IsVisible="@IsTroopFormationGlyph"
+                                                                                      Brush="AIInfluence.ClanPartyFormationStrip" FormationClassValue="@FormationClassIndex"/>
+                                                <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" VerticalAlignment="Center"
+                                                                Brush="Encyclopedia.SubPage.Info.Text" Brush.FontSize="15" Brush.TextHorizontalAlignment="Left"
+                                                                Color="@Color" Text="@Text" IsDisabled="true"/>
+                                              </Children>
+                                            </ListPanel>
+                                          </ItemTemplate>
+                                        </ListPanel>
+                                        <ListPanel DataSource="{TextLines}" IsVisible="@HasStandardTextLines" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                   StackLayout.LayoutMethod="VerticalTopToBottom" Spacing="8" MarginLeft="0" MarginRight="0" MarginTop="0" MarginBottom="0">
+                                          <ItemTemplate>
+                                            <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren">
+                                              <Children>
+                                                <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
+                                                                Brush="Encyclopedia.SubPage.Info.Text" Brush.FontSize="15" Brush.TextHorizontalAlignment="Left"
+                                                                Color="@Color" Text="@Text" IsDisabled="true"/>
+                                              </Children>
+                                            </Widget>
+                                          </ItemTemplate>
+                                        </ListPanel>
+                                        <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" IsVisible="@ShowPartyFood"
+                                                        MarginLeft="0" MarginBottom="4" Brush="Encyclopedia.SubPage.Info.Text" Brush.FontSize="15"
+                                                        Brush.TextHorizontalAlignment="Left" Color="@PartyFoodColor" Text="@PartyFoodText" IsDisabled="true"/>
+                                      </Children>
+                                    </ListPanel>
                                   </Children>
                                 </ListPanel>
                               </ItemTemplate>

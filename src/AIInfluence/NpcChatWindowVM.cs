@@ -195,7 +195,7 @@ public class NpcChatWindowVM : ViewModel
         // One subtle panel tint (Encyclopedia.Frame carries the main chrome; avoid heavy zebra stripes).
         const string sectionStripe = "#0C101868";
         InfoSections.Clear();
-        // InfoSectionsList is VerticalBottomToTop: first index = bottom — add Party→…→Character so Character reads at top.
+        // InfoSectionsList is VerticalTopToBottom: reading order (character-first), party last.
         var built = new[]
         {
             BuildCharacterSection(npc, context),
@@ -205,9 +205,8 @@ public class NpcChatWindowVM : ViewModel
             BuildWorldEventsSection(headerMuted),
             BuildNpcPartySection(npc)
         };
-        for (int i = built.Length - 1; i >= 0; i--)
+        foreach (var section in built)
         {
-            InfoSectionVM section = built[i];
             section.SectionPanelColor = sectionStripe;
             InfoSections.Add(section);
         }
@@ -219,13 +218,13 @@ public class NpcChatWindowVM : ViewModel
         MobileParty party = npc.PartyBelongedTo;
         if (party == null)
         {
-            section.TextLines.Insert(0, new TextItemVM("Not in a party on the map.", "#888888FF"));
+            section.TextLines.Add(new TextItemVM("Not in a party on the map.", "#888888FF"));
             section.ShowPartyFood = false;
             section.RefreshVisibility();
             return section;
         }
         foreach (var row in PartyTroopFormationHelper.AggregateTroopFormations(party))
-            section.GlyphLines.Insert(0, InfoGlyphLineVM.FromTroopFormation(row.formation, row.count));
+            section.GlyphLines.Add(InfoGlyphLineVM.FromTroopFormation(row.formation, row.count));
         float days = party.GetNumDaysForFoodToLast();
         var (_, col) = NpcPartyFoodSupply.Classify(days);
         string leaderName = ((object)npc.Name)?.ToString() ?? "";
@@ -241,10 +240,10 @@ public class NpcChatWindowVM : ViewModel
         var section = new InfoSectionVM { HeaderText = "Quests", HeaderSkillId = DefaultSkills.Trade.StringId };
         List<string> lines = CollectQuestLines(context);
         if (lines.Count == 0)
-            section.TextLines.Insert(0, new TextItemVM("• No active quest with this character", headerMuted));
+            section.TextLines.Add(new TextItemVM("• No active quest with this character", headerMuted));
         else
             foreach (string line in lines)
-                section.TextLines.Insert(0, new TextItemVM(line, questGold));
+                section.TextLines.Add(new TextItemVM(line, questGold));
         section.RefreshVisibility();
         return section;
     }
@@ -288,7 +287,7 @@ public class NpcChatWindowVM : ViewModel
                 if (e.IsDiseaseEvent)
                     type = "disease_outbreak";
                 string skillId = WorldEventSkillMapper.GetSkillIdForEventType(type);
-                section.GlyphLines.Insert(0, InfoGlyphLineVM.FromWorldEvent(skillId, "• " + text));
+                section.GlyphLines.Add(InfoGlyphLineVM.FromWorldEvent(skillId, "• " + text));
             }
         }
         catch (Exception ex)
@@ -296,7 +295,7 @@ public class NpcChatWindowVM : ViewModel
             AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] BuildWorldEventsSection failed: " + ex.Message);
         }
         if (section.GlyphLines.Count == 0)
-            section.TextLines.Insert(0, new TextItemVM("• None", headerMuted));
+            section.TextLines.Add(new TextItemVM("• None", headerMuted));
         section.RefreshVisibility();
         return section;
     }
@@ -308,7 +307,7 @@ public class NpcChatWindowVM : ViewModel
         string backstory = context?.AIGeneratedBackstory?.Trim();
         if (string.IsNullOrWhiteSpace(backstory))
         {
-            section.TextLines.Insert(0, new TextItemVM("• No backstory recorded yet", headerMuted));
+            section.TextLines.Add(new TextItemVM("• No backstory recorded yet", headerMuted));
             section.RefreshVisibility();
             return section;
         }
@@ -316,10 +315,10 @@ public class NpcChatWindowVM : ViewModel
         {
             string t = line.Trim();
             if (t.Length > 0)
-                section.TextLines.Insert(0, new TextItemVM("• " + t));
+                section.TextLines.Add(new TextItemVM("• " + t));
         }
         if (section.TextLines.Count == 0)
-            section.TextLines.Insert(0, new TextItemVM("• No backstory recorded yet", headerMuted));
+            section.TextLines.Add(new TextItemVM("• No backstory recorded yet", headerMuted));
         section.RefreshVisibility();
         return section;
     }
@@ -331,29 +330,29 @@ public class NpcChatWindowVM : ViewModel
         bool any = false;
         if (!string.IsNullOrWhiteSpace(context?.AIGeneratedPersonality))
         {
-            section.TextLines.Insert(0, new TextItemVM("• " + context.AIGeneratedPersonality));
+            section.TextLines.Add(new TextItemVM("• " + context.AIGeneratedPersonality));
             any = true;
         }
         foreach (string q in context?.Quirks ?? new List<string>())
         {
             if (!string.IsNullOrWhiteSpace(q))
             {
-                section.TextLines.Insert(0, new TextItemVM("• " + q));
+                section.TextLines.Add(new TextItemVM("• " + q));
                 any = true;
             }
         }
         if (!string.IsNullOrWhiteSpace(context?.AIGeneratedSpeechQuirks))
         {
-            section.TextLines.Insert(0, new TextItemVM("• " + context.AIGeneratedSpeechQuirks));
+            section.TextLines.Add(new TextItemVM("• " + context.AIGeneratedSpeechQuirks));
             any = true;
         }
         if (!string.IsNullOrWhiteSpace(context?.EmotionalState?.Mood))
         {
-            section.TextLines.Insert(0, new TextItemVM($"• Mood: {context.EmotionalState.Mood}"));
+            section.TextLines.Add(new TextItemVM($"• Mood: {context.EmotionalState.Mood}"));
             any = true;
         }
         if (!any)
-            section.TextLines.Insert(0, new TextItemVM("• Not yet discovered", headerMuted));
+            section.TextLines.Add(new TextItemVM("• Not yet discovered", headerMuted));
         section.RefreshVisibility();
         return section;
     }
@@ -362,9 +361,9 @@ public class NpcChatWindowVM : ViewModel
     {
         var section = new InfoSectionVM { HeaderText = "Character", HeaderSkillId = DefaultSkills.Charm.StringId };
         int rel = Hero.MainHero != null ? (int)npc.GetRelation(Hero.MainHero) : 0;
-        section.TextLines.Insert(0, new TextItemVM($"Relation: {rel:+#;-#;0}", rel >= 0 ? "#6FCF6FFF" : "#CF6F6FFF"));
-        section.TextLines.Insert(0, new TextItemVM($"Trust: {(context?.TrustLevel ?? 0f) * 100f:F0}%"));
-        section.TextLines.Insert(0, new TextItemVM($"Interactions: {context?.InteractionCount ?? 0}"));
+        section.TextLines.Add(new TextItemVM($"Relation: {rel:+#;-#;0}", rel >= 0 ? "#6FCF6FFF" : "#CF6F6FFF"));
+        section.TextLines.Add(new TextItemVM($"Trust: {(context?.TrustLevel ?? 0f) * 100f:F0}%"));
+        section.TextLines.Add(new TextItemVM($"Interactions: {context?.InteractionCount ?? 0}"));
         section.RefreshVisibility();
         return section;
     }
