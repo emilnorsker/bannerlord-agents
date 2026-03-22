@@ -21,8 +21,6 @@ public static class AIClient
 {
 	private static readonly HttpClient httpClient = new HttpClient();
 
-	private const string GAME_KEY = "0199bcdd-3f9f-7a67-947e-ca10021b94ce";
-
 	/// <summary>Fetches the assistant <b>message</b> for NPC chat (or tools loop). When set, <paramref name="notifyMessageChunk"/> is invoked for each fragment of the message draft as it arrives (incremental delivery).</summary>
 	/// <param name="notifyMessageChunk">Optional; called with each new text fragment to append to the message draft (drives message preview in chat).</param>
 	public static async Task<string> GetAIResponse(string npcName, string faction, string prompt, Action<string> notifyMessageChunk = null, Func<string, string, Task<string>> onToolCall = null)
@@ -121,7 +119,7 @@ public static class AIClient
 		});
 		val["messages"] = (JToken)val2;
 		val["stream"] = true;
-		val["response_format"] = OpenRouterNpcResponseSchema.GetResponseFormat();
+		// No response_format here: json_schema + stream can buffer on some providers and break token-by-token preview (notifyMessageChunk).
 		JObject requestBody = val;
 		string json = ((JToken)requestBody).ToString((Formatting)0, Array.Empty<JsonConverter>());
 		StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -130,37 +128,39 @@ public static class AIClient
 		{
 			HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "https://openrouter.ai/api/v1/chat/completions");
 			request.Content = (HttpContent)(object)content;
-			HttpResponseMessage response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
-			response.EnsureSuccessStatusCode();
-			StringBuilder debugStreamBuffer = (GlobalSettings<ModSettings>.Instance?.DebugStreamToGameLog ?? false) ? new StringBuilder() : null;
-			void NotifyAndDebug(string chunk)
+			using (HttpResponseMessage response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false))
 			{
-				notifyMessageChunk?.Invoke(chunk);
-				if (debugStreamBuffer != null)
+				response.EnsureSuccessStatusCode();
+				StringBuilder debugStreamBuffer = (GlobalSettings<ModSettings>.Instance?.DebugStreamToGameLog ?? false) ? new StringBuilder() : null;
+				void NotifyAndDebug(string chunk)
 				{
-					debugStreamBuffer.Append(chunk);
-					if (debugStreamBuffer.Length >= 120)
+					notifyMessageChunk?.Invoke(chunk);
+					if (debugStreamBuffer != null)
 					{
-						string batchedChunk = debugStreamBuffer.ToString().Replace("\n", "\\n");
-						debugStreamBuffer.Clear();
-						TtsLipSyncService.MainThreadQueue.Enqueue(() => InformationManager.DisplayMessage(new InformationMessage("[LLM STREAM] " + batchedChunk)));
+						debugStreamBuffer.Append(chunk);
+						if (debugStreamBuffer.Length >= 120)
+						{
+							string batchedChunk = debugStreamBuffer.ToString().Replace("\n", "\\n");
+							debugStreamBuffer.Clear();
+							TtsLipSyncService.MainThreadQueue.Enqueue(() => InformationManager.DisplayMessage(new InformationMessage("[LLM STREAM] " + batchedChunk)));
+						}
 					}
 				}
-			}
-			using (Stream stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
-			{
-				(JObject assistantMessage, _) = await ReadOpenRouterChatCompletionStreamAsync(stream, NotifyAndDebug, collectToolCallDeltas: false).ConfigureAwait(false);
-				if (debugStreamBuffer != null && debugStreamBuffer.Length > 0)
+				using (Stream stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
 				{
-					string remainingChunk = debugStreamBuffer.ToString().Replace("\n", "\\n");
-					TtsLipSyncService.MainThreadQueue.Enqueue(() => InformationManager.DisplayMessage(new InformationMessage("[LLM STREAM] " + remainingChunk)));
+					(JObject assistantMessage, _) = await ReadOpenRouterChatCompletionStreamAsync(stream, NotifyAndDebug, collectToolCallDeltas: false).ConfigureAwait(false);
+					if (debugStreamBuffer != null && debugStreamBuffer.Length > 0)
+					{
+						string remainingChunk = debugStreamBuffer.ToString().Replace("\n", "\\n");
+						TtsLipSyncService.MainThreadQueue.Enqueue(() => InformationManager.DisplayMessage(new InformationMessage("[LLM STREAM] " + remainingChunk)));
+					}
+					if (assistantMessage["tool_calls"] != null)
+						LogWarning("OpenRouter returned tool_calls without tools in request; using content only.");
+					string text5 = assistantMessage["content"]?.ToString() ?? "";
+					if (!text5.TrimStart(Array.Empty<char>()).StartsWith("{", StringComparison.Ordinal))
+						LogWarning("OpenRouter streaming completed without JSON object output. Falling back to plain-text preview mode.");
+					return text5;
 				}
-				if (assistantMessage["tool_calls"] != null)
-					LogWarning("OpenRouter returned tool_calls without tools in request; using content only.");
-				string text5 = assistantMessage["content"]?.ToString() ?? "";
-				if (!text5.TrimStart(Array.Empty<char>()).StartsWith("{", StringComparison.Ordinal))
-					LogWarning("OpenRouter streaming completed without JSON object output. Falling back to plain-text preview mode.");
-				return text5;
 			}
 		}
 		catch (Exception ex)
@@ -242,9 +242,9 @@ public static class AIClient
 		};
 		using StringContent content = new StringContent(body.ToString(), Encoding.UTF8, "application/json");
 		httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GlobalSettings<ModSettings>.Instance.ApiKey);
-		HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "https://openrouter.ai/api/v1/chat/completions");
+		using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "https://openrouter.ai/api/v1/chat/completions");
 		request.Content = content;
-		HttpResponseMessage response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
+		using HttpResponseMessage response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
 		response.EnsureSuccessStatusCode();
 		using Stream stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
 		(JObject assistantMessage, _) = await ReadOpenRouterChatCompletionStreamAsync(stream, notifyMessageChunk, collectToolCallDeltas: true).ConfigureAwait(false);
@@ -297,14 +297,16 @@ public static class AIClient
 		httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GlobalSettings<ModSettings>.Instance.ApiKey);
 		try
 		{
-			HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "https://openrouter.ai/api/v1/chat/completions");
+			using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "https://openrouter.ai/api/v1/chat/completions");
 			request.Content = (HttpContent)(object)content;
-			HttpResponseMessage response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
-			response.EnsureSuccessStatusCode();
-			using (Stream stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+			using (HttpResponseMessage response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false))
 			{
-				(JObject assistantMessage, _) = await ReadOpenRouterChatCompletionStreamAsync(stream, null, collectToolCallDeltas: false).ConfigureAwait(false);
-				return assistantMessage["content"]?.ToString().Trim() ?? "";
+				response.EnsureSuccessStatusCode();
+				using (Stream stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+				{
+					(JObject assistantMessage, _) = await ReadOpenRouterChatCompletionStreamAsync(stream, null, collectToolCallDeltas: false).ConfigureAwait(false);
+					return assistantMessage["content"]?.ToString().Trim() ?? "";
+				}
 			}
 		}
 		catch (Exception ex)
@@ -490,24 +492,26 @@ public static class AIClient
 			string json = ((JToken)requestBody).ToString((Formatting)0, Array.Empty<JsonConverter>());
 			StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
 			httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GlobalSettings<ModSettings>.Instance.ApiKey);
-			HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "https://openrouter.ai/api/v1/chat/completions");
+			using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "https://openrouter.ai/api/v1/chat/completions");
 			request.Content = (HttpContent)(object)content;
-			HttpResponseMessage response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
-			if (response.IsSuccessStatusCode)
+			using (HttpResponseMessage response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false))
 			{
-				using (Stream stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+				if (response.IsSuccessStatusCode)
 				{
-					(JObject assistantMessage, _) = await ReadOpenRouterChatCompletionStreamAsync(stream, null, collectToolCallDeltas: false).ConfigureAwait(false);
-					if (assistantMessage["content"] != null || assistantMessage["tool_calls"] != null)
+					using (Stream stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
 					{
-						InformationManager.DisplayMessage(new InformationMessage("OpenRouter: Connection test successful", ExtraColors.GreenAIInfluence));
-						return true;
+						(JObject assistantMessage, _) = await ReadOpenRouterChatCompletionStreamAsync(stream, null, collectToolCallDeltas: false).ConfigureAwait(false);
+						if (assistantMessage["content"] != null || assistantMessage["tool_calls"] != null)
+						{
+							InformationManager.DisplayMessage(new InformationMessage("OpenRouter: Connection test successful", ExtraColors.GreenAIInfluence));
+							return true;
+						}
 					}
+					InformationManager.DisplayMessage(new InformationMessage("OpenRouter: Test request returned empty body", ExtraColors.RedAIInfluence));
+					return false;
 				}
-				InformationManager.DisplayMessage(new InformationMessage("OpenRouter: Test request returned empty body", ExtraColors.RedAIInfluence));
-				return false;
+				InformationManager.DisplayMessage(new InformationMessage(string.Format(arg1: await response.Content.ReadAsStringAsync(), format: "OpenRouter: Test request failed: {0} - {1}", arg0: response.StatusCode), ExtraColors.RedAIInfluence));
 			}
-			InformationManager.DisplayMessage(new InformationMessage(string.Format(arg1: await response.Content.ReadAsStringAsync(), format: "OpenRouter: Test request failed: {0} - {1}", arg0: response.StatusCode), ExtraColors.RedAIInfluence));
 		}
 		catch (Exception ex)
 		{

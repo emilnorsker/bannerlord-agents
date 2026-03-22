@@ -3505,7 +3505,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	private void ApplyResponseMetadata(Hero npc, string npcName, NPCContext context, AIResponse r)
 	{
 		if (r.AllowsLettersFromNPC.HasValue && r.AllowsLettersFromNPC.Value != context.AllowsLettersFromNPC) context.AllowsLettersFromNPC = r.AllowsLettersFromNPC.Value;
-		if (r.RomanceIntent?.Equals("none", StringComparison.OrdinalIgnoreCase) != true)
+		if (!string.IsNullOrEmpty(r.RomanceIntent) && !r.RomanceIntent.Equals("none", StringComparison.OrdinalIgnoreCase))
 		{
 			context.LastRomanceInteractionDays = (int)CampaignTime.Now.ToDays;
 			context.RomanceLevel = Math.Min(100f, context.RomanceLevel + _random.Next(GlobalSettings<ModSettings>.Instance.MinRomanceChange, GlobalSettings<ModSettings>.Instance.MaxRomanceChange + 1) + (r.RomanceIntent == "romance" ? 2 : 0));
