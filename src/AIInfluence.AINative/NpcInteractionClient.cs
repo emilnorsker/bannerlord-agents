@@ -17,9 +17,21 @@ public sealed class OpenRouterClient
 	private readonly string _apiKey;
 	private readonly string _model;
 
-	public OpenRouterClient(string apiKey, string model, HttpClient httpClient = null) { _apiKey = apiKey; _model = model; _httpClient = httpClient ?? new HttpClient(); }
+	public OpenRouterClient(string apiKey, string model, HttpClient httpClient = null)
+	{
+		_apiKey = apiKey;
+		_model = model;
+		if (httpClient == null)
+		{
+			_httpClient = new HttpClient();
+		}
+		else
+		{
+			_httpClient = httpClient;
+		}
+	}
 
-	public async Task<string> StreamTurnAsync(string systemPrompt, string userPrompt, Action<string> onTextDelta = null)
+	public async Task<string> GenerateNpcReplyAsync(string systemPrompt, string userPrompt, Action<string> onTextDelta = null)
 	{
 		var body = new JObject
 		{
