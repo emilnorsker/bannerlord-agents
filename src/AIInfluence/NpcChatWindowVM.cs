@@ -282,10 +282,7 @@ public class NpcChatWindowVM : ViewModel
                 string text = FormatWorldEventDisplayText(e);
                 if (string.IsNullOrWhiteSpace(text))
                     continue;
-                string type = e.Type;
-                if (e.IsDiseaseEvent)
-                    type = "disease_outbreak";
-                string skillId = WorldEventSkillMapper.GetSkillIdForEventType(type);
+                string skillId = WorldEventSkillMapper.GetSkillIdForEventType(e.Type);
                 section.WorldEventLines.Add(new WorldEventLineVM(skillId, "• " + text));
             }
         }

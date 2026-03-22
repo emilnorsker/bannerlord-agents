@@ -160,18 +160,6 @@ public class NPCContext
 	[JsonProperty("DynamicEvents")]
 	public List<string> DynamicEvents { get; set; } = new List<string>();
 
-	[JsonProperty("IsSick")]
-	public bool IsSick { get; set; } = false;
-
-	[JsonProperty("CurrentDiseases")]
-	public List<NPCDiseaseInfo> CurrentDiseases { get; set; } = new List<NPCDiseaseInfo>();
-
-	[JsonProperty("DiseaseProgress")]
-	public float DiseaseProgress { get; set; } = 0f;
-
-	[JsonProperty("IsTreated")]
-	public bool IsTreated { get; set; } = false;
-
 	[JsonProperty("LastEventAnalysisMessageIndex")]
 	public int LastEventAnalysisMessageIndex { get; set; } = -1;
 

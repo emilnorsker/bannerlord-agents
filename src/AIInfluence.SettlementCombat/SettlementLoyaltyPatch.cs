@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using AIInfluence.Diseases;
 using AIInfluence.DynamicEvents;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
@@ -29,10 +28,6 @@ public class SettlementLoyaltyPatch
 				{
 					TextObject val = new TextObject(reason, (Dictionary<string, object>)null);
 					(__result).Add(loyaltyPerDay, val, (TextObject)null);
-				}
-				if (DiseaseManager.Instance != null && DiseaseManager.Instance.TryGetQuarantineSettlementEffect(((SettlementComponent)town).Settlement, out securityPerDay, out foodPerDay, out prosperityPerDay, out var loyaltyPerDay2, out var _, out var reason2) && Math.Abs(loyaltyPerDay2) > 0.001f)
-				{
-					(__result).Add(loyaltyPerDay2, new TextObject(reason2, (Dictionary<string, object>)null), (TextObject)null);
 				}
 			}
 		}

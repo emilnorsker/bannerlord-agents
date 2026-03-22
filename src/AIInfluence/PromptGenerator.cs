@@ -522,11 +522,6 @@ public static class PromptGenerator
 		string text24 = ((context.EmotionalState != null) ? (context.EmotionalState.Mood + " (" + context.EmotionalState.Reason + ")") : "calm (no specific reason)");
 		string text25 = ((context.TimeContext != null) ? $"{context.TimeContext.Season} of year {context.TimeContext.Year}, month {context.TimeContext.Month}, {context.TimeContext.TimeOfDay} (hour {context.TimeContext.Hour})" : "unknown time");
 		string text26 = "";
-		if (GlobalSettings<ModSettings>.Instance.EnableDiseaseSystem && context.IsSick && context.CurrentDiseases != null && context.CurrentDiseases.Any())
-		{
-			IEnumerable<string> values = context.CurrentDiseases.Select((NPCDiseaseInfo d) => $"{d.Name} ({d.SeverityDescription}, progress: {d.Progress:F0}%, " + $"infected {d.DaysInfected} days ago" + (d.IsTreated ? ", receiving treatment" : "") + ")");
-			text26 = string.Join("; ", values);
-		}
 		string arg2 = "Never";
 		string text27 = null;
 		if (context.IsRomanceEligible)
