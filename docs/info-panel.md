@@ -23,7 +23,7 @@
 
 ## Visibility
 
-Call **`InfoSectionVM.RefreshVisibility()`** after filling a section. It sets:
+Call **`InfoSectionVM.RefreshVisibility()`** after filling a section. Build rows with **`TextLines.Insert(0, …)`** / **`GlyphLines.Insert(0, …)`** so the first line you write in code ends up visually at the **top** under `VerticalBottomToTop`. Then it sets:
 
 - `HasGlyphLines` = `GlyphLines.Count > 0`
 - `HasStandardTextLines` = `TextLines.Count > 0`

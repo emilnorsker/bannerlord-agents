@@ -122,6 +122,7 @@ public class WorldEventsWindowViewModel : ViewModel
 				List<WorldEventEntry> list7 = (from e in list5
 					orderby e.Item3 descending, e.Item2 descending
 					select e.Item1).ToList();
+				list7.Reverse();
 				foreach (WorldEventEntry item5 in list7)
 				{
 					((Collection<WorldEventEntry>)(object)DeclarationList).Add(item5);
@@ -1139,6 +1140,7 @@ public class WorldEventsWindowViewModel : ViewModel
 			orderby e.SortOrder descending, e.EntryOrder descending
 			select e).ToList();
 		((Collection<WorldEventEntry>)(object)DeclarationList).Clear();
+		list.Reverse();
 		foreach (WorldEventEntry item in list)
 		{
 			((Collection<WorldEventEntry>)(object)DeclarationList).Add(item);

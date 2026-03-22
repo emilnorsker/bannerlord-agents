@@ -119,29 +119,10 @@
                                              DoNotAcceptEvents="true" />
                                 <ListPanel WidthSizePolicy="StretchToParent"
                                           HeightSizePolicy="StretchToParent"
-                                          StackLayout.LayoutMethod="VerticalTopToBottom"
+                                          StackLayout.LayoutMethod="VerticalBottomToTop"
                                           VerticalAlignment="Top">
                                     <Children>
-                                        <!-- Краткое описание и подсказка фильтров -->
-                                        <Widget WidthSizePolicy="StretchToParent"
-                                                HeightSizePolicy="Fixed"
-                                                SuggestedHeight="45"
-                                                MarginBottom="8">
-                                            <Children>
-                                                <RichTextWidget Brush="SPScoreboard.Subtitle.Text"
-                                                                Brush.FontSize="20"
-                                                                Text="@SummaryDescription"
-                                                                IsDisabled="true"/>
-                                                <RichTextWidget Brush="SPScoreboard.Subtitle.Text"
-                                                                Brush.FontSize="16"
-                                                                Color="#A0B8FFFF"
-                                                                PositionYOffset="32"
-                                                                Text="@FilterHint"
-                                                                IsDisabled="true"/>
-                                            </Children>
-                                        </Widget>
-
-                                        <!-- Список заявлений -->
+                                        <!-- Список заявлений (first = bottom); summary/description last = top -->
                                         <ListPanel WidthSizePolicy="StretchToParent"
                                                   HeightSizePolicy="Fixed"
                                                   SuggestedHeight="!List.Height"
@@ -167,7 +148,7 @@
                                                                                      DataSource="{DeclarationList}"
                                                                                      WidthSizePolicy="StretchToParent"
                                                                                      HeightSizePolicy="CoverChildren"
-                                                                                     StackLayout.LayoutMethod="VerticalTopToBottom"
+                                                                                     StackLayout.LayoutMethod="VerticalBottomToTop"
                                                                                      Spacing="10">
                                                                     <ItemTemplate>
                                                                         <ListPanel WidthSizePolicy="StretchToParent"
@@ -177,27 +158,54 @@
                                                                                    ClipContents="true"
                                                                                    MarginLeft="2"
                                                                                    MarginRight="2"
-                                                                                   StackLayout.LayoutMethod="VerticalTopToBottom">
+                                                                                   StackLayout.LayoutMethod="VerticalBottomToTop">
                                                                             <Children>
-                                                                                <!-- Разделитель -->
-                                                                                <Widget WidthSizePolicy="StretchToParent"
-                                                                                        HeightSizePolicy="Fixed"
-                                                                                        SuggestedHeight="2"
-                                                                                        MarginLeft="12"
-                                                                                        MarginRight="12"
-                                                                                        MarginBottom="6"
-                                                                                        Sprite="BlankWhiteSquare_9"
-                                                                                        Color="#FFFFFF22" />
-
-                                                                                <!-- Контент карточки -->
+                                                                                <!-- Контент карточки (bottom) → разделитель (top) for VerticalBottomToTop -->
                                                                                 <ListPanel WidthSizePolicy="StretchToParent"
                                                                                            HeightSizePolicy="CoverChildren"
-                                                                                           StackLayout.LayoutMethod="VerticalTopToBottom"
+                                                                                           StackLayout.LayoutMethod="VerticalBottomToTop"
                                                                                            MarginLeft="12"
                                                                                            MarginRight="12"
                                                                                            MarginTop="11">
                                                                                     <Children>
-                                                                                        <!-- Нижняя строка: категория слева, дата справа -->
+                                                                                        <!-- Заголовок (bottom of card) -->
+                                                                                        <RichTextWidget WidthSizePolicy="StretchToParent"
+                                                                                                        HeightSizePolicy="CoverChildren"
+                                                                                                        Brush="Recruitment.Popup.Title.Text"
+                                                                                                        Brush.FontSize="24"
+                                                                                                        Text="@Title"
+                                                                                                        HorizontalAlignment="Left"
+                                                                                                        IsDisabled="true"/>
+                                                                                        <RichTextWidget WidthSizePolicy="StretchToParent"
+                                                                                                        HeightSizePolicy="CoverChildren"
+                                                                                                        Brush="SPScoreboard.Subtitle.Text"
+                                                                                                        Brush.FontSize="17"
+                                                                                                        Text="@InvolvedFactions"
+                                                                                                        HorizontalAlignment="Left"
+                                                                                                        MarginTop="4"
+                                                                                                        Color="#C5D6FF"
+                                                                                                        IsDisabled="true"/>
+                                                                                        <RichTextWidget WidthSizePolicy="StretchToParent"
+                                                                                                        HeightSizePolicy="CoverChildren"
+                                                                                                        Brush="SPScoreboard.Subtitle.Text"
+                                                                                                        Brush.FontSize="15"
+                                                                                                        Text="@LocationHint"
+                                                                                                        HorizontalAlignment="Left"
+                                                                                                        MarginTop="2"
+                                                                                                        Color="#9BA4B5"
+                                                                                                        IsDisabled="true"/>
+                                                                                        <RichTextWidget Id="ContentText"
+                                                                                                        WidthSizePolicy="StretchToParent"
+                                                                                                        HeightSizePolicy="CoverChildren"
+                                                                                                        HorizontalAlignment="Left"
+                                                                                                        MarginLeft="0"
+                                                                                                        MarginRight="16"
+                                                                                                        MarginTop="10"
+                                                                                                        Brush="SPScoreboard.Subtitle.Text"
+                                                                                                        Brush.FontSize="16"
+                                                                                                        Text="@DeclarationContent"
+                                                                                                        IsDisabled="true"/>
+                                                                                        <!-- Верх карточки: категория + дата -->
                                                                                         <ListPanel WidthSizePolicy="StretchToParent"
                                                                                                   HeightSizePolicy="Fixed"
                                                                                                   SuggestedHeight="28"
@@ -206,7 +214,6 @@
                                                                                                   MarginTop="12"
                                                                                                   MarginBottom="8">
                                                                                             <Children>
-                                                                                                <!-- Категория с фоном -->
                                                                                                 <Widget WidthSizePolicy="CoverChildren"
                                                                                                         HeightSizePolicy="CoverChildren"
                                                                                                         HorizontalAlignment="Left"
@@ -237,7 +244,6 @@
                                                                                                 </Widget>
                                                                                                 <Widget WidthSizePolicy="StretchToParent"
                                                                                                         HeightSizePolicy="StretchToParent"/>
-                                                                                                <!-- Дата с фоном -->
                                                                                                 <Widget WidthSizePolicy="CoverChildren"
                                                                                                         HeightSizePolicy="CoverChildren"
                                                                                                         HorizontalAlignment="Right"
@@ -268,50 +274,16 @@
                                                                                                 </Widget>
                                                                                             </Children>
                                                                                         </ListPanel>
-
-                                                                                        <!-- Текст -->
-                                                                                        <RichTextWidget Id="ContentText"
-                                                                                                        WidthSizePolicy="StretchToParent"
-                                                                                                        HeightSizePolicy="CoverChildren"
-                                                                                                        HorizontalAlignment="Left"
-                                                                                                        MarginLeft="0"
-                                                                                                        MarginRight="16"
-                                                                                                        MarginTop="10"
-                                                                                                        Brush="SPScoreboard.Subtitle.Text"
-                                                                                                        Brush.FontSize="16"
-                                                                                                        Text="@DeclarationContent"
-                                                                                                        IsDisabled="true"/>
-
-                                                                                        <!-- Участники и регион -->
-                                                                                        <RichTextWidget WidthSizePolicy="StretchToParent"
-                                                                                                        HeightSizePolicy="CoverChildren"
-                                                                                                        Brush="SPScoreboard.Subtitle.Text"
-                                                                                                        Brush.FontSize="15"
-                                                                                                        Text="@LocationHint"
-                                                                                                        HorizontalAlignment="Left"
-                                                                                                        MarginTop="2"
-                                                                                                        Color="#9BA4B5"
-                                                                                                        IsDisabled="true"/>
-                                                                                        <RichTextWidget WidthSizePolicy="StretchToParent"
-                                                                                                        HeightSizePolicy="CoverChildren"
-                                                                                                        Brush="SPScoreboard.Subtitle.Text"
-                                                                                                        Brush.FontSize="17"
-                                                                                                        Text="@InvolvedFactions"
-                                                                                                        HorizontalAlignment="Left"
-                                                                                                        MarginTop="4"
-                                                                                                        Color="#C5D6FF"
-                                                                                                        IsDisabled="true"/>
-
-                                                                                        <!-- Заголовок -->
-                                                                                        <RichTextWidget WidthSizePolicy="StretchToParent"
-                                                                                                        HeightSizePolicy="CoverChildren"
-                                                                                                        Brush="Recruitment.Popup.Title.Text"
-                                                                                                        Brush.FontSize="24"
-                                                                                                        Text="@Title"
-                                                                                                        HorizontalAlignment="Left"
-                                                                                                        IsDisabled="true"/>
                                                                                     </Children>
                                                                                 </ListPanel>
+                                                                                <Widget WidthSizePolicy="StretchToParent"
+                                                                                        HeightSizePolicy="Fixed"
+                                                                                        SuggestedHeight="2"
+                                                                                        MarginLeft="12"
+                                                                                        MarginRight="12"
+                                                                                        MarginBottom="6"
+                                                                                        Sprite="BlankWhiteSquare_9"
+                                                                                        Color="#FFFFFF22" />
                                                                             </Children>
                                                                         </ListPanel>
                                                                     </ItemTemplate>
@@ -332,6 +304,24 @@
                                                                            MarginBottom="1" />
                                             </Children>
                                         </ListPanel>
+                                        <!-- Краткое описание и подсказка фильтров (last = top for VerticalBottomToTop) -->
+                                        <Widget WidthSizePolicy="StretchToParent"
+                                                HeightSizePolicy="Fixed"
+                                                SuggestedHeight="45"
+                                                MarginBottom="8">
+                                            <Children>
+                                                <RichTextWidget Brush="SPScoreboard.Subtitle.Text"
+                                                                Brush.FontSize="20"
+                                                                Text="@SummaryDescription"
+                                                                IsDisabled="true"/>
+                                                <RichTextWidget Brush="SPScoreboard.Subtitle.Text"
+                                                                Brush.FontSize="16"
+                                                                Color="#A0B8FFFF"
+                                                                PositionYOffset="32"
+                                                                Text="@FilterHint"
+                                                                IsDisabled="true"/>
+                                            </Children>
+                                        </Widget>
                                     </Children>
                                 </ListPanel>
                             </Children>

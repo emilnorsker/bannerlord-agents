@@ -76,25 +76,17 @@ So **`ScopeMovements="Vertical"`** is a **valid** literal for the XML loader.
 
 **Mod-local:** `AIInfluence.ClanPartyFormationStrip` (defined in our `PopUpBrush.xml`).
 
-## 7. Vertical stack order (`VerticalTopToBottom` vs `VerticalBottomToTop`)
+## 7. Vertical stacks: **`VerticalBottomToTop` only** (project rule)
 
-**Source:** `TaleWorlds.GauntletUI.Layout.StackLayout.LayoutLinearVertical` (`TaleWorlds.GauntletUI.dll`). Children are laid out in **XML / `ChildCount` order** (`j = 0 .. ChildCount-1`).
+**Source:** `TaleWorlds.GauntletUI.Layout.StackLayout.LayoutLinearVertical` — children are laid out in **declaration order**; **`VerticalBottomToTop`** stacks from the **bottom** of the parent upward: **first XML child = lowest on screen**, **last XML child = highest**.
 
-From the implementation:
+**Policy:** All **vertical** `ListPanel` / `NavigatableListPanel` stacks in our Gauntlet prefabs use **`VerticalBottomToTop` only.** To keep the **same** reading order as before (when some panels used `VerticalTopToBottom`), we:
 
-- **`VerticalTopToBottom`:** each child is placed **below** the previous one (working from the **top** of the parent downward). **First child in the container = visually at the top** (reading order = declaration order).
-- **`VerticalBottomToTop`:** each child is placed **above** the previous one (working from the **bottom** upward). **First child = visually at the bottom** of the parent; **last child = visually at the top**.
+- **Reorder XML children** so “what should read first / sit higher” is **later** in the file (closer to the top of the screen).
+- **Bind rows** with **`Insert(0, …)`** on `MBBindingList` when building lines in natural top-first code order (so the first line written ends up at the **top** of the panel). **World events:** reverse the sorted `List<WorldEventEntry>` once before `Add` to match the declaration list.
+- **`NpcChatWindowVM`:** `InfoSections` are **added** in reverse build order so Character remains visually **above** Party.
 
-**`ChatInterface.xml` usage (intentional split):**
-
-| Region | `ListPanel` | Meaning |
-|--------|-------------|--------|
-| **`InfoSectionsList`** | `VerticalTopToBottom` | `NpcChatWindowVM` pushes sections in reading order (Character → … → Party). **First in `InfoSections` = top of the column.** Matches `RebuildInfoPanelSections` comment. |
-| **Section item template** (header + body) | `VerticalTopToBottom` | Header `ButtonWidget` is declared **first**, expanded body **second** → **header above body** (not reversed). |
-| **GlyphLines / TextLines** | `VerticalTopToBottom` | Lines appear in list order top-to-bottom. |
-| **`ChatMessageList`** | `VerticalBottomToTop` | **Not** the same as the info column: first `MessageList` item is anchored to the **bottom** of the inner stack; appending messages (`MessageList.Add`) puts **older messages lower** and **newer higher** in the scroll area. Do **not** “fix” the info column to match this unless you also change chat UX on purpose. |
-
-**Gamepad index caveat:** `NavigatableListPanel` assigns `GamepadNavigationIndex` using **different formulas** for `VerticalTopToBottom` vs other layouts (`SetNavigationIndexForChild` in `NavigatableListPanel`). Focus order can **feel** different from mouse hit order — that is separate from **visual** stacking.
+**Gamepad:** `NavigatableListPanel` uses **`MaxIndex - siblingIndex * StepSize`** when `LayoutMethod` is **`VerticalTopToBottom`** or **`HorizontalRightToLeft`** (`SetNavigationIndexForChild`). With **`VerticalBottomToTop`**, it uses **`MinIndex + siblingIndex * StepSize`** — focus indices follow sibling order differently; validate in-game if navigation feels off.
 
 ## 8. What still needs a real client (honest list)
 
