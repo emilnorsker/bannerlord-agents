@@ -3002,16 +3002,17 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 		context.PendingAIResponse = aiResult;
 		context.LastAIResponseJson = JsonConvert.SerializeObject(aiResult);
-		MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", aiResult.Response, false);
-		context.LastDynamicResponse = aiResult.Response;
-		LogMessage("[DEBUG] Set DYNAMIC_NPC_RESPONSE: " + aiResult.Response);
+		string npcResponseText = aiResult.Response ?? "";
+		MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", npcResponseText, false);
+		context.LastDynamicResponse = npcResponseText;
+		LogMessage("[DEBUG] Set DYNAMIC_NPC_RESPONSE: " + npcResponseText);
 		if (!string.IsNullOrEmpty(aiResult.InternalThoughts))
 		{
 			LogMessage("[INTERNAL THOUGHTS] " + npcName + ": " + aiResult.InternalThoughts);
 		}
 		try
 		{
-			string npcHistoryLine = npcName + ": " + aiResult.Response;
+			string npcHistoryLine = npcName + ": " + npcResponseText;
 			if (context.ConversationHistory == null)
 			{
 				context.ConversationHistory = new List<string>();
