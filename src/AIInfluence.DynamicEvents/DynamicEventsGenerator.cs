@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using AIInfluence.API;
 using AIInfluence.Diplomacy;
 using AIInfluence.Diseases;
 using AIInfluence.Util;
@@ -225,7 +226,7 @@ public class DynamicEventsGenerator
 					DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS_GEN] AIInfluenceBehavior instance not found");
 					return;
 				}
-				string dialogueAiResponse = await dialogueBehavior.SendAIRequestWithBackend(dialoguePrompt, "dynamic_event_generation", GlobalSettings<ModSettings>.Instance.DynamicEventsAIBackend.SelectedValue);
+				string dialogueAiResponse = await dialogueBehavior.SendAIRequestForFeature(dialoguePrompt, "dynamic_event_generation");
 				if (string.IsNullOrEmpty(dialogueAiResponse))
 				{
 					DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS_GEN] AI returned empty response for dialogue-only generation - API may be unavailable");
@@ -286,7 +287,7 @@ public class DynamicEventsGenerator
 				DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS_GEN] AIInfluenceBehavior instance not found");
 				return;
 			}
-			string aiResponse = await behavior.SendAIRequestWithBackend(prompt, "dynamic_event_generation", GlobalSettings<ModSettings>.Instance.DynamicEventsAIBackend.SelectedValue);
+			string aiResponse = await behavior.SendAIRequestForFeature(prompt, "dynamic_event_generation");
 			if (string.IsNullOrEmpty(aiResponse))
 			{
 				DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS_GEN] AI returned empty response - API may be unavailable");
@@ -1810,7 +1811,7 @@ public class DynamicEventsGenerator
 				DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS_GEN] AIInfluenceBehavior instance not found");
 				return;
 			}
-			string aiResponse = await behavior.SendAIRequestWithBackend(prompt, "dynamic_events", GlobalSettings<ModSettings>.Instance.DynamicEventsAIBackend.SelectedValue);
+			string aiResponse = await behavior.SendAIRequestForFeature(prompt, "dynamic_events");
 			if (string.IsNullOrEmpty(aiResponse))
 			{
 				DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS_GEN] Empty AI response for dialogue analysis - API may be unavailable");
@@ -2458,6 +2459,11 @@ public class DynamicEventsGenerator
 
 	private DynamicEventsResponse ParseAIResponse(string aiResponse)
 	{
+		if (AIClient.IsRawTextFailureResponse(aiResponse))
+		{
+			DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS_GEN] AI response missing or error: " + (aiResponse ?? "(null)"));
+			return null;
+		}
 		try
 		{
 			string text = aiResponse.Trim();
@@ -4130,7 +4136,7 @@ public class DynamicEventsGenerator
 				DynamicEventsLogger.Instance.Log("[KINGDOM_DESTRUCTION] AIInfluenceBehavior instance not found");
 				return;
 			}
-			string aiResponse = await behavior.SendAIRequestWithBackend(prompt, "kingdom_destruction_event", GlobalSettings<ModSettings>.Instance.DynamicEventsAIBackend.SelectedValue);
+			string aiResponse = await behavior.SendAIRequestForFeature(prompt, "kingdom_destruction_event");
 			if (string.IsNullOrEmpty(aiResponse))
 			{
 				DynamicEventsLogger.Instance.Log("[KINGDOM_DESTRUCTION] AI returned empty response for kingdom destruction event");

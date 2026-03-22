@@ -72,6 +72,9 @@ public static class NpcChatWindowManager
             if (cm != null && cm.IsConversationInProgress)
                 cm.EndConversation();
         }
-        catch (Exception) { }
+        catch (Exception ex)
+        {
+            AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] EndConversation on close failed: " + ex.Message);
+        }
     }
 }

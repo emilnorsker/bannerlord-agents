@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AIInfluence.API;
 using AIInfluence.Diplomacy;
 using AIInfluence.Diseases;
 using AIInfluence.Util;
@@ -1088,6 +1089,11 @@ public class DynamicEventsAnalyzer
 		//IL_00ec: Expected O, but got Unknown
 		try
 		{
+			if (AIClient.IsRawTextFailureResponse(aiResponse))
+			{
+				DynamicEventsLogger.Instance.Log("[EVENTS_ANALYZER] AI response missing, empty, or error text: " + (aiResponse ?? "(null)"));
+				return null;
+			}
 			DynamicEventsLogger.Instance.Log($"[EVENTS_ANALYZER] Processing AI response (length: {aiResponse?.Length ?? 0})");
 			string text = aiResponse.Trim();
 			if (text.StartsWith("```json"))
