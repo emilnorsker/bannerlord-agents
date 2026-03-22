@@ -6,7 +6,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using AIInfluence.API;
 using AIInfluence.Behaviors.AIActions;
-using AIInfluence.Services;
 using AIInfluence.UI;
 using AIInfluence.Util;
 using MCM.Abstractions.Base.Global;
@@ -2061,62 +2060,6 @@ public class NPCInitiativeSystem
 			{
 				LogMessage($"[NPC_HOSTILE_INITIATIVE] Neutral/null tone — no relation change for {npc.Name}");
 			}
-			if ((GlobalSettings<ModSettings>.Instance?.EnableTTS ?? false) && !string.IsNullOrEmpty(context.AssignedTTSVoice))
-			{
-				string ttsInstructions = response?.TTSInstructions ?? "";
-				if (!string.IsNullOrEmpty(context.LastTTSPlayedText) && string.Equals(context.LastTTSPlayedText, message, StringComparison.Ordinal) && string.Equals(context.LastTTSInstructions ?? "", ttsInstructions, StringComparison.Ordinal))
-				{
-					LogMessage("[TTS] Skipping TTS preparation: same text and instructions already played.");
-					context.PreparedTts = null;
-				}
-				else
-				{
-					LogMessage($"[TTS] Pre-generating TTS for {npc.Name} (hostile initiative) before showing 'NPC ready'...");
-					try
-					{
-						bool voiceExists = await Player2Client.VoiceExistsAsync(context.AssignedTTSVoice);
-						string voiceToUse = context.AssignedTTSVoice;
-						if (!voiceExists)
-						{
-							LogMessage("[TTS] Voice " + context.AssignedTTSVoice + " no longer exists. Replacing.");
-							string newVoice = await Player2Client.GetRandomVoiceAsync(context.Gender);
-							if (!string.IsNullOrEmpty(newVoice))
-							{
-								voiceToUse = newVoice;
-								context.AssignedTTSVoice = newVoice;
-								LogMessage($"[TTS] Replaced voice for {npc.Name}: {newVoice}");
-							}
-							else
-							{
-								LogMessage($"[TTS] Failed to assign new voice for {npc.Name}. Skipping TTS.");
-								voiceToUse = null;
-							}
-						}
-						if (!string.IsNullOrEmpty(voiceToUse))
-						{
-							TtsPreparedData prepared = await TtsLipSyncService.PrepareAsync(message, voiceToUse, ((object)npc.Name).ToString(), ttsInstructions, context.EscalationState ?? "neutral");
-							if (prepared != null)
-							{
-								context.PreparedTts = prepared;
-								context.LastTTSPlayedText = message;
-								context.LastTTSInstructions = ttsInstructions;
-								LogMessage($"[TTS] TTS prepared successfully for {npc.Name}.");
-							}
-							else
-							{
-								context.PreparedTts = null;
-								LogMessage($"[TTS] TTS preparation failed for {npc.Name}.");
-							}
-						}
-					}
-					catch (Exception ex)
-					{
-						Exception ttsEx = ex;
-						context.PreparedTts = null;
-						LogMessage($"[TTS_ERROR] TTS preparation failed for {npc.Name}: {ttsEx.Message}");
-					}
-				}
-			}
 			_behavior.SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
 			TextObject readyText = new TextObject("{=AIInfluence_NPCReady}{npcName} is ready to respond.", new Dictionary<string, object> { 
 			{
@@ -2255,62 +2198,6 @@ public class NPCInitiativeSystem
 			{
 				LogMessage($"[NPC_NEUTRAL_INITIATIVE] Neutral/null tone — no relation change for {npc.Name}");
 			}
-			if ((GlobalSettings<ModSettings>.Instance?.EnableTTS ?? false) && !string.IsNullOrEmpty(context.AssignedTTSVoice))
-			{
-				string ttsInstructions = response?.TTSInstructions ?? "";
-				if (!string.IsNullOrEmpty(context.LastTTSPlayedText) && string.Equals(context.LastTTSPlayedText, message, StringComparison.Ordinal) && string.Equals(context.LastTTSInstructions ?? "", ttsInstructions, StringComparison.Ordinal))
-				{
-					LogMessage("[TTS] Skipping TTS preparation: same text and instructions already played.");
-					context.PreparedTts = null;
-				}
-				else
-				{
-					LogMessage($"[TTS] Pre-generating TTS for {npc.Name} (neutral initiative) before showing 'NPC ready'...");
-					try
-					{
-						bool voiceExists = await Player2Client.VoiceExistsAsync(context.AssignedTTSVoice);
-						string voiceToUse = context.AssignedTTSVoice;
-						if (!voiceExists)
-						{
-							LogMessage("[TTS] Voice " + context.AssignedTTSVoice + " no longer exists. Replacing.");
-							string newVoice = await Player2Client.GetRandomVoiceAsync(context.Gender);
-							if (!string.IsNullOrEmpty(newVoice))
-							{
-								voiceToUse = newVoice;
-								context.AssignedTTSVoice = newVoice;
-								LogMessage($"[TTS] Replaced voice for {npc.Name}: {newVoice}");
-							}
-							else
-							{
-								LogMessage($"[TTS] Failed to assign new voice for {npc.Name}. Skipping TTS.");
-								voiceToUse = null;
-							}
-						}
-						if (!string.IsNullOrEmpty(voiceToUse))
-						{
-							TtsPreparedData prepared = await TtsLipSyncService.PrepareAsync(message, voiceToUse, ((object)npc.Name).ToString(), ttsInstructions, context.EscalationState ?? "neutral");
-							if (prepared != null)
-							{
-								context.PreparedTts = prepared;
-								context.LastTTSPlayedText = message;
-								context.LastTTSInstructions = ttsInstructions;
-								LogMessage($"[TTS] TTS prepared successfully for {npc.Name}.");
-							}
-							else
-							{
-								context.PreparedTts = null;
-								LogMessage($"[TTS] TTS preparation failed for {npc.Name}.");
-							}
-						}
-					}
-					catch (Exception ex)
-					{
-						Exception ttsEx = ex;
-						context.PreparedTts = null;
-						LogMessage($"[TTS_ERROR] TTS preparation failed for {npc.Name}: {ttsEx.Message}");
-					}
-				}
-			}
 			_behavior.SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
 			TextObject readyText = new TextObject("{=AIInfluence_NPCReady}{npcName} is ready to respond.", new Dictionary<string, object> { 
 			{
@@ -2333,53 +2220,6 @@ public class NPCInitiativeSystem
 		{
 			LogMessage("[ERROR] GenerateNeutralInitiativeResponse failed: " + ex2.Message);
 		}
-	}
-
-	private void TryPlayTTS(Hero npc, NPCContext context, string message, string ttsInstructions)
-	{
-		ModSettings instance = GlobalSettings<ModSettings>.Instance;
-		if (instance == null || !instance.EnableTTS)
-		{
-			return;
-		}
-		if (string.IsNullOrEmpty(context.AssignedTTSVoice))
-		{
-			LogMessage($"[TTS] AssignedTTSVoice is empty for {npc.Name} — TTS will not be started.");
-			return;
-		}
-		if (string.IsNullOrEmpty(message))
-		{
-			LogMessage("[TTS] Message is empty, skipping TTS.");
-			return;
-		}
-		Task.Run(async delegate
-		{
-			try
-			{
-				bool voiceExists = await Player2Client.VoiceExistsAsync(context.AssignedTTSVoice);
-				string voiceToUse = context.AssignedTTSVoice;
-				if (!voiceExists)
-				{
-					LogMessage($"[TTS] Voice {context.AssignedTTSVoice} for {npc.Name} no longer exists. Replacing with new voice.");
-					string newVoice = await Player2Client.GetRandomVoiceAsync(context.Gender);
-					if (string.IsNullOrEmpty(newVoice))
-					{
-						LogMessage($"[WARNING] Failed to assign new voice for {npc.Name}. TTS will be disabled.");
-						return;
-					}
-					voiceToUse = newVoice;
-					context.AssignedTTSVoice = newVoice;
-					LogMessage($"[TTS] Replaced voice for {npc.Name}: {newVoice}");
-				}
-				bool ttsSuccess = await Player2Client.GenerateAndPlayTTS(message, voiceToUse, ((object)npc.Name).ToString(), ttsInstructions);
-				LogMessage(string.Format("[TTS] GenerateAndPlayTTS completed with result: {0} (NPC={1}, Initiative)", ttsSuccess ? "Success" : "Failed", npc.Name));
-			}
-			catch (Exception ex)
-			{
-				Exception ex2 = ex;
-				LogMessage($"[TTS_ERROR] Exception in TryPlayTTS for {npc.Name}: {ex2.Message}");
-			}
-		});
 	}
 
 	public void OnConversationStarted(IEnumerable<CharacterObject> characters)

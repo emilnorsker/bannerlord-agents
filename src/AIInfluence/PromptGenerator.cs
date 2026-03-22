@@ -950,8 +950,7 @@ public static class PromptGenerator
 			null,
 			null
 		};
-		ModSettings instance11 = GlobalSettings<ModSettings>.Instance;
-		obj8[2] = ((instance11 != null && instance11.EnableTTS && !isMessengerMode) ? "- `tts_instructions`: (string) **REQUIRED** - 20-120 chars in ENGLISH. Describe tone, emotion, pace, delivery style. Examples: \"Speak cheerfully and energetically\", \"Speak slowly with sadness\".\n" : "");
+		obj8[2] = "";
 		obj8[3] = "\n**OPTIONAL fields (include ONLY if relevant, NEVER repeat actions from Previous Response — they are ALREADY EXECUTED):**\n";
 		obj8[4] = (isMessengerMode ? "" : $"- `money_transfer`: (object) {{\"action\": \"give\"|\"receive\", \"amount\": number, \"opposed_attribute\": \"...\"?}}. ONLY when you ACCEPT transfer. \"give\"=you pay player, \"receive\"=player pays you. Max: {npc.Gold} denars. Add **opposed_attribute** (vigor|endurance|control|cunning|intelligence|social) ONLY when contested—player forces/extorts you. When set, the game rolls dice; if player wins, transfer succeeds; if they lose, you refuse. Omit for agreements (quest reward, trade, gift). **Omit if no money transfer.**\n");
 		obj8[5] = (isMessengerMode ? "" : "- `item_transfers`: (array) `[{\"item_id\": \"...\", \"amount\": N, \"action\": \"give\"|\"take\"}]`. 'give'=you→player, 'take'=player→you. Use exact item IDs from inventories. Add **`item_transfers_opposed_attribute`** as a TOP-LEVEL sibling (same level as item_transfers), e.g. `{\"item_transfers\": [...], \"item_transfers_opposed_attribute\": \"social\"}`. ONLY when contested—player forces you. When set, the game rolls dice; if player wins, transfer succeeds; if they lose, you refuse. Omit for agreements. **Omit if no item exchange.**\n");
@@ -3040,7 +3039,6 @@ public static class PromptGenerator
 		bool flag4 = string.IsNullOrEmpty(context.AIGeneratedPersonality);
 		bool flag5 = string.IsNullOrEmpty(context.AIGeneratedBackstory);
 		bool flag6 = string.IsNullOrEmpty(context.AIGeneratedSpeechQuirks);
-		bool flag7 = GlobalSettings<ModSettings>.Instance?.EnableTTS ?? false;
 		bool flag8 = GlobalSettings<ModSettings>.Instance?.PromptEnableInternalThoughts ?? false;
 		List<string> list = new List<string>();
 		list.Add("\"response\": \"...\"");
@@ -3084,10 +3082,6 @@ public static class PromptGenerator
 		if (flag6)
 		{
 			list.Add("\"character_speech_quirks\": \"[personality-based mannerism], [cultural phrase/expression]\"");
-		}
-		if (flag7)
-		{
-			list.Add("\"tts_instructions\": \"Speak with a neutral and calm tone\"");
 		}
 		return "{" + string.Join(", ", list) + "}";
 	}

@@ -191,7 +191,7 @@ public class DeathHistoryBehavior : CampaignBehaviorBase
 		string input = text;
 		input = Regex.Replace(input, "```json\\s*[\\s\\S]*?```", "", RegexOptions.Multiline);
 		input = Regex.Replace(input, "```\\s*[\\s\\S]*?```", "", RegexOptions.Multiline);
-		string pattern = "\\{[^{}]*\"(?:response|romance_intent|decision|tone|threat_level|escalation_state|suspected_lie|deescalation_attempt|claimed_name|claimed_clan|claimed_age|claimed_gold|money_transfer|item_transfers|character_personality|character_backstory|kingdom_action|kingdom_action_reason|settlement_id|target_clan_id|daily_tribute_amount|tribute_duration_days|reparations_amount|trade_agreement_duration_years|technical_action|character_death|tts_instructions|workshop_action|workshop_string_id|witnesses|notable_phrases)\":[^{}]*(?:\\{[^{}]*\\}[^{}]*)*\\}";
+		string pattern = "\\{[^{}]*\"(?:response|romance_intent|decision|tone|threat_level|escalation_state|suspected_lie|deescalation_attempt|claimed_name|claimed_clan|claimed_age|claimed_gold|money_transfer|item_transfers|character_personality|character_backstory|kingdom_action|kingdom_action_reason|settlement_id|target_clan_id|daily_tribute_amount|tribute_duration_days|reparations_amount|trade_agreement_duration_years|technical_action|character_death|workshop_action|workshop_string_id|witnesses|notable_phrases)\":[^{}]*(?:\\{[^{}]*\\}[^{}]*)*\\}";
 		input = Regex.Replace(input, pattern, "", RegexOptions.IgnoreCase | RegexOptions.Multiline);
 		input = Regex.Replace(input, "\\n\\s*\"\\w+\":\\s*\"[^\"]*\",?\\s*", "\n", RegexOptions.Multiline);
 		input = Regex.Replace(input, "\\n\\s*\"\\w+\":\\s*null,?\\s*", "\n", RegexOptions.Multiline);

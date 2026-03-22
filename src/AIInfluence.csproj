@@ -13,9 +13,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="OggVorbisEncoder">
-      <HintPath>../bin/Win64_Shipping_Client/OggVorbisEncoder.dll</HintPath>
-    </Reference>
     <Reference Include="System.Net.Http" />
   </ItemGroup>
 
