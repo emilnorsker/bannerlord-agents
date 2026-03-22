@@ -777,6 +777,10 @@ public class NpcChatWindowVM : ViewModel
                 {
                     streamingVisibleText = streamingTargetText;
                     ReplaceStreamingSegments(streamingItem, npcName, streamingVisibleText);
+                    streamPumpActive = false;
+                    Action fin = finalizeNpcMessage;
+                    finalizeNpcMessage = null;
+                    fin?.Invoke();
                 }
                 else // visible == target: animation complete
                 {
