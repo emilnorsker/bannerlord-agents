@@ -8,9 +8,8 @@ This document defines only the patterns required for the new NPC dialogue + NPC 
 - LLM interacts with the game through tools for state changes.
 - Model output format is plain assistant text plus tool calls from the runtime.
 - Initial action scope:
-  - `follow_player`
-  - `go_to_settlement`
-  - `attack_party`
+  - `say`
+  - `emote`
 
 ## Non-goals
 
@@ -50,13 +49,8 @@ Queue event types for v1:
 
 Instant tools:
 
-- `npc_say` emits `dialogue_spoken` immediately.
-- Future instant tools (example: `transfer_item`) emit completion in the same tick.
-
-Long-running tools:
-
-- `follow_player`, `go_to_settlement`, `attack_party` emit `action_started` when accepted.
-- World systems emit `action_completed` or `action_failed` later when resolved.
+- `say` emits `dialogue_spoken` immediately.
+- `emote` emits `dialogue_spoken` immediately.
 
 ## Producer and consumer model
 

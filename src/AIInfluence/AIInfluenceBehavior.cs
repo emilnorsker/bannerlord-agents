@@ -10,6 +10,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AIInfluence.API;
+using AIInfluence.NpcInteraction;
 using AIInfluence.Behaviors.AIActions;
 using AIInfluence.Behaviors.AIActions.TaskSystem;
 using AIInfluence.Behaviors.RolePlay;
@@ -3240,6 +3241,23 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		context.PendingRelationChange = null;
 		context.PendingLiePenalty = null;
 		string prompt = PromptGenerator.GeneratePrompt(npc, context);
+		if (GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue == "OpenRouter")
+		{
+			string promptInput = "Player: " + playerMessage;
+			var client = new OpenRouterToolCallClient(GlobalSettings<ModSettings>.Instance.ApiKey, GlobalSettings<ModSettings>.Instance.AIModel);
+			var invocations = await client.RequestToolInvocationsAsync(prompt, promptInput);
+			var chatTools = new ChatWindowToolExecutor();
+			string toolReply = chatTools.ExecuteForChat(invocations, onPartialResponse);
+			context.LastInteractionTime = CampaignTime.Now;
+			context.InteractionCount++;
+			context.PendingAIResponse = null;
+			context.LastAIResponseJson = null;
+			context.LastTechnicalActionForDisplay = null;
+			context.LastDynamicResponse = toolReply;
+			context.AddMessage(npcName + ": " + toolReply);
+			SaveNPCContext(npcId, npc, context);
+			return toolReply;
+		}
 		StringBuilder streamJsonBuilder = (onPartialResponse == null) ? null : new StringBuilder();
 		string lastStreamPreview = "";
 		Action<string> streamCallback = (onPartialResponse == null) ? null : (Action<string>)delegate(string streamDelta)
