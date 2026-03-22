@@ -283,19 +283,16 @@ public class NpcChatWindowVM : ViewModel
 
     private InfoSectionVM BuildWorldEventsSection(string headerMuted)
     {
-        var section = new InfoSectionVM { HeaderText = "World events", HeaderSkillId = DefaultSkills.Tactics.StringId };
+        var section = new InfoSectionVM { HeaderText = "World events", HeaderSkillId = DefaultSkills.Engineering.StringId };
         try
         {
+            string engineering = DefaultSkills.Engineering.StringId;
             foreach (var e in GetMergedEvents().OrderByDescending(ev => ev.CreationCampaignDays).Take(5))
             {
                 string text = FormatWorldEventDisplayText(e);
                 if (string.IsNullOrWhiteSpace(text))
                     continue;
-                string type = e.Type;
-                if (e.IsDiseaseEvent)
-                    type = "disease_outbreak";
-                string skillId = WorldEventSkillMapper.GetSkillIdForEventType(type);
-                section.GlyphLines.Add(InfoGlyphLineVM.FromWorldEvent(skillId, "• " + text));
+                section.GlyphLines.Add(InfoGlyphLineVM.FromWorldEvent(engineering, "• " + text));
             }
         }
         catch (Exception ex)

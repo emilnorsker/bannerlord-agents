@@ -8,7 +8,7 @@
 | 2 | Character history | AI `character_backstory` → `NPCContext.AIGeneratedBackstory` (`TextLines`; newline-split). Roguery. |
 | 3 | Behavior          | AI personality, quirks, speech, mood (`TextLines`). Steward. |
 | 4 | Quests            | Active / incoming AI quests (`TextLines` only). Trade. |
-| 5 | World events      | Recent dynamic events with skill icon (`GlyphLines`) or “None” (`TextLines`). Tactics. |
+| 5 | World events      | Recent dynamic events with skill icon (`GlyphLines`) or “None” (`TextLines`). Engineering. |
 | 6 | NPC party info    | Vanilla-style troop count strip (`ShowPartyTroopStrip` + `InfantryCount`…`HorseArcherCount`, same layout as Clan → Parties detail) + optional food line. Leadership. |
 
 `SectionPanelColor` is a **single** subtle tint for all sections (encyclopedia frame provides the main chrome; no alternating zebra).
