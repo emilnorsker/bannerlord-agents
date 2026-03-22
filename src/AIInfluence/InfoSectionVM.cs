@@ -20,7 +20,7 @@ public class InfoSectionVM : ViewModel
     private bool _hasStandardTextLines;
     private bool _showPartyFood;
 
-    /// <summary>Background tint for this section block (alternates top→bottom when the info panel is rebuilt).</summary>
+    /// <summary>Background tint for this section block (same subtle value for all sections in <c>RebuildInfoPanelSections</c>).</summary>
     [DataSourceProperty]
     public string SectionPanelColor
     {

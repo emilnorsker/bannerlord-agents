@@ -139,9 +139,16 @@ public sealed class InfoGlyphLineVM : ViewModel
         };
     }
 
-    /// <summary>Same formation strips as clan screen parties tab: <see cref="PartyTroopFormationHelper"/> paths, rendered via literal prefab sprites (not VM string → Sprite bind).</summary>
+    /// <summary>Clan → parties tab strips: literal sprite paths in <c>ChatInterface.xml</c> (engine resolves <c>Sprite</c> from string in prefab load, not from VM string binding).</summary>
     public static InfoGlyphLineVM FromTroopFormation(FormationClass formation, int count)
     {
+        // AggregateTroopFormations only yields the four default classes; unknown values still get an icon (infantry strip).
+        bool inf = formation == FormationClass.Infantry;
+        bool rng = formation == FormationClass.Ranged;
+        bool cav = formation == FormationClass.Cavalry;
+        bool ha = formation == FormationClass.HorseArcher;
+        if (!inf && !rng && !cav && !ha)
+            inf = true;
         string label = formation switch
         {
             FormationClass.Infantry => "Infantry",
@@ -154,10 +161,10 @@ public sealed class InfoGlyphLineVM : ViewModel
         {
             IsSkill = false,
             SkillId = "",
-            IsClanPartyInfantry = formation == FormationClass.Infantry,
-            IsClanPartyRanged = formation == FormationClass.Ranged,
-            IsClanPartyCavalry = formation == FormationClass.Cavalry,
-            IsClanPartyHorseArcher = formation == FormationClass.HorseArcher,
+            IsClanPartyInfantry = inf,
+            IsClanPartyRanged = rng,
+            IsClanPartyCavalry = cav,
+            IsClanPartyHorseArcher = ha,
             Text = $"{label} ({count})",
             Color = "#C6AC8DFF"
         };
