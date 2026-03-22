@@ -8,7 +8,7 @@ using Newtonsoft.Json.Linq;
 
 namespace AIInfluence.NpcInteraction;
 
-public sealed class OpenRouterToolCallClient
+public sealed class NpcInteractionInferenceClient
 {
 	public const string SayTool = "say";
 	public const string EmoteTool = "emote";
@@ -17,7 +17,7 @@ public sealed class OpenRouterToolCallClient
 	private readonly string _apiKey;
 	private readonly string _model;
 
-	public OpenRouterToolCallClient(string apiKey, string model, HttpClient httpClient = null)
+	public NpcInteractionInferenceClient(string apiKey, string model, HttpClient httpClient = null)
 	{
 		_apiKey = apiKey;
 		_model = model;
@@ -28,7 +28,7 @@ public sealed class OpenRouterToolCallClient
 		}
 	}
 
-	public async Task<List<ToolInvocation>> RequestToolInvocationsAsync(string systemPrompt, string userPrompt)
+	public async Task<List<NpcToolCall>> RequestNpcToolCallsAsync(string systemPrompt, string userPrompt)
 	{
 		var body = new JObject
 		{
@@ -81,7 +81,7 @@ public sealed class OpenRouterToolCallClient
 		response.EnsureSuccessStatusCode();
 		var json = JObject.Parse(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
 		var calls = (JArray)json["choices"]?[0]?["message"]?["tool_calls"];
-		var output = new List<ToolInvocation>();
+		var output = new List<NpcToolCall>();
 		if (calls == null)
 		{
 			return output;
@@ -90,7 +90,7 @@ public sealed class OpenRouterToolCallClient
 		{
 			string name = call["function"]?["name"]?.ToString();
 			string args = call["function"]?["arguments"]?.ToString();
-			output.Add(new ToolInvocation { Name = name, Arguments = JObject.Parse(args) });
+			output.Add(new NpcToolCall { ToolName = name, ToolArguments = JObject.Parse(args) });
 		}
 		return output;
 	}

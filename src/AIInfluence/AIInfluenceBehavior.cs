@@ -3244,10 +3244,10 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		if (GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue == "OpenRouter")
 		{
 			string promptInput = "Player: " + playerMessage;
-			var client = new OpenRouterToolCallClient(GlobalSettings<ModSettings>.Instance.ApiKey, GlobalSettings<ModSettings>.Instance.AIModel);
-			var invocations = await client.RequestToolInvocationsAsync(prompt, promptInput);
-			var chatTools = new ChatWindowToolExecutor();
-			string toolReply = chatTools.ExecuteForChat(invocations, onPartialResponse);
+			var inferenceClient = new NpcInteractionInferenceClient(GlobalSettings<ModSettings>.Instance.ApiKey, GlobalSettings<ModSettings>.Instance.AIModel);
+			var toolCalls = await inferenceClient.RequestNpcToolCallsAsync(prompt, promptInput);
+			var dialogueTools = new NpcDialogueToolOrchestrator();
+			string toolReply = dialogueTools.BuildNpcReply(toolCalls, onPartialResponse);
 			context.LastInteractionTime = CampaignTime.Now;
 			context.InteractionCount++;
 			context.PendingAIResponse = null;
