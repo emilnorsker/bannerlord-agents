@@ -12,7 +12,7 @@ namespace AIInfluence;
 /// </summary>
 public class InfoSectionVM : ViewModel
 {
-    private bool _isExpanded = true;
+    private bool _isExpanded;
     private string _headerText = "";
     private string _partyFoodText = "";
     private string _partyFoodColor = "#C6AC8DFF";
