@@ -13,6 +13,14 @@ This document defines practical design patterns for narrative-first games where 
 4. Never mask errors.  
    Failed tool calls and invalid states must be explicit, logged, and visible to the orchestration layer.
 
+## Current rewrite decisions (agreed)
+
+- One unified event queue/channel for dialogue + actions (single ordering).
+- Multiple consumers subscribe to the same queue (conversation UI, world systems, future narrative systems).
+- LLM-to-game interaction is tool-only for authoritative side effects.
+- Event kinds include instant (`dialogue.spoken`, `transfer_item.completed`) and long-running (`action.started` -> `action.completed`).
+- Initial action scope: `follow_player`, `go_to_settlement`, `attack_party`, `return_to_player`.
+
 ## Pattern 1: Input Envelope Pattern (thin context in, no heavy formatting)
 
 Each turn starts from a compact envelope:
