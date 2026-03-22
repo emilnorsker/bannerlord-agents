@@ -43,10 +43,10 @@
 
                 <!-- Full-width: name, occupation, traits; encyclopedia divider (vanilla hero page pattern). -->
                 <ListPanel WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren"
-                           StackLayout.LayoutMethod="VerticalTopToBottom" MarginBottom="4">
+                           StackLayout.LayoutMethod="VerticalBottomToTop" MarginBottom="4">
                   <Children>
                     <ListPanel HeightSizePolicy="CoverChildren" WidthSizePolicy="StretchToParent"
-                               StackLayout.LayoutMethod="VerticalTopToBottom" MarginLeft="20" MarginRight="20">
+                               StackLayout.LayoutMethod="VerticalBottomToTop" MarginLeft="20" MarginRight="20">
                       <Children>
                         <TextWidget DoNotAcceptEvents="true" WidthSizePolicy="Fixed" HeightSizePolicy="CoverChildren" SuggestedWidth="250" MaxHeight="150"
                                     Brush="Encyclopedia.SubPage.Title.Text" HorizontalAlignment="Center"
