@@ -207,131 +207,87 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		return _npcContexts;
 	}
 
-	public async Task<string> SendAIRequest(string prompt, string requestType, Hero npcForTools = null, NPCContext contextForTools = null)
+	public async Task<OpenRouterCallResult> SendAIRequest(string prompt, string requestType, Hero npcForTools = null, NPCContext contextForTools = null)
 	{
 		try
 		{
 			LogMessage("[SEND_AI_REQUEST] Sending AI request of type '" + requestType + "'");
 			LogMessage($"[SEND_AI_REQUEST] Prompt length: {prompt.Length} characters");
-			string response;
+			OpenRouterCallResult result;
 			if (requestType == "multi_dialogue_analysis")
-				response = await AIClient.GetRawTextResponse(prompt);
+				result = await AIClient.GetRawTextResponse(prompt);
 			else
 			{
 				Func<string, string, Task<string>> toolExecutor = null;
 				if (npcForTools != null && contextForTools != null)
 					toolExecutor = (name, args) => ExecuteChatTool(name, args, npcForTools, contextForTools);
-				response = await AIClient.GetAIResponse("System", "Analysis", prompt, null, toolExecutor);
+				result = await AIClient.GetAIResponse("System", "Analysis", prompt, null, toolExecutor);
 			}
-			LogMessage($"[SEND_AI_REQUEST] Received AI response for '{requestType}': {response?.Length ?? 0} characters");
-			bool responseOk = (requestType == "multi_dialogue_analysis")
-				? !AIClient.IsRawTextFailureResponse(response)
-				: !AIClient.IsDialogueFailureResponse(response);
-			if (!string.IsNullOrEmpty(response) && responseOk)
+			LogMessage($"[SEND_AI_REQUEST] Received AI response for '{requestType}': {result.Payload?.Length ?? 0} characters");
+			if (result.Success)
 			{
 				LogMessage("[SEND_AI_REQUEST_SUCCESS] Success for " + requestType);
-				LogMessage("[SEND_AI_REQUEST_FULL_RESPONSE] Full response: " + response);
-				return response;
+				LogMessage("[SEND_AI_REQUEST_FULL_RESPONSE] Full response: " + result.Payload);
+				return result;
 			}
-			LogMessage("[SEND_AI_REQUEST_ERROR] AI error for " + requestType + ": " + response);
-			return null;
+			LogMessage("[SEND_AI_REQUEST_ERROR] AI error for " + requestType + ": " + result.Payload);
+			return result;
 		}
 		catch (Exception ex)
 		{
 			Exception ex2 = ex;
 			LogMessage("[SEND_AI_REQUEST_EXCEPTION] Exception for " + requestType + ": " + ex2.Message);
-			return "Error: " + ex2.Message;
+			return OpenRouterCallResult.Failed("Error: " + ex2.Message);
 		}
 	}
 
-	public async Task<string> SendAIRequestWithBackend(string prompt, string requestType, string backend, int cachePrefixLength = 0)
-	{
-		try
-		{
-			LogMessage("[SEND_AI_REQUEST] Sending AI request of type '" + requestType + "' to backend '" + backend + "'");
-			LogMessage(string.Format("[SEND_AI_REQUEST] Prompt length: {0} characters{1}", prompt.Length, (cachePrefixLength > 0) ? $", cache prefix: {cachePrefixLength}" : ""));
-			string response = await AIClient.GetRawTextResponseWithBackend(prompt, backend, cachePrefixLength);
-			LogMessage($"[SEND_AI_REQUEST] Received AI response for '{requestType}': {response?.Length ?? 0} characters");
-			if (string.IsNullOrEmpty(response))
-			{
-				string error = "Error: Empty response from backend '" + backend + "'";
-				LogMessage("[SEND_AI_REQUEST_ERROR] " + error + " for " + requestType);
-				return error + " for " + requestType;
-			}
-			if (AIClient.IsRawTextFailureResponse(response))
-			{
-				LogMessage("[SEND_AI_REQUEST_ERROR] AI error for " + requestType + ": " + response);
-				return response;
-			}
-			LogMessage("[SEND_AI_REQUEST_SUCCESS] Success for " + requestType);
-			LogMessage("[SEND_AI_REQUEST_FULL_RESPONSE] Full response: " + response);
-			return response;
-		}
-		catch (Exception ex)
-		{
-			Exception ex2 = ex;
-			LogMessage("[SEND_AI_REQUEST_EXCEPTION] Exception for " + requestType + ": " + ex2.Message);
-			return null;
-		}
-	}
-
-	public async Task<string> SendAIRequestForFeature(string prompt, string requestType, int cachePrefixLength = 0)
+	public async Task<OpenRouterCallResult> SendAIRequestForFeature(string prompt, string requestType, int cachePrefixLength = 0)
 	{
 		try
 		{
 			LogMessage("[SEND_AI_REQUEST] Sending AI request of type '" + requestType + "' (OpenRouter)");
 			LogMessage(string.Format("[SEND_AI_REQUEST] Prompt length: {0} characters{1}", prompt.Length, (cachePrefixLength > 0) ? $", cache prefix: {cachePrefixLength}" : ""));
-			string response = await AIClient.GetRawTextResponse(prompt, cachePrefixLength);
-			LogMessage($"[SEND_AI_REQUEST] Received AI response for '{requestType}': {response?.Length ?? 0} characters");
-			if (string.IsNullOrEmpty(response))
+			OpenRouterCallResult result = await AIClient.GetRawTextResponse(prompt, cachePrefixLength);
+			LogMessage($"[SEND_AI_REQUEST] Received AI response for '{requestType}': {result.Payload?.Length ?? 0} characters");
+			if (!result.Success)
 			{
-				string error = "Error: Empty response from OpenRouter for " + requestType;
-				LogMessage("[SEND_AI_REQUEST_ERROR] " + error);
-				return error;
-			}
-			if (AIClient.IsRawTextFailureResponse(response))
-			{
-				LogMessage("[SEND_AI_REQUEST_ERROR] AI error for " + requestType + ": " + response);
-				return response;
+				if (string.IsNullOrEmpty(result.Payload))
+					LogMessage("[SEND_AI_REQUEST_ERROR] Empty response from OpenRouter for " + requestType);
+				else
+					LogMessage("[SEND_AI_REQUEST_ERROR] AI error for " + requestType + ": " + result.Payload);
+				return result;
 			}
 			LogMessage("[SEND_AI_REQUEST_SUCCESS] Success for " + requestType);
-			LogMessage("[SEND_AI_REQUEST_FULL_RESPONSE] Full response: " + response);
-			return response;
+			LogMessage("[SEND_AI_REQUEST_FULL_RESPONSE] Full response: " + result.Payload);
+			return result;
 		}
 		catch (Exception ex)
 		{
 			Exception ex2 = ex;
 			LogMessage("[SEND_AI_REQUEST_EXCEPTION] Exception for " + requestType + ": " + ex2.Message);
-			return null;
+			return OpenRouterCallResult.Failed("Error: " + ex2.Message);
 		}
 	}
 
-	public async Task<string> SendAIRequestRaw(string prompt)
+	public async Task<OpenRouterCallResult> SendAIRequestRaw(string prompt)
 	{
 		try
 		{
 			LogMessage("[SEND_AI_REQUEST_RAW] Sending raw AI request");
 			LogMessage($"[SEND_AI_REQUEST_RAW] Prompt length: {prompt.Length} characters");
-			string response = await AIClient.GetRawTextResponse(prompt);
-			LogMessage($"[SEND_AI_REQUEST_RAW] Received AI response: {response?.Length ?? 0} characters");
-			if (string.IsNullOrEmpty(response))
-			{
-				LogMessage("[SEND_AI_REQUEST_RAW_ERROR] Error: Empty response from backend");
-				return "Error: Empty response from backend";
-			}
-			if (AIClient.IsRawTextFailureResponse(response))
-			{
-				LogMessage("[SEND_AI_REQUEST_RAW_ERROR] AI error: " + response);
-				return response;
-			}
-			LogMessage("[SEND_AI_REQUEST_RAW_SUCCESS] Success");
-			return response;
+			OpenRouterCallResult result = await AIClient.GetRawTextResponse(prompt);
+			LogMessage($"[SEND_AI_REQUEST_RAW] Received AI response: {result.Payload?.Length ?? 0} characters");
+			if (!result.Success)
+				LogMessage("[SEND_AI_REQUEST_RAW_ERROR] " + result.Payload);
+			else
+				LogMessage("[SEND_AI_REQUEST_RAW_SUCCESS] Success");
+			return result;
 		}
 		catch (Exception ex)
 		{
 			Exception ex2 = ex;
 			LogMessage("[SEND_AI_REQUEST_RAW_EXCEPTION] Exception: " + ex2.Message);
-			return "Error: " + ex2.Message;
+			return OpenRouterCallResult.Failed("Error: " + ex2.Message);
 		}
 	}
 
@@ -535,10 +491,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage("[MainThread] Queued action error: " + ex.Message);
 			}
 		}
-	}
-
-	public static void CheckAndEnforcePlayer2Backend()
-	{
 	}
 
 	private async void OnTick(float dt)
@@ -2859,12 +2811,13 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			try
 			{
-				aiResponse = await AIClient.GetAIResponse(npcName, faction, prompt + "\nPlayer: " + playerInput, null, openRouterTools);
-				if (!string.IsNullOrEmpty(aiResponse) && !AIClient.IsDialogueFailureResponse(aiResponse))
+				OpenRouterCallResult dialogueResult = await AIClient.GetAIResponse(npcName, faction, prompt + "\nPlayer: " + playerInput, null, openRouterTools);
+				if (dialogueResult.Success && !string.IsNullOrEmpty(dialogueResult.Payload))
 				{
+					aiResponse = dialogueResult.Payload;
 					break;
 				}
-				LogMessage(string.Format("[WARNING] Attempt {0} failed: {1}", attempt, string.IsNullOrEmpty(aiResponse) ? "Empty response" : aiResponse));
+				LogMessage(string.Format("[WARNING] Attempt {0} failed: {1}", attempt, string.IsNullOrEmpty(dialogueResult.Payload) ? "Empty response" : dialogueResult.Payload));
 				if (attempt < maxRetries)
 				{
 					await Task.Delay(1000 * attempt);
@@ -2884,7 +2837,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				continue;
 			}
 		}
-		if (string.IsNullOrEmpty(aiResponse) || AIClient.IsDialogueFailureResponse(aiResponse))
+		if (string.IsNullOrEmpty(aiResponse))
 		{
 			InformationManager.DisplayMessage(new InformationMessage(((object)new TextObject("{=AIInfluence_AIError}{npcName} is silent, as if lost in thought. Try again later.", new Dictionary<string, object> { { "npcName", npcName } })).ToString(), Colors.Yellow));
 			LogMessage("[ERROR] AI response error: " + (aiResponse ?? "Empty response"));
@@ -3342,9 +3295,12 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					lastNpcMessagePreview = "";
 					notifyNpcMessagePreviewChanged?.Invoke("");
 				}
-				aiResponse = await AIClient.GetAIResponse(npcName, faction, prompt + "\nPlayer: " + playerMessage, notifyMessageChunk, toolExecutor);
-				if (!string.IsNullOrEmpty(aiResponse) && !AIClient.IsDialogueFailureResponse(aiResponse))
+				OpenRouterCallResult dialogueResult = await AIClient.GetAIResponse(npcName, faction, prompt + "\nPlayer: " + playerMessage, notifyMessageChunk, toolExecutor);
+				if (dialogueResult.Success && !string.IsNullOrEmpty(dialogueResult.Payload))
+				{
+					aiResponse = dialogueResult.Payload;
 					break;
+				}
 				if (attempt < 3)
 					await Task.Delay(1000 * attempt);
 			}
@@ -3355,7 +3311,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					await Task.Delay(1000 * attempt);
 			}
 		}
-		if (string.IsNullOrEmpty(aiResponse) || AIClient.IsDialogueFailureResponse(aiResponse))
+		if (string.IsNullOrEmpty(aiResponse))
 			return "";
 		AIResponse aiResult = NpcOpenRouterAssistantParser.Parse(aiResponse, npcName);
 		if (aiResult == null)
@@ -4715,13 +4671,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			ShowNPCEraseWindow();
 			return;
 		}
-		if (settingName == "AIBackend")
-		{
-			string arg = GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue;
-			int num = GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedIndex ?? (-1);
-			LogMessage($"[SETTINGS] AI Backend change detected. New value: {arg} (index: {num})");
-			return;
-		}
 		if (settingName == "DebugGenerateQuestFromPrompt" && (bool)value)
 		{
 			DebugGenerateQuestFromPrompt();
@@ -4887,16 +4836,28 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			try
 			{
-				Task<string> requestTask = SendAIRequestRaw(requestPrompt);
+				Task<OpenRouterCallResult> requestTask = SendAIRequestRaw(requestPrompt);
 				Task timeoutTask = Task.Delay(45000);
 				Task completedTask = await Task.WhenAny(requestTask, timeoutTask);
-				string rawResponse = (completedTask == timeoutTask) ? "Error: Timeout (45s)" : await requestTask;
+				string rawResponse;
+				bool rawOk;
+				if (completedTask == timeoutTask)
+				{
+					rawResponse = "Error: Timeout (45s)";
+					rawOk = false;
+				}
+				else
+				{
+					OpenRouterCallResult rr = await requestTask;
+					rawResponse = rr.Payload;
+					rawOk = rr.Success;
+				}
 
 				MainThreadDispatcher.Queue.Enqueue(() =>
 				{
 					try
 					{
-						if (string.IsNullOrEmpty(rawResponse) || rawResponse.StartsWith("Error:"))
+						if (!rawOk || string.IsNullOrEmpty(rawResponse) || rawResponse.StartsWith("Error:", StringComparison.Ordinal))
 						{
 							LogMessage("[QuestDebug] AI request failed: " + (rawResponse ?? "empty"));
 							InformationManager.DisplayMessage(new InformationMessage("[QuestDebug] Failed: " + (rawResponse ?? "empty"), ExtraColors.RedAIInfluence));

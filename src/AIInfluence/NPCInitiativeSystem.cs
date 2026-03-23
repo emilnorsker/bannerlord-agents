@@ -960,10 +960,11 @@ public class NPCInitiativeSystem
 				LogMessage("  - No conversation history");
 			}
 			AIInfluenceBehavior.ClearNpcTurnDialogueTools(request.Context);
-			string aiResponse = await _behavior.SendAIRequest(prompt, "npc_messenger", request.NPC, request.Context);
+			OpenRouterCallResult sendResult = await _behavior.SendAIRequest(prompt, "npc_messenger", request.NPC, request.Context);
+			string aiResponse = sendResult.Payload;
 			LogMessage($"[NPC_MESSENGER_DEBUG] Received AI response for {npcName}, length: {aiResponse?.Length ?? 0}");
 			LogMessage("[NPC_MESSENGER_DEBUG] FULL AI RESPONSE JSON: " + aiResponse);
-			if (string.IsNullOrEmpty(aiResponse) || AIClient.IsSendAIRequestResultFailure(aiResponse))
+			if (!sendResult.Success || string.IsNullOrEmpty(aiResponse))
 			{
 				LogMessage("[ERROR] Failed to generate messenger message from " + npcName);
 				return;
@@ -1525,8 +1526,9 @@ public class NPCInitiativeSystem
 			LogMessage("[NPC_MESSENGER] Generating response from " + npcName + " to player's letter (AllowsLetters forced to true for prompt)");
 			LogMessage("[NPC_MESSENGER_PROMPT] Full prompt for letter response:\n" + prompt);
 			AIInfluenceBehavior.ClearNpcTurnDialogueTools(context);
-			string aiResponse = await _behavior.SendAIRequest(prompt, "npc_letter_response", npc, context);
-			if (string.IsNullOrEmpty(aiResponse) || AIClient.IsSendAIRequestResultFailure(aiResponse))
+			OpenRouterCallResult sendResult = await _behavior.SendAIRequest(prompt, "npc_letter_response", npc, context);
+			string aiResponse = sendResult.Payload;
+			if (!sendResult.Success || string.IsNullOrEmpty(aiResponse))
 			{
 				LogMessage("[ERROR] Failed to generate letter response from " + npcName);
 				return;
@@ -1960,8 +1962,9 @@ public class NPCInitiativeSystem
 			string prompt = GenerateHostileInitiativePrompt(npc, context);
 			LogMessage($"[NPC_HOSTILE_PROMPT] Full prompt for {npc.Name}:\n{prompt}");
 			AIInfluenceBehavior.ClearNpcTurnDialogueTools(context);
-			string aiResponse = await _behavior.SendAIRequest(prompt, "npc_hostile_initiative", npc, context);
-			if (string.IsNullOrEmpty(aiResponse) || AIClient.IsSendAIRequestResultFailure(aiResponse))
+			OpenRouterCallResult sendResult = await _behavior.SendAIRequest(prompt, "npc_hostile_initiative", npc, context);
+			string aiResponse = sendResult.Payload;
+			if (!sendResult.Success || string.IsNullOrEmpty(aiResponse))
 			{
 				MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", "Get out of my sight!", false);
 				return;
@@ -2114,8 +2117,9 @@ public class NPCInitiativeSystem
 			string prompt = GeneratePartyInitiativePrompt(npc, context);
 			LogMessage($"[NPC_NEUTRAL_PROMPT] Full prompt for {npc.Name}:\n{prompt}");
 			AIInfluenceBehavior.ClearNpcTurnDialogueTools(context);
-			string aiResponse = await _behavior.SendAIRequest(prompt, "npc_neutral_initiative", npc, context);
-			if (string.IsNullOrEmpty(aiResponse) || AIClient.IsSendAIRequestResultFailure(aiResponse))
+			OpenRouterCallResult sendResult = await _behavior.SendAIRequest(prompt, "npc_neutral_initiative", npc, context);
+			string aiResponse = sendResult.Payload;
+			if (!sendResult.Success || string.IsNullOrEmpty(aiResponse))
 			{
 				MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", "I wanted to talk, but I'm not sure what to say...", false);
 				return;

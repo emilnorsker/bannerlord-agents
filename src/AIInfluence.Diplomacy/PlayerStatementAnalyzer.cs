@@ -40,10 +40,11 @@ public class PlayerStatementAnalyzer
 			DiplomacyLogger.Instance.Log("[PLAYER_ANALYZER] -------------------");
 			DiplomacyLogger.Instance.Log("[PLAYER_ANALYZER] " + prompt);
 			DiplomacyLogger.Instance.Log("[PLAYER_ANALYZER] -------------------");
-			string aiResponse = await AIInfluenceBehavior.Instance.SendAIRequestForFeature(prompt, "player_statement_analysis");
-			if (string.IsNullOrEmpty(aiResponse))
+			OpenRouterCallResult rawResult = await AIInfluenceBehavior.Instance.SendAIRequestForFeature(prompt, "player_statement_analysis");
+			string aiResponse = rawResult.Payload;
+			if (!rawResult.Success || string.IsNullOrEmpty(aiResponse))
 			{
-				DiplomacyLogger.Instance.Log("[PLAYER_ANALYZER] Empty AI response");
+				DiplomacyLogger.Instance.Log("[PLAYER_ANALYZER] Empty or failed AI response");
 				return null;
 			}
 			DiplomacyLogger.Instance.Log($"[PLAYER_ANALYZER] Received AI response (length: {aiResponse.Length})");
@@ -438,9 +439,9 @@ public class PlayerStatementAnalyzer
 
 	private PlayerStatementResult ParseAIResponse(string aiResponse, Kingdom playerKingdom)
 	{
-		if (AIClient.IsRawTextFailureResponse(aiResponse))
+		if (string.IsNullOrEmpty(aiResponse))
 		{
-			DiplomacyLogger.Instance.Log("[PLAYER_ANALYZER] AI response missing or error: " + (aiResponse ?? "(null)"));
+			DiplomacyLogger.Instance.Log("[PLAYER_ANALYZER] AI response missing: " + (aiResponse ?? "(null)"));
 			return null;
 		}
 		string text = "";

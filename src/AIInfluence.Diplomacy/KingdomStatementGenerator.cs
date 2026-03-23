@@ -1814,10 +1814,11 @@ public class KingdomStatementGenerator
 				return null;
 			}
 			DiplomacyLogger.Instance.Log($"[STATEMENT_GEN] Sending prompt to AI for {kingdom.Name}");
-			string aiResponse = await aiBehavior.SendAIRequestForFeature(prompt, "diplomacy_statement", cachePrefixLength);
-			if (string.IsNullOrEmpty(aiResponse))
+			OpenRouterCallResult rawResult = await aiBehavior.SendAIRequestForFeature(prompt, "diplomacy_statement", cachePrefixLength);
+			string aiResponse = rawResult.Payload;
+			if (!rawResult.Success || string.IsNullOrEmpty(aiResponse))
 			{
-				DiplomacyLogger.Instance.Log($"[STATEMENT_GEN] Empty AI response for {kingdom.Name}");
+				DiplomacyLogger.Instance.Log($"[STATEMENT_GEN] Empty or failed AI response for {kingdom.Name}");
 				return null;
 			}
 			DiplomacyLogger.Instance.Log($"[STATEMENT_GEN] Received AI response for {kingdom.Name}");
@@ -1887,9 +1888,9 @@ public class KingdomStatementGenerator
 	private KingdomStatement ParseAIResponse(string aiResponse, Kingdom kingdom, DynamicEvent diplomaticEvent)
 	{
 		//IL_03dd: Unknown result type (might be due to invalid IL or missing references)
-		if (AIClient.IsRawTextFailureResponse(aiResponse))
+		if (string.IsNullOrEmpty(aiResponse))
 		{
-			DiplomacyLogger.Instance.Log($"[STATEMENT_GEN] AI response missing or error for {kingdom.Name}: " + (aiResponse ?? "(null)"));
+			DiplomacyLogger.Instance.Log($"[STATEMENT_GEN] AI response missing for {kingdom.Name}");
 			return null;
 		}
 		string text = "";

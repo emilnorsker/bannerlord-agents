@@ -23,46 +23,33 @@ public static class AIClient
 
 	/// <summary>Fetches the assistant <b>message</b> for NPC chat (or tools loop). When set, <paramref name="notifyMessageChunk"/> is invoked for each fragment of the message draft as it arrives (incremental delivery).</summary>
 	/// <param name="notifyMessageChunk">Optional; called with each new text fragment to append to the message draft (drives message preview in chat).</param>
-	public static async Task<string> GetAIResponse(string npcName, string faction, string prompt, Action<string> notifyMessageChunk = null, Func<string, string, Task<string>> onToolCall = null)
+	public static async Task<OpenRouterCallResult> GetAIResponse(string npcName, string faction, string prompt, Action<string> notifyMessageChunk = null, Func<string, string, Task<string>> onToolCall = null)
 	{
 		try
 		{
-			if (onToolCall != null)
-				return await GetOpenRouterResponseWithTools(npcName, faction, prompt, notifyMessageChunk, onToolCall);
-			return await GetOpenRouterResponse(npcName, faction, prompt, notifyMessageChunk);
+			string text = onToolCall != null
+				? await GetOpenRouterResponseWithTools(npcName, faction, prompt, notifyMessageChunk, onToolCall).ConfigureAwait(false)
+				: await GetOpenRouterResponse(npcName, faction, prompt, notifyMessageChunk).ConfigureAwait(false);
+			return WrapDialoguePayload(text);
 		}
 		catch (Exception ex)
 		{
 			AIInfluenceBehavior.Instance?.LogMessage("[ERROR] AI request failed for OpenRouter: " + ex.Message);
-			return GenerateErrorResponse("AI request failed: " + ex.Message);
+			return OpenRouterCallResult.Failed(GenerateErrorResponse("AI request failed: " + ex.Message));
 		}
 	}
 
-	public static async Task<string> GetRawTextResponse(string prompt, int cachePrefixLength = 0)
+	public static async Task<OpenRouterCallResult> GetRawTextResponse(string prompt, int cachePrefixLength = 0)
 	{
 		try
 		{
-			return await GetOpenRouterRawResponse(prompt, cachePrefixLength);
+			string text = await GetOpenRouterRawResponse(prompt, cachePrefixLength).ConfigureAwait(false);
+			return WrapRawPayload(text);
 		}
 		catch (Exception ex)
 		{
 			AIInfluenceBehavior.Instance?.LogMessage("[ERROR] Raw AI request failed for OpenRouter: " + ex.Message);
-			return "Error: AI request failed: " + ex.Message;
-		}
-	}
-
-	/// <summary>Uses OpenRouter; <paramref name="backend"/> is ignored (kept for call-site compatibility).</summary>
-	public static async Task<string> GetRawTextResponseWithBackend(string prompt, string backend, int cachePrefixLength = 0)
-	{
-		try
-		{
-			return await GetOpenRouterRawResponse(prompt, cachePrefixLength);
-		}
-		catch (Exception ex)
-		{
-			Exception ex2 = ex;
-			AIInfluenceBehavior.Instance?.LogMessage("[ERROR] Raw AI request failed for OpenRouter: " + ex2.Message);
-			return "Error: AI request failed: " + ex2.Message;
+			return OpenRouterCallResult.Failed("Error: AI request failed: " + ex.Message);
 		}
 	}
 
@@ -457,8 +444,21 @@ public static class AIClient
 		});
 	}
 
-	/// <summary>True for dialogue-path failures: empty, <c>Error:</c> prefix, or JSON error envelope from <see cref="GenerateErrorResponse"/>.</summary>
-	public static bool IsDialogueFailureResponse(string response)
+	private static OpenRouterCallResult WrapDialoguePayload(string response)
+	{
+		return DialoguePayloadIndicatesFailure(response)
+			? OpenRouterCallResult.Failed(response ?? "")
+			: OpenRouterCallResult.Ok(response ?? "");
+	}
+
+	private static OpenRouterCallResult WrapRawPayload(string response)
+	{
+		return RawPayloadIndicatesFailure(response)
+			? OpenRouterCallResult.Failed(response ?? "")
+			: OpenRouterCallResult.Ok(response ?? "");
+	}
+
+	private static bool DialoguePayloadIndicatesFailure(string response)
 	{
 		if (string.IsNullOrEmpty(response))
 		{
@@ -499,8 +499,7 @@ public static class AIClient
 		return false;
 	}
 
-	/// <summary>True for <see cref="GetRawTextResponse"/> failures (plain <c>Error:</c>, missing key message, empty).</summary>
-	public static bool IsRawTextFailureResponse(string response)
+	private static bool RawPayloadIndicatesFailure(string response)
 	{
 		if (string.IsNullOrEmpty(response))
 		{
@@ -511,29 +510,6 @@ public static class AIClient
 			return true;
 		}
 		return string.Equals(response, "API key is missing.", StringComparison.Ordinal);
-	}
-
-	/// <summary>Unified check for <c>SendAIRequest</c> results: null/empty, dialogue error JSON, exception <c>Error:</c> strings, or raw-path failures.</summary>
-	public static bool IsSendAIRequestResultFailure(string response)
-	{
-		if (string.IsNullOrEmpty(response))
-		{
-			return true;
-		}
-		string trimmed = response.TrimStart();
-		if (trimmed.Length == 0)
-		{
-			return true;
-		}
-		if (IsDialogueFailureResponse(trimmed))
-		{
-			return true;
-		}
-		if (trimmed[0] != '{')
-		{
-			return IsRawTextFailureResponse(response);
-		}
-		return false;
 	}
 
 	private static void LogError(string message)

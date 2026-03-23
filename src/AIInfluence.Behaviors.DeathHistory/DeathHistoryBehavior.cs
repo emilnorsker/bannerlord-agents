@@ -102,10 +102,11 @@ public class DeathHistoryBehavior : CampaignBehaviorBase
 			string prompt = DeathHistoryPromptGenerator.GenerateDeathHistoryPrompt(hero, _aiBehavior);
 			AIInfluenceBehavior.Instance?.LogMessage($"[DEATH_HISTORY] Generating obituary for {hero.Name} (isPlayer={isPlayer}). Prompt length: {prompt?.Length ?? 0} chars");
 			AIInfluenceBehavior.Instance?.LogMessage("[DEATH_HISTORY] Full prompt:\n" + prompt);
-			string aiResponse = await _aiBehavior.SendAIRequest(prompt, "history_gen");
+			OpenRouterCallResult sendResult = await _aiBehavior.SendAIRequest(prompt, "history_gen");
+			string aiResponse = sendResult.Payload;
 			AIInfluenceBehavior.Instance?.LogMessage($"[DEATH_HISTORY] AI response for {hero.Name}:\n{aiResponse}");
 			DeathHistoryLogger.Instance.LogHistoryGeneration(((object)hero.Name).ToString(), isPlayer, prompt, aiResponse);
-			if (AIClient.IsSendAIRequestResultFailure(aiResponse))
+			if (!sendResult.Success)
 			{
 				InformationManager.DisplayMessage(new InformationMessage(((object)new TextObject("{=AIInfluence_DeathHistory_Error}Chroniclers could not decipher the records.", (Dictionary<string, object>)null)).ToString(), Colors.Red));
 				onComplete?.Invoke();

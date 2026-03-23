@@ -85,9 +85,9 @@ public class PostCombatEventCreator
 
 	private DynamicEvent ParseAIResponse(string aiResponse)
 	{
-		if (AIClient.IsRawTextFailureResponse(aiResponse))
+		if (string.IsNullOrEmpty(aiResponse))
 		{
-			_behavior.LogMessage("[POST_COMBAT_EVENT] AI response missing or error: " + (aiResponse ?? "(null)"));
+			_behavior.LogMessage("[POST_COMBAT_EVENT] AI response missing: " + (aiResponse ?? "(null)"));
 			return null;
 		}
 		try
