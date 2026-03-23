@@ -25,7 +25,7 @@ public class DynamicEventsManager
 
 	private static DynamicEventsManager _instance;
 
-	private readonly List<DynamicEvent> _activeEvents;
+	private UnifiedDynamicEventsEnvelope _eventEnvelope;
 
 	private readonly DynamicEventsStorage _storage;
 
@@ -38,6 +38,56 @@ public class DynamicEventsManager
 	private bool _generationInProgress = false;
 
 	private bool _initialized = false;
+
+	private List<DynamicEvent> EventsList
+	{
+		get
+		{
+			if (_eventEnvelope == null)
+			{
+				_eventEnvelope = new UnifiedDynamicEventsEnvelope
+				{
+					Events = new List<DynamicEvent>()
+				};
+			}
+			if (_eventEnvelope.Events == null)
+			{
+				_eventEnvelope.Events = new List<DynamicEvent>();
+			}
+			return _eventEnvelope.Events;
+		}
+	}
+
+	private void PersistCatalog()
+	{
+		_storage.SaveUnifiedEnvelope(_eventEnvelope);
+	}
+
+	private static void EnsureDynamicStorageTag(DynamicEvent e)
+	{
+		if (e == null)
+		{
+			return;
+		}
+		if (e.StorageTags == null)
+		{
+			e.StorageTags = new List<string>();
+		}
+		if (!e.StorageTags.Contains(DynamicEventStorageTags.Dynamic))
+		{
+			e.StorageTags.Add(DynamicEventStorageTags.Dynamic);
+		}
+	}
+
+	public void SaveDiplomaticSlice(List<DynamicEvent> diplomaticEvents, Dictionary<string, CampaignTime> statementSchedules, Dictionary<string, CampaignTime> analysisSchedules, Dictionary<string, Queue<(Kingdom kingdom, CampaignTime scheduledTime)>> statementQueues, Dictionary<string, Kingdom> pendingStatements)
+	{
+		_storage.SaveDiplomaticSliceInto(_eventEnvelope, diplomaticEvents, statementSchedules, analysisSchedules, statementQueues, pendingStatements);
+	}
+
+	public UnifiedDynamicEventsEnvelope GetUnifiedEnvelope()
+	{
+		return _eventEnvelope;
+	}
 
 	public static DynamicEventsManager Instance
 	{
@@ -55,7 +105,7 @@ public class DynamicEventsManager
 	{
 		//IL_003f: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0044: Unknown result type (might be due to invalid IL or missing references)
-		_activeEvents = new List<DynamicEvent>();
+		_eventEnvelope = new UnifiedDynamicEventsEnvelope();
 		_storage = new DynamicEventsStorage();
 		_generator = new DynamicEventsGenerator();
 		_lastGenerationTime = CampaignTime.Now;
@@ -69,12 +119,12 @@ public class DynamicEventsManager
 			return;
 		}
 		DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Initializing DynamicEventsManager...");
-		List<DynamicEvent> list = _storage.LoadEvents();
-		if (list != null && list.Any())
+		_eventEnvelope = _storage.LoadUnifiedEnvelope();
+		if (_eventEnvelope.Events == null)
 		{
-			_activeEvents.AddRange(list);
-			DynamicEventsLogger.Instance.Log($"[DYNAMIC_EVENTS] Loaded {list.Count} events from storage");
+			_eventEnvelope.Events = new List<DynamicEvent>();
 		}
+		DynamicEventsLogger.Instance.Log($"[DYNAMIC_EVENTS] Loaded {_eventEnvelope.Events.Count} events from unified storage");
 		RemoveExpiredEvents();
 		_initialized = true;
 		DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] DynamicEventsManager initialized successfully");
@@ -97,7 +147,7 @@ public class DynamicEventsManager
 		if (toDays >= (double)GlobalSettings<ModSettings>.Instance.DynamicEventsInterval)
 		{
 			int maxSimultaneousDynamicEvents = GlobalSettings<ModSettings>.Instance.MaxSimultaneousDynamicEvents;
-			int num = _activeEvents.Count((DynamicEvent e) => e.AllowsDiplomaticResponse && e.RequiresDiplomaticAnalysis);
+			int num = EventsList.Count((DynamicEvent e) => e.AllowsDiplomaticResponse && e.RequiresDiplomaticAnalysis);
 			if (num >= maxSimultaneousDynamicEvents)
 			{
 				DynamicEventsLogger.Instance.Log($"[DYNAMIC_EVENTS] Skipping automatic generation: Events awaiting diplomatic response ({num}) reached limit ({maxSimultaneousDynamicEvents})");
@@ -111,9 +161,9 @@ public class DynamicEventsManager
 				DynamicEventsLogger.Instance.Log($"[DYNAMIC_EVENTS] Skipping automatic generation: Active diplomatic negotiations ({count}) reached limit ({maxSimultaneousDynamicEvents}). Blocking events: [{arg}]");
 				return;
 			}
-			if (_activeEvents.Count >= maxSimultaneousDynamicEvents)
+			if (EventsList.Count >= maxSimultaneousDynamicEvents)
 			{
-				DynamicEventsLogger.Instance.Log($"[DYNAMIC_EVENTS] Warning: Total active events {_activeEvents.Count}/{maxSimultaneousDynamicEvents}, but continuing because limit applies only to diplomatic-response events.");
+				DynamicEventsLogger.Instance.Log($"[DYNAMIC_EVENTS] Warning: Total active events {EventsList.Count}/{maxSimultaneousDynamicEvents}, but continuing because limit applies only to diplomatic-response events.");
 			}
 			DynamicEventsLogger.Instance.Log($"[DYNAMIC_EVENTS] Time to generate events. Days since last: {toDays:F1}");
 			if (_generationInProgress)
@@ -164,83 +214,42 @@ public class DynamicEventsManager
 			DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Attempted to add null event");
 			return;
 		}
-		if (!string.IsNullOrEmpty(dynamicEvent.Id) && _activeEvents.Any((DynamicEvent e) => e.Id == dynamicEvent.Id))
+		if (!string.IsNullOrEmpty(dynamicEvent.Id) && EventsList.Any((DynamicEvent e) => e.Id == dynamicEvent.Id))
 		{
 			DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Duplicate event detected by ID, skipping: " + dynamicEvent.Id);
 			return;
 		}
-		if (_activeEvents.Any((DynamicEvent e) => e.Description == dynamicEvent.Description))
+		if (EventsList.Any((DynamicEvent e) => e.Description == dynamicEvent.Description))
 		{
 			DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Duplicate event detected by description, skipping: " + dynamicEvent.Description.Substring(0, Math.Min(50, dynamicEvent.Description.Length)) + "...");
 			return;
 		}
-		_activeEvents.Add(dynamicEvent);
+		EnsureDynamicStorageTag(dynamicEvent);
+		EventsList.Add(dynamicEvent);
 		DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Added new event: " + dynamicEvent.Type + " - " + dynamicEvent.Description.Substring(0, Math.Min(50, dynamicEvent.Description.Length)) + "...");
 		DynamicEventsLogger.Instance.LogEventCreated(dynamicEvent);
-		_storage.SaveEvents(_activeEvents);
+		PersistCatalog();
 		DisplayEventNotification(dynamicEvent);
 		DistributeEventToNPCs(dynamicEvent);
 	}
 
 	private void RemoveExpiredEvents()
 	{
-		List<DynamicEvent> list = _activeEvents.Where((DynamicEvent e) => e.IsExpired()).ToList();
+		List<DynamicEvent> list = EventsList.Where((DynamicEvent e) => e.IsExpired()).ToList();
 		foreach (DynamicEvent item in list)
 		{
 			DynamicEventsLogger.Instance.LogEventExpired(item.Id, item.Description);
 		}
-		int num = _activeEvents.RemoveAll((DynamicEvent e) => e.IsExpired());
+		int num = EventsList.RemoveAll((DynamicEvent e) => e.IsExpired());
 		List<string> expiredEventIds = list.Select((DynamicEvent e) => e.Id).ToList();
-		try
-		{
-			DiplomacyStorage diplomacyStorage = new DiplomacyStorage();
-			List<DynamicEvent> list2 = diplomacyStorage.LoadDiplomaticEvents() ?? new List<DynamicEvent>();
-			List<DynamicEvent> list3 = list2.Where((DynamicEvent e) => e != null && !string.IsNullOrEmpty(e.Id) && e.IsExpired()).ToList();
-			foreach (DynamicEvent item2 in list3)
-			{
-				if (!expiredEventIds.Contains(item2.Id))
-				{
-					expiredEventIds.Add(item2.Id);
-					DynamicEventsLogger.Instance.LogEventExpired(item2.Id, item2.Description);
-				}
-			}
-			int count = list2.Count;
-			list2.RemoveAll((DynamicEvent e) => e != null && !string.IsNullOrEmpty(e.Id) && expiredEventIds.Contains(e.Id));
-			List<DynamicEvent> list4 = list2.Where((DynamicEvent e) => e != null && !string.IsNullOrEmpty(e.Id) && e.IsExpired()).ToList();
-			if (list4.Any())
-			{
-				foreach (DynamicEvent item3 in list4)
-				{
-					if (!expiredEventIds.Contains(item3.Id))
-					{
-						expiredEventIds.Add(item3.Id);
-						DynamicEventsLogger.Instance.LogEventExpired(item3.Id, item3.Description);
-					}
-				}
-				list2.RemoveAll((DynamicEvent e) => e != null && !string.IsNullOrEmpty(e.Id) && e.IsExpired());
-			}
-			int num2 = count - list2.Count;
-			if (num2 > 0 || list3.Any())
-			{
-				diplomacyStorage.SaveDiplomaticEvents(list2);
-				if (num2 > 0)
-				{
-					DynamicEventsLogger.Instance.Log($"[DYNAMIC_EVENTS] Removed {num2} expired events from DiplomacyStorage");
-				}
-			}
-		}
-		catch (Exception ex)
-		{
-			DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] ERROR checking expired events in DiplomacyStorage: " + ex.Message);
-		}
 		if (num <= 0 && !expiredEventIds.Any())
 		{
 			return;
 		}
 		if (num > 0)
 		{
-			DynamicEventsLogger.Instance.Log($"[DYNAMIC_EVENTS] Removed {num} expired events from active events");
-			_storage.SaveEvents(_activeEvents);
+			DynamicEventsLogger.Instance.Log($"[DYNAMIC_EVENTS] Removed {num} expired events from catalog");
+			PersistCatalog();
 		}
 		RemoveExpiredEventsFromNPCs(expiredEventIds);
 		try
@@ -273,80 +282,12 @@ public class DynamicEventsManager
 
 	private List<DynamicEvent> BuildMergedActiveEvents()
 	{
-		List<DynamicEvent> primary = new List<DynamicEvent>(_activeEvents);
-		List<DynamicEvent> diplomatic = new List<DynamicEvent>();
-		try
-		{
-			diplomatic = new DiplomacyStorage().LoadDiplomaticEvents() ?? new List<DynamicEvent>();
-		}
-		catch (Exception ex)
-		{
-			DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] BuildMergedActiveEvents LoadDiplomaticEvents failed: " + ex.Message);
-		}
-		Dictionary<string, DynamicEvent> dictionary = diplomatic.Where((DynamicEvent e) => e != null && !string.IsNullOrEmpty(e.Id)).ToDictionary((DynamicEvent e) => e.Id, (DynamicEvent e) => e);
-		List<DynamicEvent> list = new List<DynamicEvent>();
-		foreach (DynamicEvent item in primary)
-		{
-			if (item == null)
-			{
-				continue;
-			}
-			if (dictionary.TryGetValue(item.Id, out var value))
-			{
-				MergeDiplomaticEventData(item, value);
-			}
-			list.Add(item);
-		}
-		HashSet<string> hashSet = new HashSet<string>(from e in list
-			select e.Id into id
-			where !string.IsNullOrEmpty(id)
-			select id);
-		foreach (DynamicEvent item2 in diplomatic)
-		{
-			if (item2 != null && !string.IsNullOrEmpty(item2.Id) && !hashSet.Contains(item2.Id))
-			{
-				list.Add(item2);
-				hashSet.Add(item2.Id);
-			}
-		}
-		return list;
-	}
-
-	private static void MergeDiplomaticEventData(DynamicEvent target, DynamicEvent source)
-	{
-		if (target == null || source == null)
-		{
-			return;
-		}
-		if (!string.IsNullOrWhiteSpace(source.Description))
-		{
-			target.Description = source.Description;
-		}
-		if (source.ParticipatingKingdoms != null && source.ParticipatingKingdoms.Any())
-		{
-			target.ParticipatingKingdoms = new List<string>(source.ParticipatingKingdoms);
-		}
-		if (source.EventHistory == null || !source.EventHistory.Any())
-		{
-			return;
-		}
-		if (target.EventHistory == null)
-		{
-			target.EventHistory = new List<EventUpdate>();
-		}
-		foreach (EventUpdate update in source.EventHistory)
-		{
-			if (!target.EventHistory.Any((EventUpdate u) => u.Description == update.Description && Math.Abs(u.CampaignDays - update.CampaignDays) < 0.01f))
-			{
-				target.EventHistory.Add(update);
-			}
-		}
-		target.EventHistory = target.EventHistory.OrderByDescending((EventUpdate u) => u.CampaignDays).ToList();
+		return new List<DynamicEvent>(EventsList);
 	}
 
 	public DynamicEvent GetEventById(string eventId)
 	{
-		return _activeEvents.FirstOrDefault((DynamicEvent e) => e.Id == eventId);
+		return EventsList.FirstOrDefault((DynamicEvent e) => e.Id == eventId);
 	}
 
 	public void MarkDiplomaticEventAsCompleted(string eventId)
@@ -360,26 +301,22 @@ public class DynamicEventsManager
 		{
 			eventById.RequiresDiplomaticAnalysis = false;
 			DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Marked event " + eventId + " as completed (RequiresDiplomaticAnalysis = false)");
-			_storage.SaveEvents(_activeEvents);
+			PersistCatalog();
 			return;
 		}
-		DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Event " + eventId + " not found in active events — updating storage file directly");
+		DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Event " + eventId + " not found in catalog — scanning envelope");
 		try
 		{
-			List<DynamicEvent> list = _storage.LoadEvents();
-			if (list != null)
+			DynamicEvent dynamicEvent = EventsList.FirstOrDefault((DynamicEvent e) => e != null && e.Id == eventId);
+			if (dynamicEvent != null)
 			{
-				DynamicEvent dynamicEvent = list.FirstOrDefault((DynamicEvent e) => e != null && e.Id == eventId);
-				if (dynamicEvent != null)
-				{
-					dynamicEvent.RequiresDiplomaticAnalysis = false;
-					_storage.SaveEvents(list);
-					DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Updated event " + eventId + " in storage file (RequiresDiplomaticAnalysis = false)");
-				}
-				else
-				{
-					DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Event " + eventId + " not found in storage file either — already cleaned up");
-				}
+				dynamicEvent.RequiresDiplomaticAnalysis = false;
+				PersistCatalog();
+				DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Updated event " + eventId + " in unified storage (RequiresDiplomaticAnalysis = false)");
+			}
+			else
+			{
+				DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Event " + eventId + " not in catalog — already cleaned up");
 			}
 		}
 		catch (Exception ex)
@@ -798,10 +735,17 @@ public class DynamicEventsManager
 		try
 		{
 			DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Starting complete cleanup of all dynamic events...");
-			List<string> eventIds = _activeEvents.Select((DynamicEvent e) => e.Id).ToList();
-			int count = _activeEvents.Count;
-			_activeEvents.Clear();
-			_storage.SaveEvents(_activeEvents);
+			List<string> eventIds = EventsList.Select((DynamicEvent e) => e.Id).ToList();
+			int count = EventsList.Count;
+			EventsList.Clear();
+			if (_eventEnvelope != null)
+			{
+				_eventEnvelope.StatementSchedules = null;
+				_eventEnvelope.AnalysisSchedules = null;
+				_eventEnvelope.StatementQueues = null;
+				_eventEnvelope.PendingStatements = null;
+			}
+			PersistCatalog();
 			RemoveEventsFromAllNPCs(eventIds);
 			_lastGenerationTime = CampaignTime.Now;
 			_generationInProgress = false;
@@ -821,7 +765,10 @@ public class DynamicEventsManager
 		if (_instance != null)
 		{
 			DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Resetting manager state for new session");
-			_instance._activeEvents.Clear();
+			if (_instance._eventEnvelope?.Events != null)
+			{
+				_instance._eventEnvelope.Events.Clear();
+			}
 			_instance._generationInProgress = false;
 			_instance._isGeneratingManually = false;
 			_instance._initialized = false;
@@ -832,8 +779,8 @@ public class DynamicEventsManager
 
 	public void SaveActiveEvents()
 	{
-		_storage.SaveEvents(_activeEvents);
-		DynamicEventsLogger.Instance.Log($"[DYNAMIC_EVENTS] Saved {_activeEvents.Count} active events to storage");
+		PersistCatalog();
+		DynamicEventsLogger.Instance.Log($"[DYNAMIC_EVENTS] Saved {EventsList.Count} events to unified storage");
 	}
 
 	public async Task GenerateEventsManually()
@@ -844,7 +791,7 @@ public class DynamicEventsManager
 			return;
 		}
 		int maxEvents = GlobalSettings<ModSettings>.Instance.MaxSimultaneousDynamicEvents;
-		List<DynamicEvent> activeDiplomaticEvents = _activeEvents.Where((DynamicEvent e) => e.AllowsDiplomaticResponse && e.RequiresDiplomaticAnalysis).ToList();
+		List<DynamicEvent> activeDiplomaticEvents = EventsList.Where((DynamicEvent e) => e.AllowsDiplomaticResponse && e.RequiresDiplomaticAnalysis).ToList();
 		if (activeDiplomaticEvents.Count >= maxEvents)
 		{
 			DynamicEventsLogger.Instance.Log($"[DYNAMIC_EVENTS] Cannot generate new event: Events awaiting diplomatic response ({activeDiplomaticEvents.Count}) reached limit ({maxEvents})");
@@ -860,9 +807,9 @@ public class DynamicEventsManager
 			InformationManager.DisplayMessage(new InformationMessage($"Cannot generate event: Limit of {maxEvents} active diplomatic negotiation(s) reached.", new Color(1f, 0f, 0f, 1f)));
 			return;
 		}
-		if (_activeEvents.Count >= maxEvents)
+		if (EventsList.Count >= maxEvents)
 		{
-			DynamicEventsLogger.Instance.Log($"[DYNAMIC_EVENTS] Warning: Total active events {_activeEvents.Count}/{maxEvents}, but continuing manual generation (limit applies only to diplomatic-response events).");
+			DynamicEventsLogger.Instance.Log($"[DYNAMIC_EVENTS] Warning: Total active events {EventsList.Count}/{maxEvents}, but continuing manual generation (limit applies only to diplomatic-response events).");
 		}
 		_isGeneratingManually = true;
 		try

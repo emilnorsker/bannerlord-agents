@@ -5,7 +5,7 @@ namespace AIInfluence.DynamicEvents;
 
 /// <summary>
 /// Single entry point for UI and tools that need the merged dynamic-event registry
-/// (primary storage + diplomatic_events.json). Prefer this over duplicating merge logic.
+/// (unified <c>dynamic_events.json</c> catalog). Prefer this over ad hoc file reads.
 /// </summary>
 public static class WorldEventsReadFacade
 {

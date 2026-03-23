@@ -17,11 +17,10 @@ AIInfluence DEV/
 ├── save_data/                       # 存档数据
 │   └── [CAMPAIGN_ID]/               # 战役文件夹
 │       ├── NPC (id).json            # 每个 NPC 的上下文
-│       ├── dynamic_events.json      # 活动中的动态事件
+│       ├── dynamic_events.json      # 所有动态事件与外交调度（统一 v1）
 │       ├── diplomatic_statements.json   # 君主声明
 │       ├── alliances.json           # 王国同盟
 │       ├── war_statistics.json      # 战争统计
-│       ├── diplomatic_events.json   # 活动中的外交事件
 │       ├── pending_player_statements.json # 待发布的玩家声明
 │       ├── trade_agreements.json    # 贸易协定
 │       ├── territory_transfers.json # 领地转移历史
@@ -190,19 +189,28 @@ AIInfluence DEV/
 
 ## 📋 `dynamic_events.json`
 
-**用途:** 当前活动中的世界事件。
+**用途:** 动态事件目录与外交附带的调度数据（统一格式 v1）。
 
-**重要字段：**
+**外层（v1）：**
+- `format_version` — `1`
+- `events` — 事件对象数组
+- `campaign_days`、`save_time` — 记录用
+- 可选外交字段：`statement_schedules`、`analysis_schedules`、`statement_queues`、`pending_statements`（与旧版独立外交事件文件作用相同）
+
+**事件对象重要字段：**
 - `type` — `military`, `political`, `economic`, `social`, `mysterious`
 - `importance` — 1–10（事件重要程度）
 - `kingdoms_involved` — 参与王国的 `string_id` 数组
 - `allows_diplomatic_response` — 是否允许统治者发表外交声明
 - `expiration_campaign_days` — 事件在多少战役日后过期
+- `storage_tags` — 可选：`dynamic`（动态事件管线）、`diplomatic`（外交活跃切片）；可同时存在
 
 其他字段：
 - `id` — 事件唯一标识符（字符串，NPC 在 `DynamicEvents` 中通过该 ID 存储他们的认知）
 - `player_involved` — 玩家是否参与事件
 - `spread_speed` — 事件传播速度
+
+**迁移：** 若仍存在旧版 `diplomatic_events.json`，加载时会合并进本文件并删除旧文件。
 
 **与 NPC 的关联：**  
 每个 `NPC (id).json` 文件中都有一个 `DynamicEvents` 数组，用来存储该 NPC 知道哪些事件。`DynamicEventsManager` 会自动更新这些字段并从 NPC 处移除过期事件。
@@ -237,7 +245,6 @@ AIInfluence DEV/
 
 下面所有文件都位于 `save_data/[CAMPAIGN_ID]/`，并由外交系统自动管理。
 
-- `diplomatic_events.json` — 与动态事件（`DynamicEvents`）相关的活动外交事件
 - `pending_player_statements.json` — 将在未来发布的玩家声明
 - `trade_agreements.json` — 王国之间现有的贸易协定
 - `territory_transfers.json` — 王国之间领地转移的历史

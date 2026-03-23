@@ -6,7 +6,8 @@ This document tracks integration issues between **dynamic events**, **diplomacy 
 
 | Issue | Mitigation |
 |--------|------------|
-| Ad hoc merge of primary + diplomatic JSON in multiple UIs | `DynamicEventsManager.GetActiveEvents()` returns merged, deduped events; `WorldEventsReadFacade` is the documented entry point. |
+| Two JSON files for the same concept | Single **`dynamic_events.json`** (format v1): all events + diplomacy postscript metadata. Events use **`storage_tags`**: `dynamic`, `diplomatic`. Legacy **`diplomatic_events.json`** is merged on load then deleted. |
+| Ad hoc merge in UIs | `DynamicEventsManager.GetActiveEvents()` returns the full catalog; `WorldEventsReadFacade` is the documented entry point. |
 | Prompt ignored `NPCContext.DynamicEvents` | `GetEventsForNPC` syncs knowledge and filters by saved ids; prompts use `GetEventsForNPC`. |
 | Duplicate `ShouldNPCKnowEvent` in generator | Dialogue-only path calls `DynamicEventsManager.ShouldNPCKnowEvent`. |
 | `RecentEvents` init used only `CharactersInvolved` | `InitializeActiveEventsForNPC` uses `GetEventsForNPC(..., persistKnowledgeSync: false)` so seeding matches visibility rules. |
@@ -22,7 +23,7 @@ This document tracks integration issues between **dynamic events**, **diplomacy 
 
 | Issue | Notes |
 |--------|--------|
-| Single physical store | Still two files at rest; merge is read-time. Consolidation is a larger migration. |
+| Further tag taxonomy | Optional future tags (e.g. `plot`) beyond `dynamic` / `diplomatic`. |
 | LLM path = proposal → validate → commit | Generator/analyzer remain prose/JSON-parse; align with World spec in a dedicated refactor. |
 | Append-only **event diary** | Required for episode patterns; see `INTRIGUE_SYSTEM_DESIGN.md`. |
 | Replace singleton fan-out | Introduce injectable services or a World coordinator when intrigue lands. |
@@ -32,5 +33,5 @@ This document tracks integration issues between **dynamic events**, **diplomacy 
 
 | Term | Definition |
 |------|------------|
-| **Merged registry** | Result of `GetActiveEvents()`: primary dynamic events plus `diplomatic_events.json`, deduped by `id`. |
+| **Merged registry** | Same as the unified catalog: `GetActiveEvents()` over `dynamic_events.json` v1 (all tags). |
 | **NPC dynamic event knowledge** | `NPCContext.DynamicEvents` (list of event ids), maintained by spread + sync. |

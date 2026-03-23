@@ -17,11 +17,10 @@ AIInfluence DEV/
 ├── save_data/                       # Save data
 │   └── [CAMPAIGN_ID]/               # Campaign folder
 │       ├── NPC (id).json            # Context for each NPC
-│       ├── dynamic_events.json      # Active dynamic events
+│       ├── dynamic_events.json      # All dynamic events + diplomacy schedules (unified v1)
 │       ├── diplomatic_statements.json   # Rulers' statements
 │       ├── alliances.json           # Kingdom alliances
 │       ├── war_statistics.json      # War statistics
-│       ├── diplomatic_events.json   # Active diplomatic events
 │       ├── pending_player_statements.json # Pending player statements
 │       ├── trade_agreements.json    # Trade agreements
 │       ├── territory_transfers.json # Territory transfer history
@@ -190,19 +189,28 @@ The `UserEdited: true` flag → the system will not touch this field.
 
 ## 📋 `dynamic_events.json`
 
-**What:** Active world events.
+**What:** Single save file for the dynamic-event catalog and diplomacy postscript data (format v1).
 
-**Important fields:**
+**Envelope (v1):**
+- `format_version` — `1`
+- `events` — array of event objects (see below)
+- `campaign_days`, `save_time` — bookkeeping
+- Optional diplomacy fields (when diplomacy uses events): `statement_schedules`, `analysis_schedules`, `statement_queues`, `pending_statements` (relative day offsets and queues; same role as the former separate diplomatic events file)
+
+**Each event object — important fields:**
 - `type` — `military`, `political`, `economic`, `social`, `mysterious`
 - `importance` — 1–10 (how important)
 - `kingdoms_involved` — array of kingdom `string_id`
 - `allows_diplomatic_response` — whether rulers can make statements
 - `expiration_campaign_days` — when it expires
+- `storage_tags` — optional list: `dynamic` (AI/world pipeline), `diplomatic` (active diplomacy slice). An event may have both.
 
 Additionally, events have:
 - `id` — unique event identifier (string, NPCs store knowledge about it in `DynamicEvents`)
 - `player_involved` — whether the player participated
 - `spread_speed` — how fast it spreads
+
+**Migration:** Saves that still have a legacy `diplomatic_events.json` are merged into this file on load; the legacy file is then removed.
 
 **NPC link:**  
 The list of NPCs who know about an event is stored in each `NPC (id).json` in the `DynamicEvents` array. `DynamicEventsManager` automatically updates these fields and removes expired events from NPCs.
@@ -237,7 +245,6 @@ The list of NPCs who know about an event is stored in each `NPC (id).json` in th
 
 All files below are in `save_data/[CAMPAIGN_ID]/` and are managed automatically by the diplomacy system.
 
-- `diplomatic_events.json` — active diplomatic events linked to dynamic events (`DynamicEvents`)
 - `pending_player_statements.json` — deferred player statements to be published later
 - `trade_agreements.json` — current trade agreements between kingdoms
 - `territory_transfers.json` — history of fief transfers between kingdoms

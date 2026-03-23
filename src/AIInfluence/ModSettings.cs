@@ -162,8 +162,6 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 
 	private int _maxSimultaneousDynamicEvents = 1;
 
-	private int _dynamicEventsGlobalRumorImportanceThreshold = 8;
-
 	private int _dynamicEventsInterval = 3;
 
 	private int _dynamicEventsMinLength = 100;
@@ -1768,24 +1766,6 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 			{
 				_dynamicEventsLifespan = value;
 				this.OnSettingChanged?.Invoke("DynamicEventsLifespan", value);
-			}
-		}
-	}
-
-	[SettingPropertyGroup("{=AIInfluence_Group_DynamicEvents}Dynamic Events", GroupOrder = 8)]
-	[SettingPropertyInteger("{=AIInfluence_DynamicEventsGlobalRumorThreshold}Global rumor importance threshold", 1, 11, "0", Order = 100, RequireRestart = false, HintText = "{=AIInfluence_DynamicEventsGlobalRumorThreshold_Hint}NPCs treat events with importance >= this value as universally known (legacy spread rule). Range 1-10; use 11 to disable this shortcut.")]
-	public int DynamicEventsGlobalRumorImportanceThreshold
-	{
-		get
-		{
-			return _dynamicEventsGlobalRumorImportanceThreshold;
-		}
-		set
-		{
-			if (_dynamicEventsGlobalRumorImportanceThreshold != value)
-			{
-				_dynamicEventsGlobalRumorImportanceThreshold = value;
-				this.OnSettingChanged?.Invoke("DynamicEventsGlobalRumorImportanceThreshold", value);
 			}
 		}
 	}

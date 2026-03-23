@@ -42,6 +42,9 @@ public class DynamicEvent
 	[JsonProperty("plot_id")]
 	public string PlotId { get; set; }
 
+	[JsonProperty("storage_tags")]
+	public List<string> StorageTags { get; set; }
+
 	[JsonProperty("spread_speed")]
 	public string SpreadSpeed { get; set; }
 
