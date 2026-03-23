@@ -349,21 +349,22 @@ public class DynamicEventsManager
 				StringId = npcKey
 			};
 		}
-		SyncNpcDynamicEventKnowledge(npc, tempContext, instance, npcKey, persistKnowledgeSync);
-		HashSet<string> knownIds = (tempContext.DynamicEvents != null && tempContext.DynamicEvents.Any()) ? new HashSet<string>(tempContext.DynamicEvents) : null;
-		return (from e in BuildMergedActiveEvents()
-			where e != null && !string.IsNullOrEmpty(e.Id) && !e.IsExpired() && (knownIds == null || knownIds.Contains(e.Id))
+		List<DynamicEvent> catalog = BuildMergedActiveEvents();
+		SyncNpcDynamicEventKnowledge(npc, tempContext, instance, npcKey, persistKnowledgeSync, catalog);
+		HashSet<string> knownIds = (tempContext.DynamicEvents != null && tempContext.DynamicEvents.Any()) ? new HashSet<string>(tempContext.DynamicEvents) : new HashSet<string>();
+		return (from e in catalog
+			where e != null && !string.IsNullOrEmpty(e.Id) && !e.IsExpired() && knownIds.Contains(e.Id)
 			orderby e.Importance descending, e.DaysSinceCreation
 			select e).ToList();
 	}
 
-	public void SyncNpcDynamicEventKnowledge(Hero npc, NPCContext context, AIInfluenceBehavior behavior, string npcContextKey, bool persist = true)
+	public void SyncNpcDynamicEventKnowledge(Hero npc, NPCContext context, AIInfluenceBehavior behavior, string npcContextKey, bool persist = true, List<DynamicEvent> catalog = null)
 	{
 		if (npc == null || context == null || string.IsNullOrEmpty(npcContextKey))
 		{
 			return;
 		}
-		List<DynamicEvent> merged = BuildMergedActiveEvents();
+		List<DynamicEvent> merged = catalog ?? BuildMergedActiveEvents();
 		HashSet<string> mergedIds = new HashSet<string>(from e in merged
 			where e != null && !string.IsNullOrEmpty(e.Id)
 			select e.Id);

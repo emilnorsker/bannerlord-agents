@@ -1908,7 +1908,7 @@ public class DynamicEventsGenerator
 			string key = item.Key;
 			NPCContext context = item.Value;
 			Hero val = ((IEnumerable<Hero>)Hero.AllAliveHeroes).FirstOrDefault((Func<Hero, bool>)((Hero h) => ((MBObjectBase)h).StringId == context.StringId));
-			if (val != null && DynamicEventsManager.Instance.ShouldNPCKnowEvent(val, context, dynamicEvent))
+			if (val != null && DynamicEventsManager.Instance?.ShouldNPCKnowEvent(val, context, dynamicEvent) == true)
 			{
 				context.AddDynamicEvent(dynamicEvent.Id);
 				num++;
