@@ -70,8 +70,6 @@ public static class ToolHandlers
 	{
 		JObject parsedArgs = ParseOrEmpty(argsJson);
 		string settlementName = parsedArgs["settlement_name"]?.ToString();
-		if (string.IsNullOrEmpty(settlementName))
-			settlementName = parsedArgs["settlement_id"]?.ToString();
 		if (string.IsNullOrEmpty(settlementName)) return "missing settlement_name";
 		float waitDays = parsedArgs["wait_days"]?.Value<float>() ?? 3f;
 		var filterList = new List<string>();

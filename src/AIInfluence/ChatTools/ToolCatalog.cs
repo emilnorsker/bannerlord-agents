@@ -24,7 +24,7 @@ public static class ToolCatalog
 		{
 			Tool("follow_player", "Start following the player.", "{}", System.Array.Empty<string>()),
 			Tool("stop_action", "Stop an active action.", "{\"action_name\":{\"type\":\"string\"}}", new[] { "action_name" }),
-			Tool("go_to_settlement", "Travel to a settlement. Pass settlement_name (display name or StringId). Optional filters: same AND keywords as BLGM gm.query.settlement (town, castle, village, hideout, player, besieged, raided, empire, vlandia, …, lowprosperity, mediumprosperity, highprosperity).",
+			Tool("go_to_settlement", "Travel to a settlement. Pass settlement_name as the in-game display name only. Optional filters: same AND keywords as BLGM gm.query.settlement (town, castle, village, hideout, player, besieged, raided, empire, vlandia, …, lowprosperity, mediumprosperity, highprosperity).",
 				"{\"settlement_name\":{\"type\":\"string\"},\"wait_days\":{\"type\":\"number\"},\"filters\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}}}", new[] { "settlement_name" }),
 			Tool("attack_party", "Attack a party. party_id must be the mobile party StringId.",
 				"{\"party_id\":{\"type\":\"string\"},\"then_return\":{\"type\":\"boolean\"}}", new[] { "party_id" }),

@@ -9,7 +9,7 @@ using TaleWorlds.ObjectSystem;
 namespace AIInfluence.ChatTools;
 
 /// <summary>
-/// Resolves a settlement from a name/ID search plus optional filters, mirroring BLGM
+/// Resolves a settlement from a display name search plus optional filters, mirroring BLGM
 /// <c>gm.query.settlement</c> AND semantics (see Bannerlord.GameMaster wiki API-Query-Settlement-settlement).
 /// </summary>
 public static class BlgmStyleSettlementResolver
@@ -34,11 +34,8 @@ public static class BlgmStyleSettlementResolver
 		}
 
 		var list = candidates.ToList();
-		string q = trimmed.ToLowerInvariant();
 		List<Settlement> matched = list
-			.Where(s =>
-				string.Equals(((MBObjectBase)s).StringId, trimmed, StringComparison.OrdinalIgnoreCase)
-				|| (s.Name != null && string.Equals(s.Name.ToString(), trimmed, StringComparison.OrdinalIgnoreCase)))
+			.Where(s => s.Name != null && string.Equals(s.Name.ToString(), trimmed, StringComparison.OrdinalIgnoreCase))
 			.ToList();
 		if (matched.Count == 0)
 		{
