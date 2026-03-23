@@ -172,7 +172,7 @@ public static class AIClient
 		var (systemPrompt, userMessage, _) = ExtractLastPlayerMessage(prompt);
 		var messages = new JArray
 		{
-			new JObject { ["role"] = "system", ["content"] = systemPrompt + "\n\n**TOOLS:** Prefer tools over stuffing fields into JSON. **Dialogue:** `suspected_lie`, `dialogue_decision`, `romance_intent`, `escalation_update`, `allows_letters`. **World:** transfers, quests, kingdom, workshops, travel, search, character_death. **Map:** prefer `map_command` with action + optional payload; `technical_action` is legacy. Final assistant JSON may be `{}` if you used tools for everything.\n" },
+			new JObject { ["role"] = "system", ["content"] = systemPrompt + "\n\n**TOOLS:** Prefer tools over stuffing fields into JSON. **Dialogue:** `suspected_lie`, `dialogue_decision`, `romance_intent`, `escalation_update`, `allows_letters`. **World:** transfers, quests, kingdom, workshops, travel, character_death. **Map:** prefer `map_command` with action + optional payload; `technical_action` is legacy. Final assistant JSON may be `{}` if you used tools for everything.\n" },
 			new JObject { ["role"] = "user", ["content"] = userMessage }
 		};
 		var tools = ChatTools.ToolCatalog.GetToolsForApi();

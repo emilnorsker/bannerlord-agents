@@ -17,9 +17,6 @@ public static class ToolHandlers
 	{
 		string result = name switch
 		{
-			"find_settlements" => RunFindSettlements(argsJson),
-			"find_parties" => RunFindParties(argsJson, npc),
-			"find_items" => RunFindItems(argsJson),
 			"follow_player" => RunFollowPlayer(npc, context),
 			"stop_action" => RunStopAction(argsJson, npc),
 			"go_to_settlement" => RunGoToSettlement(argsJson, npc, context),
@@ -49,27 +46,6 @@ public static class ToolHandlers
 		return result;
 	}
 
-	private static string RunFindSettlements(string argsJson)
-	{
-		JObject parsedArgs = ParseOrEmpty(argsJson);
-		var results = ToolCatalog.FindSettlements(parsedArgs["query"]?.ToString(), parsedArgs["limit"]?.Value<int>() ?? 8);
-		return JsonConvert.SerializeObject(results.Select(searchResult => new { searchResult.string_id, searchResult.name }));
-	}
-
-	private static string RunFindParties(string argsJson, Hero npc)
-	{
-		JObject parsedArgs = ParseOrEmpty(argsJson);
-		var results = ToolCatalog.FindParties(npc, parsedArgs["query"]?.ToString(), parsedArgs["limit"]?.Value<int>() ?? 8);
-		return JsonConvert.SerializeObject(results.Select(searchResult => new { searchResult.string_id, searchResult.name }));
-	}
-
-	private static string RunFindItems(string argsJson)
-	{
-		JObject parsedArgs = ParseOrEmpty(argsJson);
-		var results = ToolCatalog.FindItems(parsedArgs["query"]?.ToString(), parsedArgs["limit"]?.Value<int>() ?? 8);
-		return JsonConvert.SerializeObject(results.Select(searchResult => new { searchResult.item_id, searchResult.name }));
-	}
-
 	private static string RunFollowPlayer(Hero npc, NPCContext context)
 	{
 		if (npc.IsPrisoner) return "prisoner";
@@ -92,7 +68,7 @@ public static class ToolHandlers
 	{
 		JObject parsedArgs = ParseOrEmpty(argsJson);
 		string settlementStringId = parsedArgs["settlement_id"]?.ToString();
-		if (string.IsNullOrEmpty(settlementStringId)) return "use find_settlements first";
+		if (string.IsNullOrEmpty(settlementStringId)) return "missing settlement_id";
 		float waitDays = parsedArgs["wait_days"]?.Value<float>() ?? 3f;
 		string param = settlementStringId + ":" + waitDays; // legacy API expects this format
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "go_to_settlement", param) != true) return "failed";
@@ -105,7 +81,7 @@ public static class ToolHandlers
 	{
 		JObject parsedArgs = ParseOrEmpty(argsJson);
 		string partyStringId = parsedArgs["party_id"]?.ToString();
-		if (string.IsNullOrEmpty(partyStringId)) return "use find_parties first";
+		if (string.IsNullOrEmpty(partyStringId)) return "missing party_id";
 		string param = parsedArgs["then_return"]?.Value<bool>() == true ? partyStringId + ",then:return" : partyStringId;
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "attack_party", param) != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "attack_party");
@@ -117,7 +93,7 @@ public static class ToolHandlers
 	{
 		JObject parsedArgs = ParseOrEmpty(argsJson);
 		string villageStringId = parsedArgs["village_id"]?.ToString();
-		if (string.IsNullOrEmpty(villageStringId)) return "use find_settlements first";
+		if (string.IsNullOrEmpty(villageStringId)) return "missing village_id";
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "raid_village", villageStringId) != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "raid_village");
 		context.LastTechnicalActionForDisplay = villageStringId;
@@ -128,7 +104,7 @@ public static class ToolHandlers
 	{
 		JObject parsedArgs = ParseOrEmpty(argsJson);
 		string settlementStringId = parsedArgs["settlement_id"]?.ToString();
-		if (string.IsNullOrEmpty(settlementStringId)) return "use find_settlements first";
+		if (string.IsNullOrEmpty(settlementStringId)) return "missing settlement_id";
 		string param = settlementStringId + ":" + (parsedArgs["days"]?.Value<float>() ?? 5f);
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "patrol_settlement", param) != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "patrol_settlement");
@@ -140,7 +116,7 @@ public static class ToolHandlers
 	{
 		JObject parsedArgs = ParseOrEmpty(argsJson);
 		string settlementStringId = parsedArgs["settlement_id"]?.ToString();
-		if (string.IsNullOrEmpty(settlementStringId)) return "use find_settlements first";
+		if (string.IsNullOrEmpty(settlementStringId)) return "missing settlement_id";
 		string param = settlementStringId + ":" + (parsedArgs["days"]?.Value<float>() ?? 2f);
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "wait_near_settlement", param) != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "wait_near_settlement");
@@ -152,7 +128,7 @@ public static class ToolHandlers
 	{
 		JObject parsedArgs = ParseOrEmpty(argsJson);
 		string settlementStringId = parsedArgs["settlement_id"]?.ToString();
-		if (string.IsNullOrEmpty(settlementStringId)) return "use find_settlements first";
+		if (string.IsNullOrEmpty(settlementStringId)) return "missing settlement_id";
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "siege_settlement", settlementStringId) != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "siege_settlement");
 		context.LastTechnicalActionForDisplay = settlementStringId;
