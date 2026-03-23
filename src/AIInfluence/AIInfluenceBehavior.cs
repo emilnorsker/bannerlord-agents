@@ -3704,6 +3704,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		if (_npcContexts.ContainsKey(stringId))
 		{
 			NPCContext nPCContext = _npcContexts[stringId];
+			if (string.IsNullOrWhiteSpace(nPCContext.Gender))
+				nPCContext.Gender = npc.IsFemale ? "female" : "male";
 			string text = ((object)npc.Name)?.ToString() ?? "Unknown_NPC";
 			if (nPCContext.Name != text)
 			{

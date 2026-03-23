@@ -84,8 +84,9 @@ public static class ToolCatalog
 	private static JObject Tool(string name, string desc, string propsJson, string[] required)
 	{
 		var props = JObject.Parse(propsJson);
-		var req = new JArray();
-		foreach (var r in required) req.Add(r);
+		var requiredArray = new JArray();
+		foreach (string requiredPropertyName in required)
+			requiredArray.Add(requiredPropertyName);
 		return new JObject
 		{
 			["type"] = "function",
@@ -93,7 +94,7 @@ public static class ToolCatalog
 			{
 				["name"] = name,
 				["description"] = desc,
-				["parameters"] = new JObject { ["type"] = "object", ["properties"] = props, ["required"] = req }
+				["parameters"] = new JObject { ["type"] = "object", ["properties"] = props, ["required"] = requiredArray }
 			}
 		};
 	}

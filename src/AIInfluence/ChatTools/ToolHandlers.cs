@@ -53,21 +53,21 @@ public static class ToolHandlers
 	{
 		JObject parsedArgs = ParseOrEmpty(argsJson);
 		var results = ToolCatalog.FindSettlements(parsedArgs["query"]?.ToString(), parsedArgs["limit"]?.Value<int>() ?? 8);
-		return JsonConvert.SerializeObject(results.Select(r => new { r.string_id, r.name }));
+		return JsonConvert.SerializeObject(results.Select(searchResult => new { searchResult.string_id, searchResult.name }));
 	}
 
 	private static string RunFindParties(string argsJson, Hero npc)
 	{
 		JObject parsedArgs = ParseOrEmpty(argsJson);
 		var results = ToolCatalog.FindParties(npc, parsedArgs["query"]?.ToString(), parsedArgs["limit"]?.Value<int>() ?? 8);
-		return JsonConvert.SerializeObject(results.Select(r => new { r.string_id, r.name }));
+		return JsonConvert.SerializeObject(results.Select(searchResult => new { searchResult.string_id, searchResult.name }));
 	}
 
 	private static string RunFindItems(string argsJson)
 	{
 		JObject parsedArgs = ParseOrEmpty(argsJson);
 		var results = ToolCatalog.FindItems(parsedArgs["query"]?.ToString(), parsedArgs["limit"]?.Value<int>() ?? 8);
-		return JsonConvert.SerializeObject(results.Select(r => new { r.item_id, r.name }));
+		return JsonConvert.SerializeObject(results.Select(searchResult => new { searchResult.item_id, searchResult.name }));
 	}
 
 	private static string RunFollowPlayer(Hero npc, NPCContext context)
