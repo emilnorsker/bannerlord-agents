@@ -1226,7 +1226,7 @@ public class KingdomStatementGenerator
 						stringBuilder.AppendLine($"  Your holdings (sorted by proximity to {enemy.Name}):");
 						foreach (Settlement item8 in source12.Take(10))
 						{
-							string text9 = (item8.IsTown ? "town" : "castle") + (item8.HasPort ? ", port" : "");
+							string text9 = (item8.IsTown ? "town" : "castle") + (GameVersionCompatibility.SettlementHasPort(item8) ? ", port" : "");
 							string text10 = ((item8.OwnerClan != null) ? $"{item8.OwnerClan.Name} (string_id:{((MBObjectBase)item8.OwnerClan).StringId})" : "no owner");
 							Town town = item8.Town;
 							int num7 = ((town != null && town.Prosperity > 0f) ? ((int)item8.Town.Prosperity) : 0);
@@ -1246,7 +1246,7 @@ public class KingdomStatementGenerator
 						stringBuilder.AppendLine($"  {enemy.Name} holdings (sorted by proximity to your territory):");
 						foreach (Settlement item9 in source13.Take(10))
 						{
-							string text13 = (item9.IsTown ? "town" : "castle") + (item9.HasPort ? ", port" : "");
+							string text13 = (item9.IsTown ? "town" : "castle") + (GameVersionCompatibility.SettlementHasPort(item9) ? ", port" : "");
 							string text14 = ((item9.OwnerClan != null) ? $"{item9.OwnerClan.Name} (string_id:{((MBObjectBase)item9.OwnerClan).StringId})" : "no owner");
 							Town town2 = item9.Town;
 							int num8 = ((town2 != null && town2.Prosperity > 0f) ? ((int)item9.Town.Prosperity) : 0);

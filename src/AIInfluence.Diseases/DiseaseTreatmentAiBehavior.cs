@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Helpers;
+using AIInfluence.Util;
 using MCM.Abstractions.Base.Global;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Map;
@@ -77,7 +78,8 @@ public class DiseaseTreatmentAiBehavior : CampaignBehaviorBase
 			return;
 		}
 		bool flag4 = false;
-		if (settlement.HasPort && mobileParty.HasNavalNavigationCapability)
+		// v1.2.12: HasPort / HasNavalNavigationCapability missing — branch skipped (land routing only).
+		if (GameVersionCompatibility.SettlementHasPort(settlement) && GameVersionCompatibility.MobilePartyHasNavalNavigationCapability(mobileParty))
 		{
 			NavigationType val3 = default(NavigationType);
 			float num4 = default(float);
@@ -154,7 +156,7 @@ public class DiseaseTreatmentAiBehavior : CampaignBehaviorBase
 		{
 			return false;
 		}
-		if (settlement.Party.SiegeEvent != null && settlement.Party.SiegeEvent.IsBlockadeActive && !mobileParty.HasNavalNavigationCapability)
+		if (settlement.Party.SiegeEvent != null && GameVersionCompatibility.SiegeEventIsBlockadeActive(settlement.Party.SiegeEvent) && !GameVersionCompatibility.MobilePartyHasNavalNavigationCapability(mobileParty))
 		{
 			return false;
 		}

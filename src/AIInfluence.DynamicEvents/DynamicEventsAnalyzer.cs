@@ -1644,7 +1644,7 @@ public class DynamicEventsAnalyzer
 			sb.AppendLine("    **Current Settlements:**");
 			if (list.Any())
 			{
-				List<string> values = list.Select((Settlement t) => ((object)t.Name).ToString() + (t.HasPort ? " (port)" : "")).ToList();
+				List<string> values = list.Select((Settlement t) => ((object)t.Name).ToString() + (GameVersionCompatibility.SettlementHasPort(t) ? " (port)" : "")).ToList();
 				sb.AppendLine(string.Format("    Towns ({0}): {1}", list.Count, string.Join(", ", values)));
 			}
 			else

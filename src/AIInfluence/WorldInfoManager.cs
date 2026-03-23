@@ -1229,7 +1229,7 @@ public class WorldInfoManager
 				return;
 			}
 			(Settlement, float) nearestSettlementInfo = GetNearestSettlementInfo(Hero.MainHero.PartyBelongedTo);
-			string text8 = ((Hero.MainHero.PartyBelongedTo != null && Hero.MainHero.PartyBelongedTo.IsCurrentlyAtSea) ? " sailing at sea" : " traveling on land");
+			string text8 = (GameVersionCompatibility.MobilePartyIsCurrentlyAtSea(Hero.MainHero.PartyBelongedTo) ? " sailing at sea" : " traveling on land");
 			if (nearestSettlementInfo.Item2 <= 20f && nearestSettlementInfo.Item1 != null)
 			{
 				string text9 = (nearestSettlementInfo.Item1.IsTown ? "city" : (nearestSettlementInfo.Item1.IsCastle ? "castle" : "village"));
@@ -1254,11 +1254,11 @@ public class WorldInfoManager
 		else if (npc.PartyBelongedTo != null)
 		{
 			MobileParty partyBelongedTo = npc.PartyBelongedTo;
-			string text14 = (partyBelongedTo.IsCurrentlyAtSea ? " sailing at sea" : " traveling on land");
+			string text14 = (GameVersionCompatibility.MobilePartyIsCurrentlyAtSea(partyBelongedTo) ? " sailing at sea" : " traveling on land");
 			if (partyBelongedTo.Army != null)
 			{
 				Army army = partyBelongedTo.Army;
-				string text15 = (army.LeaderParty.IsCurrentlyAtSea ? " sailing at sea" : " traveling on land");
+				string text15 = (GameVersionCompatibility.MobilePartyIsCurrentlyAtSea(army.LeaderParty) ? " sailing at sea" : " traveling on land");
 				if (army.LeaderParty.CurrentSettlement != null)
 				{
 					context.CurrentTask = $"marching with the army, stationed in {army.LeaderParty.CurrentSettlement.Name} (id:{((MBObjectBase)army.LeaderParty.CurrentSettlement).StringId})";
@@ -4551,7 +4551,7 @@ public class WorldInfoManager
 				}
 				return $"located in {currentSettlement.Name} ({text} of {text2}, {text4}, {region}). {text5}";
 			}
-			string text8 = ((Hero.MainHero.PartyBelongedTo != null && Hero.MainHero.PartyBelongedTo.IsCurrentlyAtSea) ? " sailing at sea" : " on land");
+			string text8 = (GameVersionCompatibility.MobilePartyIsCurrentlyAtSea(Hero.MainHero.PartyBelongedTo) ? " sailing at sea" : " on land");
 			(Settlement, float) nearestSettlementInfo = GetNearestSettlementInfo(Hero.MainHero.PartyBelongedTo);
 			if (nearestSettlementInfo.Item2 <= 20f)
 			{
@@ -4582,7 +4582,7 @@ public class WorldInfoManager
 				string text17 = ((currentSettlement2.Town != null) ? GetBasicProsperityDescription(currentSettlement2.Town.Prosperity) : ((currentSettlement2.Village != null) ? GetBasicProsperityDescription(currentSettlement2.Village.Hearth) : "unknown prosperity"));
 				return $"held as prisoner in your party while you are located in {currentSettlement2.Name} ({text13} of {text14}, {text16}, {region2}). {text17}";
 			}
-			string text18 = ((Hero.MainHero.PartyBelongedTo != null && Hero.MainHero.PartyBelongedTo.IsCurrentlyAtSea) ? " sailing at sea" : " traveling on land");
+			string text18 = (GameVersionCompatibility.MobilePartyIsCurrentlyAtSea(Hero.MainHero.PartyBelongedTo) ? " sailing at sea" : " traveling on land");
 			(Settlement, float) nearestSettlementInfo2 = GetNearestSettlementInfo(Hero.MainHero.PartyBelongedTo);
 			AIInfluenceBehavior instance = AIInfluenceBehavior.Instance;
 			if (instance != null)
@@ -4764,7 +4764,7 @@ public class WorldInfoManager
 		}
 		if (npcParty != null)
 		{
-			string text58 = (npcParty.IsCurrentlyAtSea ? " sailing at sea" : " on land");
+			string text58 = (GameVersionCompatibility.MobilePartyIsCurrentlyAtSea(npcParty) ? " sailing at sea" : " on land");
 			(Settlement, float) nearestSettlementInfo3 = GetNearestSettlementInfo(npcParty);
 			List<(Settlement, float)> list5 = new List<(Settlement, float)>();
 			foreach (Settlement item3 in (List<Settlement>)(object)Campaign.Current.Settlements)
@@ -4799,7 +4799,7 @@ public class WorldInfoManager
 		}
 		if (npcParty != null)
 		{
-			string text59 = (npcParty.IsCurrentlyAtSea ? " sailing at sea" : " on land");
+			string text59 = (GameVersionCompatibility.MobilePartyIsCurrentlyAtSea(npcParty) ? " sailing at sea" : " on land");
 			return "in the wilderness, far from any settlement," + text59;
 		}
 		return "in the wilderness, far from any settlement";

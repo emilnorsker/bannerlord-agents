@@ -5,7 +5,6 @@ using AIInfluence.Util;
 using MCM.Abstractions.Base.Global;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.ComponentInterfaces;
-using TaleWorlds.CampaignSystem.Naval;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Roster;
 using TaleWorlds.Core;
@@ -213,18 +212,12 @@ public static class SeasonalDiseaseSystem
 	{
 		try
 		{
-			if (party == null)
-			{
-				return false;
-			}
-			if (party.Ships == null || ((List<Ship>)(object)party.Ships).Count == 0)
-			{
-				return false;
-			}
-			return party.IsCurrentlyAtSea;
+			// v1.2.12: No Ships / IsCurrentlyAtSea — GameVersionCompatibility returns false (no at-sea disease bonus).
+			return GameVersionCompatibility.MobilePartyQualifiesAsAtSeaForSeasonalDisease(party);
 		}
-		catch
+		catch (Exception ex)
 		{
+			LogMessage("[SEASONAL_DISEASE] IsPartyAtSea failed: " + ex.Message);
 			return false;
 		}
 	}
