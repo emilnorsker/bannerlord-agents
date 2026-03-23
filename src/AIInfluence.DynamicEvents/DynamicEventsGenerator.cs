@@ -2776,7 +2776,7 @@ public class DynamicEventsGenerator
 			.ToList();
 		foreach (Settlement item in list2)
 		{
-			string text = (item.IsTown ? "Town" : (item.IsCastle ? "Castle" : "Village")) + (GameVersionCompatibility.SettlementHasPort(item) ? " (port)" : "");
+			string text = (item.IsTown ? "Town" : (item.IsCastle ? "Castle" : "Village")) + (item.HasPort ? " (port)" : "");
 			IFaction mapFaction = item.MapFaction;
 			string text2 = ((mapFaction == null) ? null : ((object)mapFaction.Name)?.ToString()) ?? "Neutral";
 			CultureObject culture = item.Culture;
@@ -3332,7 +3332,7 @@ public class DynamicEventsGenerator
 			{
 				SettlementName = (((object)item2.Name)?.ToString() ?? "Unknown"),
 				SettlementStringId = (((MBObjectBase)item2).StringId ?? "unknown"),
-				SettlementType = (item2.IsTown ? "Town" : "Castle") + (GameVersionCompatibility.SettlementHasPort(item2) ? " (port)" : "")
+				SettlementType = (item2.IsTown ? "Town" : "Castle") + (item2.HasPort ? " (port)" : "")
 			};
 			IFaction mapFaction = item2.MapFaction;
 			obj.KingdomName = ((mapFaction == null) ? null : ((object)mapFaction.Name)?.ToString()) ?? "Independent";
@@ -3395,7 +3395,7 @@ public class DynamicEventsGenerator
 			{
 				SettlementName = (((object)item2.Name)?.ToString() ?? "Unknown"),
 				SettlementStringId = (((MBObjectBase)item2).StringId ?? "unknown"),
-				SettlementType = (item2.IsTown ? "Town" : "Castle") + (GameVersionCompatibility.SettlementHasPort(item2) ? " (port)" : "")
+				SettlementType = (item2.IsTown ? "Town" : "Castle") + (item2.HasPort ? " (port)" : "")
 			};
 			IFaction mapFaction = item2.MapFaction;
 			obj.KingdomName = ((mapFaction == null) ? null : ((object)mapFaction.Name)?.ToString()) ?? "Independent";
@@ -3459,7 +3459,7 @@ public class DynamicEventsGenerator
 			{
 				SettlementName = (((object)item2.Name)?.ToString() ?? "Unknown"),
 				SettlementStringId = (((MBObjectBase)item2).StringId ?? "unknown"),
-				SettlementType = (item2.IsTown ? "Town" : "Castle") + (GameVersionCompatibility.SettlementHasPort(item2) ? " (port)" : "")
+				SettlementType = (item2.IsTown ? "Town" : "Castle") + (item2.HasPort ? " (port)" : "")
 			};
 			IFaction mapFaction = item2.MapFaction;
 			obj.KingdomName = ((mapFaction == null) ? null : ((object)mapFaction.Name)?.ToString()) ?? "Independent";

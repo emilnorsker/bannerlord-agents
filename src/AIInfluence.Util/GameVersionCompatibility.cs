@@ -8,6 +8,7 @@ using SandBox;
 using SandBox.Missions.AgentBehaviors;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
+using TaleWorlds.CampaignSystem.CampaignBehaviors;
 using TaleWorlds.CampaignSystem.MapEvents;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Roster;
@@ -20,12 +21,6 @@ using TaleWorlds.ObjectSystem;
 
 namespace AIInfluence.Util;
 
-/// <summary>
-/// Cross-version helpers for Bannerlord v1.2.12 vs v1.3.x. TaleWorlds APIs for naval travel, ports,
-/// blockades, and native kingdom alliances differ or are missing on 1.2.12; methods here use reflection
-/// or safe defaults so the same assembly can run when those members or types are absent. When adding
-/// new direct TaleWorlds calls, check 1.2.12 and extend this class if needed.
-/// </summary>
 public static class GameVersionCompatibility
 {
 	private static readonly string[] BehaviorsToDisable = new string[7] { "PatrolAgentBehavior", "EscortAgentBehavior", "WalkingBehavior", "IdleAgentBehavior", "StandGuardBehavior", "PatrollingGuardBehavior", "ScriptBehavior" };
@@ -216,7 +211,6 @@ public static class GameVersionCompatibility
 
 	public static Vec2 GetPortPosition(this Settlement settlement)
 	{
-		// v1.2.12: PortPosition may be absent; callers get Vec2.Invalid (no port coordinates).
 		//IL_0026: Unknown result type (might be due to invalid IL or missing references)
 		//IL_002b: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0009: Unknown result type (might be due to invalid IL or missing references)
@@ -241,298 +235,6 @@ public static class GameVersionCompatibility
 		}
 	}
 
-	// --- Bannerlord v1.2.12 vs v1.3.x: native alliances and naval/port APIs differ or are absent on 1.2.12.
-	// Use reflection and conservative fallbacks so one build can load on both; see Try* helpers below.
-
-	private static Type _allianceCampaignBehaviorInterfaceType;
-
-	private static bool _allianceCampaignBehaviorInterfaceLookupDone;
-
-	private static Type GetAllianceCampaignBehaviorInterfaceType()
-	{
-		if (_allianceCampaignBehaviorInterfaceLookupDone)
-		{
-			return _allianceCampaignBehaviorInterfaceType;
-		}
-		_allianceCampaignBehaviorInterfaceLookupDone = true;
-		Type resolved = Type.GetType("TaleWorlds.CampaignSystem.CampaignBehaviors.IAllianceCampaignBehavior, TaleWorlds.CampaignSystem");
-		if (resolved != null)
-		{
-			_allianceCampaignBehaviorInterfaceType = resolved;
-			return resolved;
-		}
-		foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
-		{
-			if (assembly.GetName().Name != "TaleWorlds.CampaignSystem")
-			{
-				continue;
-			}
-			try
-			{
-				foreach (Type candidate in assembly.GetExportedTypes())
-				{
-					if (candidate.IsInterface && candidate.Name == "IAllianceCampaignBehavior")
-					{
-						_allianceCampaignBehaviorInterfaceType = candidate;
-						return candidate;
-					}
-				}
-			}
-			catch (ReflectionTypeLoadException ex)
-			{
-				AIInfluenceBehavior.Instance?.LogMessage("[GameVersionCompatibility] IAllianceCampaignBehavior scan: ReflectionTypeLoadException " + ex.Message);
-			}
-		}
-		return null;
-	}
-
-	private static object TryGetAllianceCampaignBehavior(Campaign campaign)
-	{
-		Type interfaceType = GetAllianceCampaignBehaviorInterfaceType();
-		if (campaign == null || interfaceType == null)
-		{
-			return null;
-		}
-		try
-		{
-			MethodInfo getBehavior = typeof(Campaign).GetMethods(BindingFlags.Public | BindingFlags.Instance).FirstOrDefault(delegate(MethodInfo methodInfo)
-			{
-				if (!methodInfo.IsGenericMethodDefinition || methodInfo.Name != "GetCampaignBehavior")
-				{
-					return false;
-				}
-				ParameterInfo[] parameters = methodInfo.GetParameters();
-				return parameters.Length == 0;
-			});
-			if (getBehavior == null)
-			{
-				return null;
-			}
-			MethodInfo constructed = getBehavior.MakeGenericMethod(interfaceType);
-			return constructed.Invoke(campaign, null);
-		}
-		catch (Exception ex)
-		{
-			AIInfluenceBehavior.Instance?.LogMessage("[GameVersionCompatibility] TryGetAllianceCampaignBehavior failed: " + ex.Message);
-			return null;
-		}
-	}
-
-	public static bool SettlementHasPort(Settlement settlement)
-	{
-		// v1.2.12: HasPort may be missing; prompts and AI context omit ", port" when absent.
-		return settlement != null && TryGetBoolProperty(settlement, "HasPort", out bool value) && value;
-	}
-
-	public static bool MobilePartyIsCurrentlyAtSea(MobileParty party)
-	{
-		// v1.2.12: no IsCurrentlyAtSea; always false (land-only).
-		return party != null && TryGetBoolProperty(party, "IsCurrentlyAtSea", out bool value) && value;
-	}
-
-	public static bool MobilePartyHasNavalNavigationCapability(MobileParty party)
-	{
-		// v1.2.12: property missing; naval routing and blockade checks stay land-only.
-		return party != null && TryGetBoolProperty(party, "HasNavalNavigationCapability", out bool value) && value;
-	}
-
-	public static bool SiegeEventIsBlockadeActive(object siegeEvent)
-	{
-		// v1.2.12: blockade API may be absent; do not treat as blockaded.
-		return siegeEvent != null && TryGetBoolProperty(siegeEvent, "IsBlockadeActive", out bool value) && value;
-	}
-
-	public static bool MobilePartyQualifiesAsAtSeaForSeasonalDisease(MobileParty party)
-	{
-		if (party == null)
-		{
-			return false;
-		}
-		if (!TryGetPartyShipCount(party.Party, out int shipCount) || shipCount == 0)
-		{
-			return false;
-		}
-		return MobilePartyIsCurrentlyAtSea(party);
-	}
-
-	public static string GetShipInfoDescription(PartyBase party, bool isAtSea)
-	{
-		if (party == null || !TryGetPartyShipCount(party, out int count) || count == 0)
-		{
-			return "";
-		}
-		object flagship = GetPropertyValue(party, "FlagShip");
-		if (flagship == null && TryEnumeratePartyShips(party, out IEnumerable<object> shipsEnumerable))
-		{
-			foreach (object ship in shipsEnumerable)
-			{
-				flagship = ship;
-				break;
-			}
-		}
-		if (flagship == null)
-		{
-			return "";
-		}
-		object shipHull = GetPropertyValue(flagship, "ShipHull");
-		if (shipHull == null)
-		{
-			return "";
-		}
-		string displayName = GetPropertyValue(flagship, "Name")?.ToString();
-		if (string.IsNullOrEmpty(displayName))
-		{
-			displayName = GetPropertyValue(shipHull, "Name")?.ToString() ?? "unknown ship";
-		}
-		object hullType = GetPropertyValue(shipHull, "Type");
-		string hullTypeText = hullType?.ToString()?.ToLowerInvariant() ?? "unknown";
-		string text3 = isAtSea ? ((count != 1) ? $"You are currently sailing at sea with {count} ships, your flagship being the {hullTypeText} ship named \"{displayName}\"" : ("You are currently sailing on your " + hullTypeText + " ship named \"" + displayName + "\" at sea")) : ((count != 1) ? $"You own {count} ships, your flagship being a {hullTypeText} ship named \"{displayName}\"" : ("You own a " + hullTypeText + " ship named \"" + displayName + "\""));
-		return text3 + ".";
-	}
-
-	public static string GetMainHeroPartyShipNarrativeWhenAtSea(PartyBase mainHeroParty)
-	{
-		if (mainHeroParty == null || !TryGetPartyShipCount(mainHeroParty, out int count2) || count2 == 0)
-		{
-			return "";
-		}
-		object val2 = GetPropertyValue(mainHeroParty, "FlagShip");
-		if (val2 == null && TryEnumeratePartyShips(mainHeroParty, out IEnumerable<object> list))
-		{
-			foreach (object ship in list)
-			{
-				val2 = ship;
-				break;
-			}
-		}
-		if (val2 == null)
-		{
-			return "";
-		}
-		object shipHull2 = GetPropertyValue(val2, "ShipHull");
-		if (shipHull2 == null)
-		{
-			return " They are currently sailing on a ship at sea.";
-		}
-		string text52 = GetPropertyValue(val2, "Name")?.ToString();
-		if (string.IsNullOrEmpty(text52))
-		{
-			text52 = GetPropertyValue(shipHull2, "Name")?.ToString() ?? "unknown ship";
-		}
-		string text53 = GetPropertyValue(shipHull2, "Type")?.ToString()?.ToLowerInvariant() ?? "unknown";
-		return (count2 != 1) ? $" They are currently sailing with {count2} ships, their flagship being a {text53} ship named \"{text52}\" at sea." : (" They are currently sailing on a " + text53 + " ship named \"" + text52 + "\" at sea.");
-	}
-
-	private static bool TryGetBoolProperty(object target, string propertyName, out bool value)
-	{
-		value = false;
-		if (target == null)
-		{
-			return false;
-		}
-		try
-		{
-			PropertyInfo property = target.GetType().GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance);
-			if (property == null || property.PropertyType != typeof(bool))
-			{
-				return false;
-			}
-			object raw = property.GetValue(target);
-			if (raw is bool booleanValue)
-			{
-				value = booleanValue;
-				return true;
-			}
-		}
-		catch (Exception ex)
-		{
-			AIInfluenceBehavior.Instance?.LogMessage("[GameVersionCompatibility] TryGetBoolProperty " + propertyName + " failed: " + ex.Message);
-		}
-		return false;
-	}
-
-	private static object GetPropertyValue(object target, string propertyName)
-	{
-		if (target == null)
-		{
-			return null;
-		}
-		try
-		{
-			return target.GetType().GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance)?.GetValue(target);
-		}
-		catch (Exception ex)
-		{
-			AIInfluenceBehavior.Instance?.LogMessage("[GameVersionCompatibility] GetPropertyValue " + propertyName + " failed: " + ex.Message);
-			return null;
-		}
-	}
-
-	private static bool TryGetPartyShipCount(PartyBase party, out int count)
-	{
-		count = 0;
-		if (party == null)
-		{
-			return false;
-		}
-		try
-		{
-			object ships = GetPropertyValue(party, "Ships");
-			if (ships == null)
-			{
-				return false;
-			}
-			if (ships is ICollection collection)
-			{
-				count = collection.Count;
-				return count > 0;
-			}
-			if (ships is IEnumerable enumerable)
-			{
-				int num = 0;
-				foreach (object item in enumerable)
-				{
-					num++;
-				}
-				count = num;
-				return count > 0;
-			}
-		}
-		catch (Exception ex)
-		{
-			AIInfluenceBehavior.Instance?.LogMessage("[GameVersionCompatibility] TryGetPartyShipCount failed: " + ex.Message);
-		}
-		return false;
-	}
-
-	private static bool TryEnumeratePartyShips(PartyBase party, out IEnumerable<object> ships)
-	{
-		ships = null;
-		if (party == null)
-		{
-			return false;
-		}
-		try
-		{
-			object shipsObject = GetPropertyValue(party, "Ships");
-			if (shipsObject is IEnumerable enumerable)
-			{
-				List<object> list = new List<object>();
-				foreach (object item in enumerable)
-				{
-					list.Add(item);
-				}
-				ships = list;
-				return list.Count > 0;
-			}
-		}
-		catch (Exception ex)
-		{
-			AIInfluenceBehavior.Instance?.LogMessage("[GameVersionCompatibility] TryEnumeratePartyShips failed: " + ex.Message);
-		}
-		return false;
-	}
-
 	public static bool IsAlliedWithFaction(IFaction faction1, IFaction faction2)
 	{
 		if (faction1 == null || faction2 == null || faction1 == faction2)
@@ -548,23 +250,11 @@ public static class GameVersionCompatibility
 				try
 				{
 					Campaign current = Campaign.Current;
-					object allianceBehavior = TryGetAllianceCampaignBehavior(current);
-					if (allianceBehavior == null)
-					{
-						return false;
-					}
-					Type interfaceType = GetAllianceCampaignBehaviorInterfaceType();
-					MethodInfo method = interfaceType?.GetMethod("IsAllyWithKingdom", BindingFlags.Public | BindingFlags.Instance);
-					if (method == null)
-					{
-						return false;
-					}
-					object result = method.Invoke(allianceBehavior, new object[2] { val, val2 });
-					return result is bool flag && flag;
+					IAllianceCampaignBehavior val3 = ((current != null) ? current.GetCampaignBehavior<IAllianceCampaignBehavior>() : null);
+					return val3 != null && val3.IsAllyWithKingdom(val, val2);
 				}
-				catch (Exception ex)
+				catch
 				{
-					AIInfluenceBehavior.Instance?.LogMessage("[GameVersionCompatibility] IsAlliedWithFaction failed: " + ex.Message);
 					return false;
 				}
 			}
@@ -591,14 +281,11 @@ public static class GameVersionCompatibility
 		try
 		{
 			Campaign current = Campaign.Current;
-			object allianceBehavior = TryGetAllianceCampaignBehavior(current);
-			if (allianceBehavior == null)
+			IAllianceCampaignBehavior val3 = ((current != null) ? current.GetCampaignBehavior<IAllianceCampaignBehavior>() : null);
+			if (val3 != null)
 			{
-				return;
+				val3.StartAlliance(val, val2);
 			}
-			Type interfaceType = GetAllianceCampaignBehaviorInterfaceType();
-			MethodInfo method = interfaceType?.GetMethod("StartAlliance", BindingFlags.Public | BindingFlags.Instance);
-			method?.Invoke(allianceBehavior, new object[2] { val, val2 });
 		}
 		catch (Exception ex)
 		{
@@ -615,14 +302,11 @@ public static class GameVersionCompatibility
 		try
 		{
 			Campaign current = Campaign.Current;
-			object allianceBehavior = TryGetAllianceCampaignBehavior(current);
-			if (allianceBehavior == null)
+			IAllianceCampaignBehavior val = ((current != null) ? current.GetCampaignBehavior<IAllianceCampaignBehavior>() : null);
+			if (val != null)
 			{
-				return;
+				val.EndAlliance(kingdom1, kingdom2);
 			}
-			Type interfaceType = GetAllianceCampaignBehaviorInterfaceType();
-			MethodInfo method = interfaceType?.GetMethod("EndAlliance", BindingFlags.Public | BindingFlags.Instance);
-			method?.Invoke(allianceBehavior, new object[2] { kingdom1, kingdom2 });
 		}
 		catch (Exception ex)
 		{
@@ -1578,7 +1262,6 @@ public static class GameVersionCompatibility
 
 	public static void RemoveShips(MobileParty party)
 	{
-		// v1.2.12: No ships API — reflection finds nothing; method returns without action.
 		if (party == null)
 		{
 			return;

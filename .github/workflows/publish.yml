@@ -23,11 +23,6 @@ jobs:
       - name: Install tools
         run: sudo apt-get install -y p7zip-full libxml2-utils
 
-      - name: Restore & build
-        run: |
-          dotnet restore src/AIInfluence.csproj
-          dotnet build src/AIInfluence.csproj -c Release --no-restore -p:GameFolder="$PWD/_game_folder"
-
       - name: Get mod version
         id: version
         run: |
@@ -36,7 +31,12 @@ jobs:
           echo "value=$VERSION" >> $GITHUB_OUTPUT
           echo "build_tag=${VERSION}-build.${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}" >> $GITHUB_OUTPUT
 
-      - name: Stage mod files
+      - name: Restore & build (default / v1.3.x line)
+        run: |
+          dotnet restore src/AIInfluence.csproj
+          dotnet build src/AIInfluence.csproj -c Release --no-restore -p:GameFolder="$PWD/_game_folder"
+
+      - name: Stage mod files (default)
         run: |
           mkdir -p staging/AIInfluence/bin/Win64_Shipping_Client
           DLL=$(find src/bin -name "AIInfluence.dll" | head -1)
@@ -54,15 +54,48 @@ jobs:
             [ -f "$f" ] && cp "$f" staging/AIInfluence/
           done
 
-      - name: Create 7zip archive
+      - name: Create 7zip archive (default)
         run: cd staging && 7z a ../AIInfluence-${{ steps.version.outputs.build_tag }}.7z AIInfluence/
 
-      - name: Upload development artifact
+      - name: Apply Bannerlord 1.2.12 compatibility patch
+        run: |
+          git apply --verbose patches/bannerlord-1-2-12-compatibility.patch
+
+      - name: Restore & build (1.2.12-patched sources)
+        run: |
+          dotnet build src/AIInfluence.csproj -c Release --no-restore -p:GameFolder="$PWD/_game_folder"
+
+      - name: Stage mod files (1.2.12)
+        run: |
+          rm -rf staging
+          mkdir -p staging/AIInfluence/bin/Win64_Shipping_Client
+          DLL=$(find src/bin -name "AIInfluence.dll" | head -1)
+          if [ -z "$DLL" ]; then echo "AIInfluence.dll not found after 1.2.12 build"; exit 1; fi
+          cp "$DLL" staging/AIInfluence/bin/Win64_Shipping_Client/
+          cp SubModule.xml staging/AIInfluence/
+          cp -r GUI staging/AIInfluence/
+          [ -d Assets ] && cp -r Assets staging/AIInfluence/
+          [ -d AssetSources ] && cp -r AssetSources staging/AIInfluence/
+          for f in world.txt world_info.json world_secrets.json cultural_traditions.json \
+                   actionrules_description_EN.txt actionrules.txt eventsanalyzerrules.txt \
+                   eventsgeneratorrules.txt kingdomstatementrules.txt playerdescription.txt; do
+            [ -f "$f" ] && cp "$f" staging/AIInfluence/
+          done
+
+      - name: Create 7zip archive (1.2.12)
+        run: cd staging && 7z a ../AIInfluence-${{ steps.version.outputs.build_tag }}-1.2.12.7z AIInfluence/
+
+      - name: Revert patched sources
+        run: git restore .
+
+      - name: Upload development artifacts
         if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: AIInfluence-${{ steps.version.outputs.build_tag }}
-          path: AIInfluence-${{ steps.version.outputs.build_tag }}.7z
+          path: |
+            AIInfluence-${{ steps.version.outputs.build_tag }}.7z
+            AIInfluence-${{ steps.version.outputs.build_tag }}-1.2.12.7z
 
       - name: Publish release
         if: github.event_name == 'push'
@@ -70,6 +103,8 @@ jobs:
         with:
           tag_name: ${{ steps.version.outputs.build_tag }}
           name: AIInfluence ${{ steps.version.outputs.build_tag }}
-          files: AIInfluence-${{ steps.version.outputs.build_tag }}.7z
+          files: |
+            AIInfluence-${{ steps.version.outputs.build_tag }}.7z
+            AIInfluence-${{ steps.version.outputs.build_tag }}-1.2.12.7z
           generate_release_notes: true
           fail_on_unmatched_files: true

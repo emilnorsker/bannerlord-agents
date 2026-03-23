@@ -1,0 +1,763 @@
+diff --git a/src/AIInfluence.Diplomacy/KingdomStatementGenerator.cs b/src/AIInfluence.Diplomacy/KingdomStatementGenerator.cs
+index cd60ba3..1d3726e 100644
+--- a/src/AIInfluence.Diplomacy/KingdomStatementGenerator.cs
++++ b/src/AIInfluence.Diplomacy/KingdomStatementGenerator.cs
+@@ -1226,7 +1226,7 @@ public class KingdomStatementGenerator
+ 						stringBuilder.AppendLine($"  Your holdings (sorted by proximity to {enemy.Name}):");
+ 						foreach (Settlement item8 in source12.Take(10))
+ 						{
+-							string text9 = (item8.IsTown ? "town" : "castle") + (item8.HasPort ? ", port" : "");
++							string text9 = (item8.IsTown ? "town" : "castle") + (GameVersionCompatibility.SettlementHasPort(item8) ? ", port" : "");
+ 							string text10 = ((item8.OwnerClan != null) ? $"{item8.OwnerClan.Name} (string_id:{((MBObjectBase)item8.OwnerClan).StringId})" : "no owner");
+ 							Town town = item8.Town;
+ 							int num7 = ((town != null && town.Prosperity > 0f) ? ((int)item8.Town.Prosperity) : 0);
+@@ -1246,7 +1246,7 @@ public class KingdomStatementGenerator
+ 						stringBuilder.AppendLine($"  {enemy.Name} holdings (sorted by proximity to your territory):");
+ 						foreach (Settlement item9 in source13.Take(10))
+ 						{
+-							string text13 = (item9.IsTown ? "town" : "castle") + (item9.HasPort ? ", port" : "");
++							string text13 = (item9.IsTown ? "town" : "castle") + (GameVersionCompatibility.SettlementHasPort(item9) ? ", port" : "");
+ 							string text14 = ((item9.OwnerClan != null) ? $"{item9.OwnerClan.Name} (string_id:{((MBObjectBase)item9.OwnerClan).StringId})" : "no owner");
+ 							Town town2 = item9.Town;
+ 							int num8 = ((town2 != null && town2.Prosperity > 0f) ? ((int)item9.Town.Prosperity) : 0);
+diff --git a/src/AIInfluence.Diseases/DiseaseTreatmentAiBehavior.cs b/src/AIInfluence.Diseases/DiseaseTreatmentAiBehavior.cs
+index 6e32a44..aba2380 100644
+--- a/src/AIInfluence.Diseases/DiseaseTreatmentAiBehavior.cs
++++ b/src/AIInfluence.Diseases/DiseaseTreatmentAiBehavior.cs
+@@ -1,6 +1,7 @@
+ using System;
+ using System.Collections.Generic;
+ using Helpers;
++using AIInfluence.Util;
+ using MCM.Abstractions.Base.Global;
+ using TaleWorlds.CampaignSystem;
+ using TaleWorlds.CampaignSystem.Map;
+@@ -77,7 +78,8 @@ public class DiseaseTreatmentAiBehavior : CampaignBehaviorBase
+ 			return;
+ 		}
+ 		bool flag4 = false;
+-		if (settlement.HasPort && mobileParty.HasNavalNavigationCapability)
++		// v1.2.12: HasPort / HasNavalNavigationCapability missing — branch skipped (land routing only).
++		if (GameVersionCompatibility.SettlementHasPort(settlement) && GameVersionCompatibility.MobilePartyHasNavalNavigationCapability(mobileParty))
+ 		{
+ 			NavigationType val3 = default(NavigationType);
+ 			float num4 = default(float);
+@@ -154,7 +156,7 @@ public class DiseaseTreatmentAiBehavior : CampaignBehaviorBase
+ 		{
+ 			return false;
+ 		}
+-		if (settlement.Party.SiegeEvent != null && settlement.Party.SiegeEvent.IsBlockadeActive && !mobileParty.HasNavalNavigationCapability)
++		if (settlement.Party.SiegeEvent != null && GameVersionCompatibility.SiegeEventIsBlockadeActive(settlement.Party.SiegeEvent) && !GameVersionCompatibility.MobilePartyHasNavalNavigationCapability(mobileParty))
+ 		{
+ 			return false;
+ 		}
+diff --git a/src/AIInfluence.Diseases/SeasonalDiseaseSystem.cs b/src/AIInfluence.Diseases/SeasonalDiseaseSystem.cs
+index e71f886..5edd194 100644
+--- a/src/AIInfluence.Diseases/SeasonalDiseaseSystem.cs
++++ b/src/AIInfluence.Diseases/SeasonalDiseaseSystem.cs
+@@ -5,7 +5,6 @@ using AIInfluence.Util;
+ using MCM.Abstractions.Base.Global;
+ using TaleWorlds.CampaignSystem;
+ using TaleWorlds.CampaignSystem.ComponentInterfaces;
+-using TaleWorlds.CampaignSystem.Naval;
+ using TaleWorlds.CampaignSystem.Party;
+ using TaleWorlds.CampaignSystem.Roster;
+ using TaleWorlds.Core;
+@@ -213,18 +212,12 @@ public static class SeasonalDiseaseSystem
+ 	{
+ 		try
+ 		{
+-			if (party == null)
+-			{
+-				return false;
+-			}
+-			if (party.Ships == null || ((List<Ship>)(object)party.Ships).Count == 0)
+-			{
+-				return false;
+-			}
+-			return party.IsCurrentlyAtSea;
++			// v1.2.12: No Ships / IsCurrentlyAtSea — GameVersionCompatibility returns false (no at-sea disease bonus).
++			return GameVersionCompatibility.MobilePartyQualifiesAsAtSeaForSeasonalDisease(party);
+ 		}
+-		catch
++		catch (Exception ex)
+ 		{
++			LogMessage("[SEASONAL_DISEASE] IsPartyAtSea failed: " + ex.Message);
+ 			return false;
+ 		}
+ 	}
+diff --git a/src/AIInfluence.DynamicEvents/DynamicEventsAnalyzer.cs b/src/AIInfluence.DynamicEvents/DynamicEventsAnalyzer.cs
+index c4b0efa..582fa50 100644
+--- a/src/AIInfluence.DynamicEvents/DynamicEventsAnalyzer.cs
++++ b/src/AIInfluence.DynamicEvents/DynamicEventsAnalyzer.cs
+@@ -1644,7 +1644,7 @@ public class DynamicEventsAnalyzer
+ 			sb.AppendLine("    **Current Settlements:**");
+ 			if (list.Any())
+ 			{
+-				List<string> values = list.Select((Settlement t) => ((object)t.Name).ToString() + (t.HasPort ? " (port)" : "")).ToList();
++				List<string> values = list.Select((Settlement t) => ((object)t.Name).ToString() + (GameVersionCompatibility.SettlementHasPort(t) ? " (port)" : "")).ToList();
+ 				sb.AppendLine(string.Format("    Towns ({0}): {1}", list.Count, string.Join(", ", values)));
+ 			}
+ 			else
+diff --git a/src/AIInfluence.DynamicEvents/DynamicEventsGenerator.cs b/src/AIInfluence.DynamicEvents/DynamicEventsGenerator.cs
+index 4d1df8b..26b5f15 100644
+--- a/src/AIInfluence.DynamicEvents/DynamicEventsGenerator.cs
++++ b/src/AIInfluence.DynamicEvents/DynamicEventsGenerator.cs
+@@ -2776,7 +2776,7 @@ public class DynamicEventsGenerator
+ 			.ToList();
+ 		foreach (Settlement item in list2)
+ 		{
+-			string text = (item.IsTown ? "Town" : (item.IsCastle ? "Castle" : "Village")) + (item.HasPort ? " (port)" : "");
++			string text = (item.IsTown ? "Town" : (item.IsCastle ? "Castle" : "Village")) + (GameVersionCompatibility.SettlementHasPort(item) ? " (port)" : "");
+ 			IFaction mapFaction = item.MapFaction;
+ 			string text2 = ((mapFaction == null) ? null : ((object)mapFaction.Name)?.ToString()) ?? "Neutral";
+ 			CultureObject culture = item.Culture;
+@@ -3332,7 +3332,7 @@ public class DynamicEventsGenerator
+ 			{
+ 				SettlementName = (((object)item2.Name)?.ToString() ?? "Unknown"),
+ 				SettlementStringId = (((MBObjectBase)item2).StringId ?? "unknown"),
+-				SettlementType = (item2.IsTown ? "Town" : "Castle") + (item2.HasPort ? " (port)" : "")
++				SettlementType = (item2.IsTown ? "Town" : "Castle") + (GameVersionCompatibility.SettlementHasPort(item2) ? " (port)" : "")
+ 			};
+ 			IFaction mapFaction = item2.MapFaction;
+ 			obj.KingdomName = ((mapFaction == null) ? null : ((object)mapFaction.Name)?.ToString()) ?? "Independent";
+@@ -3395,7 +3395,7 @@ public class DynamicEventsGenerator
+ 			{
+ 				SettlementName = (((object)item2.Name)?.ToString() ?? "Unknown"),
+ 				SettlementStringId = (((MBObjectBase)item2).StringId ?? "unknown"),
+-				SettlementType = (item2.IsTown ? "Town" : "Castle") + (item2.HasPort ? " (port)" : "")
++				SettlementType = (item2.IsTown ? "Town" : "Castle") + (GameVersionCompatibility.SettlementHasPort(item2) ? " (port)" : "")
+ 			};
+ 			IFaction mapFaction = item2.MapFaction;
+ 			obj.KingdomName = ((mapFaction == null) ? null : ((object)mapFaction.Name)?.ToString()) ?? "Independent";
+@@ -3459,7 +3459,7 @@ public class DynamicEventsGenerator
+ 			{
+ 				SettlementName = (((object)item2.Name)?.ToString() ?? "Unknown"),
+ 				SettlementStringId = (((MBObjectBase)item2).StringId ?? "unknown"),
+-				SettlementType = (item2.IsTown ? "Town" : "Castle") + (item2.HasPort ? " (port)" : "")
++				SettlementType = (item2.IsTown ? "Town" : "Castle") + (GameVersionCompatibility.SettlementHasPort(item2) ? " (port)" : "")
+ 			};
+ 			IFaction mapFaction = item2.MapFaction;
+ 			obj.KingdomName = ((mapFaction == null) ? null : ((object)mapFaction.Name)?.ToString()) ?? "Independent";
+diff --git a/src/AIInfluence.Util/GameVersionCompatibility.cs b/src/AIInfluence.Util/GameVersionCompatibility.cs
+index 84810eb..c52c3fc 100644
+--- a/src/AIInfluence.Util/GameVersionCompatibility.cs
++++ b/src/AIInfluence.Util/GameVersionCompatibility.cs
+@@ -8,7 +8,6 @@ using SandBox;
+ using SandBox.Missions.AgentBehaviors;
+ using TaleWorlds.CampaignSystem;
+ using TaleWorlds.CampaignSystem.Actions;
+-using TaleWorlds.CampaignSystem.CampaignBehaviors;
+ using TaleWorlds.CampaignSystem.MapEvents;
+ using TaleWorlds.CampaignSystem.Party;
+ using TaleWorlds.CampaignSystem.Roster;
+@@ -21,6 +20,12 @@ using TaleWorlds.ObjectSystem;
+ 
+ namespace AIInfluence.Util;
+ 
++/// <summary>
++/// Cross-version helpers for Bannerlord v1.2.12 vs v1.3.x. TaleWorlds APIs for naval travel, ports,
++/// blockades, and native kingdom alliances differ or are missing on 1.2.12; methods here use reflection
++/// or safe defaults so the same assembly can run when those members or types are absent. When adding
++/// new direct TaleWorlds calls, check 1.2.12 and extend this class if needed.
++/// </summary>
+ public static class GameVersionCompatibility
+ {
+ 	private static readonly string[] BehaviorsToDisable = new string[7] { "PatrolAgentBehavior", "EscortAgentBehavior", "WalkingBehavior", "IdleAgentBehavior", "StandGuardBehavior", "PatrollingGuardBehavior", "ScriptBehavior" };
+@@ -211,6 +216,7 @@ public static class GameVersionCompatibility
+ 
+ 	public static Vec2 GetPortPosition(this Settlement settlement)
+ 	{
++		// v1.2.12: PortPosition may be absent; callers get Vec2.Invalid (no port coordinates).
+ 		//IL_0026: Unknown result type (might be due to invalid IL or missing references)
+ 		//IL_002b: Unknown result type (might be due to invalid IL or missing references)
+ 		//IL_0009: Unknown result type (might be due to invalid IL or missing references)
+@@ -235,6 +241,298 @@ public static class GameVersionCompatibility
+ 		}
+ 	}
+ 
++	// --- Bannerlord v1.2.12 vs v1.3.x: native alliances and naval/port APIs differ or are absent on 1.2.12.
++	// Use reflection and conservative fallbacks so one build can load on both; see Try* helpers below.
++
++	private static Type _allianceCampaignBehaviorInterfaceType;
++
++	private static bool _allianceCampaignBehaviorInterfaceLookupDone;
++
++	private static Type GetAllianceCampaignBehaviorInterfaceType()
++	{
++		if (_allianceCampaignBehaviorInterfaceLookupDone)
++		{
++			return _allianceCampaignBehaviorInterfaceType;
++		}
++		_allianceCampaignBehaviorInterfaceLookupDone = true;
++		Type resolved = Type.GetType("TaleWorlds.CampaignSystem.CampaignBehaviors.IAllianceCampaignBehavior, TaleWorlds.CampaignSystem");
++		if (resolved != null)
++		{
++			_allianceCampaignBehaviorInterfaceType = resolved;
++			return resolved;
++		}
++		foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
++		{
++			if (assembly.GetName().Name != "TaleWorlds.CampaignSystem")
++			{
++				continue;
++			}
++			try
++			{
++				foreach (Type candidate in assembly.GetExportedTypes())
++				{
++					if (candidate.IsInterface && candidate.Name == "IAllianceCampaignBehavior")
++					{
++						_allianceCampaignBehaviorInterfaceType = candidate;
++						return candidate;
++					}
++				}
++			}
++			catch (ReflectionTypeLoadException ex)
++			{
++				AIInfluenceBehavior.Instance?.LogMessage("[GameVersionCompatibility] IAllianceCampaignBehavior scan: ReflectionTypeLoadException " + ex.Message);
++			}
++		}
++		return null;
++	}
++
++	private static object TryGetAllianceCampaignBehavior(Campaign campaign)
++	{
++		Type interfaceType = GetAllianceCampaignBehaviorInterfaceType();
++		if (campaign == null || interfaceType == null)
++		{
++			return null;
++		}
++		try
++		{
++			MethodInfo getBehavior = typeof(Campaign).GetMethods(BindingFlags.Public | BindingFlags.Instance).FirstOrDefault(delegate(MethodInfo methodInfo)
++			{
++				if (!methodInfo.IsGenericMethodDefinition || methodInfo.Name != "GetCampaignBehavior")
++				{
++					return false;
++				}
++				ParameterInfo[] parameters = methodInfo.GetParameters();
++				return parameters.Length == 0;
++			});
++			if (getBehavior == null)
++			{
++				return null;
++			}
++			MethodInfo constructed = getBehavior.MakeGenericMethod(interfaceType);
++			return constructed.Invoke(campaign, null);
++		}
++		catch (Exception ex)
++		{
++			AIInfluenceBehavior.Instance?.LogMessage("[GameVersionCompatibility] TryGetAllianceCampaignBehavior failed: " + ex.Message);
++			return null;
++		}
++	}
++
++	public static bool SettlementHasPort(Settlement settlement)
++	{
++		// v1.2.12: HasPort may be missing; prompts and AI context omit ", port" when absent.
++		return settlement != null && TryGetBoolProperty(settlement, "HasPort", out bool value) && value;
++	}
++
++	public static bool MobilePartyIsCurrentlyAtSea(MobileParty party)
++	{
++		// v1.2.12: no IsCurrentlyAtSea; always false (land-only).
++		return party != null && TryGetBoolProperty(party, "IsCurrentlyAtSea", out bool value) && value;
++	}
++
++	public static bool MobilePartyHasNavalNavigationCapability(MobileParty party)
++	{
++		// v1.2.12: property missing; naval routing and blockade checks stay land-only.
++		return party != null && TryGetBoolProperty(party, "HasNavalNavigationCapability", out bool value) && value;
++	}
++
++	public static bool SiegeEventIsBlockadeActive(object siegeEvent)
++	{
++		// v1.2.12: blockade API may be absent; do not treat as blockaded.
++		return siegeEvent != null && TryGetBoolProperty(siegeEvent, "IsBlockadeActive", out bool value) && value;
++	}
++
++	public static bool MobilePartyQualifiesAsAtSeaForSeasonalDisease(MobileParty party)
++	{
++		if (party == null)
++		{
++			return false;
++		}
++		if (!TryGetPartyShipCount(party.Party, out int shipCount) || shipCount == 0)
++		{
++			return false;
++		}
++		return MobilePartyIsCurrentlyAtSea(party);
++	}
++
++	public static string GetShipInfoDescription(PartyBase party, bool isAtSea)
++	{
++		if (party == null || !TryGetPartyShipCount(party, out int count) || count == 0)
++		{
++			return "";
++		}
++		object flagship = GetPropertyValue(party, "FlagShip");
++		if (flagship == null && TryEnumeratePartyShips(party, out IEnumerable<object> shipsEnumerable))
++		{
++			foreach (object ship in shipsEnumerable)
++			{
++				flagship = ship;
++				break;
++			}
++		}
++		if (flagship == null)
++		{
++			return "";
++		}
++		object shipHull = GetPropertyValue(flagship, "ShipHull");
++		if (shipHull == null)
++		{
++			return "";
++		}
++		string displayName = GetPropertyValue(flagship, "Name")?.ToString();
++		if (string.IsNullOrEmpty(displayName))
++		{
++			displayName = GetPropertyValue(shipHull, "Name")?.ToString() ?? "unknown ship";
++		}
++		object hullType = GetPropertyValue(shipHull, "Type");
++		string hullTypeText = hullType?.ToString()?.ToLowerInvariant() ?? "unknown";
++		string text3 = isAtSea ? ((count != 1) ? $"You are currently sailing at sea with {count} ships, your flagship being the {hullTypeText} ship named \"{displayName}\"" : ("You are currently sailing on your " + hullTypeText + " ship named \"" + displayName + "\" at sea")) : ((count != 1) ? $"You own {count} ships, your flagship being a {hullTypeText} ship named \"{displayName}\"" : ("You own a " + hullTypeText + " ship named \"" + displayName + "\""));
++		return text3 + ".";
++	}
++
++	public static string GetMainHeroPartyShipNarrativeWhenAtSea(PartyBase mainHeroParty)
++	{
++		if (mainHeroParty == null || !TryGetPartyShipCount(mainHeroParty, out int count2) || count2 == 0)
++		{
++			return "";
++		}
++		object val2 = GetPropertyValue(mainHeroParty, "FlagShip");
++		if (val2 == null && TryEnumeratePartyShips(mainHeroParty, out IEnumerable<object> list))
++		{
++			foreach (object ship in list)
++			{
++				val2 = ship;
++				break;
++			}
++		}
++		if (val2 == null)
++		{
++			return "";
++		}
++		object shipHull2 = GetPropertyValue(val2, "ShipHull");
++		if (shipHull2 == null)
++		{
++			return " They are currently sailing on a ship at sea.";
++		}
++		string text52 = GetPropertyValue(val2, "Name")?.ToString();
++		if (string.IsNullOrEmpty(text52))
++		{
++			text52 = GetPropertyValue(shipHull2, "Name")?.ToString() ?? "unknown ship";
++		}
++		string text53 = GetPropertyValue(shipHull2, "Type")?.ToString()?.ToLowerInvariant() ?? "unknown";
++		return (count2 != 1) ? $" They are currently sailing with {count2} ships, their flagship being a {text53} ship named \"{text52}\" at sea." : (" They are currently sailing on a " + text53 + " ship named \"" + text52 + "\" at sea.");
++	}
++
++	private static bool TryGetBoolProperty(object target, string propertyName, out bool value)
++	{
++		value = false;
++		if (target == null)
++		{
++			return false;
++		}
++		try
++		{
++			PropertyInfo property = target.GetType().GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance);
++			if (property == null || property.PropertyType != typeof(bool))
++			{
++				return false;
++			}
++			object raw = property.GetValue(target);
++			if (raw is bool booleanValue)
++			{
++				value = booleanValue;
++				return true;
++			}
++		}
++		catch (Exception ex)
++		{
++			AIInfluenceBehavior.Instance?.LogMessage("[GameVersionCompatibility] TryGetBoolProperty " + propertyName + " failed: " + ex.Message);
++		}
++		return false;
++	}
++
++	private static object GetPropertyValue(object target, string propertyName)
++	{
++		if (target == null)
++		{
++			return null;
++		}
++		try
++		{
++			return target.GetType().GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance)?.GetValue(target);
++		}
++		catch (Exception ex)
++		{
++			AIInfluenceBehavior.Instance?.LogMessage("[GameVersionCompatibility] GetPropertyValue " + propertyName + " failed: " + ex.Message);
++			return null;
++		}
++	}
++
++	private static bool TryGetPartyShipCount(PartyBase party, out int count)
++	{
++		count = 0;
++		if (party == null)
++		{
++			return false;
++		}
++		try
++		{
++			object ships = GetPropertyValue(party, "Ships");
++			if (ships == null)
++			{
++				return false;
++			}
++			if (ships is ICollection collection)
++			{
++				count = collection.Count;
++				return count > 0;
++			}
++			if (ships is IEnumerable enumerable)
++			{
++				int num = 0;
++				foreach (object item in enumerable)
++				{
++					num++;
++				}
++				count = num;
++				return count > 0;
++			}
++		}
++		catch (Exception ex)
++		{
++			AIInfluenceBehavior.Instance?.LogMessage("[GameVersionCompatibility] TryGetPartyShipCount failed: " + ex.Message);
++		}
++		return false;
++	}
++
++	private static bool TryEnumeratePartyShips(PartyBase party, out IEnumerable<object> ships)
++	{
++		ships = null;
++		if (party == null)
++		{
++			return false;
++		}
++		try
++		{
++			object shipsObject = GetPropertyValue(party, "Ships");
++			if (shipsObject is IEnumerable enumerable)
++			{
++				List<object> list = new List<object>();
++				foreach (object item in enumerable)
++				{
++					list.Add(item);
++				}
++				ships = list;
++				return list.Count > 0;
++			}
++		}
++		catch (Exception ex)
++		{
++			AIInfluenceBehavior.Instance?.LogMessage("[GameVersionCompatibility] TryEnumeratePartyShips failed: " + ex.Message);
++		}
++		return false;
++	}
++
+ 	public static bool IsAlliedWithFaction(IFaction faction1, IFaction faction2)
+ 	{
+ 		if (faction1 == null || faction2 == null || faction1 == faction2)
+@@ -250,11 +548,23 @@ public static class GameVersionCompatibility
+ 				try
+ 				{
+ 					Campaign current = Campaign.Current;
+-					IAllianceCampaignBehavior val3 = ((current != null) ? current.GetCampaignBehavior<IAllianceCampaignBehavior>() : null);
+-					return val3 != null && val3.IsAllyWithKingdom(val, val2);
++					object allianceBehavior = TryGetAllianceCampaignBehavior(current);
++					if (allianceBehavior == null)
++					{
++						return false;
++					}
++					Type interfaceType = GetAllianceCampaignBehaviorInterfaceType();
++					MethodInfo method = interfaceType?.GetMethod("IsAllyWithKingdom", BindingFlags.Public | BindingFlags.Instance);
++					if (method == null)
++					{
++						return false;
++					}
++					object result = method.Invoke(allianceBehavior, new object[2] { val, val2 });
++					return result is bool flag && flag;
+ 				}
+-				catch
++				catch (Exception ex)
+ 				{
++					AIInfluenceBehavior.Instance?.LogMessage("[GameVersionCompatibility] IsAlliedWithFaction failed: " + ex.Message);
+ 					return false;
+ 				}
+ 			}
+@@ -281,11 +591,14 @@ public static class GameVersionCompatibility
+ 		try
+ 		{
+ 			Campaign current = Campaign.Current;
+-			IAllianceCampaignBehavior val3 = ((current != null) ? current.GetCampaignBehavior<IAllianceCampaignBehavior>() : null);
+-			if (val3 != null)
++			object allianceBehavior = TryGetAllianceCampaignBehavior(current);
++			if (allianceBehavior == null)
+ 			{
+-				val3.StartAlliance(val, val2);
++				return;
+ 			}
++			Type interfaceType = GetAllianceCampaignBehaviorInterfaceType();
++			MethodInfo method = interfaceType?.GetMethod("StartAlliance", BindingFlags.Public | BindingFlags.Instance);
++			method?.Invoke(allianceBehavior, new object[2] { val, val2 });
+ 		}
+ 		catch (Exception ex)
+ 		{
+@@ -302,11 +615,14 @@ public static class GameVersionCompatibility
+ 		try
+ 		{
+ 			Campaign current = Campaign.Current;
+-			IAllianceCampaignBehavior val = ((current != null) ? current.GetCampaignBehavior<IAllianceCampaignBehavior>() : null);
+-			if (val != null)
++			object allianceBehavior = TryGetAllianceCampaignBehavior(current);
++			if (allianceBehavior == null)
+ 			{
+-				val.EndAlliance(kingdom1, kingdom2);
++				return;
+ 			}
++			Type interfaceType = GetAllianceCampaignBehaviorInterfaceType();
++			MethodInfo method = interfaceType?.GetMethod("EndAlliance", BindingFlags.Public | BindingFlags.Instance);
++			method?.Invoke(allianceBehavior, new object[2] { kingdom1, kingdom2 });
+ 		}
+ 		catch (Exception ex)
+ 		{
+@@ -1262,6 +1578,7 @@ public static class GameVersionCompatibility
+ 
+ 	public static void RemoveShips(MobileParty party)
+ 	{
++		// v1.2.12: No ships API — reflection finds nothing; method returns without action.
+ 		if (party == null)
+ 		{
+ 			return;
+diff --git a/src/AIInfluence/DialogManager.cs b/src/AIInfluence/DialogManager.cs
+index 58faa23..3c54b0e 100644
+--- a/src/AIInfluence/DialogManager.cs
++++ b/src/AIInfluence/DialogManager.cs
+@@ -1090,7 +1090,7 @@ public class DialogManager
+ 									}
+ 									else
+ 									{
+-										bool flag13 = Hero.MainHero.PartyBelongedTo != null && Hero.MainHero.PartyBelongedTo.IsCurrentlyAtSea;
++										bool flag13 = GameVersionCompatibility.MobilePartyIsCurrentlyAtSea(Hero.MainHero.PartyBelongedTo);
+ 										if (flag13 && PlayerEncounter.Current != null)
+ 										{
+ 											_behavior.LogMessage("[DEBUG] Processing player release inside mission on water for " + ((MBObjectBase)npc).StringId + " - handling PlayerEncounter");
+diff --git a/src/AIInfluence/PromptGenerator.cs b/src/AIInfluence/PromptGenerator.cs
+index 50a8199..4aca8a1 100644
+--- a/src/AIInfluence/PromptGenerator.cs
++++ b/src/AIInfluence/PromptGenerator.cs
+@@ -18,7 +18,6 @@ using Newtonsoft.Json.Linq;
+ using TaleWorlds.CampaignSystem;
+ using TaleWorlds.CampaignSystem.CharacterDevelopment;
+ using TaleWorlds.CampaignSystem.ComponentInterfaces;
+-using TaleWorlds.CampaignSystem.Naval;
+ using TaleWorlds.CampaignSystem.Party;
+ using TaleWorlds.CampaignSystem.Roster;
+ using TaleWorlds.CampaignSystem.Settlements;
+@@ -715,7 +714,7 @@ public static class PromptGenerator
+ 		else if (npc.PartyBelongedToAsPrisoner != PartyBase.MainParty)
+ 		{
+ 			PartyBase partyBelongedToAsPrisoner = npc.PartyBelongedToAsPrisoner;
+-			obj6 = ((((partyBelongedToAsPrisoner != null) ? partyBelongedToAsPrisoner.Settlement : null) != null) ? string.Format("You are a prisoner in {0} ({1}{2}).", npc.PartyBelongedToAsPrisoner.Settlement.Name, npc.PartyBelongedToAsPrisoner.Settlement.IsCastle ? "castle" : "town", npc.PartyBelongedToAsPrisoner.Settlement.HasPort ? ", port" : "") : "You are a prisoner in an unknown location.");
++			obj6 = ((((partyBelongedToAsPrisoner != null) ? partyBelongedToAsPrisoner.Settlement : null) != null) ? string.Format("You are a prisoner in {0} ({1}{2}).", npc.PartyBelongedToAsPrisoner.Settlement.Name, npc.PartyBelongedToAsPrisoner.Settlement.IsCastle ? "castle" : "town", GameVersionCompatibility.SettlementHasPort(npc.PartyBelongedToAsPrisoner.Settlement) ? ", port" : "") : "You are a prisoner in an unknown location.");
+ 		}
+ 		else
+ 		{
+@@ -834,7 +833,7 @@ public static class PromptGenerator
+ 		IReadOnlyList<string> readOnlyList = ((!flag12) ? NearbyPartyInfoProvider.GetNearbyPartySummaries(referenceHero, 10f, 6, (IEnumerable<MobileParty>)(object)new MobileParty[1] { MobileParty.MainParty }) : null);
+ 		string text48 = ((readOnlyList != null && readOnlyList.Count > 0) ? string.Join("\n", readOnlyList.Select((string summary) => "- " + summary)) : null);
+ 		string otherPlayerPrisonersInfo = WorldInfoManager.GetOtherPlayerPrisonersInfo(npc);
+-		bool flag13 = npc.PartyBelongedTo != null && npc.PartyBelongedTo.IsCurrentlyAtSea;
++		bool flag13 = GameVersionCompatibility.MobilePartyIsCurrentlyAtSea(npc.PartyBelongedTo);
+ 		string text49 = "";
+ 		string text50 = "";
+ 		if (npc.PartyBelongedTo != null && npc.PartyBelongedTo.Party != null)
+@@ -849,30 +848,11 @@ public static class PromptGenerator
+ 		{
+ 			text50 = " You are on land (not at sea).";
+ 		}
+-		bool flag14 = Hero.MainHero.PartyBelongedTo != null && Hero.MainHero.PartyBelongedTo.IsCurrentlyAtSea;
++		bool flag14 = GameVersionCompatibility.MobilePartyIsCurrentlyAtSea(Hero.MainHero.PartyBelongedTo);
+ 		string text51 = "";
+ 		if (flag13 && flag14 && Hero.MainHero.PartyBelongedTo != null && Hero.MainHero.PartyBelongedTo.Party != null)
+ 		{
+-			PartyBase party = Hero.MainHero.PartyBelongedTo.Party;
+-			if (party.Ships != null && ((List<Ship>)(object)party.Ships).Count > 0)
+-			{
+-				Ship val2 = party.FlagShip ?? ((((List<Ship>)(object)party.Ships).Count > 0) ? ((List<Ship>)(object)party.Ships)[0] : null);
+-				if (val2 != null && val2.ShipHull != null)
+-				{
+-					string text52 = ((object)val2.Name)?.ToString();
+-					if (string.IsNullOrEmpty(text52))
+-					{
+-						text52 = ((object)val2.ShipHull.Name)?.ToString() ?? "unknown ship";
+-					}
+-					string text53 = ((object)val2.ShipHull.Type/*cast due to .constrained prefix*/).ToString().ToLowerInvariant();
+-					int count2 = ((List<Ship>)(object)party.Ships).Count;
+-					text51 = ((count2 != 1) ? $" They are currently sailing with {count2} ships, their flagship being a {text53} ship named \"{text52}\" at sea." : (" They are currently sailing on a " + text53 + " ship named \"" + text52 + "\" at sea."));
+-				}
+-				else
+-				{
+-					text51 = " They are currently sailing on a ship at sea.";
+-				}
+-			}
++			text51 = GameVersionCompatibility.GetMainHeroPartyShipNarrativeWhenAtSea(Hero.MainHero.PartyBelongedTo.Party);
+ 		}
+ 		string detailedMilitaryInfo = GetDetailedMilitaryInfo(npc);
+ 		string inventorySummary = InventoryHelper.GetInventorySummary(npc);
+@@ -2085,7 +2065,7 @@ public static class PromptGenerator
+ 		foreach (Town item in list2)
+ 		{
+ 			string text = (((SettlementComponent)item).Settlement.IsTown ? "city" : "castle");
+-			string text2 = (((SettlementComponent)item).Settlement.HasPort ? ", port" : "");
++			string text2 = (GameVersionCompatibility.SettlementHasPort(((SettlementComponent)item).Settlement) ? ", port" : "");
+ 			string text3 = (SettlementOwnershipTracker.Instance.IsCapital(((MBObjectBase)((SettlementComponent)item).Settlement).StringId) ? ", CAPITAL" : "");
+ 			list.Add($"{((SettlementComponent)item).Name} (id:{((MBObjectBase)((SettlementComponent)item).Settlement).StringId}, {text}{text2}{text3})");
+ 		}
+@@ -3662,7 +3642,7 @@ public static class PromptGenerator
+ 				stringBuilder.AppendLine($"Currently owned by {npcKingdom.Name}:");
+ 				foreach (Settlement item in source.Take(10))
+ 				{
+-					string text = (item.IsTown ? "town" : (item.IsCastle ? "castle" : "settlement")) + (item.HasPort ? ", port" : "");
++					string text = (item.IsTown ? "town" : (item.IsCastle ? "castle" : "settlement")) + (GameVersionCompatibility.SettlementHasPort(item) ? ", port" : "");
+ 					string text2 = (instance2.IsCapital(((MBObjectBase)item).StringId) ? " **CAPITAL**" : "");
+ 					string text3 = ((item.OwnerClan != null) ? $"{item.OwnerClan.Name} ({((MBObjectBase)item.OwnerClan).StringId})" : "no owner");
+ 					Town town = item.Town;
+@@ -3686,7 +3666,7 @@ public static class PromptGenerator
+ 				stringBuilder.AppendLine($"Currently owned by {playerKingdom.Name}:");
+ 				foreach (Settlement item2 in source2.Take(10))
+ 				{
+-					string text5 = (item2.IsTown ? "town" : (item2.IsCastle ? "castle" : "settlement")) + (item2.HasPort ? ", port" : "");
++					string text5 = (item2.IsTown ? "town" : (item2.IsCastle ? "castle" : "settlement")) + (GameVersionCompatibility.SettlementHasPort(item2) ? ", port" : "");
+ 					string text6 = (instance2.IsCapital(((MBObjectBase)item2).StringId) ? " **CAPITAL**" : "");
+ 					string text7 = ((item2.OwnerClan != null) ? $"{item2.OwnerClan.Name} ({((MBObjectBase)item2.OwnerClan).StringId})" : "no owner");
+ 					Town town2 = item2.Town;
+@@ -3956,7 +3936,7 @@ public static class PromptGenerator
+ 			string text = ((mapFaction == null) ? null : ((object)mapFaction.Name)?.ToString()) ?? "Independent";
+ 			IFaction mapFaction2 = settlement.MapFaction;
+ 			string text2 = ((mapFaction2 != null) ? mapFaction2.StringId : null) ?? "none";
+-			string text3 = (settlement.IsTown ? "Town" : (settlement.IsCastle ? "Castle" : "Village")) + (settlement.HasPort ? " (port)" : "") + (SettlementOwnershipTracker.Instance.IsCapital(((MBObjectBase)settlement).StringId) ? " [CAPITAL]" : "");
++			string text3 = (settlement.IsTown ? "Town" : (settlement.IsCastle ? "Castle" : "Village")) + (GameVersionCompatibility.SettlementHasPort(settlement) ? " (port)" : "") + (SettlementOwnershipTracker.Instance.IsCapital(((MBObjectBase)settlement).StringId) ? " [CAPITAL]" : "");
+ 			string text4 = "";
+ 			if (EconomicEffectsManager.Instance != null && EconomicEffectsManager.Instance.TryGetSettlementDailyEffect(settlement, out var _, out var _, out var reason))
+ 			{
+@@ -4248,32 +4228,8 @@ public static class PromptGenerator
+ 
+ 	private static string GetShipInfo(PartyBase party, bool isAtSea)
+ 	{
+-		//IL_00c3: Unknown result type (might be due to invalid IL or missing references)
+-		//IL_00c8: Unknown result type (might be due to invalid IL or missing references)
+-		if (party == null || party.Ships == null || ((List<Ship>)(object)party.Ships).Count == 0)
+-		{
+-			return "";
+-		}
+-		MBReadOnlyList<Ship> ships = party.Ships;
+-		int count = ((List<Ship>)(object)ships).Count;
+-		Ship val = party.FlagShip;
+-		if (val == null)
+-		{
+-			val = ((List<Ship>)(object)ships)[0];
+-		}
+-		if (val == null || val.ShipHull == null)
+-		{
+-			return "";
+-		}
+-		string text = ((object)val.Name)?.ToString();
+-		if (string.IsNullOrEmpty(text))
+-		{
+-			text = ((object)val.ShipHull.Name)?.ToString() ?? "unknown ship";
+-		}
+-		string text2 = ((object)val.ShipHull.Type/*cast due to .constrained prefix*/).ToString().ToLowerInvariant();
+-		string text3 = "";
+-		text3 = (isAtSea ? ((count != 1) ? $"You are currently sailing at sea with {count} ships, your flagship being the {text2} ship named \"{text}\"" : ("You are currently sailing on your " + text2 + " ship named \"" + text + "\" at sea")) : ((count != 1) ? $"You own {count} ships, your flagship being a {text2} ship named \"{text}\"" : ("You own a " + text2 + " ship named \"" + text + "\"")));
+-		return text3 + ".";
++		// v1.2.12: PartyBase.Ships / Ship types absent — GameVersionCompatibility returns empty via reflection.
++		return GameVersionCompatibility.GetShipInfoDescription(party, isAtSea);
+ 	}
+ 
+ 	private static string GetWeatherInfo(Hero npc)
+@@ -4339,7 +4295,7 @@ public static class PromptGenerator
+ 					MapWeatherModel mapWeatherModel = Campaign.Current.Models.MapWeatherModel;
+ 					WeatherEvent weatherEventInPosition = mapWeatherModel.GetWeatherEventInPosition(val);
+ 					string weatherDescription = GetWeatherDescription(weatherEventInPosition);
+-					return (npc.PartyBelongedTo == null || !npc.PartyBelongedTo.IsCurrentlyAtSea) ? ("The weather is " + weatherDescription) : (((int)weatherEventInPosition == 5) ? "You are sailing through a storm at sea" : (((int)weatherEventInPosition <= 0) ? "You are sailing at sea with clear weather" : ("You are at sea. " + weatherDescription)));
++					return (npc.PartyBelongedTo == null || !GameVersionCompatibility.MobilePartyIsCurrentlyAtSea(npc.PartyBelongedTo)) ? ("The weather is " + weatherDescription) : (((int)weatherEventInPosition == 5) ? "You are sailing through a storm at sea" : (((int)weatherEventInPosition <= 0) ? "You are sailing at sea with clear weather" : ("You are at sea. " + weatherDescription)));
+ 				}
+ 				catch (Exception ex)
+ 				{
+diff --git a/src/AIInfluence/WorldInfoManager.cs b/src/AIInfluence/WorldInfoManager.cs
+index 07bc724..4f00867 100644
+--- a/src/AIInfluence/WorldInfoManager.cs
++++ b/src/AIInfluence/WorldInfoManager.cs
+@@ -1229,7 +1229,7 @@ public class WorldInfoManager
+ 				return;
+ 			}
+ 			(Settlement, float) nearestSettlementInfo = GetNearestSettlementInfo(Hero.MainHero.PartyBelongedTo);
+-			string text8 = ((Hero.MainHero.PartyBelongedTo != null && Hero.MainHero.PartyBelongedTo.IsCurrentlyAtSea) ? " sailing at sea" : " traveling on land");
++			string text8 = (GameVersionCompatibility.MobilePartyIsCurrentlyAtSea(Hero.MainHero.PartyBelongedTo) ? " sailing at sea" : " traveling on land");
+ 			if (nearestSettlementInfo.Item2 <= 20f && nearestSettlementInfo.Item1 != null)
+ 			{
+ 				string text9 = (nearestSettlementInfo.Item1.IsTown ? "city" : (nearestSettlementInfo.Item1.IsCastle ? "castle" : "village"));
+@@ -1254,11 +1254,11 @@ public class WorldInfoManager
+ 		else if (npc.PartyBelongedTo != null)
+ 		{
+ 			MobileParty partyBelongedTo = npc.PartyBelongedTo;
+-			string text14 = (partyBelongedTo.IsCurrentlyAtSea ? " sailing at sea" : " traveling on land");
++			string text14 = (GameVersionCompatibility.MobilePartyIsCurrentlyAtSea(partyBelongedTo) ? " sailing at sea" : " traveling on land");
+ 			if (partyBelongedTo.Army != null)
+ 			{
+ 				Army army = partyBelongedTo.Army;
+-				string text15 = (army.LeaderParty.IsCurrentlyAtSea ? " sailing at sea" : " traveling on land");
++				string text15 = (GameVersionCompatibility.MobilePartyIsCurrentlyAtSea(army.LeaderParty) ? " sailing at sea" : " traveling on land");
+ 				if (army.LeaderParty.CurrentSettlement != null)
+ 				{
+ 					context.CurrentTask = $"marching with the army, stationed in {army.LeaderParty.CurrentSettlement.Name} (id:{((MBObjectBase)army.LeaderParty.CurrentSettlement).StringId})";
+@@ -4551,7 +4551,7 @@ public class WorldInfoManager
+ 				}
+ 				return $"located in {currentSettlement.Name} ({text} of {text2}, {text4}, {region}). {text5}";
+ 			}
+-			string text8 = ((Hero.MainHero.PartyBelongedTo != null && Hero.MainHero.PartyBelongedTo.IsCurrentlyAtSea) ? " sailing at sea" : " on land");
++			string text8 = (GameVersionCompatibility.MobilePartyIsCurrentlyAtSea(Hero.MainHero.PartyBelongedTo) ? " sailing at sea" : " on land");
+ 			(Settlement, float) nearestSettlementInfo = GetNearestSettlementInfo(Hero.MainHero.PartyBelongedTo);
+ 			if (nearestSettlementInfo.Item2 <= 20f)
+ 			{
+@@ -4582,7 +4582,7 @@ public class WorldInfoManager
+ 				string text17 = ((currentSettlement2.Town != null) ? GetBasicProsperityDescription(currentSettlement2.Town.Prosperity) : ((currentSettlement2.Village != null) ? GetBasicProsperityDescription(currentSettlement2.Village.Hearth) : "unknown prosperity"));
+ 				return $"held as prisoner in your party while you are located in {currentSettlement2.Name} ({text13} of {text14}, {text16}, {region2}). {text17}";
+ 			}
+-			string text18 = ((Hero.MainHero.PartyBelongedTo != null && Hero.MainHero.PartyBelongedTo.IsCurrentlyAtSea) ? " sailing at sea" : " traveling on land");
++			string text18 = (GameVersionCompatibility.MobilePartyIsCurrentlyAtSea(Hero.MainHero.PartyBelongedTo) ? " sailing at sea" : " traveling on land");
+ 			(Settlement, float) nearestSettlementInfo2 = GetNearestSettlementInfo(Hero.MainHero.PartyBelongedTo);
+ 			AIInfluenceBehavior instance = AIInfluenceBehavior.Instance;
+ 			if (instance != null)
+@@ -4764,7 +4764,7 @@ public class WorldInfoManager
+ 		}
+ 		if (npcParty != null)
+ 		{
+-			string text58 = (npcParty.IsCurrentlyAtSea ? " sailing at sea" : " on land");
++			string text58 = (GameVersionCompatibility.MobilePartyIsCurrentlyAtSea(npcParty) ? " sailing at sea" : " on land");
+ 			(Settlement, float) nearestSettlementInfo3 = GetNearestSettlementInfo(npcParty);
+ 			List<(Settlement, float)> list5 = new List<(Settlement, float)>();
+ 			foreach (Settlement item3 in (List<Settlement>)(object)Campaign.Current.Settlements)
+@@ -4799,7 +4799,7 @@ public class WorldInfoManager
+ 		}
+ 		if (npcParty != null)
+ 		{
+-			string text59 = (npcParty.IsCurrentlyAtSea ? " sailing at sea" : " on land");
++			string text59 = (GameVersionCompatibility.MobilePartyIsCurrentlyAtSea(npcParty) ? " sailing at sea" : " on land");
+ 			return "in the wilderness, far from any settlement," + text59;
+ 		}
+ 		return "in the wilderness, far from any settlement";

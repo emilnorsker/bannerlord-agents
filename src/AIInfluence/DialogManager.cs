@@ -1090,7 +1090,7 @@ public class DialogManager
 									}
 									else
 									{
-										bool flag13 = GameVersionCompatibility.MobilePartyIsCurrentlyAtSea(Hero.MainHero.PartyBelongedTo);
+										bool flag13 = Hero.MainHero.PartyBelongedTo != null && Hero.MainHero.PartyBelongedTo.IsCurrentlyAtSea;
 										if (flag13 && PlayerEncounter.Current != null)
 										{
 											_behavior.LogMessage("[DEBUG] Processing player release inside mission on water for " + ((MBObjectBase)npc).StringId + " - handling PlayerEncounter");
