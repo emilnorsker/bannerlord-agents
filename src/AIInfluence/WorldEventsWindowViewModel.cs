@@ -66,7 +66,7 @@ public class WorldEventsWindowViewModel : ViewModel
 		_entrySequence = 0L;
 		try
 		{
-			List<DynamicEvent> list3 = DynamicEventsManager.Instance?.GetActiveEvents() ?? new List<DynamicEvent>();
+			List<DynamicEvent> list3 = WorldEventsReadFacade.GetActiveEventsMerged();
 			if (list3.Any())
 			{
 				List<DynamicEvent> list4 = list3.OrderByDescending((DynamicEvent e) => e.CreationCampaignDays).ToList();

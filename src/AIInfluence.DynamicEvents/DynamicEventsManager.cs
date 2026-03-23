@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AIInfluence;
 using AIInfluence.Diplomacy;
+using AIInfluence.Services;
 using MCM.Abstractions.Base.Global;
 using Newtonsoft.Json;
 using TaleWorlds.CampaignSystem;
@@ -116,10 +117,17 @@ public class DynamicEventsManager
 			}
 			_generationInProgress = true;
 			_lastGenerationTime = CampaignTime.Now;
-			_generator.GenerateEvents().ContinueWith(delegate
+			_generator.GenerateEvents().ContinueWith(delegate(Task t)
 			{
-				_generationInProgress = false;
-			});
+				MainThreadDispatcher.Queue.Enqueue(delegate
+				{
+					_generationInProgress = false;
+					if (t.IsFaulted && t.Exception != null)
+					{
+						DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] GenerateEvents faulted: " + t.Exception.GetBaseException().Message);
+					}
+				});
+			}, TaskScheduler.Default);
 		}
 		RemoveExpiredEvents();
 	}
@@ -374,7 +382,7 @@ public class DynamicEventsManager
 		}
 	}
 
-	public List<DynamicEvent> GetEventsForNPC(Hero npc)
+	public List<DynamicEvent> GetEventsForNPC(Hero npc, bool persistKnowledgeSync = true)
 	{
 		if (npc == null)
 		{
@@ -398,7 +406,7 @@ public class DynamicEventsManager
 				StringId = npcKey
 			};
 		}
-		SyncNpcDynamicEventKnowledge(npc, tempContext, instance, npcKey);
+		SyncNpcDynamicEventKnowledge(npc, tempContext, instance, npcKey, persistKnowledgeSync);
 		HashSet<string> knownIds = (tempContext.DynamicEvents != null && tempContext.DynamicEvents.Any()) ? new HashSet<string>(tempContext.DynamicEvents) : null;
 		return (from e in BuildMergedActiveEvents()
 			where e != null && !string.IsNullOrEmpty(e.Id) && !e.IsExpired() && (knownIds == null || knownIds.Contains(e.Id))
@@ -406,9 +414,9 @@ public class DynamicEventsManager
 			select e).ToList();
 	}
 
-	public void SyncNpcDynamicEventKnowledge(Hero npc, NPCContext context, AIInfluenceBehavior behavior, string npcContextKey)
+	public void SyncNpcDynamicEventKnowledge(Hero npc, NPCContext context, AIInfluenceBehavior behavior, string npcContextKey, bool persist = true)
 	{
-		if (npc == null || context == null || behavior == null || string.IsNullOrEmpty(npcContextKey))
+		if (npc == null || context == null || string.IsNullOrEmpty(npcContextKey))
 		{
 			return;
 		}
@@ -443,7 +451,7 @@ public class DynamicEventsManager
 				flag = true;
 			}
 		}
-		if (flag)
+		if (flag && persist && behavior != null)
 		{
 			behavior.SaveNPCContext(npcContextKey, npc, context);
 		}
@@ -552,7 +560,8 @@ public class DynamicEventsManager
 				return true;
 			}
 		}
-		if (dynamicEvent.Importance >= 8)
+		int globalRumorThreshold = GlobalSettings<ModSettings>.Instance?.DynamicEventsGlobalRumorImportanceThreshold ?? 8;
+		if (globalRumorThreshold <= 10 && dynamicEvent.Importance >= globalRumorThreshold)
 		{
 			return true;
 		}
@@ -688,9 +697,10 @@ public class DynamicEventsManager
 				return $"clan leader {npc.Clan.Leader.Name} is involved - should know!";
 			}
 		}
-		if (dynamicEvent.Importance >= 8)
+		int globalRumorThreshold2 = GlobalSettings<ModSettings>.Instance?.DynamicEventsGlobalRumorImportanceThreshold ?? 8;
+		if (globalRumorThreshold2 <= 10 && dynamicEvent.Importance >= globalRumorThreshold2)
 		{
-			return "high importance (>=8) - should know!";
+			return "high importance (>=" + globalRumorThreshold2 + ") - should know!";
 		}
 		if (dynamicEvent.KingdomsInvolved is string text && text == "all")
 		{

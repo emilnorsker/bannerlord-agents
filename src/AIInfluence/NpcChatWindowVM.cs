@@ -307,7 +307,7 @@ public class NpcChatWindowVM : ViewModel
         var section = new InfoSectionVM { HeaderText = "World events", HeaderSkillId = DefaultSkills.Scouting.StringId };
         try
         {
-            foreach (var e in (DynamicEventsManager.Instance?.GetEventsForNPC(_npc) ?? new List<DynamicEvent>()).OrderByDescending(ev => ev.CreationCampaignDays).Take(5))
+            foreach (var e in WorldEventsReadFacade.GetEventsKnownToNpc(_npc).OrderByDescending(ev => ev.CreationCampaignDays).Take(5))
             {
                 string text = FormatWorldEventDisplayText(e);
                 if (string.IsNullOrWhiteSpace(text))

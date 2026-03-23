@@ -39,6 +39,9 @@ public class DynamicEvent
 	[JsonProperty("importance")]
 	public int Importance { get; set; }
 
+	[JsonProperty("plot_id")]
+	public string PlotId { get; set; }
+
 	[JsonProperty("spread_speed")]
 	public string SpreadSpeed { get; set; }
 

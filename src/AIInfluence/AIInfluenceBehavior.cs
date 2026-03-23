@@ -3890,29 +3890,33 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	private void InitializeActiveEventsForNPC(NPCContext context, Hero npc)
 	{
-		//IL_00bc: Unknown result type (might be due to invalid IL or missing references)
 		try
 		{
-			List<DynamicEvent> activeEvents = DynamicEventsManager.Instance.GetActiveEvents();
+			List<DynamicEvent> known = DynamicEventsManager.Instance.GetEventsForNPC(npc, persistKnowledgeSync: false);
 			int num = 0;
-			foreach (DynamicEvent dynamicEvent in activeEvents)
+			foreach (DynamicEvent dynamicEvent in known)
 			{
-				if (dynamicEvent.CharactersInvolved != null && dynamicEvent.CharactersInvolved.Contains(((MBObjectBase)npc).StringId) && !context.RecentEvents.Any((CampaignEvent e) => e.Description == dynamicEvent.Description && e.Type == dynamicEvent.Type))
+				if (dynamicEvent == null)
 				{
-					CampaignEvent item = new CampaignEvent
-					{
-						Type = dynamicEvent.Type,
-						Description = dynamicEvent.Description,
-						Timestamp = CampaignTime.DaysFromNow((float)(-dynamicEvent.DaysSinceCreation))
-					};
-					context.RecentEvents.Add(item);
-					num++;
-					LogMessage($"[NPC_CONTEXT_INIT] Added active event '{dynamicEvent.Description}' to {npc.Name} context");
+					continue;
 				}
+				if (context.RecentEvents.Any((CampaignEvent e) => e.Description == dynamicEvent.Description && e.Type == dynamicEvent.Type))
+				{
+					continue;
+				}
+				CampaignEvent item = new CampaignEvent
+				{
+					Type = dynamicEvent.Type,
+					Description = dynamicEvent.Description,
+					Timestamp = CampaignTime.DaysFromNow((float)(-dynamicEvent.DaysSinceCreation))
+				};
+				context.RecentEvents.Add(item);
+				num++;
+				LogMessage($"[NPC_CONTEXT_INIT] Added active dynamic event to RecentEvents for {npc.Name}: {dynamicEvent.Type}");
 			}
 			if (num > 0)
 			{
-				LogMessage($"[NPC_CONTEXT_INIT] Initialized {num} active events for {npc.Name}");
+				LogMessage($"[NPC_CONTEXT_INIT] Initialized {num} active events for {npc.Name} (same visibility as GetEventsForNPC)");
 			}
 		}
 		catch (Exception ex)

@@ -6,7 +6,7 @@
 
 **Normative:** **Must** and **must not** denote requirements. **Should** denotes a strong recommendation. **May** denotes an optional capability.
 
-**Related documents:** `TECHNICAL_GUIDE.en.md` (file formats, prompts). Code references: `NPCContext`, `WorldSecret`, `WorldInfoManager.CheckSecretKnowledge`, `PromptGenerator`, `AIInfluence.DynamicEvents`.
+**Related documents:** `TECHNICAL_GUIDE.en.md` (file formats, prompts). `docs/DYNAMIC_EVENTS_ANTIPATTERNS.md` (dynamic events integration status). Code references: `NPCContext`, `WorldSecret`, `WorldInfoManager.CheckSecretKnowledge`, `PromptGenerator`, `AIInfluence.DynamicEvents`.
 
 ---
 

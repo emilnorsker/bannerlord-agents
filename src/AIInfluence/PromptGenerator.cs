@@ -389,6 +389,7 @@ public static class PromptGenerator
 				select i.Description.Replace("{character}", npcName) + " (category: " + i.Category + ")").ToList();
 			text20 = (list2.Any() ? string.Join("; ", list2) : "none");
 		}
+		// Dynamic events: ids in NPCContext.DynamicEvents + DynamicEventsManager spread rules (merged registry). Distinct from RecentEvents (engine log) below.
 		string text21 = "none";
 		DynamicEventsManager instance2 = DynamicEventsManager.Instance;
 		if (instance2 != null)
@@ -404,6 +405,7 @@ public static class PromptGenerator
 				text21 = (list3.Any() ? string.Join("; ", list3) : "none");
 			}
 		}
+		// RecentEvents: Bannerlord campaign-style log (battles, deaths, etc.) when PromptIncludeEvents is enabled — not the AI dynamic-events pipeline.
 		string text22 = "none";
 		if (GlobalSettings<ModSettings>.Instance.PromptIncludeEvents && context.RecentEvents != null && context.RecentEvents.Any())
 		{
