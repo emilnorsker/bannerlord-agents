@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using AIInfluence.Diseases;
 using AIInfluence.DynamicEvents;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
@@ -43,10 +42,6 @@ public class SettlementProsperityPatch
 				TextObject val2 = new TextObject(reason, (Dictionary<string, object>)null);
 				(__result).Add(prosperityPerDay, val2, (TextObject)null);
 			}
-			if (DiseaseManager.Instance != null && DiseaseManager.Instance.TryGetQuarantineSettlementEffect(((SettlementComponent)village).Settlement, out var prosperityPerDay2, out foodPerDay, out var _, out var _, out var _, out var reason2) && Math.Abs(prosperityPerDay2) > 0.001f)
-			{
-				(__result).Add(prosperityPerDay2, new TextObject(reason2, (Dictionary<string, object>)null), (TextObject)null);
-			}
 		}
 		catch (Exception)
 		{
@@ -82,10 +77,6 @@ public class SettlementProsperityPatch
 			{
 				TextObject val2 = new TextObject(reason, (Dictionary<string, object>)null);
 				(__result).Add(prosperityPerDay, val2, (TextObject)null);
-			}
-			if (DiseaseManager.Instance != null && DiseaseManager.Instance.TryGetQuarantineSettlementEffect(((SettlementComponent)fortification).Settlement, out var prosperityPerDay2, out foodPerDay, out var _, out var _, out var _, out var reason2) && Math.Abs(prosperityPerDay2) > 0.001f)
-			{
-				(__result).Add(prosperityPerDay2, new TextObject(reason2, (Dictionary<string, object>)null), (TextObject)null);
 			}
 		}
 		catch (Exception)

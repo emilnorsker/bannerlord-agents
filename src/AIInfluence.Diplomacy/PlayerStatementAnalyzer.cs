@@ -5,7 +5,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AIInfluence.API;
-using AIInfluence.Diseases;
 using AIInfluence.DynamicEvents;
 using MCM.Abstractions.Base.Global;
 using Newtonsoft.Json;
@@ -254,52 +253,6 @@ public class PlayerStatementAnalyzer
 		}
 		stringBuilder.AppendLine("- 'demand_tribute' - Player demands daily tribute (requires daily_amount and duration_days)");
 		stringBuilder.AppendLine("- 'demand_reparations' - Player demands one-time war reparations (requires reparations_amount)");
-		bool flag8 = false;
-		ModSettings instance2 = GlobalSettings<ModSettings>.Instance;
-		if (instance2 != null && instance2.EnableDiseaseSystem)
-		{
-			DiseaseManager diseaseManager = DiseaseManager.Instance;
-			if (diseaseManager != null)
-			{
-				List<Settlement> source = ((IEnumerable<Settlement>)Settlement.All).Where(delegate(Settlement s)
-				{
-					int result;
-					if (s.IsTown || s.IsCastle)
-					{
-						if (s.OwnerClan != Clan.PlayerClan)
-						{
-							Clan ownerClan = s.OwnerClan;
-							result = ((((ownerClan != null) ? ownerClan.Kingdom : null) == playerKingdom) ? 1 : 0);
-						}
-						else
-						{
-							result = 1;
-						}
-					}
-					else
-					{
-						result = 0;
-					}
-					return (byte)result != 0;
-				}).ToList();
-				List<Settlement> list2 = source.Where((Settlement s) => diseaseManager.SettlementHasDisease(s)).ToList();
-				if (list2.Any())
-				{
-					flag8 = true;
-					stringBuilder.AppendLine("- 'quarantine_settlement' - Close a settlement for quarantine due to disease (requires settlement_id + quarantine_duration_days)");
-					stringBuilder.AppendLine("  Available settlements with disease:");
-					foreach (Settlement item6 in list2)
-					{
-						string arg = (diseaseManager.IsSettlementUnderQuarantine(item6) ? " [QUARANTINED]" : "");
-						stringBuilder.AppendLine($"    - {item6.Name} (string_id: {((MBObjectBase)item6).StringId}){arg}");
-					}
-				}
-				else
-				{
-					stringBuilder.AppendLine("- 'quarantine_settlement' - NOT AVAILABLE (no diseased settlements)");
-				}
-			}
-		}
 		stringBuilder.AppendLine("- 'none' - Just a statement without specific action");
 		stringBuilder.AppendLine();
 		stringBuilder.AppendLine("**MULTIPLE ACTIONS:** Player can propose multiple actions at once (e.g., 'accept_peace,transfer_territory,demand_reparations'). In this case, return ALL actions as comma-separated string.");

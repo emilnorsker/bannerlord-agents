@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using AIInfluence.Diseases;
 using AIInfluence.DynamicEvents;
 using AIInfluence.Util;
 using MCM.Abstractions.Base.Global;
@@ -718,49 +717,7 @@ public class DiplomacyManager
 			}
 			break;
 		case DiplomaticAction.QuarantineSettlement:
-			DiplomacyLogger.Instance.Log(string.Format("[DIPLOMACY_MGR] Processing QuarantineSettlement action. SettlementId: {0}, Duration: {1}", actionInfo.SettlementId ?? "null", actionInfo.QuarantineDurationDays));
-			if (!string.IsNullOrEmpty(actionInfo.SettlementId))
-			{
-				Settlement val3 = ((IEnumerable<Settlement>)Settlement.All).FirstOrDefault((Func<Settlement, bool>)((Settlement s) => ((MBObjectBase)s).StringId == actionInfo.SettlementId));
-				if (val3 != null)
-				{
-					Clan ownerClan = val3.OwnerClan;
-					if (((ownerClan != null) ? ownerClan.Kingdom : null) == val)
-					{
-						DiseaseManager instance = DiseaseManager.Instance;
-						if (instance != null && instance.SettlementHasDisease(val3))
-						{
-							int num = ((actionInfo.QuarantineDurationDays >= 1) ? actionInfo.QuarantineDurationDays : 14);
-							bool flag2 = instance.IsSettlementUnderQuarantine(val3);
-							if (instance.SetQuarantine(val3, quarantined: true, num, forceByKingdomLeader: true))
-							{
-								string text = (flag2 ? "EXTENDED" : "SET");
-								DiplomacyLogger.Instance.Log($"[DIPLOMACY_MGR] SUCCESS: Quarantine {text} on {val3.Name} by +{num} days by {val.Name}");
-							}
-							else
-							{
-								DiplomacyLogger.Instance.Log($"[DIPLOMACY_MGR] FAILED: Could not set quarantine on {val3.Name}");
-							}
-						}
-						else
-						{
-							DiplomacyLogger.Instance.Log($"[DIPLOMACY_MGR] Cannot quarantine {val3.Name}: no active disease");
-						}
-					}
-					else
-					{
-						DiplomacyLogger.Instance.Log($"[DIPLOMACY_MGR] Cannot quarantine {val3.Name}: not owned by {val.Name}");
-					}
-				}
-				else
-				{
-					DiplomacyLogger.Instance.Log("[DIPLOMACY_MGR] Cannot quarantine: settlement " + actionInfo.SettlementId + " not found");
-				}
-			}
-			else
-			{
-				DiplomacyLogger.Instance.Log("[DIPLOMACY_MGR] Cannot quarantine: no settlement specified");
-			}
+			DiplomacyLogger.Instance.Log("[DIPLOMACY_MGR] QuarantineSettlement ignored: disease system has been removed.");
 			break;
 		default:
 			DiplomacyLogger.Instance.Log($"[DIPLOMACY_MGR] Unknown action: {actionInfo.Action}");
@@ -2341,7 +2298,6 @@ public class DiplomacyManager
 				}
 			}
 			List<EconomicEffect> effectsForUpdate = null;
-			DiseaseEventData diseaseDataForUpdate = null;
 			if (analysisResult.EconomicEffects != null && analysisResult.EconomicEffects.Any())
 			{
 				try
@@ -2362,27 +2318,10 @@ public class DiplomacyManager
 					DiplomacyLogger.Instance.LogError("DiplomacyManager.AnalyzeAndExecuteDiplomaticActions", "Failed to apply economic effects for event " + diplomaticEvent.Id, ex2);
 				}
 			}
-			if (analysisResult.DiseaseData != null && !string.IsNullOrEmpty(analysisResult.DiseaseData.SettlementId) && (GlobalSettings<ModSettings>.Instance?.EnableDiseaseSystem ?? false))
-			{
-				try
-				{
-					Disease disease = DiseaseManager.Instance?.CreateDiseaseFromDiseaseEventData(diplomaticEvent, analysisResult.DiseaseData);
-					if (disease != null)
-					{
-						diseaseDataForUpdate = analysisResult.DiseaseData;
-						DiplomacyLogger.Instance.Log("[DIPLOMACY_MGR] Created disease '" + disease.Name + "' in " + analysisResult.DiseaseData.SettlementId + " from analyzer");
-					}
-				}
-				catch (Exception ex)
-				{
-					Exception ex3 = ex;
-					DiplomacyLogger.Instance.Log("[DIPLOMACY_MGR] ERROR creating disease from analyzer: " + ex3.Message);
-				}
-			}
 			if (!string.IsNullOrEmpty(analysisResult.EventUpdate))
 			{
-				diplomaticEvent.AddEventUpdate(analysisResult.EventUpdate, "Diplomatic Analysis", effectsForUpdate, diseaseDataForUpdate);
-				DiplomacyLogger.Instance.Log("[DIPLOMACY_MGR] Added event update to history" + ((effectsForUpdate != null && effectsForUpdate.Any()) ? $" with {effectsForUpdate.Count} economic effects" : "") + ((diseaseDataForUpdate != null) ? " with disease data" : ""));
+				diplomaticEvent.AddEventUpdate(analysisResult.EventUpdate, "Diplomatic Analysis", effectsForUpdate);
+				DiplomacyLogger.Instance.Log("[DIPLOMACY_MGR] Added event update to history" + ((effectsForUpdate != null && effectsForUpdate.Any()) ? $" with {effectsForUpdate.Count} economic effects" : ""));
 				ShowEventUpdateToPlayer(diplomaticEvent, analysisResult.EventUpdate);
 			}
 			if (analysisResult.ShouldEndEvent)

@@ -4216,7 +4216,6 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 			"economic" => (enabled: EnableEconomicEvents, chance: EconomicEventsChance), 
 			"social" => (enabled: EnableSocialEvents, chance: SocialEventsChance), 
 			"mysterious" => (enabled: EnableMysteriousEvents, chance: MysteriousEventsChance), 
-			"disease_outbreak" => (enabled: EnableDiseaseSystem && EnableDiseaseOutbreakEvents, chance: DiseaseOutbreakEventsChance), 
 			_ => (enabled: false, chance: 0), 
 		};
 	}
@@ -4243,10 +4242,6 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 		if (EnableMysteriousEvents && MysteriousEventsChance > 0)
 		{
 			dictionary["mysterious"] = MysteriousEventsChance;
-		}
-		if (EnableDiseaseSystem && EnableDiseaseOutbreakEvents && DiseaseOutbreakEventsChance > 0)
-		{
-			dictionary["disease_outbreak"] = DiseaseOutbreakEventsChance;
 		}
 		return dictionary;
 	}
