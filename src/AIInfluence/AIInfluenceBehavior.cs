@@ -3850,10 +3850,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			{
 				return null;
 			}
-			if (stringId == "diseases" || stringId == "disease_instances" || stringId == "settlement_disease_instances")
-			{
-				return null;
-			}
 			if (_npcFilePathCache.TryGetValue(stringId, out var value))
 			{
 				if (File.Exists(value))
@@ -3902,14 +3898,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 						case "rp_items.json":
 							continue;
 						case "reparations.json":
-							continue;
-						case "disease_instances.json":
-							continue;
-						case "diseases.json":
-							continue;
-						}
-						if (fileName == "settlement_disease_instances.json")
-						{
 							continue;
 						}
 						string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(text);
@@ -3968,10 +3956,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			if (string.IsNullOrEmpty(npcId))
 			{
 				LogMessage("[ERROR] LoadNPCContext called with empty npcId. Returning empty context.");
-				return new NPCContext();
-			}
-			if (npcId == "diseases" || npcId == "disease_instances" || npcId == "settlement_disease_instances")
-			{
 				return new NPCContext();
 			}
 			if (_npcContexts.TryGetValue(npcId, out var cached))
@@ -5619,14 +5603,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 						continue;
 					case "reparations.json":
 						continue;
-					case "disease_instances.json":
-						continue;
-					case "diseases.json":
-						continue;
-					}
-					if (fileName == "settlement_disease_instances.json")
-					{
-						continue;
 					}
 					string text2 = File.ReadAllText(text);
 					NPCContext nPCContext = JsonConvert.DeserializeObject<NPCContext>(text2);
@@ -5714,7 +5690,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			HashSet<string> hashSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
 			{
 				"dynamic_events.json", "pending_player_statements.json", "diplomatic_events.json", "war_statistics.json", "diplomatic_statements.json", "alliances.json", "alliance_data.json", "economic_effects.json", "settlement_ownership_history.json", "kingdom_leadership_history.json",
-				"trade_agreements.json", "territory_transfers.json", "tribute_agreements.json", "tributes.json", "reparations.json", "rp_items.json", "disease_instances.json", "diseases.json", "settlement_disease_instances.json"
+				"trade_agreements.json", "territory_transfers.json", "tribute_agreements.json", "tributes.json", "reparations.json", "rp_items.json"
 			};
 			string[] files = Directory.GetFiles(activeSaveDirectory, "*.json");
 			string[] array = files;

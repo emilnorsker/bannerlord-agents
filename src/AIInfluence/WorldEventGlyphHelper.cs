@@ -40,8 +40,6 @@ internal static class WorldEventGlyphHelper
                 return DefaultSkills.Scouting.StringId;
             case "social":
                 return DefaultSkills.Charm.StringId;
-            case "disease_outbreak":
-                return DefaultSkills.Medicine.StringId;
             default:
                 return DefaultSkills.Scouting.StringId;
         }

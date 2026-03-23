@@ -411,7 +411,6 @@ public class DynamicEventsGenerator
 			"economic" => CollectEconomicWorldData(), 
 			"social" => CollectSocialWorldData(), 
 			"mysterious" => CollectMysteriousWorldData(), 
-			"disease_outbreak" => CollectMinimalWorldData(), 
 			_ => CollectMinimalWorldData(), 
 		};
 	}

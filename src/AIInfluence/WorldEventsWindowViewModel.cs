@@ -1075,7 +1075,6 @@ public class WorldEventsWindowViewModel : ViewModel
 			"news" => ("AIInfluence_Category_News", "News"), 
 			"local" => ("AIInfluence_Category_Local", "Local"), 
 			"rumor" => ("AIInfluence_Category_Rumor", "Rumor"), 
-			"disease_outbreak" => ("AIInfluence_Category_DiseaseOutbreak", "Disease Outbreak"), 
 			_ => ("AIInfluence_Category_Other", "Other"), 
 		};
 		return ((object)new TextObject("{=" + text + "}" + text2, (Dictionary<string, object>)null)).ToString();
@@ -1093,7 +1092,6 @@ public class WorldEventsWindowViewModel : ViewModel
 			"news" => "#DC143C22", 
 			"local" => "#8B451322", 
 			"rumor" => "#70809022", 
-			"disease_outbreak" => "#8B000022", 
 			_ => "#9DE07722", 
 		};
 	}
