@@ -772,7 +772,7 @@ public class WorldEventsWindowViewModel : ViewModel
 		for (int i = 0; i < list.Count && i <= actionIndex; i++)
 		{
 			DiplomaticAction diplomaticAction = list[i];
-			bool flag = diplomaticAction == DiplomaticAction.TransferTerritory || diplomaticAction == DiplomaticAction.RejectTerritory || diplomaticAction == DiplomaticAction.DemandTerritory || diplomaticAction == DiplomaticAction.QuarantineSettlement;
+			bool flag = diplomaticAction == DiplomaticAction.TransferTerritory || diplomaticAction == DiplomaticAction.RejectTerritory || diplomaticAction == DiplomaticAction.DemandTerritory;
 			if (flag && i == actionIndex)
 			{
 				return (num < array.Length) ? array[num].Trim() : array[0].Trim();
@@ -812,17 +812,6 @@ public class WorldEventsWindowViewModel : ViewModel
 		//IL_0717: Unknown result type (might be due to invalid IL or missing references)
 		//IL_07d9: Unknown result type (might be due to invalid IL or missing references)
 		string sourceName = GetKingdomName(statement.KingdomId);
-		if (action == DiplomaticAction.QuarantineSettlement)
-		{
-			string text = ResolveSettlementIdForAction(statement, actionIndex);
-			string text2 = GetSettlementName(text);
-			if (string.IsNullOrWhiteSpace(text2) && !string.IsNullOrWhiteSpace(text))
-			{
-				text2 = text;
-			}
-			int num = ((statement.QuarantineDurationDays > 0) ? statement.QuarantineDurationDays : 14);
-			return ((object)new TextObject("{=AIInfluence_Action_QuarantineSettlement}{SOURCE} closed {SETTLEMENT} for quarantine for {DAYS} days", (Dictionary<string, object>)null).SetTextVariable("SOURCE", sourceName).SetTextVariable("SETTLEMENT", text2 ?? "").SetTextVariable("DAYS", num)).ToString();
-		}
 		List<string> list = new List<string>();
 		List<DiplomaticAction> list2 = ((statement.Actions != null && statement.Actions.Any()) ? statement.Actions : new List<DiplomaticAction> { statement.Action });
 		if (list2.Count == targetKingdomIds.Count && actionIndex < targetKingdomIds.Count)
@@ -897,7 +886,6 @@ public class WorldEventsWindowViewModel : ViewModel
 			DiplomaticAction.DemandTerritory => ((object)new TextObject("{=AIInfluence_Action_DemandTerritory}{SOURCE} demands territory from {TARGETS}", (Dictionary<string, object>)null).SetTextVariable("SOURCE", sourceName).SetTextVariable("TARGETS", text3)).ToString(), 
 			DiplomaticAction.RejectTerritory => ((object)new TextObject("{=AIInfluence_Action_RejectTerritory}{SOURCE} rejects territory demand from {TARGETS}", (Dictionary<string, object>)null).SetTextVariable("SOURCE", sourceName).SetTextVariable("TARGETS", text3)).ToString(), 
 			DiplomaticAction.ExpelClan => ((object)new TextObject("{=AIInfluence_Action_ExpelClan}{SOURCE} expels clan {TARGETS} from the kingdom", (Dictionary<string, object>)null).SetTextVariable("SOURCE", sourceName).SetTextVariable("TARGETS", text3)).ToString(), 
-			DiplomaticAction.QuarantineSettlement => "", 
 			_ => "", 
 		};
 	}

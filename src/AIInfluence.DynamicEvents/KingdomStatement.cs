@@ -69,7 +69,4 @@ public class KingdomStatement
 
 	[JsonProperty("trade_agreement_duration_years")]
 	public float TradeAgreementDurationYears { get; set; } = 1f;
-
-	[JsonProperty("quarantine_duration_days")]
-	public int QuarantineDurationDays { get; set; }
 }

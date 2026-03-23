@@ -641,8 +641,7 @@ public class KingdomStatementGenerator
 		stringBuilder.AppendLine("  \"daily_tribute_amount\": 0,");
 		stringBuilder.AppendLine("  \"tribute_duration_days\": 0,");
 		stringBuilder.AppendLine("  \"reparations_amount\": 0,");
-		stringBuilder.AppendLine("  \"trade_agreement_duration_years\": 1.0,");
-		stringBuilder.AppendLine("  \"quarantine_duration_days\": 0 // For quarantine_settlement: positive integer (days), minimum 1, auto-lifts after");
+		stringBuilder.AppendLine("  \"trade_agreement_duration_years\": 1.0");
 		stringBuilder.AppendLine("}");
 		stringBuilder.AppendLine();
 		stringBuilder.AppendLine("**CRITICAL: Action-Target Pairing by Index**");
@@ -1911,10 +1910,9 @@ public class KingdomStatementGenerator
 				DailyTributeAmount = diplomaticStatementResponse.DailyTributeAmount,
 				TributeDurationDays = diplomaticStatementResponse.TributeDurationDays,
 				ReparationsAmount = diplomaticStatementResponse.ReparationsAmount,
-				TradeAgreementDurationYears = ((diplomaticStatementResponse.TradeAgreementDurationYears > 0f) ? diplomaticStatementResponse.TradeAgreementDurationYears : 1f),
-				QuarantineDurationDays = diplomaticStatementResponse.QuarantineDurationDays
+				TradeAgreementDurationYears = ((diplomaticStatementResponse.TradeAgreementDurationYears > 0f) ? diplomaticStatementResponse.TradeAgreementDurationYears : 1f)
 			};
-			DiplomacyLogger.Instance.Log(string.Format("[STATEMENT_GEN] Statement created: Actions={0}, Settlement={1}, Tribute={2}/{3}, Reparations={4}, Quarantine={5}", string.Join(",", kingdomStatement.Actions), kingdomStatement.SettlementId, kingdomStatement.DailyTributeAmount, kingdomStatement.TributeDurationDays, kingdomStatement.ReparationsAmount, kingdomStatement.QuarantineDurationDays));
+			DiplomacyLogger.Instance.Log(string.Format("[STATEMENT_GEN] Statement created: Actions={0}, Settlement={1}, Tribute={2}/{3}, Reparations={4}", string.Join(",", kingdomStatement.Actions), kingdomStatement.SettlementId, kingdomStatement.DailyTributeAmount, kingdomStatement.TributeDurationDays, kingdomStatement.ReparationsAmount));
 			DiplomaticStatementsStorage.Instance.AddStatement(kingdomStatement);
 			return kingdomStatement;
 		}
@@ -1963,7 +1961,6 @@ public class KingdomStatementGenerator
 			"accept_reparations" => DiplomaticAction.AcceptReparations, 
 			"reject_reparations" => DiplomaticAction.RejectReparations, 
 			"expel_clan" => DiplomaticAction.ExpelClan, 
-			"quarantine_settlement" => DiplomaticAction.QuarantineSettlement, 
 			_ => DiplomaticAction.None, 
 		};
 	}
