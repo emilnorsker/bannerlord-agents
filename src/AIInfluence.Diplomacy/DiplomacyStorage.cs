@@ -241,13 +241,13 @@ public class DiplomacyStorage
 			LogMessage("[DIPLOMACY_STORAGE] Attempted to save null diplomatic events list");
 			return;
 		}
-		DynamicEventsManager dem = DynamicEventsManager.Instance;
-		if (dem == null)
+		DynamicEventsManager dynamicEventsManager = DynamicEventsManager.Instance;
+		if (dynamicEventsManager == null)
 		{
 			LogMessage("[DIPLOMACY_STORAGE] SaveDiplomaticEvents: DynamicEventsManager.Instance is null");
 			return;
 		}
-		dem.SaveDiplomaticSlice(diplomaticEvents, statementSchedules, analysisSchedules, statementQueues, pendingStatements);
+		dynamicEventsManager.SaveDiplomaticSlice(diplomaticEvents, statementSchedules, analysisSchedules, statementQueues, pendingStatements);
 		LogMessage($"[DIPLOMACY_STORAGE] Saved {diplomaticEvents.Count} diplomatic events via unified dynamic_events.json");
 	}
 
@@ -261,13 +261,13 @@ public class DiplomacyStorage
 	{
 		try
 		{
-			DynamicEventsManager dem = DynamicEventsManager.Instance;
-			if (dem == null)
+			DynamicEventsManager dynamicEventsManager = DynamicEventsManager.Instance;
+			if (dynamicEventsManager == null)
 			{
 				LogMessage("[DIPLOMACY_STORAGE] LoadDiplomaticEventsWithSchedules: DynamicEventsManager.Instance is null");
 				return EmptyDiplomaticLoadResult();
 			}
-			UnifiedDynamicEventsEnvelope envelope = dem.GetUnifiedEnvelope();
+			UnifiedDynamicEventsEnvelope envelope = dynamicEventsManager.GetUnifiedEnvelope();
 			if (envelope == null)
 			{
 				return EmptyDiplomaticLoadResult();
