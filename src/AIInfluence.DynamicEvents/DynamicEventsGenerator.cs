@@ -226,8 +226,9 @@ public class DynamicEventsGenerator
 					DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS_GEN] AIInfluenceBehavior instance not found");
 					return;
 				}
-				string dialogueAiResponse = await dialogueBehavior.SendAIRequestForFeature(dialoguePrompt, "dynamic_event_generation");
-				if (string.IsNullOrEmpty(dialogueAiResponse))
+				OpenRouterCallResult dialogueRaw = await dialogueBehavior.SendAIRequestForFeature(dialoguePrompt, "dynamic_event_generation");
+				string dialogueAiResponse = dialogueRaw.Payload;
+				if (!dialogueRaw.Success || string.IsNullOrEmpty(dialogueAiResponse))
 				{
 					DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS_GEN] AI returned empty response for dialogue-only generation - API may be unavailable");
 					if (dialogueAiResponse != null && (dialogueAiResponse.Contains("API key is missing") || dialogueAiResponse.Contains("Error:")))
@@ -287,8 +288,9 @@ public class DynamicEventsGenerator
 				DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS_GEN] AIInfluenceBehavior instance not found");
 				return;
 			}
-			string aiResponse = await behavior.SendAIRequestForFeature(prompt, "dynamic_event_generation");
-			if (string.IsNullOrEmpty(aiResponse))
+			OpenRouterCallResult eventGenRaw = await behavior.SendAIRequestForFeature(prompt, "dynamic_event_generation");
+			string aiResponse = eventGenRaw.Payload;
+			if (!eventGenRaw.Success || string.IsNullOrEmpty(aiResponse))
 			{
 				DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS_GEN] AI returned empty response - API may be unavailable");
 				if (aiResponse != null && (aiResponse.Contains("API key is missing") || aiResponse.Contains("Error:")))
@@ -1811,8 +1813,9 @@ public class DynamicEventsGenerator
 				DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS_GEN] AIInfluenceBehavior instance not found");
 				return;
 			}
-			string aiResponse = await behavior.SendAIRequestForFeature(prompt, "dynamic_events");
-			if (string.IsNullOrEmpty(aiResponse))
+			OpenRouterCallResult dialogueModeRaw = await behavior.SendAIRequestForFeature(prompt, "dynamic_events");
+			string aiResponse = dialogueModeRaw.Payload;
+			if (!dialogueModeRaw.Success || string.IsNullOrEmpty(aiResponse))
 			{
 				DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS_GEN] Empty AI response for dialogue analysis - API may be unavailable");
 				if (aiResponse != null && (aiResponse.Contains("API key is missing") || aiResponse.Contains("Error:")))
@@ -2459,9 +2462,9 @@ public class DynamicEventsGenerator
 
 	private DynamicEventsResponse ParseAIResponse(string aiResponse)
 	{
-		if (AIClient.IsRawTextFailureResponse(aiResponse))
+		if (string.IsNullOrEmpty(aiResponse))
 		{
-			DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS_GEN] AI response missing or error: " + (aiResponse ?? "(null)"));
+			DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS_GEN] AI response missing: " + (aiResponse ?? "(null)"));
 			return null;
 		}
 		try
@@ -4136,8 +4139,9 @@ public class DynamicEventsGenerator
 				DynamicEventsLogger.Instance.Log("[KINGDOM_DESTRUCTION] AIInfluenceBehavior instance not found");
 				return;
 			}
-			string aiResponse = await behavior.SendAIRequestForFeature(prompt, "kingdom_destruction_event");
-			if (string.IsNullOrEmpty(aiResponse))
+			OpenRouterCallResult destructionRaw = await behavior.SendAIRequestForFeature(prompt, "kingdom_destruction_event");
+			string aiResponse = destructionRaw.Payload;
+			if (!destructionRaw.Success || string.IsNullOrEmpty(aiResponse))
 			{
 				DynamicEventsLogger.Instance.Log("[KINGDOM_DESTRUCTION] AI returned empty response for kingdom destruction event");
 				return;

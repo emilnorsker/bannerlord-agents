@@ -1072,9 +1072,9 @@ public class DynamicEventsAnalyzer
 		try
 		{
 			DynamicEventsLogger.Instance.Log("[EVENTS_ANALYZER] Sending analysis request to AI");
-			string aiResponse = await _aiBehavior.SendAIRequestRaw(analysisData);
+			OpenRouterCallResult raw = await _aiBehavior.SendAIRequestRaw(analysisData);
 			DynamicEventsLogger.Instance.Log("[EVENTS_ANALYZER] Received AI analysis response");
-			return aiResponse;
+			return raw.Success ? raw.Payload : null;
 		}
 		catch (Exception ex)
 		{
@@ -1089,9 +1089,9 @@ public class DynamicEventsAnalyzer
 		//IL_00ec: Expected O, but got Unknown
 		try
 		{
-			if (AIClient.IsRawTextFailureResponse(aiResponse))
+			if (string.IsNullOrEmpty(aiResponse))
 			{
-				DynamicEventsLogger.Instance.Log("[EVENTS_ANALYZER] AI response missing, empty, or error text: " + (aiResponse ?? "(null)"));
+				DynamicEventsLogger.Instance.Log("[EVENTS_ANALYZER] AI response missing or empty: " + (aiResponse ?? "(null)"));
 				return null;
 			}
 			DynamicEventsLogger.Instance.Log($"[EVENTS_ANALYZER] Processing AI response (length: {aiResponse?.Length ?? 0})");

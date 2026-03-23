@@ -52,6 +52,11 @@ public class AIResponse
 	[JsonProperty("kingdom_action_reason")]
 	public string KingdomActionReason { get; set; }
 
+	/// <summary>
+	/// One-line command for this NPC’s map AI (Bannerlord campaign map: follow player, travel to settlement, raid, siege, etc.).
+	/// <see cref="DialogManager"/> reads it from the pending dialogue reply. With OpenRouter tools, the <c>technical_action</c> tool fills this
+	/// property after <see cref="AIInfluenceBehavior.ApplyNpcContextToolDeferralsToAiResponse"/>; other backends may still set it from the model JSON.
+	/// </summary>
 	[JsonProperty("technical_action")]
 	public string TechnicalAction { get; set; }
 

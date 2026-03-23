@@ -579,17 +579,18 @@ public class SettlementCombatManager
 			string prompt = _promptGenerator.GenerateSituationAnalysisPrompt(_activeCombat);
 			_logger.LogSituationAnalysisPrompt(((MBObjectBase)_activeCombat.Settlement).StringId, prompt);
 			_logger.Log("Sending prompt to AI for situation analysis");
-			string aiResponse = await _behavior.SendAIRequestRaw(prompt);
+			OpenRouterCallResult situationRaw = await _behavior.SendAIRequestRaw(prompt);
+			string aiResponse = situationRaw.Payload;
 			_logger.Log("=== AI Response Received ===");
 			_logger.Log($"  Response is null: {aiResponse == null}");
 			_logger.Log($"  Response is empty: {string.IsNullOrEmpty(aiResponse)}");
 			_logger.Log($"  Response length: {aiResponse?.Length ?? 0}");
-			_logger.Log(string.Format("  Raw failure: {0}", AIClient.IsRawTextFailureResponse(aiResponse ?? "")));
+			_logger.Log(string.Format("  OpenRouter success: {0}", situationRaw.Success));
 			_logger.Log("  Full response:");
 			_logger.Log("---START---");
 			_logger.Log(aiResponse ?? "");
 			_logger.Log("---END---");
-			if (AIClient.IsRawTextFailureResponse(aiResponse))
+			if (!situationRaw.Success)
 			{
 				_logger.LogError("SendSituationAnalysisPrompt", "AI returned empty or error response");
 				HandleAIError();
@@ -2324,17 +2325,18 @@ public class SettlementCombatManager
 			string prompt = _promptGenerator.GeneratePostCombatEventPrompt(combat, result);
 			_logger.LogPostCombatEventPrompt(((MBObjectBase)combat.Settlement).StringId, prompt);
 			_logger.Log("Sending prompt to AI for post-combat event creation");
-			string aiResponse = await _behavior.SendAIRequestRaw(prompt);
+			OpenRouterCallResult postCombatRaw = await _behavior.SendAIRequestRaw(prompt);
+			string aiResponse = postCombatRaw.Payload;
 			_logger.Log("=== AI Response Received (Post-Combat) ===");
 			_logger.Log($"  Response is null: {aiResponse == null}");
 			_logger.Log($"  Response is empty: {string.IsNullOrEmpty(aiResponse)}");
 			_logger.Log($"  Response length: {aiResponse?.Length ?? 0}");
-			_logger.Log(string.Format("  Raw failure: {0}", AIClient.IsRawTextFailureResponse(aiResponse ?? "")));
+			_logger.Log(string.Format("  OpenRouter success: {0}", postCombatRaw.Success));
 			_logger.Log("  Full response:");
 			_logger.Log("---START---");
 			_logger.Log(aiResponse ?? "");
 			_logger.Log("---END---");
-			if (AIClient.IsRawTextFailureResponse(aiResponse))
+			if (!postCombatRaw.Success)
 			{
 				_logger.LogError("SendPostCombatEventPrompt", "AI returned empty or error response");
 				HandlePostCombatAIError();

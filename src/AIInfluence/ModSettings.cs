@@ -13,6 +13,7 @@ using AIInfluence.Util;
 using MCM.Abstractions.Attributes;
 using MCM.Abstractions.Attributes.v2;
 using MCM.Abstractions.Base.Global;
+using MCM.Common;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.CampaignBehaviors;
 using TaleWorlds.CampaignSystem.Conversation;
@@ -562,7 +563,7 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 		}
 	}
 
-	[SettingPropertyText("OpenRouter API Key", -1, true, "", RequireRestart = false, HintText = "Enter your OpenRouter API key.")]
+	[SettingPropertyText("OpenRouter API Key", -1, true, "", RequireRestart = false, HintText = "Enter your OpenRouter API key (only needed for OpenRouter provider).")]
 	[SettingPropertyGroup("API Settings/OpenRouter Settings", GroupOrder = 1)]
 	public string ApiKey
 	{
@@ -580,7 +581,7 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 		}
 	}
 
-	[SettingPropertyBool("Test OpenRouter Connection", Order = 0, RequireRestart = false, HintText = "Test connection to the OpenRouter API. Results will be displayed in game messages.")]
+	[SettingPropertyBool("Test OpenRouter Connection", Order = 0, RequireRestart = false, HintText = "Test connection to OpenRouter backend. Results will be displayed in game messages.")]
 	[SettingPropertyGroup("API Settings/OpenRouter Settings", GroupOrder = 1)]
 	public bool TestOpenRouterConnection
 	{

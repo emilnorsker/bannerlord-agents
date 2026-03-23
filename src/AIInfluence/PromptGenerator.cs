@@ -893,7 +893,7 @@ public static class PromptGenerator
 		}
 		string text54 = (list11.Any() ? string.Join("; ", list11) : "none");
 		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.Append("### Mission ###\nRole-play as a character in Mount & Blade II: Bannerlord. Use your personality, history, and context to inform responses. Output ONLY a valid JSON object with no extra text or markdown.\n\n");
+		stringBuilder.Append("### Mission ###\nRole-play as a character in Mount & Blade II: Bannerlord. Use your personality, history, and context to inform responses.\n\n");
 		stringBuilder.Append("### Core Rules ###\n- Stay in character. Never break immersion or reference modern world/AI. " + ((overrideUseAsterisks ?? GlobalSettings<ModSettings>.Instance.PromptUseAsterisks) ? "Use *asterisks for actions/surroundings*" : "Dialogue only, no action descriptions.") + " Language: " + text43 + ".\n- Address the person naturally—NEVER use \"player\" or meta-gaming terms. They are a real person in your world.\n- Verify data consistency: Cross-check conversation history against facts, focus on data marked as current. React in-character if you detect contradictions.\n- Vary responses naturally unless character traits dictate repetition (catchphrases, verbal tics). Avoid formulaic patterns.\n- Facts MUST come from CURRENT DATA. Improvise emotions/flavor only. NEVER invent character names not in CURRENT DATA — use generic titles (elder, merchant) if unknown.\n\n");
 		if (!isMessengerMode && GlobalSettings<ModSettings>.Instance.PromptEnableInternalThoughts)
 		{
@@ -926,20 +926,27 @@ public static class PromptGenerator
 			stringBuilder.Append("### Task Logic ###\n- Completion: After finishing tasks (gather info, deliver message, errand), use 'return_to_player' when appropriate.\n- Travel: 'go_to_settlement' ONLY for independent travel (own party, leaving player's group). Don't use if already in player's party.\n- Following: 'follow_player'=stay continuously (in party). 'return_to_player'=go back after absence. Can't do both.\n- Combat orders: Use combat actions ('attack_party', 'siege_settlement') only when player explicitly orders. Append ',then:return' to return after.\n- Sequence: Go → Task → Return (when makes sense). New task while busy? Finish current first.\n- Independence: Decide when to return based on personality/situation and what player asked.\n\n");
 			stringBuilder.Append(GetAvailableActionsPrompt(npc));
 		}
-		stringBuilder.Append("### JSON Output Format ###\nOutput ONLY valid JSON. No text outside.\n**IMPORTANT: Only include fields that are relevant. Omit optional fields if they don't apply (e.g., no money_transfer if not exchanging money, no kingdom_action if not a kingdom leader, etc.).**\n\n**REQUIRED fields (always include):**\n");
+		if (!isMessengerMode)
+		{
+			stringBuilder.Append("### Response fields ###\nPrefer **dialogue tools** (`suspected_lie`, `dialogue_decision`, …) and world tools. Final JSON may be `{}` if tools carried the turn. Optional JSON: `response` for spoken line when not fully expressed via tools, plus `claimed_*`, `tts_instructions` when needed.\n\n**REQUIRED fields (always include):**\n");
+		}
+		else
+		{
+			stringBuilder.Append("### Response fields (semantic meaning) ###\n**IMPORTANT: Only include fields that are relevant. Omit optional fields if they don't apply (e.g., no money_transfer if not exchanging money, no kingdom_action if not a kingdom leader, etc.).**\n\n**REQUIRED fields (always include):**\n");
+		}
 		stringBuilder.Append(string.Format("- `response`: (string) In-character speech/actions. Min {0} chars, max {1} chars.{2}\n", GlobalSettings<ModSettings>.Instance.PromptMinResponseLength, GlobalSettings<ModSettings>.Instance.PromptMaxResponseLength, (text12 != null && !string.IsNullOrEmpty(text12) && text12 != "to be determined by you") ? " **CRITICAL**: Use cultural phrases and speech patterns from Speech Quirks NATURALLY and authentically. Cultural greetings should appear ONLY at the very start of a conversation, not in every response. Cultural interjections, exclamations, or expressions should be used sparingly (1-2 times per response maximum) and varied - don't repeat the same phrase. Let your personality-based mannerisms flow naturally throughout your speech. The goal is to make your speech feel authentic and culturally grounded, not forced or repetitive." : ""));
 		if (!isMessengerMode && GlobalSettings<ModSettings>.Instance.PromptEnableInternalThoughts)
 		{
 			stringBuilder.Append("- `internal_thoughts`: (string) **REQUIRED** - 500-1500 chars. Your PRIVATE reasoning process from the thought steps above. Summarize your character's internal perspective, motivations, conflicts, and strategy. The player will NEVER see this - be honest and introspective.\n");
 		}
-		if (context.IsRomanceEligible)
+		if (context.IsRomanceEligible && isMessengerMode)
 		{
 			stringBuilder.Append("- `romance_intent`: (string) 'none'|'flirt'|'romance'|'proposal'. See Romance Rules.\n");
 		}
 		string[] obj8 = new string[11]
 		{
-			isMessengerMode ? "" : (context.IsRomanceEligible ? ("- `decision`: (string) 'none'|'attack'" + ((npc.IsPrisoner || npc.CurrentSettlement != null) ? "" : "|'surrender'|'accept_surrender'") + "|'release'|'propose_marriage'|'accept_marriage'|'reject_marriage'|'intimate'.\n") : ("- `decision`: (string) 'none'|'attack'" + ((npc.IsPrisoner || npc.CurrentSettlement != null) ? "" : "|'surrender'|'accept_surrender'") + "|'release'.\n")),
-			isMessengerMode ? "" : "- `tone`: (string) 'positive'|'negative'|'neutral'. How this exchange changed your attitude.\n- `threat_level`: (string) 'high'|'low'|'none'. Threat from player.\n- `escalation_state`: (string) 'neutral'|'tense'|'critical'. Current tension.\n- `suspected_lie`: (boolean) true ONLY when you are CERTAIN they are lying - clear and undeniable contradiction with verified facts. Do NOT use for suspicions or doubts.\n- `deescalation_attempt`: (boolean) true if player apologizes/calms.\n- `claimed_name`, `claimed_clan`, `claimed_age`: (string/int/null) Update ONLY when player EXPLICITLY states this information in their SPOKEN dialogue. **CRITICAL: Do NOT extract names or identity information from action descriptions (text in `**`). Actions are narrative descriptions of physical movements, NOT dialogue statements. Do NOT infer from meta-information like kingdom names, nearby parties, troop names, or actions. Set to null if player hasn't explicitly told you in spoken words. Don't invent.**\n- `claimed_gold`: (int) Amount player states they have. 0 if not mentioned.\n- `allows_letters`: (boolean) **REQUIRED** - Your current correspondence preference. Keep `true` to allow sending letters, set to `false` to stop. Change ONLY if your relationship or player's requests justify it.\n",
+			"",
+			"",
 			null,
 			null,
 			null,
@@ -951,13 +958,13 @@ public static class PromptGenerator
 			null
 		};
 		obj8[2] = "";
-		obj8[3] = "\n**OPTIONAL fields (include ONLY if relevant, NEVER repeat actions from Previous Response — they are ALREADY EXECUTED):**\n";
-		obj8[4] = (isMessengerMode ? "" : $"- `money_transfer`: (object) {{\"action\": \"give\"|\"receive\", \"amount\": number, \"opposed_attribute\": \"...\"?}}. ONLY when you ACCEPT transfer. \"give\"=you pay player, \"receive\"=player pays you. Max: {npc.Gold} denars. Add **opposed_attribute** (vigor|endurance|control|cunning|intelligence|social) ONLY when contested—player forces/extorts you. When set, the game rolls dice; if player wins, transfer succeeds; if they lose, you refuse. Omit for agreements (quest reward, trade, gift). **Omit if no money transfer.**\n");
-		obj8[5] = (isMessengerMode ? "" : "- `item_transfers`: (array) `[{\"item_id\": \"...\", \"amount\": N, \"action\": \"give\"|\"take\"}]`. 'give'=you→player, 'take'=player→you. Use exact item IDs from inventories. Add **`item_transfers_opposed_attribute`** as a TOP-LEVEL sibling (same level as item_transfers), e.g. `{\"item_transfers\": [...], \"item_transfers_opposed_attribute\": \"social\"}`. ONLY when contested—player forces you. When set, the game rolls dice; if player wins, transfer succeeds; if they lose, you refuse. Omit for agreements. **Omit if no item exchange.**\n");
-		obj8[6] = ((text14 != null && !isMessengerMode) ? GetWorkshopJsonFields() : "");
-		obj8[7] = (isMessengerMode ? "" : "- `technical_action`: (string) \"ACTION_NAME\" to start, \"ACTION_NAME:STOP\" to stop. **Omit if no action change.**\n");
-		obj8[8] = ((!isMessengerMode && CanNPCBeKilledThroughRoleplay(npc)) ? "- `character_death`: (object) {\"should_die\": true, \"death_reason\": \"...\", \"killer_string_id\": \"...\", \"opposed_attribute\": \"vigor\"|\"endurance\"|\"control\"|\"cunning\"|\"intelligence\"|\"social\"} for permanent death. Use player's ID if they killed you (e.g., \"lord_1_1\"), null for natural/unknown. **opposed_attribute** REQUIRED when killer is player: ONE attribute that best fits HOW they killed you (vigor=strength/combat, cunning=deception/poison, control=precision, etc). When set, the game rolls dice; if player wins, death occurs; if they lose, you survive. Omit if killer is null. Valid death_reason: lethal attacks, suicide, assassination, natural death, sacrifice. If set, `decision` MUST be 'none'. **Omit if not dying.**\n" : "");
-		obj8[9] = (GlobalSettings<ModSettings>.Instance.PromptEnableQuests ? GetQuestJsonFieldDescription(npc, context, isMessengerMode) : "");
+		obj8[3] = "\n**OPTIONAL fields (include ONLY if relevant, NEVER repeat actions from Previous Response — they are ALREADY EXECUTED):**\n" + (!isMessengerMode ? "Gold, items, workshop, map, death, quests, kingdom use **tools**. Tone, lie detection, decisions, romance, escalation, letters use **dialogue tools** (`suspected_lie`, `dialogue_decision`, …) — prefer those over duplicating the same data in JSON below.\n" : "");
+		obj8[4] = (isMessengerMode ? "" : "");
+		obj8[5] = (isMessengerMode ? "" : "");
+		obj8[6] = "";
+		obj8[7] = (isMessengerMode ? "" : "- **Map AI (`technical_action` tool):** `value` is one command line for this NPC on the campaign map (action name, or `name:payload`, or `name:STOP`). Same text the game stores on `AIResponse.TechnicalAction`. **Omit if no map behavior change.**\n");
+		obj8[8] = "";
+		obj8[9] = (GlobalSettings<ModSettings>.Instance.PromptEnableQuests ? (isMessengerMode ? GetQuestJsonFieldDescription(npc, context, isMessengerMode) : "") : "");
 		obj8[10] = "\n";
 		stringBuilder.Append(string.Concat(obj8));
 		if (flag2 || flag3 || flag4)
@@ -985,7 +992,6 @@ public static class PromptGenerator
 				stringBuilder.Append(kingdomActionsSection);
 			}
 		}
-		stringBuilder.Append("\n**Example structure:**\n" + GetExampleJsonStructure(npc, context) + "\n");
 		stringBuilder.Append("### The World ###\n- **The World:** " + text37 + ".\n\n");
 		int length = stringBuilder.Length;
 		stringBuilder.Append("### Global Politics of the World ###\n- **Kingdoms and Leaders:** " + kingdomsAndLeadersInfo + ".\n- **Current Wars:** " + text15 + ".\n" + ((!string.IsNullOrEmpty(allianceStatus)) ? ("- **Current Alliances:** " + allianceStatus + ".\n") : "") + ((!string.IsNullOrEmpty(tradeAgreementsInfo)) ? ("- **Trade Agreements:** " + tradeAgreementsInfo + "\n") : "") + ((!string.IsNullOrEmpty(tributesInfo)) ? ("- **Tributes:** " + tributesInfo + "\n") : "") + ((!string.IsNullOrEmpty(reparationsInfo)) ? ("- **War Reparations:** " + reparationsInfo + "\n") : "") + ((!string.IsNullOrEmpty(territoryTransfersInfo)) ? ("- **Recent Territory Transfers:** " + territoryTransfersInfo + "\n") : "") + ((!string.IsNullOrEmpty(transferableSettlementsInfo)) ? ("- **Transferable Settlements:** " + transferableSettlementsInfo + "\n") : "") + "- **Previous Rulers:** " + ((previousRulersInfo != null) ? previousRulersInfo : "Previous ruler information unavailable") + ".\n\n### Character Briefing (CURRENT DATA) ###\n" + $"- **Identity:** You are {npcName} (id:{text}), a {num2}-year-old {text8} {text9} of the {text2} (clan_id:{text3}).\n" + "- **Culture & Kingdom:** Your culture is " + text4 + ". " + text7 + "\n- **Description:** " + text16 + ".\n" + ((holdingsInfo != null) ? ("- **Holdings:** " + holdingsInfo + ".\n") : "") + ((text14 != null) ? ("- **Workshops:** " + text14 + ".\n") : "") + ((clanInfo != null) ? ("- **Clan:** " + clanInfo + ".\n") : "") + $"- **Your Wealth:** You have {npc.Gold} denars. This is your personal money that you can use freely.\n" + ((!isMessengerMode) ? ("- **Your Inventory (Items you can offer in trade/barter):**\n" + inventorySummary + "\n  (Use exact Item IDs from this list for 'item_transfers' action when you want to give items)\n") : "") + ((npc.IsFemale && npc.IsPregnant) ? GetPregnancyInfo(npc, context) : "") + "- **Appearance:** " + appearanceDescription + " " + equipmentDescription + "\n- **Capabilities:** " + skillNarrative + "\n" + (flag2 ? ("- **Base Personality Traits:** " + text11 + ". These are starting points for your personality, but create a DEEP, MULTI-DIMENSIONAL psychological portrait. These traits should influence but not limit you - show how they manifest in complex, human ways. A 'Honorable' person might have moments of moral conflict. A 'Daring' person might have hidden fears. Be creative, avoid stereotypes, and create a REAL, LIVING character with emotional depth, internal contradictions, and authentic human qualities.\n") : ("- **Your Character:** " + text11 + "\n  This is your stable, core personality - the psychological foundation that defines your behavior, reactions, and worldview. This describes your MENTAL traits, not physical abilities. Stay true to this character.\n" + (flag3 ? "- **Your Story:** You will define your backstory in this conversation.\n" : ("- **Your Story:** " + text10 + "\n")))) + ((text12 != null) ? ("- **Speech Quirks:** " + (flag4 ? "You will define your speech patterns in this conversation." : text12) + (flag4 ? "" : " **CRITICAL**: Use your speech patterns NATURALLY and authentically. Cultural greetings should appear ONLY at the very start of a conversation. Cultural interjections, exclamations, or expressions should be used sparingly (1-2 times per response maximum) and varied. Let your personality-based mannerisms flow naturally throughout your speech. Show your culture through varied, authentic expressions, not repetitive phrases.") + "\n") : "") + "- **Relationships:**\n  - **Relatives:** " + relativesInfo + ".\n  - **Friends & Enemies:** " + relationsInfo + ".\n" + ((visitedSettlementsInfo != null) ? ("- **Visited Settlements:** " + visitedSettlementsInfo + ".\n") : "") + "- **Status:** " + GetStatusPrefix(text13) + text13 + text17 + (string.IsNullOrEmpty(text39) ? "" : (". " + text39)) + (string.IsNullOrEmpty(text40) ? "" : (". " + text40)) + text50 + text49 + "\n- **Your Forces:** " + text32 + ".\n- **Your Captives:** " + nPCPrisonersInfo + ".\n- **Military Intel (PRIVATE KNOWLEDGE):** " + detailedMilitaryInfo + ". (Share ONLY if you trust the player and it makes sense).\n- **Known Information:** You have access to the following information:\n  - **General Info:** " + text20 + ".\n  - **Secrets:** " + text19 + ".\n- **Your Relationship with Player:** Your personal relationship value is " + text33 + ".\n- **Your Trust in Player:** Your calculated trust in them is " + text34 + " (0.0 to 1.0).\n" + (context.IsRomanceEligible ? string.Format("- **Romance Status:** Attraction: {0:F1}/100. Last romantic interaction: {1}.{2}\n", context.RomanceLevel, arg2, (text27 != null) ? (" Last intimate interaction: " + text27 + ".") : "") : "") + ((!isMessengerMode) ? ("- **Correspondence Preference:** allows_letters is currently " + context.AllowsLettersFromNPC.ToString().ToLower() + ".\n") : "") + "\n");
@@ -3018,74 +3024,6 @@ public static class PromptGenerator
 		}
 	}
 
-	private static string GetExampleJsonStructure(Hero npc, NPCContext context)
-	{
-		bool isKingdomLeader = npc.IsKingdomLeader;
-		Hero mainHero = Hero.MainHero;
-		object obj;
-		if (mainHero == null)
-		{
-			obj = null;
-		}
-		else
-		{
-			Clan clan = mainHero.Clan;
-			obj = ((clan != null) ? clan.Kingdom : null);
-		}
-		bool flag = obj != null && Hero.MainHero.Clan.Kingdom.Leader == Hero.MainHero;
-		bool flag2 = isKingdomLeader && flag;
-		bool isRomanceEligible = context.IsRomanceEligible;
-		bool flag3 = ((IEnumerable<Workshop>)npc.OwnedWorkshops)?.Any() ?? false;
-		bool flag4 = string.IsNullOrEmpty(context.AIGeneratedPersonality);
-		bool flag5 = string.IsNullOrEmpty(context.AIGeneratedBackstory);
-		bool flag6 = string.IsNullOrEmpty(context.AIGeneratedSpeechQuirks);
-		bool flag8 = GlobalSettings<ModSettings>.Instance?.PromptEnableInternalThoughts ?? false;
-		List<string> list = new List<string>();
-		list.Add("\"response\": \"...\"");
-		if (flag8)
-		{
-			list.Add("\"internal_thoughts\": \"...\"");
-		}
-		if (isRomanceEligible)
-		{
-			list.Add("\"romance_intent\": \"none\"");
-		}
-		list.AddRange(new string[11]
-		{
-			"\"decision\": \"none\"", "\"tone\": \"neutral\"", "\"threat_level\": \"none\"", "\"escalation_state\": \"neutral\"", "\"allows_letters\": true", "\"suspected_lie\": false", "\"deescalation_attempt\": false", "\"claimed_name\": null", "\"claimed_clan\": null", "\"claimed_age\": null",
-			"\"claimed_gold\": 0"
-		});
-		if (flag3)
-		{
-			list.Add("\"workshop_action\": \"none\"");
-			list.Add("\"workshop_string_id\": null");
-			list.Add("\"workshop_price\": 0");
-		}
-		if (flag2)
-		{
-			list.Add("\"kingdom_action\": \"none\"");
-			list.Add("\"kingdom_action_reason\": null");
-			list.Add("\"settlement_id\": null");
-			list.Add("\"daily_tribute_amount\": 0");
-			list.Add("\"tribute_duration_days\": 0");
-			list.Add("\"reparations_amount\": 0");
-			list.Add("\"trade_agreement_duration_years\": 1.0");
-		}
-		if (flag4)
-		{
-			list.Add("\"character_personality\": \"...\"");
-		}
-		if (flag5)
-		{
-			list.Add("\"character_backstory\": \"...\"");
-		}
-		if (flag6)
-		{
-			list.Add("\"character_speech_quirks\": \"[personality-based mannerism], [cultural phrase/expression]\"");
-		}
-		return "{" + string.Join(", ", list) + "}";
-	}
-
 	private static string GetKingdomActionsSection(Hero npc, string gameLanguage)
 	{
 		//IL_00f1: Unknown result type (might be due to invalid IL or missing references)
@@ -3312,7 +3250,7 @@ public static class PromptGenerator
 		stringBuilder.AppendLine("- **`kingdom_action_reason`**: (string or null) Brief reason for your diplomatic action (required if kingdom_action is not 'none').");
 		if (GlobalSettings<ModSettings>.Instance.EnableDiplomacy && flag && isKingdomLeader)
 		{
-			stringBuilder.AppendLine("- `settlement_id`: (string/null) Settlement ID for 'demand_territory', 'transfer_territory', 'grant_fief', 'receive_fief'.");
+			stringBuilder.AppendLine("- `settlement_id`: (string/null) Settlement ID for 'demand_territory', 'transfer_territory', 'grant_fief', 'receive_fief'. Pass this field in the `kingdom_action` tool arguments instead of the reply JSON.");
 			stringBuilder.AppendLine("- `target_clan_id`: (string/null) Clan ID for fief transfers. Required for 'receive_fief'.");
 			stringBuilder.AppendLine("- `daily_tribute_amount`: (int/0) Gold per day for 'demand_tribute'.");
 			stringBuilder.AppendLine("- `tribute_duration_days`: (int/0) Tribute duration in days for 'demand_tribute'. Recommended: 90-365.");
@@ -4608,7 +4546,7 @@ public static class PromptGenerator
 	{
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.Append("### Quests ###\n");
-		stringBuilder.Append("You can create quests for the player.\n- **Spawning hostile or neutral parties on the map** uses `\"spawn_party\": {...}` inside `quest_action` with `\"action\": \"create_quest\"` OR `\"action\": \"update_quest\"` (same `quest_id` as the ongoing quest from the quest giver) — e.g. an informant NPC reveals where the bandits are and you attach a new hostile party to the **existing** Jathea quest. There is no separate spawn API in `technical_action`. If `quest_action` is null, nothing is spawned.\n- Create quests based on events happening in the game, prioritize using technical data.\n- To create a quest: set `quest_action` with `\"action\": \"create_quest\"`, plus `\"title\"`, `\"description\"`, `\"duration_days\"` (7-60).\n- `\"description\"`: Player-facing text shown in the quest journal. Write 2–4 sentences in plain prose explaining what the player must do (e.g. \"Bring 30 units of grain to Vasya in Epicrotea. He will reward you.\"). Do NOT use JSON, technical format, or string_ids — the player sees this directly. Put technical specifics in `ai_verification_notes` instead.\n- `\"target_npc_ids\"`: array of NPC string_ids involved in the quest (e.g., NPCs the player must visit). Each target NPC can UPDATE the quest (add log, set progress) but NOT complete it unless designated.\n- `\"completer_npc_id\"`: string_id of the NPC who can COMPLETE the quest. If empty/null, only YOU (quest giver) can complete it. Use this when the player does NOT need to return to you.\n- `\"ai_verification_notes\"`: PRIVATE notes for AI only (player never sees this). Describe EXACTLY what the player must do, quantities, items, conditions — so any NPC in the chain can verify if the player is telling the truth. Be specific (e.g., \"Player must deliver 30 units of grain to Vasya. Vasya should check player's inventory.\").\n- `\"progress_target\"` + `\"progress_label\"`: optional — use for numeric progress (e.g., 30 grain delivered). Omit to create a quest with NO progress tracking. If omitted, set_progress is not used for this quest.\n- target_npc_ids MUST contain valid string_ids from CURRENT DATA. If unknown, set to empty array [].\n- Quest creation is usually TWO-TURN: Turn 1 — DESCRIBE the quest (no quest_action). Turn 2 — CREATE after the player agrees.\n- **Exception:** If the player already said they were sent by someone (e.g. by name) or are here to handle a specific threat, and you confirm that task in dialogue, you may output `create_quest` (with `spawn_party` if new enemies must exist on the map) in that **same** response — the referral counts as accepting a job; you do not need to wait for a second \"I agree\".\n- Do NOT create quests every conversation.\n- `\"completion_reason\"`: when completing or failing, ALWAYS provide a reason explaining WHY (this is saved in history).\n" +
+		stringBuilder.Append("You can create quests for the player.\n- **Spawning hostile or neutral parties on the map** uses `\"spawn_party\": {...}` inside `quest_action` with `\"action\": \"create_quest\"` OR `\"action\": \"update_quest\"` (same `quest_id` as the ongoing quest from the quest giver) — e.g. an informant NPC reveals where the bandits are and you attach a new hostile party to the **existing** Jathea quest. Party spawns live only under `quest_action`; NPC map movement uses the `technical_action` tool when OpenRouter is selected, or the `technical_action` JSON field on other backends. If `quest_action` is null, nothing is spawned.\n- Create quests based on events happening in the game, prioritize using technical data.\n- To create a quest: set `quest_action` with `\"action\": \"create_quest\"`, plus `\"title\"`, `\"description\"`, `\"duration_days\"` (7-60).\n- `\"description\"`: Player-facing text shown in the quest journal. Write 2–4 sentences in plain prose explaining what the player must do (e.g. \"Bring 30 units of grain to Vasya in Epicrotea. He will reward you.\"). Do NOT use JSON, technical format, or string_ids — the player sees this directly. Put technical specifics in `ai_verification_notes` instead.\n- `\"target_npc_ids\"`: array of NPC string_ids involved in the quest (e.g., NPCs the player must visit). Each target NPC can UPDATE the quest (add log, set progress) but NOT complete it unless designated.\n- `\"completer_npc_id\"`: string_id of the NPC who can COMPLETE the quest. If empty/null, only YOU (quest giver) can complete it. Use this when the player does NOT need to return to you.\n- `\"ai_verification_notes\"`: PRIVATE notes for AI only (player never sees this). Describe EXACTLY what the player must do, quantities, items, conditions — so any NPC in the chain can verify if the player is telling the truth. Be specific (e.g., \"Player must deliver 30 units of grain to Vasya. Vasya should check player's inventory.\").\n- `\"progress_target\"` + `\"progress_label\"`: optional — use for numeric progress (e.g., 30 grain delivered). Omit to create a quest with NO progress tracking. If omitted, set_progress is not used for this quest.\n- target_npc_ids MUST contain valid string_ids from CURRENT DATA. If unknown, set to empty array [].\n- Quest creation is usually TWO-TURN: Turn 1 — DESCRIBE the quest (no quest_action). Turn 2 — CREATE after the player agrees.\n- **Exception:** If the player already said they were sent by someone (e.g. by name) or are here to handle a specific threat, and you confirm that task in dialogue, you may output `create_quest` (with `spawn_party` if new enemies must exist on the map) in that **same** response — the referral counts as accepting a job; you do not need to wait for a second \"I agree\".\n- Do NOT create quests every conversation.\n- `\"completion_reason\"`: when completing or failing, ALWAYS provide a reason explaining WHY (this is saved in history).\n" +
 			"Rewards on completion (all optional, combine freely):\n" +
 			"- `\"reward_gold\"`: gold given to player on success.\n" +
 			"- `\"reward_items\"`: array of {\"item_name\": \"<natural item name>\", \"count\": N} given on success. Use plain names the game would recognise (e.g. \"grain\", \"iron\", \"linen cloth\", \"wool\", \"pottery\", \"horses\"). The system will fuzzy-match your name to the closest real item.\n" +
