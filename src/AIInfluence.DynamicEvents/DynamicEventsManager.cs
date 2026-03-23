@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using AIInfluence;
 using AIInfluence.Diplomacy;
 using MCM.Abstractions.Base.Global;
 using Newtonsoft.Json;
@@ -248,12 +249,85 @@ public class DynamicEventsManager
 
 	public List<DynamicEvent> GetActiveEvents()
 	{
-		return new List<DynamicEvent>(_activeEvents);
+		return BuildMergedActiveEvents();
 	}
 
 	public List<DynamicEvent> GetAllEvents()
 	{
 		return GetActiveEvents();
+	}
+
+	private List<DynamicEvent> BuildMergedActiveEvents()
+	{
+		List<DynamicEvent> primary = new List<DynamicEvent>(_activeEvents);
+		List<DynamicEvent> diplomatic = new List<DynamicEvent>();
+		try
+		{
+			diplomatic = new DiplomacyStorage().LoadDiplomaticEvents() ?? new List<DynamicEvent>();
+		}
+		catch (Exception ex)
+		{
+			DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] BuildMergedActiveEvents LoadDiplomaticEvents failed: " + ex.Message);
+		}
+		Dictionary<string, DynamicEvent> dictionary = diplomatic.Where((DynamicEvent e) => e != null && !string.IsNullOrEmpty(e.Id)).ToDictionary((DynamicEvent e) => e.Id, (DynamicEvent e) => e);
+		List<DynamicEvent> list = new List<DynamicEvent>();
+		foreach (DynamicEvent item in primary)
+		{
+			if (item == null)
+			{
+				continue;
+			}
+			if (dictionary.TryGetValue(item.Id, out var value))
+			{
+				MergeDiplomaticEventData(item, value);
+			}
+			list.Add(item);
+		}
+		HashSet<string> hashSet = new HashSet<string>(from e in list
+			select e.Id into id
+			where !string.IsNullOrEmpty(id)
+			select id);
+		foreach (DynamicEvent item2 in diplomatic)
+		{
+			if (item2 != null && !string.IsNullOrEmpty(item2.Id) && !hashSet.Contains(item2.Id))
+			{
+				list.Add(item2);
+				hashSet.Add(item2.Id);
+			}
+		}
+		return list;
+	}
+
+	private static void MergeDiplomaticEventData(DynamicEvent target, DynamicEvent source)
+	{
+		if (target == null || source == null)
+		{
+			return;
+		}
+		if (!string.IsNullOrWhiteSpace(source.Description))
+		{
+			target.Description = source.Description;
+		}
+		if (source.ParticipatingKingdoms != null && source.ParticipatingKingdoms.Any())
+		{
+			target.ParticipatingKingdoms = new List<string>(source.ParticipatingKingdoms);
+		}
+		if (source.EventHistory == null || !source.EventHistory.Any())
+		{
+			return;
+		}
+		if (target.EventHistory == null)
+		{
+			target.EventHistory = new List<EventUpdate>();
+		}
+		foreach (EventUpdate update in source.EventHistory)
+		{
+			if (!target.EventHistory.Any((EventUpdate u) => u.Description == update.Description && Math.Abs(u.CampaignDays - update.CampaignDays) < 0.01f))
+			{
+				target.EventHistory.Add(update);
+			}
+		}
+		target.EventHistory = target.EventHistory.OrderByDescending((EventUpdate u) => u.CampaignDays).ToList();
 	}
 
 	public DynamicEvent GetEventById(string eventId)
@@ -308,25 +382,71 @@ public class DynamicEventsManager
 		}
 		AIInfluenceBehavior instance = AIInfluenceBehavior.Instance;
 		NPCContext tempContext = null;
+		string npcKey = ((MBObjectBase)npc).StringId;
 		if (instance != null)
 		{
 			Dictionary<string, NPCContext> nPCContexts = instance.GetNPCContexts();
-			if (nPCContexts != null && nPCContexts.ContainsKey(((MBObjectBase)npc).StringId))
+			if (nPCContexts != null && nPCContexts.ContainsKey(npcKey))
 			{
-				tempContext = nPCContexts[((MBObjectBase)npc).StringId];
+				tempContext = nPCContexts[npcKey];
 			}
 		}
 		if (tempContext == null)
 		{
 			tempContext = new NPCContext
 			{
-				StringId = ((MBObjectBase)npc).StringId
+				StringId = npcKey
 			};
 		}
-		return (from e in _activeEvents
-			where ShouldNPCKnowEvent(npc, tempContext, e)
+		SyncNpcDynamicEventKnowledge(npc, tempContext, instance, npcKey);
+		HashSet<string> knownIds = (tempContext.DynamicEvents != null && tempContext.DynamicEvents.Any()) ? new HashSet<string>(tempContext.DynamicEvents) : null;
+		return (from e in BuildMergedActiveEvents()
+			where e != null && !string.IsNullOrEmpty(e.Id) && !e.IsExpired() && (knownIds == null || knownIds.Contains(e.Id))
 			orderby e.Importance descending, e.DaysSinceCreation
 			select e).ToList();
+	}
+
+	public void SyncNpcDynamicEventKnowledge(Hero npc, NPCContext context, AIInfluenceBehavior behavior, string npcContextKey)
+	{
+		if (npc == null || context == null || behavior == null || string.IsNullOrEmpty(npcContextKey))
+		{
+			return;
+		}
+		List<DynamicEvent> merged = BuildMergedActiveEvents();
+		HashSet<string> mergedIds = new HashSet<string>(from e in merged
+			where e != null && !string.IsNullOrEmpty(e.Id)
+			select e.Id);
+		bool flag = false;
+		if (context.DynamicEvents != null && context.DynamicEvents.Any())
+		{
+			int count = context.DynamicEvents.Count;
+			context.DynamicEvents.RemoveAll((string id) => !mergedIds.Contains(id));
+			if (context.DynamicEvents.Count != count)
+			{
+				flag = true;
+			}
+		}
+		foreach (DynamicEvent dynamicEvent in merged)
+		{
+			if (dynamicEvent == null || string.IsNullOrEmpty(dynamicEvent.Id) || dynamicEvent.IsExpired())
+			{
+				continue;
+			}
+			if (!ShouldNPCKnowEvent(npc, context, dynamicEvent))
+			{
+				continue;
+			}
+			int count2 = context.DynamicEvents?.Count ?? 0;
+			context.AddDynamicEvent(dynamicEvent.Id);
+			if (context.DynamicEvents != null && context.DynamicEvents.Count != count2)
+			{
+				flag = true;
+			}
+		}
+		if (flag)
+		{
+			behavior.SaveNPCContext(npcContextKey, npc, context);
+		}
 	}
 
 	private void DisplayEventNotification(DynamicEvent dynamicEvent)
@@ -413,7 +533,7 @@ public class DynamicEventsManager
 		DynamicEventsLogger.Instance.LogEventDistribution(dynamicEvent.Id, num);
 	}
 
-	private bool ShouldNPCKnowEvent(Hero npc, NPCContext context, DynamicEvent dynamicEvent)
+	public bool ShouldNPCKnowEvent(Hero npc, NPCContext context, DynamicEvent dynamicEvent)
 	{
 		if (npc == null || context == null || dynamicEvent == null)
 		{

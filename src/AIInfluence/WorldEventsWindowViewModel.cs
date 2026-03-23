@@ -66,37 +66,7 @@ public class WorldEventsWindowViewModel : ViewModel
 		_entrySequence = 0L;
 		try
 		{
-			List<DynamicEvent> list = DynamicEventsManager.Instance?.GetActiveEvents() ?? new List<DynamicEvent>();
-			List<DynamicEvent> list2 = new List<DynamicEvent>();
-			try
-			{
-				DiplomacyStorage diplomacyStorage = new DiplomacyStorage();
-				list2 = diplomacyStorage.LoadDiplomaticEvents() ?? new List<DynamicEvent>();
-			}
-			catch (Exception)
-			{
-			}
-			List<DynamicEvent> list3 = new List<DynamicEvent>();
-			Dictionary<string, DynamicEvent> dictionary = list2.Where((DynamicEvent e) => e != null && !string.IsNullOrEmpty(e.Id)).ToDictionary((DynamicEvent e) => e.Id, (DynamicEvent e) => e);
-			foreach (DynamicEvent item in list)
-			{
-				if (dictionary.TryGetValue(item.Id, out var value))
-				{
-					MergeDiplomaticEventData(item, value);
-				}
-				list3.Add(item);
-			}
-			HashSet<string> hashSet = new HashSet<string>(from e in list
-				select e.Id into id
-				where !string.IsNullOrEmpty(id)
-				select id);
-			foreach (DynamicEvent item2 in list2)
-			{
-				if (item2 != null && !string.IsNullOrEmpty(item2.Id) && !hashSet.Contains(item2.Id))
-				{
-					list3.Add(item2);
-				}
-			}
+			List<DynamicEvent> list3 = DynamicEventsManager.Instance?.GetActiveEvents() ?? new List<DynamicEvent>();
 			if (list3.Any())
 			{
 				List<DynamicEvent> list4 = list3.OrderByDescending((DynamicEvent e) => e.CreationCampaignDays).ToList();
@@ -757,38 +727,6 @@ public class WorldEventsWindowViewModel : ViewModel
 		int num = (int)statement.CampaignDays;
 		string text3 = statement.StatementText ?? "";
 		return $"{text}|{text2}|{num}|{text3}".GetHashCode().ToString();
-	}
-
-	private void MergeDiplomaticEventData(DynamicEvent target, DynamicEvent source)
-	{
-		if (target == null || source == null)
-		{
-			return;
-		}
-		if (!string.IsNullOrWhiteSpace(source.Description))
-		{
-			target.Description = source.Description;
-		}
-		if (source.ParticipatingKingdoms != null && source.ParticipatingKingdoms.Any())
-		{
-			target.ParticipatingKingdoms = new List<string>(source.ParticipatingKingdoms);
-		}
-		if (source.EventHistory == null || !source.EventHistory.Any())
-		{
-			return;
-		}
-		if (target.EventHistory == null)
-		{
-			target.EventHistory = new List<EventUpdate>();
-		}
-		foreach (EventUpdate update in source.EventHistory)
-		{
-			if (!target.EventHistory.Any((EventUpdate u) => u.Description == update.Description && Math.Abs(u.CampaignDays - update.CampaignDays) < 0.01f))
-			{
-				target.EventHistory.Add(update);
-			}
-		}
-		target.EventHistory = target.EventHistory.OrderByDescending((EventUpdate u) => u.CampaignDays).ToList();
 	}
 
 	private string ResolveSettlementIdForAction(KingdomStatement statement, int actionIndex)

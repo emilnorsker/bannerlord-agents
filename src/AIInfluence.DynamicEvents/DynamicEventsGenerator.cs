@@ -1908,7 +1908,7 @@ public class DynamicEventsGenerator
 			string key = item.Key;
 			NPCContext context = item.Value;
 			Hero val = ((IEnumerable<Hero>)Hero.AllAliveHeroes).FirstOrDefault((Func<Hero, bool>)((Hero h) => ((MBObjectBase)h).StringId == context.StringId));
-			if (val != null && ShouldNPCKnowEvent(val, context, dynamicEvent))
+			if (val != null && DynamicEventsManager.Instance.ShouldNPCKnowEvent(val, context, dynamicEvent))
 			{
 				context.AddDynamicEvent(dynamicEvent.Id);
 				num++;
@@ -1916,86 +1916,6 @@ public class DynamicEventsGenerator
 			}
 		}
 		DynamicEventsLogger.Instance.Log($"[DYNAMIC_EVENTS_GEN] Added event '{dynamicEvent.Id}' to {num} NPC contexts (dialogue-only mode)");
-	}
-
-	private bool ShouldNPCKnowEvent(Hero npc, NPCContext context, DynamicEvent dynamicEvent)
-	{
-		if (npc == null || context == null || dynamicEvent == null)
-		{
-			return false;
-		}
-		if (dynamicEvent.ApplicableNPCs != null && dynamicEvent.ApplicableNPCs.Any())
-		{
-			return IsApplicableNPC(npc, dynamicEvent.ApplicableNPCs);
-		}
-		List<string> kingdomStringIds = dynamicEvent.GetKingdomStringIds();
-		if (kingdomStringIds != null && kingdomStringIds.Any())
-		{
-			if (kingdomStringIds.Contains("all"))
-			{
-				return true;
-			}
-			Clan clan = npc.Clan;
-			Kingdom val = ((clan != null) ? clan.Kingdom : null);
-			if (val != null && kingdomStringIds.Contains(((MBObjectBase)val).StringId))
-			{
-				return true;
-			}
-		}
-		if (dynamicEvent.CharactersInvolved != null && dynamicEvent.CharactersInvolved.Any() && dynamicEvent.CharactersInvolved.Contains(((MBObjectBase)npc).StringId))
-		{
-			return true;
-		}
-		return dynamicEvent.Importance >= 8;
-	}
-
-	private bool IsApplicableNPC(Hero npc, List<string> applicableNPCs)
-	{
-		//IL_0025: Unknown result type (might be due to invalid IL or missing references)
-		//IL_002b: Invalid comparison between Unknown and I4
-		if (applicableNPCs.Contains("all"))
-		{
-			return true;
-		}
-		if (applicableNPCs.Contains("lords") && (int)npc.Occupation == 3)
-		{
-			return true;
-		}
-		if (applicableNPCs.Contains("companions") && npc.IsWanderer)
-		{
-			return true;
-		}
-		if (applicableNPCs.Contains("faction_leaders"))
-		{
-			Clan clan = npc.Clan;
-			object obj;
-			if (clan == null)
-			{
-				obj = null;
-			}
-			else
-			{
-				IFaction mapFaction = clan.MapFaction;
-				obj = ((mapFaction != null) ? mapFaction.Leader : null);
-			}
-			if (npc == obj)
-			{
-				return true;
-			}
-		}
-		if (applicableNPCs.Contains("village_notables") && npc.IsNotable)
-		{
-			Settlement currentSettlement = npc.CurrentSettlement;
-			if (currentSettlement != null && currentSettlement.IsVillage)
-			{
-				return true;
-			}
-		}
-		if (applicableNPCs.Contains("merchants") && npc.IsMerchant)
-		{
-			return true;
-		}
-		return false;
 	}
 
 	private void MarkDialoguesAsAnalyzed()
