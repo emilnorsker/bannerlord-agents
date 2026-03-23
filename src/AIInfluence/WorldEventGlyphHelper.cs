@@ -17,8 +17,8 @@ internal static class WorldEventGlyphHelper
         byte r = (byte)(40 + t * 140);
         byte g = (byte)(55 - t * 20);
         byte b = (byte)(45 - t * 15);
-        byte a = (byte)(55 + t * 130);
-        return $"#{r:X2}{g:X2}{b:X2}{a:X2}";
+        // Opacity comes from ChatInterface DimensionSync AlphaFactor (~10%); keep Color alpha at FF so tint is visible.
+        return $"#{r:X2}{g:X2}{b:X2}FF";
     }
 
     /// <summary>Maps event type string (AI JSON) to a Bannerlord skill id.</summary>

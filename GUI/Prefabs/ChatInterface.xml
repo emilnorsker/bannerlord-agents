@@ -363,12 +363,13 @@
                                                 <SkillIconVisualWidget WidthSizePolicy="Fixed" HeightSizePolicy="Fixed" SuggestedWidth="40" SuggestedHeight="40"
                                                                        VerticalAlignment="Top" HorizontalAlignment="Left" MarginRight="6" MarginTop="2"
                                                                        IsVisible="@IsSkill" SkillId="@SkillId" UseSmallestVariation="true"/>
-                                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren">
+                                                <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" ClipContents="true">
                                                   <Children>
-                                                    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" IsVisible="@HasWorldEventBackground"
-                                                            Sprite="scrollable_field_gradient_9" Color="@SeverityTintColor" DoNotAcceptEvents="true"
-                                                            MarginLeft="2" MarginRight="2" MarginTop="1" MarginBottom="1"/>
-                                                    <RichTextWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" VerticalAlignment="Center"
+                                                    <!-- Same pattern as GameMenu ScrollablePanel: DimensionSync first, source widget after; filter draws behind text. -->
+                                                    <DimensionSyncWidget WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed" DimensionToSync="Vertical" IsEnabled="false" DoNotAcceptEvents="true"
+                                                                         WidgetToCopyHeightFrom="..\WorldEventGlyphText" Sprite="scrollable_field_gradient_9" Color="@SeverityTintColor" AlphaFactor="0.1"
+                                                                         IsVisible="@HasWorldEventBackground" MarginLeft="2" MarginRight="2" MarginTop="1" MarginBottom="1"/>
+                                                    <RichTextWidget Id="WorldEventGlyphText" WidthSizePolicy="StretchToParent" HeightSizePolicy="CoverChildren" VerticalAlignment="Center"
                                                                     Brush="Encyclopedia.SubPage.Info.Text" Brush.FontSize="15" Brush.TextHorizontalAlignment="Left"
                                                                     Color="@Color" Text="@Text" IsDisabled="true"/>
                                                   </Children>
