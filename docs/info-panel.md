@@ -4,7 +4,7 @@
 
 | Order | Header            | Purpose |
 |------:|-------------------|--------|
-| 1 | Character         | Native SP read-only relation/trust sliders + interaction count (`TextLines`). Header skill icon: Charm. |
+| 1 | Character         | Native SP read-only relation/trust sliders (`RelationSliderPositionFloat` 0–200 = relation −100…+100; `TrustPercentFloat` 0–100) + interaction count (`TextLines`). Header skill icon: Charm. |
 | 2 | Character history | AI `character_backstory` → `NPCContext.AIGeneratedBackstory` (`TextLines`; newline-split). Roguery. |
 | 3 | Behavior          | AI personality, quirks, speech, mood (`TextLines`). Steward. |
 | 4 | Quests            | Active / incoming AI quests (`TextLines` only). Trade. |

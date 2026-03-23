@@ -33,7 +33,8 @@ public class InfoSectionVM : ViewModel
     private HintViewModel _horseArcherHint = null!;
 
     private bool _showNativeRelationTrustSliders;
-    private float _relationValueFloat;
+    /// <summary>Relation mapped to [0,200] for SP slider (raw relation is −100…+100).</summary>
+    private float _relationSliderPositionFloat;
     private float _trustPercentFloat;
     private string _relationValueAsString = "0";
     private string _trustValueAsString = "0%";
@@ -317,15 +318,15 @@ public class InfoSectionVM : ViewModel
     }
 
     [DataSourceProperty]
-    public float RelationValueFloat
+    public float RelationSliderPositionFloat
     {
-        get => _relationValueFloat;
+        get => _relationSliderPositionFloat;
         set
         {
-            if (Math.Abs(value - _relationValueFloat) < 0.001f)
+            if (Math.Abs(value - _relationSliderPositionFloat) < 0.001f)
                 return;
-            _relationValueFloat = value;
-            OnPropertyChangedWithValue(value, nameof(RelationValueFloat));
+            _relationSliderPositionFloat = value;
+            OnPropertyChangedWithValue(value, nameof(RelationSliderPositionFloat));
         }
     }
 

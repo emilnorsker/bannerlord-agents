@@ -175,7 +175,7 @@ public class NpcChatWindowVM : ViewModel
             rel = 100f;
         if (rel < -100f)
             rel = -100f;
-        section.RelationValueFloat = rel;
+        section.RelationSliderPositionFloat = rel + 100f;
         section.RelationValueAsString = $"{relRaw:+#;-#;0}";
         float t = context?.TrustLevel ?? 0f;
         if (t < 0f)
