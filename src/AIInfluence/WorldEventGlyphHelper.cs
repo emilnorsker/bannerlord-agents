@@ -4,20 +4,18 @@ using TaleWorlds.Core;
 namespace AIInfluence;
 
 /// <summary>
-/// World event info rows: <see cref="DynamicEvent.Type"/> → skill icon; <see cref="DynamicEvent.Importance"/> → tint for vanilla gradient sprite.
+/// World event info rows: <see cref="DynamicEvent.Type"/> → skill icon; <see cref="DynamicEvent.Importance"/> → subtle text color nudge (base encyclopedia tan).
 /// </summary>
 internal static class WorldEventGlyphHelper
 {
-    /// <summary>
-    /// ARGB tint for <c>scrollable_field_gradient_9</c> (Native; same as SandBox Crafting scroll field underlay).
-    /// </summary>
-    public static string GetSeverityTintColor(int importance)
+    /// <summary>Minor ARGB shift from default <c>#C6AC8DFF</c> so rows read slightly different by severity (gradient stays untinted).</summary>
+    public static string GetWorldEventTextColor(int importance)
     {
         float t = (Math.Max(1, Math.Min(10, importance)) - 1) / 9f;
-        byte r = (byte)(40 + t * 140);
-        byte g = (byte)(55 - t * 20);
-        byte b = (byte)(45 - t * 15);
-        // Opacity comes from ChatInterface DimensionSync AlphaFactor (~10%); keep Color alpha at FF so tint is visible.
+        const int baseR = 0xC6, baseG = 0xAC, baseB = 0x8D;
+        int r = Math.Min(255, Math.Max(0, baseR + (int)(t * 8)));
+        int g = Math.Min(255, Math.Max(0, baseG - (int)(t * 6)));
+        int b = Math.Min(255, Math.Max(0, baseB - (int)(t * 5)));
         return $"#{r:X2}{g:X2}{b:X2}FF";
     }
 

@@ -12,7 +12,6 @@ public sealed class InfoGlyphLineVM : ViewModel
     private string _text = "";
     private string _color = "#C6AC8DFF";
     private bool _hasWorldEventBackground;
-    private string _severityTintColor = "#FFFFFFFF";
 
     [DataSourceProperty]
     public bool IsSkill
@@ -83,21 +82,6 @@ public sealed class InfoGlyphLineVM : ViewModel
         }
     }
 
-    /// <summary>Tint multiplied with <c>scrollable_field_gradient_9</c> (ARGB).</summary>
-    [DataSourceProperty]
-    public string SeverityTintColor
-    {
-        get => _severityTintColor;
-        set
-        {
-            value ??= "#FFFFFFFF";
-            if (value == _severityTintColor)
-                return;
-            _severityTintColor = value;
-            OnPropertyChangedWithValue(_severityTintColor, nameof(SeverityTintColor));
-        }
-    }
-
     public static InfoGlyphLineVM FromWorldEvent(string skillId, string text, int importance)
     {
         return new InfoGlyphLineVM
@@ -105,9 +89,8 @@ public sealed class InfoGlyphLineVM : ViewModel
             IsSkill = true,
             SkillId = skillId ?? "",
             Text = text ?? "",
-            Color = "#C6AC8DFF",
-            HasWorldEventBackground = true,
-            SeverityTintColor = WorldEventGlyphHelper.GetSeverityTintColor(importance)
+            Color = WorldEventGlyphHelper.GetWorldEventTextColor(importance),
+            HasWorldEventBackground = true
         };
     }
 
