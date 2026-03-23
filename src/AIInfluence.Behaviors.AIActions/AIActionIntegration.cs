@@ -49,47 +49,6 @@ public class AIActionIntegration
 		{
 			string text = JsonCleaner.CleanJsonResponse(aiResponse);
 			JObject val = JObject.Parse(text);
-			if (val["technical_action"] != null && (int)val["technical_action"].Type != 10)
-			{
-				string text2 = ((object)val["technical_action"]).ToString();
-				if (!string.IsNullOrEmpty(text2))
-				{
-					string[] array = text2.Split(new char[1] { ':' }, 2);
-					string text3 = array[0].Trim().ToLowerInvariant();
-					string text4 = ((array.Length > 1) ? array[1].Trim() : string.Empty);
-					if (text4.Equals("STOP", StringComparison.OrdinalIgnoreCase))
-					{
-						AIActionManager.Instance.StopAction(npc, text3, showMessage: true);
-						try
-						{
-							TaskManager instance = TaskManager.Instance;
-							if (instance != null)
-							{
-								instance.CancelTask(npc);
-								LogMessage($"Cancelled task for {npc.Name} due to action stop");
-							}
-						}
-						catch (Exception ex)
-						{
-							LogMessage("ERROR cancelling task: " + ex.Message);
-						}
-					}
-					else
-					{
-						AIActionManager.Instance.StopAllActions(npc);
-						_actionStartOverrides.Remove(((MBObjectBase)npc).StringId);
-						LogMessage($"[AIActionIntegration] Processing technical_action '{text3}:{text4}' for {((npc != null) ? npc.Name : null)}");
-						bool flag = TryPrepareActionParameter(npc, text3, text4);
-						LogMessage($"[AIActionIntegration] TryPrepareActionParameter('{text3}') -> {flag}");
-						if (flag)
-						{
-							string actionToStart = GetActionToStart(npc, text3);
-							bool flag2 = AIActionManager.Instance.StartAction(npc, actionToStart, forceRestart: true);
-							LogMessage($"[AIActionIntegration] StartAction('{actionToStart}') returned {flag2} for {((npc != null) ? npc.Name : null)}");
-						}
-					}
-				}
-			}
 			if (val["response"] != null)
 			{
 				return ((object)val["response"]).ToString();
@@ -111,11 +70,10 @@ public class AIActionIntegration
 			return "";
 		}
 		string text = "\n\n# ACTION SYSTEM\n## GENERAL RULES\n\n";
-		text += "### Action format\n";
-		text += "- `technical_action` is the field where you control your actions.\n";
-		text += "- **Start an action**: Set `technical_action: \"action_name\"` or `technical_action: \"action_name:parameters\"`\n";
-		text += "- **Stop an action**: Set `technical_action: \"action_name:STOP\"` (e.g., `\"follow_player:STOP\"`)\n";
-		text += "- **No change**: Set `technical_action: null` if you're not starting or stopping any action\n\n";
+		text += "### Action format (OpenRouter tools)\n";
+		text += "- **Start map behavior**: call the matching tool (`follow_player`, `go_to_settlement`, `attack_party`, `stop_action`, etc.) with the required arguments.\n";
+		text += "- **Stop**: call `stop_action` with `action_name` set to the action to stop (e.g. `\"follow_player\"`).\n";
+		text += "- **No change**: do not call map tools.\n\n";
 		text += "### Critical requirements\n";
 		text += "- **Always verify string_ids.** Actions referencing settlements or parties MUST include their string_id (e.g., `town_V1`, `party_bandits_123`). If you only know the spoken name and have no string_id, do NOT issue the action. Say that you don't know/see it, ask for clarification.\n";
 		text += "- **`,then:return` modifier.** Append `,then:return` when you intend to return to the player immediately after completing the task (e.g., they say \"find me once you're done\").\n";
@@ -133,7 +91,7 @@ public class AIActionIntegration
 				{
 					text += "### follow_player (CURRENTLY ACTIVE)\n";
 					text += "**You are currently following the player.**\n";
-					text += "**Stop with** `technical_action: \"follow_player:STOP\"` when:\n";
+					text += "**Stop with** tool `stop_action` (`action_name`: \"follow_player\") when:\n";
 					text += "- The player dismisses you or says goodbye\n";
 					text += "- You part ways or the conversation ends with you leaving\n";
 					text += "- The player asks you to do something else independently\n";
@@ -144,7 +102,7 @@ public class AIActionIntegration
 					text += "### follow_player\n";
 					text += "**Purpose**: Escort the player and travel with them.\n";
 					text += "**Use when** the player asks you to travel with them or you agree to accompany them.\n";
-					text += "**Format**: Set `technical_action: \"follow_player\"` to start following.\n\n";
+					text += "**Tool**: `follow_player` to start following.\n\n";
 				}
 				break;
 			case "go_to_settlement":
@@ -152,19 +110,18 @@ public class AIActionIntegration
 				{
 					text += "### go_to_settlement (CURRENTLY ACTIVE)\n";
 					text += "**You are currently traveling to a settlement.**\n";
-					text += "**Stop with** `technical_action: \"go_to_settlement:STOP\"` if:\n";
+					text += "**Stop with** tool `stop_action` (`action_name`: \"go_to_settlement\") if:\n";
 					text += "- The player asks you to cancel the journey\n";
 					text += "- Plans change and you need to go elsewhere instead\n";
 					text += "- You decide to abandon the mission (explain why)\n\n";
 				}
 				else
 				{
-					text += "### go_to_settlement:<settlement_id_or_name>[:wait_days]\n";
+					text += "### go_to_settlement\n";
 					text += "**Purpose**: Travel to a settlement for a specified reason.\n";
-					text += "**Requirements**: Always include the settlement string_id (e.g., `town_V1`). If the string_id is unknown, role-play your uncertainty and skip the command. Check which settlement you're heading to. If it's hostile to you, refuse the player, but consider your character.\n";
-					text += "**Formats**:\n";
-					text += "- Single destination: `go_to_settlement:town_V1:5`\n";
-					text += "- Route with return: `go_to_settlement:town_V1:3,town_V2:5,then:return`\n\n";
+					text += "**Tool**: `go_to_settlement` with `settlement_id` (from `find_settlements`) and `wait_days`.\n";
+					text += "**Requirements**: If the string_id is unknown, role-play your uncertainty and skip. If the settlement is hostile to you, refuse in character.\n";
+					text += "**Multi-stop routes**: Call `go_to_settlement` / `attack_party` steps in order; use `then_return` on `attack_party` when you should return after.\n\n";
 				}
 				break;
 			case "return_to_player":
@@ -172,7 +129,7 @@ public class AIActionIntegration
 				{
 					text += "### return_to_player (CURRENTLY ACTIVE)\n";
 					text += "**You are currently returning to the player.**\n";
-					text += "**Stop with** `technical_action: \"return_to_player:STOP\"` if:\n";
+					text += "**Stop with** tool `stop_action` (`action_name`: \"return_to_player\") if:\n";
 					text += "- Plans change and you can't return now\n";
 					text += "- Something urgent requires your attention elsewhere\n";
 					text += "- The player tells you not to come back (explain in character)\n\n";
@@ -181,7 +138,7 @@ public class AIActionIntegration
 				{
 					text += "### return_to_player\n";
 					text += "**Purpose**: Rejoin the player after completing a task or when they explicitly request your return after completing an assignment.\n";
-					text += "**Use when** you're away and need to come back to them.\n\n";
+					text += "**Tool**: `return_to_player`.\n\n";
 				}
 				break;
 			case "attack_party":
@@ -191,19 +148,15 @@ public class AIActionIntegration
 					{
 						text += "### attack_party (CURRENTLY ACTIVE)\n";
 						text += "**You are currently attacking a party.**\n";
-						text += "**Stop with** `technical_action: \"attack_party:STOP\"` if:\n";
+						text += "**Stop with** tool `stop_action` (`action_name`: \"attack_party\") if:\n";
 						text += "- The player orders you to retreat or cancel the attack\n";
 						text += "- You need to abandon the mission for strategic reasons\n\n";
 					}
 					else
 					{
-						text += "### attack_party:<party_string_id>[,then:return]\n";
+						text += "### attack_party\n";
 						text += "**Purpose**: Strike a specific party (bandits, deserters, enemies) on the player's orders or request. Make decisions based on your character's personality. Do not attack allies.\n";
-						text += "**Requirements**: Always include the party string_id. No string_id → no action.\n";
-						text += "Add `,then:return` if you plan to return immediately afterwards or they ask you to return.\n";
-						text += "**Examples**:\n";
-						text += "- `attack_party:party_bandits_123`\n";
-						text += "- `attack_party:party_bandits_123,then:return`\n\n";
+						text += "**Tool**: `attack_party` with `party_id` from `find_parties`; set `then_return` true if you should return to the player after.\n\n";
 					}
 				}
 				break;
@@ -212,20 +165,16 @@ public class AIActionIntegration
 				{
 					text += "### patrol_settlement (CURRENTLY ACTIVE)\n";
 					text += "**You are currently patrolling a settlement.**\n";
-					text += "**Stop with** `technical_action: \"patrol_settlement:STOP\"` if:\n";
+					text += "**Stop with** tool `stop_action` (`action_name`: \"patrol_settlement\") if:\n";
 					text += "- The player asks you to stop patrolling\n";
 					text += "- You need to leave for another task\n";
 					text += "- The situation changes and patrol is no longer needed\n\n";
 				}
 				else
 				{
-					text += "### patrol_settlement:<settlement_string_id>[:days][,then:return]\n";
+					text += "### patrol_settlement\n";
 					text += "**Purpose**: Patrol a settlement or its surroundings.\n";
-					text += "**Requirements**: Provide the settlement string_id. No string_id → skip the action.\n";
-					text += "**Examples**:\n";
-					text += "- `patrol_settlement:town_V1:5`\n";
-					text += "- `patrol_settlement:town_V1:5,then:return`\n";
-					text += "- `patrol_settlement:town_V1,then:return`\n\n";
+					text += "**Tool**: `patrol_settlement` with `settlement_id` and optional `days`.\n\n";
 				}
 				break;
 			case "wait_near_settlement":
@@ -233,20 +182,16 @@ public class AIActionIntegration
 				{
 					text += "### wait_near_settlement (CURRENTLY ACTIVE)\n";
 					text += "**You are currently waiting near a settlement.**\n";
-					text += "**Stop with** `technical_action: \"wait_near_settlement:STOP\"` if:\n";
+					text += "**Stop with** tool `stop_action` (`action_name`: \"wait_near_settlement\") if:\n";
 					text += "- The player tells you to stop waiting\n";
 					text += "- Plans change and you need to move\n";
 					text += "- You decide waiting is no longer necessary\n\n";
 				}
 				else
 				{
-					text += "### wait_near_settlement:<settlement_string_id>[:days][:distance][,then:return]\n";
+					text += "### wait_near_settlement\n";
 					text += "**Purpose**: Hold position outside a settlement without entering it.\n";
-					text += "**Parameters**: duration defaults to 2 days, radius between 7 (close) and 18 (far). Missing string_id → skip.\n";
-					text += "**Examples**:\n";
-					text += "- `wait_near_settlement:town_V1`\n";
-					text += "- `wait_near_settlement:town_V1:3:12`\n";
-					text += "- `wait_near_settlement:town_V1:3:12,then:return`\n\n";
+					text += "**Tool**: `wait_near_settlement` with `settlement_id` and optional `days`.\n\n";
 				}
 				break;
 			case "siege_settlement":
@@ -256,19 +201,16 @@ public class AIActionIntegration
 					{
 						text += "### siege_settlement (CURRENTLY ACTIVE)\n";
 						text += "**You are currently besieging a settlement.**\n";
-						text += "**Stop with** `technical_action: \"siege_settlement:STOP\"` if:\n";
+						text += "**Stop with** tool `stop_action` (`action_name`: \"siege_settlement\") if:\n";
 						text += "- The player orders or asks you to lift the siege\n";
 						text += "- Strategic situation requires you to withdraw\n";
 						text += "- Peace is made or situation changes\n\n";
 					}
 					else
 					{
-						text += "### siege_settlement:<settlement_string_id>[,then:return]\n";
+						text += "### siege_settlement\n";
 						text += "**Purpose**: Lead a siege against the specified town/castle. Agree based on your character! Do not siege allied settlements!\n";
-						text += "**Requirements**: Settlement string_id is mandatory. No string_id → skip.\n";
-						text += "**Examples**:\n";
-						text += "- `siege_settlement:town_V6`\n";
-						text += "- `siege_settlement:town_V6,then:return`\n\n";
+						text += "**Tool**: `siege_settlement` with `settlement_id`.\n\n";
 					}
 				}
 				break;
@@ -279,19 +221,16 @@ public class AIActionIntegration
 					{
 						text += "### raid_village (CURRENTLY ACTIVE)\n";
 						text += "**You are currently raiding a village.**\n";
-						text += "**Stop with** `technical_action: \"raid_village:STOP\"` if:\n";
+						text += "**Stop with** tool `stop_action` (`action_name`: \"raid_village\") if:\n";
 						text += "- The player tells you to stop the raid\n";
 						text += "- You need to abandon the raid for moral or strategic reasons\n\n";
 					}
 					else
 					{
-						text += "### raid_village:<village_string_id>[,then:return]\n";
+						text += "### raid_village\n";
 						text += "**Purpose**: Raid (loot) an enemy village.\n";
-						text += "**Restrictions**: Use ONLY with villages (not towns or castles). If the target is not a village, skip the action. Consider your character's personality, do not attack allied villages!\n";
-						text += "**Behavior**: You will march to the village and raid it.\n";
-						text += "**Examples**:\n";
-						text += "- `raid_village:village_A1`\n";
-						text += "- `raid_village:village_A1,then:return`\n\n";
+						text += "**Restrictions**: Villages only (not towns/castles). Do not raid allied villages.\n";
+						text += "**Tool**: `raid_village` with `village_id` from settlements search.\n\n";
 					}
 				}
 				break;
@@ -300,7 +239,7 @@ public class AIActionIntegration
 				{
 					text += "### create_party\n";
 					text += "**Purpose**: Form your own party (leave the player's party and act independently).\n";
-					text += "**Usage**: Confirm in dialogue, then set `technical_action: \"create_party\"`.\n";
+					text += "**Usage**: Confirm in dialogue, then call tool `create_party`.\n";
 					text += "**Note**: This is a one-time action that creates your independent party. Use if they ask you to create your own party and move independently.\n\n";
 				}
 				break;
@@ -309,8 +248,8 @@ public class AIActionIntegration
 				text += "**Purpose**: Create any roleplay (RP) item for the player: letters, documents, notes, AND physical narrative objects (sacks, packages, sealed containers, trophies, proof or bounty material, quest props).\n";
 				text += "**When**: You narrate handing something to the player, they pick it up, say they put it in inventory, or ask you to pass an object that exists in the scene — use this so it exists in inventory (not only for paper). **Only if** the player does not already have this item in the technical inventory list below (never duplicate an item they already hold).\n";
 				text += "**Not when**: The player seizes or takes something by force, theft, or intimidation — use `item_transfers` with top-level `item_transfers_opposed_attribute` (skill check), not create_rp_item.\n";
-				text += "**Usage**: `technical_action: \"create_rp_item:<name>|<description>\"`\n";
-				text += "**Example**: `create_rp_item:Letter|Important message` or `create_rp_item:Sack of heads|Proof for the bounty`\n";
+				text += "**Tool**: `create_rp_item` with `name` and `description`.\n";
+				text += "**Example**: name \"Letter\", description \"Important message\".\n";
 				text += "**Important**: Consensual handoff only — item is given automatically. Do not use `item_transfers` for voluntary RP handoffs; use `item_transfers` + opposed attribute only for contested takes of real inventory items.\n";
 				text += "**CRITICAL**: Check \"CRITICAL - Player's Inventory (UNKNOWN TO YOU)\" section BEFORE creating. Do NOT create duplicate items.\n\n";
 				break;
@@ -319,16 +258,8 @@ public class AIActionIntegration
 				{
 					text += "### transfer_troops_and_prisoners\n";
 					text += "**Purpose**: Transfer troops/prisoners between you and the player.\n";
-					text += "**Format**: `transfer_troops_and_prisoners:<direction>:troop:<string_id>:<count>,prisoner:<string_id>:<count>`\n";
-					text += "**Direction - CRITICAL - Choose correctly based on WHERE the troops are:**\n";
-					text += "- `to_player`: You GIVE troops FROM YOUR party TO the player's party. **Use ONLY if you have your own independent party with troops.** The troops must be in YOUR party roster.\n";
-					text += "- `from_player`: You RECEIVE troops FROM the player's party TO your party. **Use when the player gives you troops or you take troops from player's party.** The troops must be in the PLAYER's party roster.\n";
-					text += "**IMPORTANT**: Check \"Your Forces\" section. If troops are listed there, use `to_player`. If troops are in \"Player's Forces\" section, use `from_player`.\n";
-					text += "**Examples**:\n";
-					text += "- `transfer_troops_and_prisoners:from_player:troop:imperial_recruit:10` (taking troops from player's party)\n";
-					text += "- `transfer_troops_and_prisoners:to_player:troop:imperial_recruit:10` (giving your troops to player - requires independent party)\n";
-					text += "- `transfer_troops_and_prisoners:from_player:troop:imperial_recruit:10,prisoner:lord_empire_1:1`\n";
-					text += "**Use string_ids from \"Your Forces\" (for to_player) or \"Player's Forces\" (for from_player) sections.**\n\n";
+					text += "**Tool**: `transfer_troops` with `direction` `to_player` or `from_player` and `transfers` text in the form `troop:string_id:count` and `prisoner:string_id:count` comma-separated (e.g. `troop:imperial_recruit:10,prisoner:lord_empire_1:1`).\n";
+					text += "**Direction**: `to_player` = you give from YOUR party; `from_player` = you receive from the player's party. Match \"Your Forces\" vs \"Player's Forces\" in the prompt.\n\n";
 				}
 				break;
 			default:
@@ -397,6 +328,8 @@ public class AIActionIntegration
 		}
 		switch (actionName)
 		{
+		case "return_to_player":
+			return true;
 		case "go_to_settlement":
 		{
 			LogMessage($"Parsing go_to_settlement parameter for {npc.Name}: '{parameter}'");

@@ -249,7 +249,6 @@ public static class JsonCleaner
 			["reparations_amount"] = (JToken)(0),
 			["allows_letters"] = (JToken)(false),
 			["trade_agreement_duration_years"] = (JToken)(1f),
-			["technical_action"] = (JToken)(object)JValue.CreateNull(),
 			["character_death"] = (JToken)(object)JValue.CreateNull()
 		};
 		return JsonConvert.SerializeObject((object)val);
@@ -298,10 +297,10 @@ public static class JsonCleaner
 				["deescalation_attempt"] = false,
 				["allows_letters"] = false
 			};
-			string[] array = new string[15]
+			string[] array = new string[14]
 			{
 				"internal_thoughts", "claimed_name", "claimed_clan", "claimed_age", "money_transfer", "item_transfers", "character_personality", "character_backstory", "kingdom_action_reason", "settlement_id",
-				"target_clan_id", "technical_action", "character_death", "workshop_action", "workshop_string_id"
+				"target_clan_id", "character_death", "workshop_action", "workshop_string_id"
 			};
 			foreach (KeyValuePair<string, string> item2 in dictionary)
 			{

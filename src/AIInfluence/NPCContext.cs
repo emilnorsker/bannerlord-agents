@@ -88,7 +88,7 @@ public class NPCContext
 
 	public AIResponse PendingAIResponse { get; set; }
 
-	/// <summary>Last NPC map-command label shown in chat UI (follow, travel, etc.).</summary>
+	/// <summary>In-memory map tool lines for chat UI pills (pipe-separated); cleared each dialogue turn.</summary>
 	[JsonIgnore]
 	public string LastTechnicalActionForDisplay { get; set; }
 
@@ -99,11 +99,12 @@ public class NPCContext
 	[JsonIgnore]
 	public CharacterDeathInfo DeferredCharacterDeathFromTools { get; set; }
 
-	/// <summary>
-	/// Temporary hold for the NPC map-command string from the OpenRouter <c>technical_action</c> tool (same text as <see cref="AIResponse.TechnicalAction"/>).
-	/// </summary>
-	[JsonIgnore]
-	public string DeferredTechnicalActionFromTools { get; set; }
+	public void AppendMapToolDisplayLine(string line)
+	{
+		if (string.IsNullOrEmpty(line))
+			return;
+		LastTechnicalActionForDisplay = string.IsNullOrEmpty(LastTechnicalActionForDisplay) ? line : LastTechnicalActionForDisplay + "|" + line;
+	}
 
 	/// <summary>Set by <c>quest_action</c> tool; applied when the chat UI finishes the typewriter and finalizes the NPC line (not during the async tool round).</summary>
 	[JsonIgnore]

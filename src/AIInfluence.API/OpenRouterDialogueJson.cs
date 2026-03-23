@@ -22,7 +22,6 @@ public static class OpenRouterDialogueJson
 		"workshop_string_id",
 		"workshop_price",
 		"character_death",
-		"technical_action",
 		"settlement_id"
 	};
 

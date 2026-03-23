@@ -3161,9 +3161,9 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	/// <summary>
 	/// During an OpenRouter tool round, tools may store results on <paramref name="context"/> (see
-	/// <see cref="NPCContext.DeferredCharacterDeathFromTools"/> and <see cref="NPCContext.DeferredTechnicalActionFromTools"/>).
+	/// <see cref="NPCContext.DeferredCharacterDeathFromTools"/>).
 	/// <see cref="OpenRouterDialogueJson.StripGameEffectKeys"/> removes those keys from the assistant JSON before deserialize in <c>NpcOpenRouterAssistantParser</c>;
-	/// this method copies deferrals onto <paramref name="aiResult"/> so <see cref="DialogManager"/> and death scheduling still see <see cref="AIResponse.CharacterDeath"/> and <see cref="AIResponse.TechnicalAction"/>.
+	/// this method copies deferrals onto <paramref name="aiResult"/> so <see cref="DialogManager"/> and death scheduling still see <see cref="AIResponse.CharacterDeath"/>.
 	/// </summary>
 	public static void ApplyNpcContextToolDeferralsToAiResponse(NPCContext context, AIResponse aiResult)
 	{
@@ -3173,11 +3173,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			aiResult.CharacterDeath = context.DeferredCharacterDeathFromTools;
 			context.DeferredCharacterDeathFromTools = null;
-		}
-		if (!string.IsNullOrEmpty(context.DeferredTechnicalActionFromTools))
-		{
-			aiResult.TechnicalAction = context.DeferredTechnicalActionFromTools;
-			context.DeferredTechnicalActionFromTools = null;
 		}
 	}
 
@@ -3194,6 +3189,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		context.DialogueToolDeescalationAttempt = null;
 		context.DialogueToolAllowsLetters = null;
 		context.PendingQuestActionFromTools = null;
+		context.LastTechnicalActionForDisplay = null;
 	}
 
 	/// <summary>Merges OpenRouter dialogue tool results into <paramref name="aiResult"/> after deserialize (tools override duplicate JSON fields).</summary>
