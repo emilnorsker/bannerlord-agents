@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AIInfluence.API;
 using AIInfluence.Diplomacy;
 using AIInfluence.DynamicEvents;
 using MCM.Abstractions.Base.Global;
@@ -84,6 +85,11 @@ public class PostCombatEventCreator
 
 	private DynamicEvent ParseAIResponse(string aiResponse)
 	{
+		if (AIClient.IsRawTextFailureResponse(aiResponse))
+		{
+			_behavior.LogMessage("[POST_COMBAT_EVENT] AI response missing or error: " + (aiResponse ?? "(null)"));
+			return null;
+		}
 		try
 		{
 			string text = aiResponse?.Trim() ?? "";

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AIInfluence.API;
 using AIInfluence.Behaviors.AIActions;
 using AIInfluence.SettlementCombat.PhrasesDisplay;
 using AIInfluence.SettlementCombat.PhrasesDisplay.Popup;
@@ -583,12 +584,12 @@ public class SettlementCombatManager
 			_logger.Log($"  Response is null: {aiResponse == null}");
 			_logger.Log($"  Response is empty: {string.IsNullOrEmpty(aiResponse)}");
 			_logger.Log($"  Response length: {aiResponse?.Length ?? 0}");
-			_logger.Log(string.Format("  Starts with Error: {0}", aiResponse?.StartsWith("Error:") ?? false));
+			_logger.Log(string.Format("  Raw failure: {0}", AIClient.IsRawTextFailureResponse(aiResponse ?? "")));
 			_logger.Log("  Full response:");
 			_logger.Log("---START---");
 			_logger.Log(aiResponse ?? "");
 			_logger.Log("---END---");
-			if (string.IsNullOrEmpty(aiResponse) || aiResponse.StartsWith("Error:"))
+			if (AIClient.IsRawTextFailureResponse(aiResponse))
 			{
 				_logger.LogError("SendSituationAnalysisPrompt", "AI returned empty or error response");
 				HandleAIError();
@@ -2328,12 +2329,12 @@ public class SettlementCombatManager
 			_logger.Log($"  Response is null: {aiResponse == null}");
 			_logger.Log($"  Response is empty: {string.IsNullOrEmpty(aiResponse)}");
 			_logger.Log($"  Response length: {aiResponse?.Length ?? 0}");
-			_logger.Log(string.Format("  Starts with Error: {0}", aiResponse?.StartsWith("Error:") ?? false));
+			_logger.Log(string.Format("  Raw failure: {0}", AIClient.IsRawTextFailureResponse(aiResponse ?? "")));
 			_logger.Log("  Full response:");
 			_logger.Log("---START---");
 			_logger.Log(aiResponse ?? "");
 			_logger.Log("---END---");
-			if (string.IsNullOrEmpty(aiResponse) || aiResponse.StartsWith("Error:"))
+			if (AIClient.IsRawTextFailureResponse(aiResponse))
 			{
 				_logger.LogError("SendPostCombatEventPrompt", "AI returned empty or error response");
 				HandlePostCombatAIError();
