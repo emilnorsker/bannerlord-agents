@@ -11,7 +11,7 @@ This document tracks integration issues between **dynamic events**, **diplomacy 
 | Duplicate `ShouldNPCKnowEvent` in generator | Dialogue-only path calls `DynamicEventsManager.ShouldNPCKnowEvent`. |
 | `RecentEvents` init used only `CharactersInvolved` | `InitializeActiveEventsForNPC` uses `GetEventsForNPC(..., persistKnowledgeSync: false)` so seeding matches visibility rules. |
 | Statement cleanup scanned two event lists | `CleanupOldStatements` uses merged `GetActiveEvents()` only. |
-| Hardcoded global rumor threshold `importance >= 8` | MCM: **Global rumor importance threshold** (`DynamicEventsGlobalRumorImportanceThreshold`); use **11** to disable the shortcut. |
+| Global rumor shortcut (`importance` threshold) | Private const `GlobalRumorImportanceThresholdInclusive` in `DynamicEventsManager` (default 8; set to 11 in code to disable). Not in MCM. |
 | `_generationInProgress` cleared on thread pool | Continuation runs on `MainThreadDispatcher` so the flag matches map-thread usage. |
 
 ## Optional field

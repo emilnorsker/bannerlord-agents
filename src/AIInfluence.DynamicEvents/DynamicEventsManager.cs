@@ -17,6 +17,12 @@ namespace AIInfluence.DynamicEvents;
 
 public class DynamicEventsManager
 {
+	/// <summary>
+	/// When <see cref="Importance"/> is &gt;= this value, all NPCs are treated as knowing the event (legacy spread rule).
+	/// Set to <c>11</c> to disable this shortcut (only kingdom / character / applicable_npc rules apply).
+	/// </summary>
+	private const int GlobalRumorImportanceThresholdInclusive = 8;
+
 	private static DynamicEventsManager _instance;
 
 	private readonly List<DynamicEvent> _activeEvents;
@@ -560,8 +566,7 @@ public class DynamicEventsManager
 				return true;
 			}
 		}
-		int globalRumorThreshold = GlobalSettings<ModSettings>.Instance?.DynamicEventsGlobalRumorImportanceThreshold ?? 8;
-		if (globalRumorThreshold <= 10 && dynamicEvent.Importance >= globalRumorThreshold)
+		if (GlobalRumorImportanceThresholdInclusive <= 10 && dynamicEvent.Importance >= GlobalRumorImportanceThresholdInclusive)
 		{
 			return true;
 		}
@@ -697,10 +702,9 @@ public class DynamicEventsManager
 				return $"clan leader {npc.Clan.Leader.Name} is involved - should know!";
 			}
 		}
-		int globalRumorThreshold2 = GlobalSettings<ModSettings>.Instance?.DynamicEventsGlobalRumorImportanceThreshold ?? 8;
-		if (globalRumorThreshold2 <= 10 && dynamicEvent.Importance >= globalRumorThreshold2)
+		if (GlobalRumorImportanceThresholdInclusive <= 10 && dynamicEvent.Importance >= GlobalRumorImportanceThresholdInclusive)
 		{
-			return "high importance (>=" + globalRumorThreshold2 + ") - should know!";
+			return "high importance (>=" + GlobalRumorImportanceThresholdInclusive + ") - should know!";
 		}
 		if (dynamicEvent.KingdomsInvolved is string text && text == "all")
 		{
