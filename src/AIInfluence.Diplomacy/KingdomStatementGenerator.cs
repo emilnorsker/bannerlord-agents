@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using AIInfluence.API;
 using AIInfluence.Diseases;
 using AIInfluence.DynamicEvents;
 using AIInfluence.Util;
@@ -1812,9 +1813,8 @@ public class KingdomStatementGenerator
 				DiplomacyLogger.Instance.Log("[STATEMENT_GEN] AIInfluenceBehavior instance not found");
 				return null;
 			}
-			string diplomacyBackend = GlobalSettings<ModSettings>.Instance?.DiplomacyAIBackend?.SelectedValue ?? GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue ?? "OpenRouter";
-			DiplomacyLogger.Instance.Log($"[STATEMENT_GEN] Sending prompt to AI for {kingdom.Name} via backend '{diplomacyBackend}'");
-			string aiResponse = await aiBehavior.SendAIRequestWithBackend(prompt, "diplomacy_statement", diplomacyBackend, cachePrefixLength);
+			DiplomacyLogger.Instance.Log($"[STATEMENT_GEN] Sending prompt to AI for {kingdom.Name}");
+			string aiResponse = await aiBehavior.SendAIRequestForFeature(prompt, "diplomacy_statement", cachePrefixLength);
 			if (string.IsNullOrEmpty(aiResponse))
 			{
 				DiplomacyLogger.Instance.Log($"[STATEMENT_GEN] Empty AI response for {kingdom.Name}");
@@ -1887,6 +1887,11 @@ public class KingdomStatementGenerator
 	private KingdomStatement ParseAIResponse(string aiResponse, Kingdom kingdom, DynamicEvent diplomaticEvent)
 	{
 		//IL_03dd: Unknown result type (might be due to invalid IL or missing references)
+		if (AIClient.IsRawTextFailureResponse(aiResponse))
+		{
+			DiplomacyLogger.Instance.Log($"[STATEMENT_GEN] AI response missing or error for {kingdom.Name}: " + (aiResponse ?? "(null)"));
+			return null;
+		}
 		string text = "";
 		string text2 = "";
 		try

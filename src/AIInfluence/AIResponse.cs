@@ -12,6 +12,10 @@ public class AIResponse
 	[JsonProperty("response")]
 	public string Response { get; set; }
 
+	/// <summary>True only for dialogue error envelopes from <c>AIClient.GenerateErrorResponse</c> — not model output.</summary>
+	[JsonProperty("ai_error")]
+	public bool? AiError { get; set; }
+
 	[JsonProperty("suspected_lie")]
 	public bool SuspectedLie { get; set; }
 

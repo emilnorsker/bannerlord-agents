@@ -49,10 +49,7 @@ public class NpcChatWindowVM : ViewModel
     [DataSourceProperty] public string SkillsText { get; set; } = "";
     [DataSourceProperty] public bool HasAnySkills { get; set; }
 
-    // ── Chat column header (relation / trust / mood) ─────────────────────
-    [DataSourceProperty] public string RelationText { get; set; } = "";
-    [DataSourceProperty] public string RelationColor { get; set; } = "#FFFFFFFF";
-    [DataSourceProperty] public string TrustLabel { get; set; } = "";
+    // ── Chat column header (mood only; relation/trust = Character info section, native SP sliders) ──
     [DataSourceProperty] public string EmotionLabel { get; set; } = "";
 
     // ── Center ────────────────────────────────────────────────────────────
@@ -93,6 +90,7 @@ public class NpcChatWindowVM : ViewModel
         PopulateTraitOverlay(npc, context);
         PopulateHistory(context);
         PopulateRightPanel(npc, context);
+        SyncCharacterSectionRelationTrust(npc, context);
     }
 
     /// <summary>Releases tableau resources for <see cref="HeroCharacter"/>; call before clearing the view model reference.</summary>
@@ -159,22 +157,44 @@ public class NpcChatWindowVM : ViewModel
 
     private void PopulateTraitOverlay(Hero npc, NPCContext context)
     {
-        int relation = (int)npc.GetRelation(Hero.MainHero);
-        string label = relation >= 20 ? "Friendly" : relation >= 0 ? "Neutral" : relation >= -20 ? "Cautious" : "Hostile";
-        RelationText = $"{label} ({relation:+#;-#;0})";
-        RelationColor = relation >= 0 ? "#6FCF6FFF" : "#CF6F6FFF";
-        float trust = context?.TrustLevel ?? 0f;
-        TrustLabel = trust >= 0.6f ? "High Trust" : trust >= 0.3f ? "Moderate Trust" : "Low Trust";
         EmotionLabel = context?.EmotionalState?.Mood ?? "";
     }
 
     private void RefreshTraitOverlay(Hero npc, NPCContext context)
     {
         PopulateTraitOverlay(npc, context);
-        ((ViewModel)this).OnPropertyChangedWithValue<string>(RelationText, "RelationText");
-        ((ViewModel)this).OnPropertyChangedWithValue<string>(RelationColor, "RelationColor");
-        ((ViewModel)this).OnPropertyChangedWithValue<string>(TrustLabel, "TrustLabel");
+        SyncCharacterSectionRelationTrust(npc, context);
         ((ViewModel)this).OnPropertyChangedWithValue<string>(EmotionLabel, "EmotionLabel");
+    }
+
+    private static void ApplyRelationTrustSlidersToSection(InfoSectionVM section, Hero npc, NPCContext context)
+    {
+        int relRaw = Hero.MainHero != null ? (int)npc.GetRelation(Hero.MainHero) : 0;
+        float rel = relRaw;
+        if (rel > 100f)
+            rel = 100f;
+        if (rel < -100f)
+            rel = -100f;
+        section.RelationSliderPositionFloat = rel + 100f;
+        section.RelationValueAsString = $"{relRaw:+#;-#;0}";
+        float t = context?.TrustLevel ?? 0f;
+        if (t < 0f)
+            t = 0f;
+        if (t > 1f)
+            t = 1f;
+        section.TrustPercentFloat = t * 100f;
+        section.TrustValueAsString = $"{t * 100f:F0}%";
+    }
+
+    private void SyncCharacterSectionRelationTrust(Hero npc, NPCContext context)
+    {
+        foreach (InfoSectionVM s in InfoSections)
+        {
+            if (!s.ShowNativeRelationTrustSliders)
+                continue;
+            ApplyRelationTrustSlidersToSection(s, npc, context);
+            break;
+        }
     }
 
     private void PopulateHistory(NPCContext context)
@@ -192,58 +212,67 @@ public class NpcChatWindowVM : ViewModel
     {
         const string headerMuted = "#888888FF";
         const string questGold = "#D0A96BFF";
-        const string stripeA = "#121820F0";
-        const string stripeB = "#1E1810F0";
+        // One subtle panel tint per section row (no encyclopedia frame layer on the column).
+        const string sectionStripe = "#0C101868";
         InfoSections.Clear();
-        // InfoList is VerticalTopToBottom: add in screen order top → bottom.
+        // InfoSectionsList uses VerticalBottomToTop in ChatInterface.xml; sections added in build order (Character … Party) without VM reordering.
         var built = new[]
         {
-            BuildNpcPartySection(npc),
+            BuildCharacterSection(npc, context),
+            BuildCharacterHistorySection(context, headerMuted),
+            BuildBehaviorSection(context, headerMuted),
             BuildQuestSection(context, headerMuted, questGold),
             BuildWorldEventsSection(headerMuted),
-            BuildWhatWeKnowSection(npc, context, headerMuted),
-            BuildCharacterSection(npc, context)
+            BuildNpcPartySection(npc)
         };
-        for (var i = 0; i < built.Length; i++)
+        foreach (var section in built)
         {
-            built[i].SectionPanelColor = (i % 2 == 0) ? stripeA : stripeB;
-            InfoSections.Add(built[i]);
+            section.SectionPanelColor = sectionStripe;
+            InfoSections.Add(section);
         }
     }
 
     private static InfoSectionVM BuildNpcPartySection(Hero npc)
     {
-        var section = new InfoSectionVM { HeaderText = "NPC party info" };
+        var section = new InfoSectionVM { HeaderText = "NPC party info", HeaderSkillId = DefaultSkills.Leadership.StringId };
         MobileParty party = npc.PartyBelongedTo;
         if (party == null)
         {
             section.TextLines.Add(new TextItemVM("Not in a party on the map.", "#888888FF"));
-            section.HasTroopRows = false;
             section.ShowPartyFood = false;
+            section.RefreshVisibility();
             return section;
         }
-        foreach (var row in PartyTroopFormationHelper.AggregateTroopFormations(party))
-            section.TroopRows.Add(new PartyTroopRowVM(row.formation, row.count));
-        section.HasTroopRows = section.TroopRows.Count > 0;
+        PartyTroopFormationHelper.GetFormationCounts(party, out int inf, out int rng, out int cav, out int ha);
+        section.InfantryCount = inf;
+        section.RangedCount = rng;
+        section.CavalryCount = cav;
+        section.HorseArcherCount = ha;
+        section.ShowPartyTroopStrip = inf + rng + cav + ha > 0;
+        section.InfantryHint = new HintViewModel(GameTexts.FindText("str_formation_class_string", "Infantry"));
+        section.RangedHint = new HintViewModel(GameTexts.FindText("str_formation_class_string", "Ranged"));
+        section.CavalryHint = new HintViewModel(GameTexts.FindText("str_formation_class_string", "Cavalry"));
+        section.HorseArcherHint = new HintViewModel(GameTexts.FindText("str_formation_class_string", "HorseArcher"));
         float days = party.GetNumDaysForFoodToLast();
         var (_, col) = NpcPartyFoodSupply.Classify(days);
         string leaderName = ((object)npc.Name)?.ToString() ?? "";
         section.PartyFoodText = NpcPartyFoodSupply.FormatNarrative(days, leaderName);
         section.PartyFoodColor = col;
         section.ShowPartyFood = true;
-        section.HasStandardTextLines = false;
+        section.RefreshVisibility();
         return section;
     }
 
     private static InfoSectionVM BuildQuestSection(NPCContext context, string headerMuted, string questGold)
     {
-        var section = new InfoSectionVM { HeaderText = "Quests" };
+        var section = new InfoSectionVM { HeaderText = "Quests", HeaderSkillId = DefaultSkills.Trade.StringId };
         List<string> lines = CollectQuestLines(context);
         if (lines.Count == 0)
             section.TextLines.Add(new TextItemVM("• No active quest with this character", headerMuted));
         else
             foreach (string line in lines)
                 section.TextLines.Add(new TextItemVM(line, questGold));
+        section.RefreshVisibility();
         return section;
     }
 
@@ -274,7 +303,7 @@ public class NpcChatWindowVM : ViewModel
 
     private InfoSectionVM BuildWorldEventsSection(string headerMuted)
     {
-        var section = new InfoSectionVM { HeaderText = "World events" };
+        var section = new InfoSectionVM { HeaderText = "World events", HeaderSkillId = DefaultSkills.Scouting.StringId };
         try
         {
             foreach (var e in GetMergedEvents().OrderByDescending(ev => ev.CreationCampaignDays).Take(5))
@@ -282,32 +311,47 @@ public class NpcChatWindowVM : ViewModel
                 string text = FormatWorldEventDisplayText(e);
                 if (string.IsNullOrWhiteSpace(text))
                     continue;
-                string type = e.Type;
-                if (e.IsDiseaseEvent)
-                    type = "disease_outbreak";
-                string skillId = WorldEventSkillMapper.GetSkillIdForEventType(type);
-                section.WorldEventLines.Add(new WorldEventLineVM(skillId, "• " + text));
+                string skillId = WorldEventGlyphHelper.GetSkillIdForEventType(e.Type);
+                section.GlyphLines.Add(InfoGlyphLineVM.FromWorldEvent(skillId, "• " + text, e.Importance));
             }
         }
         catch (Exception ex)
         {
             AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] BuildWorldEventsSection failed: " + ex.Message);
         }
-        if (section.WorldEventLines.Count > 0)
-        {
-            section.HasWorldEventLines = true;
-            section.HasStandardTextLines = false;
-        }
-        else
-        {
+        if (section.GlyphLines.Count == 0)
             section.TextLines.Add(new TextItemVM("• None", headerMuted));
-        }
+        section.RefreshVisibility();
         return section;
     }
 
-    private InfoSectionVM BuildWhatWeKnowSection(Hero npc, NPCContext context, string headerMuted)
+    /// <summary><c>character_backstory</c> → <see cref="NPCContext.AIGeneratedBackstory"/> (plain bullets; split on newlines).</summary>
+    private static InfoSectionVM BuildCharacterHistorySection(NPCContext context, string headerMuted)
     {
-        var section = new InfoSectionVM { HeaderText = "What we know" };
+        var section = new InfoSectionVM { HeaderText = "Character history", HeaderSkillId = DefaultSkills.Roguery.StringId };
+        string backstory = context?.AIGeneratedBackstory?.Trim();
+        if (string.IsNullOrWhiteSpace(backstory))
+        {
+            section.TextLines.Add(new TextItemVM("• No backstory recorded yet", headerMuted));
+            section.RefreshVisibility();
+            return section;
+        }
+        foreach (string line in backstory.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            string t = line.Trim();
+            if (t.Length > 0)
+                section.TextLines.Add(new TextItemVM("• " + t));
+        }
+        if (section.TextLines.Count == 0)
+            section.TextLines.Add(new TextItemVM("• No backstory recorded yet", headerMuted));
+        section.RefreshVisibility();
+        return section;
+    }
+
+    /// <summary>AI personality / speech / mood — separate from factual history.</summary>
+    private static InfoSectionVM BuildBehaviorSection(NPCContext context, string headerMuted)
+    {
+        var section = new InfoSectionVM { HeaderText = "Behavior", HeaderSkillId = DefaultSkills.Steward.StringId };
         bool any = false;
         if (!string.IsNullOrWhiteSpace(context?.AIGeneratedPersonality))
         {
@@ -327,25 +371,24 @@ public class NpcChatWindowVM : ViewModel
             section.TextLines.Add(new TextItemVM("• " + context.AIGeneratedSpeechQuirks));
             any = true;
         }
-        foreach (var info in ResolveKnownInfo(context, npc))
+        if (!string.IsNullOrWhiteSpace(context?.EmotionalState?.Mood))
         {
-            section.TextLines.Add(new TextItemVM("• " + info));
+            section.TextLines.Add(new TextItemVM($"• Mood: {context.EmotionalState.Mood}"));
             any = true;
         }
         if (!any)
-            section.TextLines.Add(new TextItemVM("• Personality not yet discovered", headerMuted));
+            section.TextLines.Add(new TextItemVM("• Not yet discovered", headerMuted));
+        section.RefreshVisibility();
         return section;
     }
 
     private static InfoSectionVM BuildCharacterSection(Hero npc, NPCContext context)
     {
-        var section = new InfoSectionVM { HeaderText = "Character" };
-        int rel = Hero.MainHero != null ? (int)npc.GetRelation(Hero.MainHero) : 0;
-        section.TextLines.Add(new TextItemVM($"Relation: {rel:+#;-#;0}", rel >= 0 ? "#6FCF6FFF" : "#CF6F6FFF"));
-        section.TextLines.Add(new TextItemVM($"Trust: {(context?.TrustLevel ?? 0f) * 100f:F0}%"));
+        var section = new InfoSectionVM { HeaderText = "Character", HeaderSkillId = DefaultSkills.Charm.StringId };
+        section.ShowNativeRelationTrustSliders = true;
+        ApplyRelationTrustSlidersToSection(section, npc, context);
         section.TextLines.Add(new TextItemVM($"Interactions: {context?.InteractionCount ?? 0}"));
-        if (!string.IsNullOrWhiteSpace(context?.EmotionalState?.Mood))
-            section.TextLines.Add(new TextItemVM($"Mood: {context.EmotionalState.Mood}"));
+        section.RefreshVisibility();
         return section;
     }
 
@@ -368,19 +411,6 @@ public class NpcChatWindowVM : ViewModel
     }
     /// <summary>Formats an incoming quest line (NPC is delivery target).</summary>
     private static string FormatIncomingQuestLine(AIQuestInfo q) => $"• {q.Title} (deliver here)";
-
-    private static IEnumerable<string> ResolveKnownInfo(NPCContext context, Hero npc)
-    {
-        if (context?.KnownInfo == null || !context.KnownInfo.Any()) yield break;
-        var infos = WorldInfoManager.InformationManager.Instance?.GetInfo();
-        if (infos == null) yield break;
-        string npcName = ((object)npc?.Name)?.ToString() ?? "";
-        foreach (var i in infos.Where(i => !string.IsNullOrEmpty(i?.Id) && context.KnownInfo.Contains(i.Id)))
-        {
-            if (string.IsNullOrWhiteSpace(i.Description)) continue;
-            yield return i.Description.Replace("{character}", npcName).Trim();
-        }
-    }
 
     private static List<DynamicEvent> GetMergedEvents()
     {

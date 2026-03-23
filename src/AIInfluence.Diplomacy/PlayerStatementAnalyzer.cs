@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using AIInfluence.API;
 using AIInfluence.Diseases;
 using AIInfluence.DynamicEvents;
 using MCM.Abstractions.Base.Global;
@@ -34,13 +35,12 @@ public class PlayerStatementAnalyzer
 		try
 		{
 			string prompt = GenerateAnalysisPrompt(playerText, playerKingdom, activeDiplomaticEvents);
-			string diplomacyBackend = GlobalSettings<ModSettings>.Instance?.DiplomacyAIBackend?.SelectedValue ?? GlobalSettings<ModSettings>.Instance?.AIBackend?.SelectedValue ?? "OpenRouter";
-			DiplomacyLogger.Instance.Log($"[PLAYER_ANALYZER] Sending analysis request to AI via backend '{diplomacyBackend}' (prompt length: {prompt.Length})");
+			DiplomacyLogger.Instance.Log($"[PLAYER_ANALYZER] Sending analysis request to AI (prompt length: {prompt.Length})");
 			DiplomacyLogger.Instance.Log("[PLAYER_ANALYZER] PROMPT SENT TO AI:");
 			DiplomacyLogger.Instance.Log("[PLAYER_ANALYZER] -------------------");
 			DiplomacyLogger.Instance.Log("[PLAYER_ANALYZER] " + prompt);
 			DiplomacyLogger.Instance.Log("[PLAYER_ANALYZER] -------------------");
-			string aiResponse = await AIInfluenceBehavior.Instance.SendAIRequestWithBackend(prompt, "player_statement_analysis", diplomacyBackend);
+			string aiResponse = await AIInfluenceBehavior.Instance.SendAIRequestForFeature(prompt, "player_statement_analysis");
 			if (string.IsNullOrEmpty(aiResponse))
 			{
 				DiplomacyLogger.Instance.Log("[PLAYER_ANALYZER] Empty AI response");
@@ -438,6 +438,11 @@ public class PlayerStatementAnalyzer
 
 	private PlayerStatementResult ParseAIResponse(string aiResponse, Kingdom playerKingdom)
 	{
+		if (AIClient.IsRawTextFailureResponse(aiResponse))
+		{
+			DiplomacyLogger.Instance.Log("[PLAYER_ANALYZER] AI response missing or error: " + (aiResponse ?? "(null)"));
+			return null;
+		}
 		string text = "";
 		string text2 = "";
 		try

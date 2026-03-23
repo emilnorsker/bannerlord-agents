@@ -963,7 +963,7 @@ public class NPCInitiativeSystem
 			string aiResponse = await _behavior.SendAIRequest(prompt, "npc_messenger", request.NPC, request.Context);
 			LogMessage($"[NPC_MESSENGER_DEBUG] Received AI response for {npcName}, length: {aiResponse?.Length ?? 0}");
 			LogMessage("[NPC_MESSENGER_DEBUG] FULL AI RESPONSE JSON: " + aiResponse);
-			if (string.IsNullOrEmpty(aiResponse) || aiResponse.StartsWith("Error:"))
+			if (string.IsNullOrEmpty(aiResponse) || AIClient.IsSendAIRequestResultFailure(aiResponse))
 			{
 				LogMessage("[ERROR] Failed to generate messenger message from " + npcName);
 				return;
@@ -1526,7 +1526,7 @@ public class NPCInitiativeSystem
 			LogMessage("[NPC_MESSENGER_PROMPT] Full prompt for letter response:\n" + prompt);
 			AIInfluenceBehavior.ClearNpcTurnDialogueTools(context);
 			string aiResponse = await _behavior.SendAIRequest(prompt, "npc_letter_response", npc, context);
-			if (string.IsNullOrEmpty(aiResponse) || aiResponse.StartsWith("Error:"))
+			if (string.IsNullOrEmpty(aiResponse) || AIClient.IsSendAIRequestResultFailure(aiResponse))
 			{
 				LogMessage("[ERROR] Failed to generate letter response from " + npcName);
 				return;
@@ -1961,7 +1961,7 @@ public class NPCInitiativeSystem
 			LogMessage($"[NPC_HOSTILE_PROMPT] Full prompt for {npc.Name}:\n{prompt}");
 			AIInfluenceBehavior.ClearNpcTurnDialogueTools(context);
 			string aiResponse = await _behavior.SendAIRequest(prompt, "npc_hostile_initiative", npc, context);
-			if (string.IsNullOrEmpty(aiResponse) || aiResponse.StartsWith("Error:"))
+			if (string.IsNullOrEmpty(aiResponse) || AIClient.IsSendAIRequestResultFailure(aiResponse))
 			{
 				MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", "Get out of my sight!", false);
 				return;
@@ -2115,7 +2115,7 @@ public class NPCInitiativeSystem
 			LogMessage($"[NPC_NEUTRAL_PROMPT] Full prompt for {npc.Name}:\n{prompt}");
 			AIInfluenceBehavior.ClearNpcTurnDialogueTools(context);
 			string aiResponse = await _behavior.SendAIRequest(prompt, "npc_neutral_initiative", npc, context);
-			if (string.IsNullOrEmpty(aiResponse) || aiResponse.StartsWith("Error:"))
+			if (string.IsNullOrEmpty(aiResponse) || AIClient.IsSendAIRequestResultFailure(aiResponse))
 			{
 				MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", "I wanted to talk, but I'm not sure what to say...", false);
 				return;

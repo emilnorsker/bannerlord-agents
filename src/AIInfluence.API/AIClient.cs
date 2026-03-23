@@ -38,11 +38,11 @@ public static class AIClient
 		}
 	}
 
-	public static async Task<string> GetRawTextResponse(string prompt)
+	public static async Task<string> GetRawTextResponse(string prompt, int cachePrefixLength = 0)
 	{
 		try
 		{
-			return await GetOpenRouterRawResponse(prompt);
+			return await GetOpenRouterRawResponse(prompt, cachePrefixLength);
 		}
 		catch (Exception ex)
 		{
@@ -445,6 +445,7 @@ public static class AIClient
 		return JsonConvert.SerializeObject((object)new AIResponse
 		{
 			Response = message,
+			AiError = true,
 			SuspectedLie = false,
 			ClaimedName = null,
 			ClaimedClan = null,
@@ -454,6 +455,85 @@ public static class AIClient
 			EscalationState = "neutral",
 			DeescalationAttempt = false
 		});
+	}
+
+	/// <summary>True for dialogue-path failures: empty, <c>Error:</c> prefix, or JSON error envelope from <see cref="GenerateErrorResponse"/>.</summary>
+	public static bool IsDialogueFailureResponse(string response)
+	{
+		if (string.IsNullOrEmpty(response))
+		{
+			return true;
+		}
+		if (response.StartsWith("Error:", StringComparison.Ordinal))
+		{
+			return true;
+		}
+		if (response[0] != '{')
+		{
+			return false;
+		}
+		try
+		{
+			JObject o = JObject.Parse(response);
+			if (o["ai_error"]?.Type == JTokenType.Boolean && o["ai_error"].Value<bool>())
+			{
+				return true;
+			}
+			string r = o["response"]?.Value<string>();
+			if (r == null)
+			{
+				return false;
+			}
+			if (r.StartsWith("AI request failed:", StringComparison.Ordinal))
+			{
+				return true;
+			}
+			if (r == "I cannot respond right now. Something is amiss." || r == "I am not inclined to speak at this moment." || r == "I am unable to respond right now. Try again later.")
+			{
+				return true;
+			}
+		}
+		catch
+		{
+		}
+		return false;
+	}
+
+	/// <summary>True for <see cref="GetRawTextResponse"/> failures (plain <c>Error:</c>, missing key message, empty).</summary>
+	public static bool IsRawTextFailureResponse(string response)
+	{
+		if (string.IsNullOrEmpty(response))
+		{
+			return true;
+		}
+		if (response.StartsWith("Error:", StringComparison.Ordinal))
+		{
+			return true;
+		}
+		return string.Equals(response, "API key is missing.", StringComparison.Ordinal);
+	}
+
+	/// <summary>Unified check for <c>SendAIRequest</c> results: null/empty, dialogue error JSON, exception <c>Error:</c> strings, or raw-path failures.</summary>
+	public static bool IsSendAIRequestResultFailure(string response)
+	{
+		if (string.IsNullOrEmpty(response))
+		{
+			return true;
+		}
+		string trimmed = response.TrimStart();
+		if (trimmed.Length == 0)
+		{
+			return true;
+		}
+		if (IsDialogueFailureResponse(trimmed))
+		{
+			return true;
+		}
+		if (trimmed[0] != '{')
+		{
+			return IsRawTextFailureResponse(response);
+		}
+		return false;
 	}
 
 	private static void LogError(string message)

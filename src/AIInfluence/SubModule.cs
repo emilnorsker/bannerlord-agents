@@ -1,6 +1,5 @@
 using System;
 using System.Reflection;
-using AIInfluence.API;
 using AIInfluence.Behaviors;
 using AIInfluence.Behaviors.DeathHistory;
 using AIInfluence.Diplomacy;
@@ -43,10 +42,6 @@ public class SubModule : MBSubModuleBase
 
 	private float _startMessageTimer;
 
-	private float _backendCheckTimer;
-
-	private const float BackendCheckInterval = 1f;
-
 	private WorldEventsUILayer _worldEventsUILayer;
 
 	private MapScreen _worldEventsLayerOwner;
@@ -62,8 +57,9 @@ public class SubModule : MBSubModuleBase
 		{
 			harmony.PatchAll();
 		}
-		catch (Exception)
+		catch (Exception ex)
 		{
+			System.Diagnostics.Debug.WriteLine("[AIInfluence] Harmony PatchAll failed: " + ex);
 		}
 		try
 		{
@@ -78,8 +74,9 @@ public class SubModule : MBSubModuleBase
 				}
 			}
 		}
-		catch (Exception)
+		catch (Exception ex)
 		{
+			System.Diagnostics.Debug.WriteLine("[AIInfluence] Optional Harmony patch (GetQuestsRelatedToSettlement) failed: " + ex);
 		}
 	}
 
@@ -118,13 +115,6 @@ public class SubModule : MBSubModuleBase
 			_aiInfluenceBehavior = null;
 		}
 		InitializationManager.Instance.ResetAllSystems();
-		try
-		{
-			Player2Client.StopHeartbeatTimer();
-		}
-		catch (Exception)
-		{
-		}
 	}
 
 	protected override void OnApplicationTick(float dt)
@@ -141,13 +131,6 @@ public class SubModule : MBSubModuleBase
 			{
 				InformationManager.DisplayMessage(new InformationMessage("AI Influence Mod Loaded [BETA 4.0.2]"));
 				_loadMessageDisplayed = true;
-				try
-				{
-					Player2Client.StartHeartbeatTimer();
-				}
-				catch (Exception)
-				{
-				}
 			}
 		}
 		if (Campaign.Current != null && !_startMessageDisplayed)

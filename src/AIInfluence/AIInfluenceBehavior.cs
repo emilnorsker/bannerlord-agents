@@ -211,8 +211,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	{
 		try
 		{
-			LogMessage("[SEND_AI_REQUEST] Отправляем запрос типа '" + requestType + "' к ИИ");
-			LogMessage($"[SEND_AI_REQUEST] Длина промта: {prompt.Length} символов");
+			LogMessage("[SEND_AI_REQUEST] Sending AI request of type '" + requestType + "'");
+			LogMessage($"[SEND_AI_REQUEST] Prompt length: {prompt.Length} characters");
 			string response;
 			if (requestType == "multi_dialogue_analysis")
 				response = await AIClient.GetRawTextResponse(prompt);
@@ -223,20 +223,23 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					toolExecutor = (name, args) => ExecuteChatTool(name, args, npcForTools, contextForTools);
 				response = await AIClient.GetAIResponse("System", "Analysis", prompt, null, toolExecutor);
 			}
-			LogMessage($"[SEND_AI_REQUEST] Получен ответ от ИИ для '{requestType}': {response?.Length ?? 0} символов");
-			if (!string.IsNullOrEmpty(response) && !response.StartsWith("Error:"))
+			LogMessage($"[SEND_AI_REQUEST] Received AI response for '{requestType}': {response?.Length ?? 0} characters");
+			bool responseOk = (requestType == "multi_dialogue_analysis")
+				? !AIClient.IsRawTextFailureResponse(response)
+				: !AIClient.IsDialogueFailureResponse(response);
+			if (!string.IsNullOrEmpty(response) && responseOk)
 			{
-				LogMessage("[SEND_AI_REQUEST_SUCCESS] Успешный ответ для " + requestType);
-				LogMessage("[SEND_AI_REQUEST_FULL_RESPONSE] Полный ответ: " + response);
+				LogMessage("[SEND_AI_REQUEST_SUCCESS] Success for " + requestType);
+				LogMessage("[SEND_AI_REQUEST_FULL_RESPONSE] Full response: " + response);
 				return response;
 			}
-			LogMessage("[SEND_AI_REQUEST_ERROR] Ошибка ИИ для " + requestType + ": " + response);
+			LogMessage("[SEND_AI_REQUEST_ERROR] AI error for " + requestType + ": " + response);
 			return null;
 		}
 		catch (Exception ex)
 		{
 			Exception ex2 = ex;
-			LogMessage("[SEND_AI_REQUEST_EXCEPTION] Исключение для " + requestType + ": " + ex2.Message);
+			LogMessage("[SEND_AI_REQUEST_EXCEPTION] Exception for " + requestType + ": " + ex2.Message);
 			return "Error: " + ex2.Message;
 		}
 	}
@@ -245,29 +248,60 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	{
 		try
 		{
-			LogMessage("[SEND_AI_REQUEST] Отправляем запрос типа '" + requestType + "' к ИИ backend '" + backend + "'");
-			LogMessage(string.Format("[SEND_AI_REQUEST] Длина промта: {0} символов{1}", prompt.Length, (cachePrefixLength > 0) ? $", кэш-префикс: {cachePrefixLength}" : ""));
+			LogMessage("[SEND_AI_REQUEST] Sending AI request of type '" + requestType + "' to backend '" + backend + "'");
+			LogMessage(string.Format("[SEND_AI_REQUEST] Prompt length: {0} characters{1}", prompt.Length, (cachePrefixLength > 0) ? $", cache prefix: {cachePrefixLength}" : ""));
 			string response = await AIClient.GetRawTextResponseWithBackend(prompt, backend, cachePrefixLength);
-			LogMessage($"[SEND_AI_REQUEST] Получен ответ от ИИ для '{requestType}': {response?.Length ?? 0} символов");
+			LogMessage($"[SEND_AI_REQUEST] Received AI response for '{requestType}': {response?.Length ?? 0} characters");
 			if (string.IsNullOrEmpty(response))
 			{
 				string error = "Error: Empty response from backend '" + backend + "'";
-				LogMessage("[SEND_AI_REQUEST_ERROR] " + error + " для " + requestType);
+				LogMessage("[SEND_AI_REQUEST_ERROR] " + error + " for " + requestType);
 				return error + " for " + requestType;
 			}
-			if (response.StartsWith("Error:"))
+			if (AIClient.IsRawTextFailureResponse(response))
 			{
-				LogMessage("[SEND_AI_REQUEST_ERROR] Ошибка ИИ для " + requestType + ": " + response);
+				LogMessage("[SEND_AI_REQUEST_ERROR] AI error for " + requestType + ": " + response);
 				return response;
 			}
-			LogMessage("[SEND_AI_REQUEST_SUCCESS] Успешный ответ для " + requestType);
-			LogMessage("[SEND_AI_REQUEST_FULL_RESPONSE] Полный ответ: " + response);
+			LogMessage("[SEND_AI_REQUEST_SUCCESS] Success for " + requestType);
+			LogMessage("[SEND_AI_REQUEST_FULL_RESPONSE] Full response: " + response);
 			return response;
 		}
 		catch (Exception ex)
 		{
 			Exception ex2 = ex;
-			LogMessage("[SEND_AI_REQUEST_EXCEPTION] Исключение для " + requestType + ": " + ex2.Message);
+			LogMessage("[SEND_AI_REQUEST_EXCEPTION] Exception for " + requestType + ": " + ex2.Message);
+			return null;
+		}
+	}
+
+	public async Task<string> SendAIRequestForFeature(string prompt, string requestType, int cachePrefixLength = 0)
+	{
+		try
+		{
+			LogMessage("[SEND_AI_REQUEST] Sending AI request of type '" + requestType + "' (OpenRouter)");
+			LogMessage(string.Format("[SEND_AI_REQUEST] Prompt length: {0} characters{1}", prompt.Length, (cachePrefixLength > 0) ? $", cache prefix: {cachePrefixLength}" : ""));
+			string response = await AIClient.GetRawTextResponse(prompt, cachePrefixLength);
+			LogMessage($"[SEND_AI_REQUEST] Received AI response for '{requestType}': {response?.Length ?? 0} characters");
+			if (string.IsNullOrEmpty(response))
+			{
+				string error = "Error: Empty response from OpenRouter for " + requestType;
+				LogMessage("[SEND_AI_REQUEST_ERROR] " + error);
+				return error;
+			}
+			if (AIClient.IsRawTextFailureResponse(response))
+			{
+				LogMessage("[SEND_AI_REQUEST_ERROR] AI error for " + requestType + ": " + response);
+				return response;
+			}
+			LogMessage("[SEND_AI_REQUEST_SUCCESS] Success for " + requestType);
+			LogMessage("[SEND_AI_REQUEST_FULL_RESPONSE] Full response: " + response);
+			return response;
+		}
+		catch (Exception ex)
+		{
+			Exception ex2 = ex;
+			LogMessage("[SEND_AI_REQUEST_EXCEPTION] Exception for " + requestType + ": " + ex2.Message);
 			return null;
 		}
 	}
@@ -276,27 +310,27 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	{
 		try
 		{
-			LogMessage("[SEND_AI_REQUEST_RAW] Отправляем сырой запрос к ИИ");
-			LogMessage($"[SEND_AI_REQUEST_RAW] Длина промта: {prompt.Length} символов");
+			LogMessage("[SEND_AI_REQUEST_RAW] Sending raw AI request");
+			LogMessage($"[SEND_AI_REQUEST_RAW] Prompt length: {prompt.Length} characters");
 			string response = await AIClient.GetRawTextResponse(prompt);
-			LogMessage($"[SEND_AI_REQUEST_RAW] Получен ответ от ИИ: {response?.Length ?? 0} символов");
+			LogMessage($"[SEND_AI_REQUEST_RAW] Received AI response: {response?.Length ?? 0} characters");
 			if (string.IsNullOrEmpty(response))
 			{
 				LogMessage("[SEND_AI_REQUEST_RAW_ERROR] Error: Empty response from backend");
 				return "Error: Empty response from backend";
 			}
-			if (response.StartsWith("Error:"))
+			if (AIClient.IsRawTextFailureResponse(response))
 			{
-				LogMessage("[SEND_AI_REQUEST_RAW_ERROR] Ошибка ИИ: " + response);
+				LogMessage("[SEND_AI_REQUEST_RAW_ERROR] AI error: " + response);
 				return response;
 			}
-			LogMessage("[SEND_AI_REQUEST_RAW_SUCCESS] Успешный ответ");
+			LogMessage("[SEND_AI_REQUEST_RAW_SUCCESS] Success");
 			return response;
 		}
 		catch (Exception ex)
 		{
 			Exception ex2 = ex;
-			LogMessage("[SEND_AI_REQUEST_RAW_EXCEPTION] Исключение: " + ex2.Message);
+			LogMessage("[SEND_AI_REQUEST_RAW_EXCEPTION] Exception: " + ex2.Message);
 			return "Error: " + ex2.Message;
 		}
 	}
@@ -2826,7 +2860,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			try
 			{
 				aiResponse = await AIClient.GetAIResponse(npcName, faction, prompt + "\nPlayer: " + playerInput, null, openRouterTools);
-				if (!string.IsNullOrEmpty(aiResponse) && !aiResponse.StartsWith("Error:"))
+				if (!string.IsNullOrEmpty(aiResponse) && !AIClient.IsDialogueFailureResponse(aiResponse))
 				{
 					break;
 				}
@@ -2850,7 +2884,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				continue;
 			}
 		}
-		if (string.IsNullOrEmpty(aiResponse) || aiResponse.StartsWith("Error:"))
+		if (string.IsNullOrEmpty(aiResponse) || AIClient.IsDialogueFailureResponse(aiResponse))
 		{
 			InformationManager.DisplayMessage(new InformationMessage(((object)new TextObject("{=AIInfluence_AIError}{npcName} is silent, as if lost in thought. Try again later.", new Dictionary<string, object> { { "npcName", npcName } })).ToString(), Colors.Yellow));
 			LogMessage("[ERROR] AI response error: " + (aiResponse ?? "Empty response"));
@@ -3309,7 +3343,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					notifyNpcMessagePreviewChanged?.Invoke("");
 				}
 				aiResponse = await AIClient.GetAIResponse(npcName, faction, prompt + "\nPlayer: " + playerMessage, notifyMessageChunk, toolExecutor);
-				if (!string.IsNullOrEmpty(aiResponse) && !aiResponse.StartsWith("Error:"))
+				if (!string.IsNullOrEmpty(aiResponse) && !AIClient.IsDialogueFailureResponse(aiResponse))
 					break;
 				if (attempt < 3)
 					await Task.Delay(1000 * attempt);
@@ -3321,7 +3355,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					await Task.Delay(1000 * attempt);
 			}
 		}
-		if (string.IsNullOrEmpty(aiResponse) || aiResponse.StartsWith("Error:"))
+		if (string.IsNullOrEmpty(aiResponse) || AIClient.IsDialogueFailureResponse(aiResponse))
 			return "";
 		AIResponse aiResult = NpcOpenRouterAssistantParser.Parse(aiResponse, npcName);
 		if (aiResult == null)

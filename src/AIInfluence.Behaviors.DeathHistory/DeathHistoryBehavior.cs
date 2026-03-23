@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using AIInfluence.API;
 using System.Text.RegularExpressions;
 using MCM.Abstractions.Base.Global;
 using Newtonsoft.Json.Linq;
@@ -104,7 +105,7 @@ public class DeathHistoryBehavior : CampaignBehaviorBase
 			string aiResponse = await _aiBehavior.SendAIRequest(prompt, "history_gen");
 			AIInfluenceBehavior.Instance?.LogMessage($"[DEATH_HISTORY] AI response for {hero.Name}:\n{aiResponse}");
 			DeathHistoryLogger.Instance.LogHistoryGeneration(((object)hero.Name).ToString(), isPlayer, prompt, aiResponse);
-			if (string.IsNullOrEmpty(aiResponse) || aiResponse.StartsWith("Error:"))
+			if (AIClient.IsSendAIRequestResultFailure(aiResponse))
 			{
 				InformationManager.DisplayMessage(new InformationMessage(((object)new TextObject("{=AIInfluence_DeathHistory_Error}Chroniclers could not decipher the records.", (Dictionary<string, object>)null)).ToString(), Colors.Red));
 				onComplete?.Invoke();
@@ -176,8 +177,9 @@ public class DeathHistoryBehavior : CampaignBehaviorBase
 				}
 			}
 		}
-		catch
+		catch (Exception ex)
 		{
+			AIInfluenceBehavior.Instance?.LogMessage("[DEATH_HISTORY] ExtractHistoryText JSON branch failed: " + ex.Message);
 		}
 		return RemoveJsonFromText(input);
 	}
