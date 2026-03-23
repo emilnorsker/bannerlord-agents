@@ -85,12 +85,14 @@ public class NpcChatWindowVM : ViewModel
     {
         _npc = npc ?? throw new ArgumentNullException(nameof(npc));
         _onReturn = onReturn;
+        // Always bind to the canonical in-memory context (same instance ProcessChatInput mutates).
+        NPCContext resolvedContext = AIInfluenceBehavior.Instance?.GetOrCreateNPCContext(npc) ?? context;
         PopulateHeader(npc);
         PopulateEncyclopediaHeroStrip(npc);
-        PopulateTraitOverlay(npc, context);
-        PopulateHistory(context);
-        PopulateRightPanel(npc, context);
-        SyncCharacterSectionRelationTrust(npc, context);
+        PopulateTraitOverlay(npc, resolvedContext);
+        PopulateHistory(resolvedContext);
+        PopulateRightPanel(npc, resolvedContext);
+        SyncCharacterSectionRelationTrust(npc, resolvedContext);
     }
 
     /// <summary>Releases tableau resources for <see cref="HeroCharacter"/>; call before clearing the view model reference.</summary>
