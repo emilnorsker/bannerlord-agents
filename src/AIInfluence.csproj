@@ -1,3 +1,4 @@
+<!-- MSBuild SDK version must be exact (ranges are not supported). Latest on NuGet: 1.1.0.129. -->
 <Project Sdk="Bannerlord.BUTRModule.Sdk/1.1.0.129">
   <PropertyGroup>
     <AssemblyName>AIInfluence</AssemblyName>
@@ -17,10 +18,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Lib.Harmony" Version="2.4.2" IncludeAssets="compile" PrivateAssets="all" />
-    <PackageReference Include="Bannerlord.UIExtenderEx" Version="2.13.2" IncludeAssets="compile" PrivateAssets="all" />
-    <PackageReference Include="Bannerlord.MCM" Version="5.11.3" IncludeAssets="compile" PrivateAssets="all" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" IncludeAssets="compile" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" IncludeAssets="compile" PrivateAssets="all" />
+    <!-- Floating minors: `dotnet restore` takes latest 2.x / 5.x (NuGet.org as of 2026-03: UIExtenderEx 2.13.2, MCM 5.11.3, Lib.Harmony 2.4.2). -->
+    <!-- v1.2.12 ecosystem baseline on NuGet: UIExtenderEx 2.11.0 (2024-02-06), MCM 5.10.2 (2024-07-02). SubModule.xml DependentVersion v2.11.0 is the player minimum for UIExtenderEx; game loads newer DLLs fine. -->
+    <PackageReference Include="Lib.Harmony" Version="2.*" IncludeAssets="compile" PrivateAssets="all" />
+    <PackageReference Include="Bannerlord.UIExtenderEx" Version="2.*" IncludeAssets="compile" PrivateAssets="all" />
+    <PackageReference Include="Bannerlord.MCM" Version="5.*" IncludeAssets="compile" PrivateAssets="all" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.*" IncludeAssets="compile" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.*" IncludeAssets="compile" PrivateAssets="all" />
   </ItemGroup>
 </Project>
