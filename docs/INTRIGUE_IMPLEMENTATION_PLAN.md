@@ -8,7 +8,7 @@
 
 **Depends on:** `docs/INTRIGUE_SYSTEM_DESIGN.md`.
 
-**Consolidation:** Earlier drafts merged migration into I-02, evidence into I-06, correlation into I-04, caps as I-09, manual spec as I-10. **I-11** adds the **belief matrix service**. **I-12** adds **execution guard and replan**. **I-03** now includes **episode event patterns** and **offline pattern library** loading.
+**Consolidation:** Earlier drafts merged migration into I-02, evidence into I-06, correlation into I-04, caps as I-09, manual spec as I-10. **I-11** adds the **belief matrix service**. **I-12** adds **execution guard and replan**. **I-03** now includes **episode event patterns**, **offline pattern library** loading, **append-only event diary** (trace for patterns), and **I-06** includes **recall phrase** injection into dialogue snapshots per `INTRIGUE_SYSTEM_DESIGN.md`.
 
 ---
 
@@ -28,10 +28,10 @@
 |----|--------|------------|
 | I-01 | Plot instance persistence | — |
 | I-02 | Runtime secret store and catalog compatibility | I-01 |
-| I-03 | Step executor, episodes, pattern library, propagation | I-01, I-02 |
+| I-03 | Step executor, episodes, pattern library, event diary, propagation | I-01, I-02 |
 | I-04 | Plot scheduler, triggers, correlation logging | I-03 |
 | I-05 | Dynamic events, `plot_id`, World snapshot | I-01, I-04 |
-| I-06 | Hooks, chat leverage row, optional evidence | I-02 |
+| I-06 | Hooks, chat leverage row, recall phrases, optional evidence | I-02 |
 | I-07 | LLM-assisted proposal path | I-03, I-04 |
 | I-08 | Dialogue path audit | I-06, I-07 |
 | I-09 | Caps, expiry, cleanup | I-01, I-02, I-03 |
@@ -81,22 +81,23 @@
 
 ---
 
-## I-03 — Step executor, episodes, pattern library, propagation
+## I-03 — Step executor, episodes, pattern library, event diary, propagation
 
-**Goal:** Execute plot steps **without** the LLM. Support **episodes**: **event patterns** with `match_type` in `{ single, consecutive, non_consecutive }`, template events with **wildcard** terms, and **resolution** with **`RSTATE`** / **`RGOAL`**. Load a **pattern library** artifact (offline trace analysis output) keyed by `template_id`. Effects include `emit_plot_point`, `emit_secret`, `propagate_knowledge`. **Plot point** storage strategy fixed and documented (`DynamicEvent` and/or intrigue rows).
+**Goal:** Execute plot steps **without** the LLM. Support **episodes**: **event patterns** with `match_type` in `{ single, consecutive, non_consecutive }`, template events with **wildcard** terms, and **resolution** with **`RSTATE`** / **`RGOAL`**. Load a **pattern library** artifact (offline trace analysis output) keyed by `template_id`. Maintain an **append-only event diary** (or ring buffer with documented cap): each committed, trace-visible effect appends **`event_id`**, ordering, **`event_code`**, and refs; **event patterns** match this diary only. Effects include `emit_plot_point`, `emit_secret`, `propagate_knowledge`. **Plot point** storage strategy fixed and documented (`DynamicEvent` and/or intrigue rows).
 
 **Depends on:** I-01, I-02.
 
-**Deliverables:** Step executor; one template with at least one episode and one library file or embedded fixture; pattern match unit tests; propagation rules; idempotency guard.
+**Deliverables:** Step executor; one template with at least one episode and one library file or embedded fixture; pattern match unit tests; propagation rules; idempotency guard; diary append API and persistence.
 
 **Test case (primary)**
 
-- **Automated:** Mock trace: pattern `consecutive` matches and applies `RSTATE`/`RGOAL`; `single` and `non_consecutive` fixtures pass and fail as designed; library load registers patterns; failed `requires` writes nothing.
+- **Automated:** Mock diary: pattern `consecutive` matches and applies `RSTATE`/`RGOAL`; `single` and `non_consecutive` fixtures pass and fail as designed; library load registers patterns; failed `requires` writes nothing; committed effect produces new diary tail entry with stable ordering.
 
 **Success criteria**
 
 - Pattern types and wildcards behave per documented semantics.
 - Offline library loads without runtime network access.
+- Diary is append-only for committed entries; pattern matcher reads the same store the executor appends to.
 
 ---
 
@@ -136,21 +137,22 @@
 
 ---
 
-## I-06 — Hooks, chat leverage row, optional evidence
+## I-06 — Hooks, chat leverage row, recall phrases, optional evidence
 
-**Goal:** Hook store; chat row and prompt use identical ids; optional evidence item path.
+**Goal:** Hook store; chat row and prompt use identical ids; optional evidence item path. **Recall phrases:** load records that **bind** text to diary **`event_id`**, **plot point** id, **secret** id, or **belief key**; include bound phrases in the **NPC dialogue** snapshot when visibility policy passes (see design doc). Phrases must not mutate World state.
 
 **Depends on:** I-02.
 
-**Deliverables:** Hook store; prompt injection; `NpcChatWindowVM` bindings; optional item integration.
+**Deliverables:** Hook store; prompt injection; **recall phrase** selection for dialogue prompts; `NpcChatWindowVM` bindings; optional item integration.
 
 **Test case (primary)**
 
-- **Manual:** Debug hook; chat matches prompt for same hook id.
+- **Manual:** Debug hook; chat matches prompt for same hook id. Fixture or manual: bound **recall phrase** appears in prompt when binding is visible; absent when not.
 
 **Success criteria**
 
 - UI shows hook **if and only if** prompt input includes that hook id.
+- Recall phrase injection does not add secrets or hooks without a validated commit path.
 
 ---
 

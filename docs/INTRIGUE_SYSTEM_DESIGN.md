@@ -29,6 +29,8 @@
 | **Event pattern** | A typed match specification over the **narrative event trace** (ordered events with optional wildcards). **Types:** `single`, `consecutive`, `non_consecutive`. Terms may use a wildcard (anonymous match) for roles or entities. |
 | **Resolution** | Pair **`RSTATE`** (literals to add/remove from world or intrigue flags) and **`RGOAL`** (additional goals for one or more heroes). Applied when a pattern fires and validation passes. |
 | **Pattern library** | Offline-derived set of **event patterns** per plot template, produced by **trace analysis** on simulated or recorded runs. Loaded with mod data; used at runtime before or instead of exhaustive search. |
+| **Event diary** | **Append-only** ordered log of **committed** engine-normalized and intrigue-committed events (**event codes** plus stable id references). **Event patterns** match this log. Corrections use new entries or intrigue-store flags; diary rows are not rewritten in place. |
+| **Recall phrase** | Short natural-language clause (locale key or literal) **bound** to a diary **`event_id`**, **plot point** id, **runtime secret** id, or **belief key**. Included in **NPC dialogue** snapshots when policy selects that binding for the interlocutor; does not replace structured ids in the same snapshot. |
 | **Campaign intrigue job** | Work scheduled from campaign time or engine events (battle end, daily tick, settlement entry, peace, prisoner moves, etc.). |
 | **NPC dialogue job** | Work for one player↔NPC chat turn. One `Hero` and that hero’s `NPCContext` are in scope per message generation. |
 | **Plot point** | A situation beat tied to a plot. Different record type from a secret. Integrates with `DynamicEvent` where designed. |
@@ -45,7 +47,7 @@ The **World system** is one layer over Bannerlord’s engine state. It **does no
 |-----------|----------------|
 | **Bannerlord `Campaign`** | Battles, parties, prisoners, settlements, relations, wars, crime, and other engine-level facts. |
 | **`DynamicEventsManager`** | Create, expire, and propagate **dynamic events**; link events to kingdoms and NPC lists per existing rules. |
-| **Intrigue store** | Plots, episodes, plot points, runtime secrets, hooks, pattern libraries. |
+| **Intrigue store** | Plots, episodes, plot points, runtime secrets, hooks, pattern libraries, **event diary** (append-only or capped ring buffer with documented eviction). |
 | **Belief service** | Maintain **belief matrices** for proposition keys tied to secrets, hooks, or explicit world facts; reconcile updates when new information arrives. |
 | **Schedulers / drains** | Run on campaign ticks or hooks: match traces to **event patterns**, apply **resolutions**, enqueue proposals, refresh snapshots. Same thread discipline as `AIInfluenceBehavior.Tick`. |
 
@@ -121,7 +123,15 @@ Plot templates define **episodes** for narrative structure control. Each episode
 
 When a pattern matches and validation passes, the host applies **`RSTATE`** then schedules or injects **`RGOAL`** through the same channels as other plot effects.
 
-**Trace source:** The trace must be the **same ordered log** the scheduler uses (engine events + committed intrigue events), not LLM prose.
+**Trace source:** The trace must be the **same ordered log** the scheduler uses (engine events + committed intrigue events), not LLM prose. That log is the **event diary** (see **Terms**).
+
+---
+
+## Event diary and recall phrases
+
+**Event diary:** On each **committed** world or intrigue mutation that should affect plot structure, append one **diary entry** with a stable id, monotonic ordering (campaign day plus sequence or a single integer sequence), **event code** from a fixed vocabulary, and references (`Hero.StringId`, `DynamicEvent` id, **plot point** id, etc.). Engine hooks translate Bannerlord facts into the same vocabulary before append. **Event patterns** read the diary tail (or indexed window); they must not scan LLM prose.
+
+**Recall phrases:** Template or validated-generated records **bind** a short clause to a diary event id, **plot point**, **secret**, or **belief key**. The **NPC dialogue** snapshot builder includes phrases whose bindings are **visible** to the interlocutor per **belief service** and `NPCContext` rules (for example “since the fire at Odokh” tied to `ev_…`, or “since you spared him” tied to a committed **plot point** id). Phrases are **prompt glue** only; leverage rows and validation still use record ids.
 
 ---
 
@@ -181,6 +191,8 @@ The LLM may fill parameters inside a fixed schema (proposals). Only operations c
 - Plot **episodes** use **typed event patterns** and **resolutions**; optional **pattern libraries** from offline trace analysis.
 - **Belief matrices** back second-order knowledge for gossip-style behavior and consistent propagation with secrets and hooks.
 - **Execution guards** revalidate preconditions before applying effects.
+- **Event diary** is append-only (or ring-buffer with documented policy); it is the single trace for **event patterns** and integrates with **`DynamicEventsManager`** via shared ids where designed.
+- **Recall phrases** attach short clauses to diary events, plot points, secrets, or belief keys for dialogue snapshots; they do not author state.
 
 **Migration:** New saves use runtime secret ids with `origin` where the pipeline creates them. Existing `KnownSecrets` entries may resolve through the catalog until migration tools run. Belief matrices may be **backfilled** from `KnownSecrets` in a dedicated migration step.
 
@@ -226,7 +238,7 @@ Plot definitions may attach the same step to multiple triggers (`on_daily`, `on_
 
 Displayed NPC lines are not a source of truth for the World stores. Stored state is whatever was committed before that reply was generated.
 
-The prompt builder must inject plot points, resolved secrets (`KnownSecrets` plus runtime secret store), hooks, belief excerpts per policy, and `DynamicEvent` slices as stored for that hero. The chat leverage row must read the same hook and secret records as the prompt for that interlocutor.
+The prompt builder must inject plot points, resolved secrets (`KnownSecrets` plus runtime secret store), hooks, belief excerpts per policy, **recall phrases** selected for visible bindings, and `DynamicEvent` slices as stored for that hero. The chat leverage row must read the same hook and secret records as the prompt for that interlocutor.
 
 ---
 
@@ -237,7 +249,7 @@ The prompt builder must inject plot points, resolved secrets (`KnownSecrets` plu
 3. Validate proposals: schema, allowlists, engine invariants.
 4. On failure, fall back or skip; log.
 5. **Re-check preconditions** against live `Campaign` for each mutating effect; apply or replan/abort.
-6. Execute: append intrigue and belief rows, call Bannerlord APIs on the correct thread, update diplomacy or **dynamic event** queues as existing code requires.
+6. Execute: append intrigue and belief rows, **append matching event diary entries** for committed mutations the template marks as trace-visible, call Bannerlord APIs on the correct thread, update diplomacy or **dynamic event** queues as existing code requires.
 7. Build prompt and chat UI only from state after step 6 for that turn.
 
 ---
@@ -261,6 +273,10 @@ Field names are logical; align with C# and JSON save layout in implementation.
 **Hook:** `id`, `owner` (player or npc), `target_hero_string_id`, `description`, `basis` `{ kind: secret or event, id }`, `strength` (`weak` or `strong`), optional `evidence_item`, lifecycle fields.
 
 **Belief matrix record:** `belief_key` (e.g. `secret:` + id or `proposition:` + id), `participant_ids[]`, `matrix` (square numeric array or sparse representation), `last_updated_campaign_day`.
+
+**Event diary entry (save or intrigue store):** `event_id`, `campaign_day`, `sequence` (or equivalent total order), `event_code`, `refs` (e.g. `hero_ids[]`, `dynamic_event_id`, `plot_point_id`, `plot_id`), optional `correlation_id`. Append on commit only.
+
+**Recall phrase record (template or save):** `phrase_id`, `locale_key` or `text`, `binding` `{ kind: diary_event \| plot_point \| secret \| belief_key, id }`, optional visibility predicate id.
 
 **Per-hero knowledge:** `KnownSecrets` remains a list of string ids; resolution checks runtime secret store first, then catalog. Optional separate list for plot point ids if not folded into `DynamicEvents`. **Belief service** remains authoritative for second-order fields used in prompts.
 
@@ -313,12 +329,12 @@ Twelve slices; detail, test cases, and sign-off are in `docs/INTRIGUE_IMPLEMENTA
 |---|--------|--------|
 | 1 | Plot instance persistence | Serialize plot id, phase, context; no LLM; load and save safe. |
 | 2 | Runtime secret store and catalog compatibility | CRUD; runtime-before-catalog resolution; legacy roll freeze or migration. |
-| 3 | Step executor, episodes, and pattern library | Deterministic `requires` / effects; **event pattern types**; **offline pattern library** load; propagate knowledge. |
+| 3 | Step executor, episodes, pattern library, event diary | Deterministic `requires` / effects; **event pattern types** match **append-only diary**; **offline pattern library** load; propagate knowledge; diary append on committed trace-visible ops. |
 | 4 | Scheduler, triggers, correlation logging | Campaign hooks run executor; correlation ids in logs. |
 | 5 | Dynamic events and `plot_id` | Optional link from event to plot instance; **World snapshot** includes event summaries. |
 | 6 | Hooks, chat leverage, optional evidence | Hook store; UI aligned with prompt; optional RP item. |
 | 7 | LLM-assisted proposal | Schema JSON; validate; commit or reject; correlation id. |
-| 8 | Dialogue path audit | No silent World writes from chat text alone. |
+| 8 | Dialogue path audit | No silent World writes from chat text alone; recall phrases remain non-authoritative. |
 | 9 | Caps, expiry, cleanup | Max plots; expiry; measurable stress procedure. |
 | 10 | Manual test spec and sign-off | `docs/INTRIGUE_TEST_SPEC.md` for slices 1–6 regression. |
 | 11 | Belief matrix service | CRUD per `belief_key`; diagonal/off-diagonal semantics; prompt excerpts; sync with propagation. |
