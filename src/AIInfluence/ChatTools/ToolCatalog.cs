@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 
 namespace AIInfluence.ChatTools;
@@ -6,7 +7,7 @@ namespace AIInfluence.ChatTools;
 /// <summary>Typed tool params - single source of truth for schemas and deserialization.</summary>
 public static class ToolParams
 {
-	public record GoToSettlement(string settlement_id, float wait_days = 3f);
+	public record GoToSettlement(string settlement_name, float wait_days = 3f, List<string> filters = null);
 	public record AttackParty(string party_id, bool then_return = false);
 	public record StopAction(string action_name);
 	public record TransferMoney(string action, int amount, string opposed_attribute = null);
@@ -23,8 +24,8 @@ public static class ToolCatalog
 		{
 			Tool("follow_player", "Start following the player.", "{}", System.Array.Empty<string>()),
 			Tool("stop_action", "Stop an active action.", "{\"action_name\":{\"type\":\"string\"}}", new[] { "action_name" }),
-			Tool("go_to_settlement", "Travel to settlement. settlement_id must be the game's StringId (e.g. town_V1).",
-				"{\"settlement_id\":{\"type\":\"string\"},\"wait_days\":{\"type\":\"number\"}}", new[] { "settlement_id" }),
+			Tool("go_to_settlement", "Travel to a settlement. Pass settlement_name (display name or StringId). Optional filters: same AND keywords as BLGM gm.query.settlement (town, castle, village, hideout, player, besieged, raided, empire, vlandia, …, lowprosperity, mediumprosperity, highprosperity).",
+				"{\"settlement_name\":{\"type\":\"string\"},\"wait_days\":{\"type\":\"number\"},\"filters\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}}}", new[] { "settlement_name" }),
 			Tool("attack_party", "Attack a party. party_id must be the mobile party StringId.",
 				"{\"party_id\":{\"type\":\"string\"},\"then_return\":{\"type\":\"boolean\"}}", new[] { "party_id" }),
 			Tool("raid_village", "Raid a village. village_id must be a village settlement StringId.",

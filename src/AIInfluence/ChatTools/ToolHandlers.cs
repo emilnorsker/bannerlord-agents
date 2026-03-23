@@ -7,6 +7,8 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Party;
+using TaleWorlds.CampaignSystem.Settlements;
+using TaleWorlds.ObjectSystem;
 
 namespace AIInfluence.ChatTools;
 
@@ -67,10 +69,24 @@ public static class ToolHandlers
 	private static string RunGoToSettlement(string argsJson, Hero npc, NPCContext context)
 	{
 		JObject parsedArgs = ParseOrEmpty(argsJson);
-		string settlementStringId = parsedArgs["settlement_id"]?.ToString();
-		if (string.IsNullOrEmpty(settlementStringId)) return "missing settlement_id";
+		string settlementName = parsedArgs["settlement_name"]?.ToString();
+		if (string.IsNullOrEmpty(settlementName))
+			settlementName = parsedArgs["settlement_id"]?.ToString();
+		if (string.IsNullOrEmpty(settlementName)) return "missing settlement_name";
 		float waitDays = parsedArgs["wait_days"]?.Value<float>() ?? 3f;
-		string param = settlementStringId + ":" + waitDays; // legacy API expects this format
+		var filterList = new List<string>();
+		if (parsedArgs["filters"] is JArray fa)
+		{
+			foreach (JToken t in fa)
+			{
+				string f = t?.ToString();
+				if (!string.IsNullOrWhiteSpace(f)) filterList.Add(f);
+			}
+		}
+		string resolveError = BlgmStyleSettlementResolver.TryResolve(settlementName, filterList, out Settlement settlement);
+		if (resolveError != null) return resolveError;
+		string settlementStringId = ((MBObjectBase)settlement).StringId;
+		string param = settlementStringId + ":" + waitDays;
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "go_to_settlement", param) != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "go_to_settlement");
 		context.LastTechnicalActionForDisplay = param;
