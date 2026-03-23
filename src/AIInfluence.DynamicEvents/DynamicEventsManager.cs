@@ -18,7 +18,7 @@ namespace AIInfluence.DynamicEvents;
 public class DynamicEventsManager
 {
 	/// <summary>
-	/// When <see cref="Importance"/> is &gt;= this value, all NPCs are treated as knowing the event (legacy spread rule).
+	/// When a <see cref="DynamicEvent"/>'s importance is &gt;= this value, all NPCs are treated as knowing the event (legacy spread rule).
 	/// Set to <c>11</c> to disable this shortcut (only kingdom / character / applicable_npc rules apply).
 	/// </summary>
 	private const int GlobalRumorImportanceThresholdInclusive = 8;
