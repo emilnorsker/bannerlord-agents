@@ -2,11 +2,11 @@
 
 **Audience:** Engineers extending AIInfluence with plots, runtime secrets, hooks, plot points, **belief matrices**, and **living events** on Mount & Blade II: Bannerlord.
 
-**Scope:** Target behavior, data shapes, and constraints for the **World system**: the intrigue ledger **and** integration with **`DynamicEventsManager`** and Bannerlord campaign state. Implementation order is in **Implementation slices** at the end.
+**Scope:** This document is the **World system architecture** specification: behavior, data shapes, and constraints for the intrigue ledger **and** integration with **`DynamicEventsManager`** and Bannerlord `Campaign` state. Work order is in **`docs/WORLD_SYSTEM_IMPLEMENTATION_PLAN.md`** (slices I-01–I-12).
 
 **Normative:** **Must** and **must not** denote requirements. **Should** denotes a strong recommendation. **May** denotes an optional capability.
 
-**Related documents:** `TECHNICAL_GUIDE.en.md` (file formats, prompts, `dynamic_events.json` v1). `docs/INTRIGUE_IMPLEMENTATION_PLAN.md` (slices I-01–I-12). Code references: `NPCContext`, `WorldSecret`, `WorldInfoManager.CheckSecretKnowledge`, `PromptGenerator`, `AIInfluence.DynamicEvents`.
+**Related documents:** `TECHNICAL_GUIDE.en.md` (file formats, prompts, `dynamic_events.json` v1). `docs/WORLD_SYSTEM_IMPLEMENTATION_PLAN.md` (slices I-01–I-12). Code references: `NPCContext`, `WorldSecret`, `WorldInfoManager.CheckSecretKnowledge`, `PromptGenerator`, `AIInfluence.DynamicEvents`.
 
 ---
 
@@ -33,8 +33,10 @@
 | **Recall phrase** | Short natural-language clause (locale key or literal) **bound** to a diary **`event_id`**, **plot point** id, **runtime secret** id, or **belief key**. Included in **NPC dialogue** snapshots when policy selects that binding for the interlocutor; does not replace structured ids in the same snapshot. |
 | **Campaign intrigue job** | Work scheduled from campaign time or engine events (battle end, daily tick, settlement entry, peace, prisoner moves, etc.). |
 | **NPC dialogue job** | Work for one player↔NPC chat turn. One `Hero` and that hero’s `NPCContext` are in scope per message generation. |
+| **Plot template** | **Mod data** (not a save row): reusable definition identified by **`template_id`**. Contains **`steps[]`**, **`episodes[]`**, optional **pattern library** reference, and metadata (e.g. version) for shipping with the mod. **Plot instances** at runtime reference one `template_id` and store only instance state (phase, completed steps, context). |
 | **Plot point** | A situation beat tied to a plot. Different record type from a secret. Integrates with `DynamicEvent` where designed. |
 | **Runtime secret** | A secret record created by the World pipeline with `origin` pointing at a plot and step (or validated effect), not only a row in `world_secrets.json`. |
+| **`KnownSecrets`** | Per-`NPCContext` **list of secret ids** that NPC save data records as known to that hero. Prompt and UI use the **same id list** the resolver turns into text (runtime secret store first, then catalog when the id exists only there). **Not** interchangeable with “secrets that could apply” to a hero; only ids **on this list** are treated as known for that interlocutor. |
 | **Chat leverage row** | UI in the NPC chat window for hooks and verified secrets for the current interlocutor. Uses the same record ids as the prompt builder for that hero. |
 
 ---
@@ -51,13 +53,29 @@ The **World system** is one layer over Bannerlord’s engine state. It **does no
 | **Belief service** | Maintain **belief matrices** for proposition keys tied to secrets, hooks, or explicit world facts; reconcile updates when new information arrives. |
 | **Schedulers / drains** | Run on campaign ticks or hooks: match traces to **event patterns**, apply **resolutions**, enqueue proposals, refresh snapshots. Same thread discipline as `AIInfluenceBehavior.Tick`. |
 
-**Requirement:** A single **World snapshot builder** should assemble data for campaign-scale jobs: active plots, `DynamicEvent` summaries, belief slices needed for diplomacy or LLM proposals, and policy flags. NPC dialogue jobs request a **narrow slice** (one hero + belief row/column subset + hooks + secrets).
+**Requirement:** A single **World snapshot builder** should assemble data for campaign-scale jobs: active plots, `DynamicEvent` summaries, belief slices needed for diplomacy or LLM proposals, and policy flags. NPC dialogue jobs request a **narrow slice** (one hero + belief row/column subset + hooks + secret ids from **`KnownSecrets`** and resolver output).
+
+---
+
+## Plot templates (mod data)
+
+A **plot template** is the **authoritative definition** loaded from mod data (JSON or equivalent). It is **not** persisted as a whole in the save; the save holds **plot instances** that reference **`template_id`**.
+
+| Part | Role |
+|------|------|
+| **`template_id`** | Stable string; plot instances and `origin` fields on runtime secrets reference it. |
+| **`steps[]`** | **Plot step** definitions: `step_id`, **`requires`** (predicates on `Campaign` + intrigue state), **`effects[]`**, and **engine event subscriptions** (e.g. `on_daily`, `on_battle_end`) so the same logical step can run under different triggers with different `requires`. |
+| **`episodes[]`** | **Episode** definitions: **event patterns** + **resolution** (`RSTATE` / `RGOAL`) for structure control (see **Episodes, event patterns, and resolutions**). |
+| **Pattern library** | Optional artifact keyed by `template_id` (offline trace analysis); loaded at runtime with the template. |
+| **Version / metadata** | Mod-shipping and conflict detection between template updates and existing saves (policy is implementation-defined; document in code). |
+
+**Runtime:** The executor loads the template for `instance.template_id`, evaluates which **steps** and **episodes** apply given the **plot instance** state and **event diary**, and runs **effects** only after **validation** (see **Proposals, validation, and fallback** and **Execution-time consistency**).
 
 ---
 
 ## Dynamic events (implemented baseline)
 
-Normative save layout: **`TECHNICAL_GUIDE.en.md`** — `dynamic_events.json` (format v1, `storage_tags`, migration from legacy array / `diplomatic_events.json`).
+Normative save layout: **`TECHNICAL_GUIDE.en.md`** — `dynamic_events.json` (format v1, `storage_tags`). Legacy layouts on disk are described there for the **loader** only; the World design does not specify player save migration.
 
 | Topic | Location / rule |
 |--------|------------------|
@@ -77,8 +95,9 @@ Each HTTP job that invokes the LLM for World-related work must carry a **job kin
 
 **Shared rules**
 
-- Proposal JSON must pass schema and policy validation before any save write.
-- Save commit rules are the same for both job kinds.
+- **Schema validation:** Proposal JSON must match the operation schema (allowed operation names, field types, required ids).
+- **World-history validation:** After schema checks, each operation must be checked against **authoritative state and history**: e.g. referenced heroes, clans, and kingdoms must **exist**; plot **phase** and **completed_step_ids** must allow the operation; targets must satisfy **policy** (war/peace, captivity, distance if encoded); operations must not contradict **committed** diary entries or intrigue rows unless an explicit superseding operation type is defined. This is **not** “is the JSON syntactically valid” but “is this **consistent with the campaign as already committed**.”
+- **Save commit:** No write until both schema and world-history validation pass (or the host applies a documented deterministic fallback that does not claim a full commit). Save commit rules are the same for both job kinds.
 
 **Campaign intrigue job**
 
@@ -94,11 +113,11 @@ Each HTTP job that invokes the LLM for World-related work must carry a **job kin
 | Item | Specification |
 |------|----------------|
 | **Trigger** | Player sends a message in the NPC chat UI (or equivalent). |
-| **Snapshot** | One `Hero`; `NPCContext`; relation, trust, emotion; player-owned hooks and applicable secrets for that interlocutor; plot points and events linked to that hero’s saved lists; **belief matrix excerpts** that policy allows this NPC to act on. |
+| **Snapshot** | One `Hero`; `NPCContext`; relation, trust, emotion; player-owned hooks; **secret ids in `KnownSecrets`** for that NPC resolved to text via the same rules as the prompt; plot points and events linked to that hero’s saved lists; **belief matrix excerpts** that policy allows this NPC to act on. |
 | **Output** | Natural-language reply text for the NPC. |
 | **Allowed** | Small JSON for tone or short-lived UI (implementation-specific). |
 | **Forbidden** | Persisting plot, secret, hook, or belief changes from raw assistant text without a validated commit path (tool handler, explicit post-step commit, or deterministic World step). |
-| **Required** | Same secret ids, hook ids, and plot-point ids in the prompt builder and in the chat leverage row for that interlocutor. |
+| **Required** | Same **`KnownSecrets`** ids (and hook ids, plot-point ids) in the prompt builder and in the chat leverage row for that interlocutor. |
 
 ---
 
@@ -114,7 +133,7 @@ Each HTTP job that invokes the LLM for World-related work must carry a **job kin
 
 **Requirements**
 
-- Updates from **propagation**, **dialogue commits**, and **plot resolutions** must go through the **belief service** or a single writer path so matrices stay consistent with `KnownSecrets` / NPC lists and with **hook** visibility rules.
+- Updates from **propagation**, **dialogue commits**, and **plot resolutions** must go through the **belief service** or a single writer path so matrices stay consistent with **`KnownSecrets`** lists and with **hook** visibility rules.
 - Prompt assembly may include **first- and second-order** beliefs per policy (what this NPC thinks others know).
 
 Thresholds (e.g. treat as true if `> 0.9`) must be **documented in code** and adjustable for tuning.
@@ -203,14 +222,14 @@ The LLM may fill parameters inside a fixed schema (proposals). Only operations c
 
 **Target behavior**
 
-- Campaign-born hidden facts are runtime secrets with `origin` metadata (plot id, step id). Catalog entries remain available for modpack lore, migration, and static scenarios.
-- Plot **episodes** use **typed event patterns** and **resolutions**; optional **pattern libraries** from offline trace analysis.
-- **Belief matrices** back second-order knowledge for gossip-style behavior and consistent propagation with secrets and hooks.
+- Campaign-born hidden facts are **runtime secrets** with **`origin`** metadata (plot id, step id). **`world_secrets.json`** remains optional **catalog** data for modpack-defined ids; resolution order for prompt text is **runtime store first**, then catalog when the id exists only in the catalog.
+- **Plot templates** (mod data) drive **instances**; **episodes** use **typed event patterns** and **resolutions**; optional **pattern libraries** from offline trace analysis.
+- **Belief matrices** back second-order knowledge and stay consistent with **`KnownSecrets`** and hooks.
 - **Execution guards** revalidate preconditions before applying effects.
 - **Event diary** is append-only (or ring-buffer with documented policy); it is the single trace for **event patterns** and integrates with **`DynamicEventsManager`** via shared ids where designed.
 - **Recall phrases** attach short clauses to diary events, plot points, secrets, or belief keys for dialogue snapshots; they do not author state.
 
-**Migration:** New saves use runtime secret ids with `origin` where the pipeline creates them. Existing `KnownSecrets` entries may resolve through the catalog until migration tools run. Belief matrices may be **backfilled** from `KnownSecrets` in a dedicated migration step.
+The World system **must not** implement **save migration** or **backfill jobs** that rewrite old saves into new shapes. Behavior for **new** campaigns vs **existing** saves is limited to **resolution rules** (how an id in **`KnownSecrets`** maps to text) and **documentation**; any one-time file conversion belongs outside this spec (e.g. external tools or manual edits).
 
 ---
 
@@ -238,7 +257,11 @@ The host accepts proposals as JSON (or equivalent DTOs) listing typed operations
 
 **Validation**
 
-The host must verify: referenced ids exist; plot phase allows the operation; targets satisfy policy; Bannerlord invariants hold (valid `Hero.StringId`, kingdom exists, etc.).
+1. **Schema:** Operation names, types, and required fields match the DTO or JSON schema.
+2. **World history and simulation state:** For each operation, check consistency with **committed** intrigue state, **event diary**, **`Campaign`** facts, and **plot instance** fields (phase, completed steps). Reject operations that reference dead heroes, wrong kingdoms at peace when the operation requires war, plot steps already completed or not yet eligible, etc.
+3. **Bannerlord invariants:** Valid `Hero.StringId`, clan/kingdom existence, API preconditions as today.
+
+Steps 2–3 are the **world-history** checks; they are **explicitly separate** from step 1.
 
 **Parameter text**
 
@@ -262,7 +285,7 @@ The prompt builder must inject plot points, resolved secrets (`KnownSecrets` plu
 
 1. Build the snapshot (campaign job or dialogue job) from **World snapshot builder** (intrigue + events + beliefs per policy).
 2. Select execution mode: deterministic plot step, LLM-assisted proposal within schema, or dialogue-only generation.
-3. Validate proposals: schema, allowlists, engine invariants.
+3. Validate proposals: **schema**, then **world-history** (committed state + `Campaign`), then static allowlists / engine invariants as needed.
 4. On failure, fall back or skip; log.
 5. **Re-check preconditions** against live `Campaign` for each mutating effect; apply or replan/abort.
 6. Execute: append intrigue and belief rows, **append matching event diary entries** for committed mutations the template marks as trace-visible, call Bannerlord APIs on the correct thread, update diplomacy or **dynamic event** queues as existing code requires.
@@ -306,15 +329,15 @@ Stored references must use `Hero.StringId`, `Clan.StringId`, and `Kingdom.String
 
 ## Player-facing interface
 
-- **Chat UI** (`ChatInterface.xml`, `NpcChatWindowVM`): Show plot points, applicable secrets, and player-owned hooks for the current interlocutor; distinguish rumor from verified per policy. Data source must match the prompt builder.
+- **Chat UI** (`ChatInterface.xml`, `NpcChatWindowVM`): Show plot points, **secrets whose ids appear in that NPC’s `KnownSecrets`** (resolved the same way as in the prompt), and player-owned hooks for the current interlocutor; distinguish rumor from verified per policy. Data source must match the prompt builder **for the same id lists**.
 - **MCM:** Optional toggles for labels and verbosity are implementation details.
 
 ---
 
 ## Risks
 
-- Mixed catalog ids and runtime ids until migration completes.
-- Stale snapshots if the host does not refresh before a proposal; refresh and strict validation reduce incorrect targets.
+- **Id overlap or ambiguity** between catalog-defined secret ids and runtime minted ids if naming is not disciplined; document namespace rules in code.
+- Stale snapshots if the host does not refresh before a proposal; refresh and strict **world-history** validation reduce incorrect targets.
 - Concurrent campaign and dialogue HTTP jobs touching one plot: logs must include correlation ids to separate completions.
 - Belief matrix size: sparse storage or participant caps may be required for large casts.
 
@@ -331,14 +354,14 @@ Stored references must use `Hero.StringId`, `Clan.StringId`, and `Kingdom.String
 ## References (internal)
 
 - `TECHNICAL_GUIDE.en.md` — `world_secrets.json`, `world_info.json`, `dynamic_events.json`, NPC save fields.
-- `docs/INTRIGUE_IMPLEMENTATION_PLAN.md` — slices **I-01–I-12** (overview table, test cases, sign-off).
+- `docs/WORLD_SYSTEM_IMPLEMENTATION_PLAN.md` — slices **I-01–I-12** (overview table, test cases, sign-off).
 - Code: `WorldInfoManager.CheckSecretKnowledge`, `PromptGenerator`, `NPCContext`, `AIInfluence.DynamicEvents`.
 
 ---
 
 ## Implementation slices
 
-Work packages **I-01** through **I-12** (titles, dependencies, test cases, success criteria, sign-off table) are defined only in **`docs/INTRIGUE_IMPLEMENTATION_PLAN.md`** to avoid duplicate tables.
+Work packages **I-01** through **I-12** (titles, dependencies, test cases, success criteria, sign-off table) are defined only in **`docs/WORLD_SYSTEM_IMPLEMENTATION_PLAN.md`** to avoid duplicate tables.
 
 ---
 

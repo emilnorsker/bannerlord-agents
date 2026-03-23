@@ -8,7 +8,7 @@
 
 **Depends on:** `docs/INTRIGUE_SYSTEM_DESIGN.md` (sole design spec for the World system; no separate “plan” file).
 
-**Consolidation:** Earlier drafts merged migration into I-02, evidence into I-06, correlation into I-04, caps as I-09, manual spec as I-10. **I-11** adds the **belief matrix service**. **I-12** adds **execution guard and replan**. **I-03** now includes **episode event patterns**, **offline pattern library** loading, **append-only event diary** (trace for patterns), and **I-06** includes **recall phrase** injection into dialogue snapshots per `INTRIGUE_SYSTEM_DESIGN.md`.
+**Consolidation:** **I-02** covers runtime secret store plus catalog fallback for resolution only (no save migration). Evidence in I-06, correlation in I-04, caps as I-09, manual spec as I-10. **I-11** adds the **belief matrix service**. **I-12** adds **execution guard and replan**. **I-03** includes **episode event patterns**, **offline pattern library** loading, **append-only event diary**, and **I-06** includes **recall phrase** injection per `INTRIGUE_SYSTEM_DESIGN.md`.
 
 ---
 
@@ -64,11 +64,11 @@
 
 ## I-02 — Runtime secret store and catalog compatibility
 
-**Goal:** Store runtime secret records; resolve prompt text **runtime first**, then catalog; preserve legacy saves (MCM freeze and/or migration). See design doc for fields.
+**Goal:** Store runtime secret records; resolve prompt text **runtime first**, then catalog when an id exists only there. Document behavior for unknown ids and duplicate id namespaces. See design doc for fields.
 
 **Depends on:** I-01.
 
-**Deliverables:** Secret store CRUD; resolver integrated with `PromptGenerator` (or equivalent); compatibility path documented; MCM entry if freezing rolls.
+**Deliverables:** Secret store CRUD; resolver integrated with `PromptGenerator` (or equivalent); documented resolution rules; optional MCM to disable catalog fallback for testing.
 
 **Test case (primary)**
 
@@ -76,8 +76,8 @@
 
 **Success criteria**
 
-- Resolution order is runtime then catalog for every id.
-- Default compatibility mode does not break existing campaigns.
+- For each id passed to the resolver, resolution order is runtime store then catalog.
+- Documented resolution rules cover ids present in runtime store, catalog only, both, or neither.
 
 ---
 
@@ -286,4 +286,4 @@
 
 ## Maintenance
 
-Update this plan when slices split, merge, or reorder. Align with `INTRIGUE_SYSTEM_DESIGN.md` on every change.
+Update this plan when slices split, merge, or reorder. Align with `docs/INTRIGUE_SYSTEM_DESIGN.md` on every change.
