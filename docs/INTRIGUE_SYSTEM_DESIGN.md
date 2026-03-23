@@ -6,7 +6,7 @@
 
 **Normative:** **Must** and **must not** denote requirements. **Should** denotes a strong recommendation. **May** denotes an optional capability.
 
-**Related documents:** `TECHNICAL_GUIDE.en.md` (file formats, prompts). `docs/DYNAMIC_EVENTS_ANTIPATTERNS.md` (dynamic events integration status). Code references: `NPCContext`, `WorldSecret`, `WorldInfoManager.CheckSecretKnowledge`, `PromptGenerator`, `AIInfluence.DynamicEvents`.
+**Related documents:** `TECHNICAL_GUIDE.en.md` (file formats, prompts, `dynamic_events.json` v1). `docs/INTRIGUE_IMPLEMENTATION_PLAN.md` (slices I-01–I-12). Code references: `NPCContext`, `WorldSecret`, `WorldInfoManager.CheckSecretKnowledge`, `PromptGenerator`, `AIInfluence.DynamicEvents`.
 
 ---
 
@@ -52,6 +52,22 @@ The **World system** is one layer over Bannerlord’s engine state. It **does no
 | **Schedulers / drains** | Run on campaign ticks or hooks: match traces to **event patterns**, apply **resolutions**, enqueue proposals, refresh snapshots. Same thread discipline as `AIInfluenceBehavior.Tick`. |
 
 **Requirement:** A single **World snapshot builder** should assemble data for campaign-scale jobs: active plots, `DynamicEvent` summaries, belief slices needed for diplomacy or LLM proposals, and policy flags. NPC dialogue jobs request a **narrow slice** (one hero + belief row/column subset + hooks + secrets).
+
+---
+
+## Dynamic events (implemented baseline)
+
+Normative save layout: **`TECHNICAL_GUIDE.en.md`** — `dynamic_events.json` (format v1, `storage_tags`, migration from legacy array / `diplomatic_events.json`).
+
+| Topic | Location / rule |
+|--------|------------------|
+| Catalog read | `DynamicEventsManager.GetActiveEvents()` or `WorldEventsReadFacade` |
+| NPC-visible set | `GetEventsForNPC` syncs `NPCContext.DynamicEvents`; same path as prompts |
+| Visibility rules | `DynamicEventsManager.ShouldNPCKnowEvent` (generator dialogue-only path uses it) |
+| Global rumor shortcut | `GlobalRumorImportanceThresholdInclusive` in `DynamicEventsManager` (default 8; 11 disables) |
+| Plot linkage field | `DynamicEvent.PlotId` / JSON `plot_id` (optional until plot pipeline writes it) |
+
+**Not yet implemented (World slices):** append-only **event diary** as pattern trace; LLM **proposal → validate → commit** for event generation; extra `storage_tags` beyond `dynamic` / `diplomatic` if needed.
 
 ---
 
@@ -315,30 +331,14 @@ Stored references must use `Hero.StringId`, `Clan.StringId`, and `Kingdom.String
 ## References (internal)
 
 - `TECHNICAL_GUIDE.en.md` — `world_secrets.json`, `world_info.json`, `dynamic_events.json`, NPC save fields.
-- `docs/INTRIGUE_SYSTEM_PLAN.md` — pointer to this document.
-- `docs/INTRIGUE_IMPLEMENTATION_PLAN.md` — ordered slices, test cases, success criteria.
+- `docs/INTRIGUE_IMPLEMENTATION_PLAN.md` — slices **I-01–I-12** (overview table, test cases, sign-off).
 - Code: `WorldInfoManager.CheckSecretKnowledge`, `PromptGenerator`, `NPCContext`, `AIInfluence.DynamicEvents`.
 
 ---
 
 ## Implementation slices
 
-Twelve slices; detail, test cases, and sign-off are in `docs/INTRIGUE_IMPLEMENTATION_PLAN.md`. Status is planning until work items mark otherwise.
-
-| # | Slice | Outcome |
-|---|--------|--------|
-| 1 | Plot instance persistence | Serialize plot id, phase, context; no LLM; load and save safe. |
-| 2 | Runtime secret store and catalog compatibility | CRUD; runtime-before-catalog resolution; legacy roll freeze or migration. |
-| 3 | Step executor, episodes, pattern library, event diary | Deterministic `requires` / effects; **event pattern types** match **append-only diary**; **offline pattern library** load; propagate knowledge; diary append on committed trace-visible ops. |
-| 4 | Scheduler, triggers, correlation logging | Campaign hooks run executor; correlation ids in logs. |
-| 5 | Dynamic events and `plot_id` | Optional link from event to plot instance; **World snapshot** includes event summaries. |
-| 6 | Hooks, chat leverage, optional evidence | Hook store; UI aligned with prompt; optional RP item. |
-| 7 | LLM-assisted proposal | Schema JSON; validate; commit or reject; correlation id. |
-| 8 | Dialogue path audit | No silent World writes from chat text alone; recall phrases remain non-authoritative. |
-| 9 | Caps, expiry, cleanup | Max plots; expiry; measurable stress procedure. |
-| 10 | Manual test spec and sign-off | `docs/INTRIGUE_TEST_SPEC.md` for slices 1–6 regression. |
-| 11 | Belief matrix service | CRUD per `belief_key`; diagonal/off-diagonal semantics; prompt excerpts; sync with propagation. |
-| 12 | Execution guard and replan | Precondition re-check before mutating effects; log abort/replan. |
+Work packages **I-01** through **I-12** (titles, dependencies, test cases, success criteria, sign-off table) are defined only in **`docs/INTRIGUE_IMPLEMENTATION_PLAN.md`** to avoid duplicate tables.
 
 ---
 

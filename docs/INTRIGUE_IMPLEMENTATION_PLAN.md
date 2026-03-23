@@ -6,7 +6,7 @@
 
 **Normative:** The same documentation rules as `agents.md` (no editorial tone; define terms; neutral headings). Requirements use **must** and **must not**.
 
-**Depends on:** `docs/INTRIGUE_SYSTEM_DESIGN.md`.
+**Depends on:** `docs/INTRIGUE_SYSTEM_DESIGN.md` (sole design spec for the World system; no separate “plan” file).
 
 **Consolidation:** Earlier drafts merged migration into I-02, evidence into I-06, correlation into I-04, caps as I-09, manual spec as I-10. **I-11** adds the **belief matrix service**. **I-12** adds **execution guard and replan**. **I-03** now includes **episode event patterns**, **offline pattern library** loading, **append-only event diary** (trace for patterns), and **I-06** includes **recall phrase** injection into dialogue snapshots per `INTRIGUE_SYSTEM_DESIGN.md`.
 
