@@ -44,14 +44,6 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 
 	private string _apiKey = "";
 
-	private bool _enableTTS = false;
-
-	private bool _enableTTSAnimations = true;
-
-	private float _ttsSpeed = 1f;
-
-	private float _ttsVolume = 1.5f;
-
 	private bool _promptEnableInternalThoughts = false;
 
 	private int _promptMaxHistory = 100;
@@ -589,10 +581,6 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 		}
 	}
 
-	[SettingPropertyText("TTS service URL", -1, true, "", RequireRestart = false, HintText = "HTTP URL for the local TTS endpoint (default http://127.0.0.1:4315).")]
-	[SettingPropertyGroup("API Settings/TTS Settings", GroupOrder = 2)]
-	public string Player2ApiUrl { get; set; } = "http://127.0.0.1:4315";
-
 	[SettingPropertyBool("Test OpenRouter Connection", Order = 0, RequireRestart = false, HintText = "Test connection to OpenRouter backend. Results will be displayed in game messages.")]
 	[SettingPropertyGroup("API Settings/OpenRouter Settings", GroupOrder = 1)]
 	public bool TestOpenRouterConnection
@@ -623,102 +611,6 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 			}
 		}
 	}
-
-	[SettingPropertyButton("{=DownloadPlayer2}API Settings/TTS Settings", 0, true, "{=DownloadPlayer2_Button}Open Player2 Web", Content = "{=DownloadPlayer2_Button_2}Open Player2 Web", RequireRestart = false, HintText = "{=DynamicClanSettings_CheckAIInfluence_Hint}Open the TTS / Player2 companion service page.")]
-	[SettingPropertyGroup("API Settings/TTS Settings", GroupOrder = 2)]
-	public Action OpenAIInfluenceWebsite { get; set; } = delegate
-	{
-		try
-		{
-			Process.Start(new ProcessStartInfo
-			{
-				FileName = "https://player2.game/",
-				UseShellExecute = true
-			});
-		}
-		catch (Exception)
-		{
-		}
-	};
-
-	[SettingPropertyBool("Enable TTS (Text-to-Speech)", Order = 1, RequireRestart = false, HintText = "Enable text-to-speech for NPC dialogue responses. Voices are assigned automatically based on gender.")]
-	[SettingPropertyGroup("API Settings/TTS Settings", GroupOrder = 3)]
-	public bool EnableTTS
-	{
-		get
-		{
-			return _enableTTS;
-		}
-		set
-		{
-			if (_enableTTS != value)
-			{
-				_enableTTS = value;
-				this.OnSettingChanged?.Invoke("EnableTTS", value);
-			}
-		}
-	}
-
-	[SettingPropertyBool("{=AIInfluence_EnableTTSAnimations}Enable TTS Animations (Lip Sync)", Order = 2, RequireRestart = false, HintText = "{=AIInfluence_EnableTTSAnimations_Hint}Enable body and lip-sync animations during TTS playback. When disabled, only audio is played without animations.")]
-	[SettingPropertyGroup("API Settings/TTS Settings", GroupOrder = 3)]
-	public bool EnableTTSAnimations
-	{
-		get
-		{
-			return _enableTTSAnimations;
-		}
-		set
-		{
-			if (_enableTTSAnimations != value)
-			{
-				_enableTTSAnimations = value;
-				this.OnSettingChanged?.Invoke("EnableTTSAnimations", value);
-			}
-		}
-	}
-
-	[SettingPropertyFloatingInteger("TTS Speed", 0.25f, 4f, "0.00", Order = 3, RequireRestart = false, HintText = "Speed of text-to-speech (0.25 to 4.0)")]
-	[SettingPropertyGroup("API Settings/TTS Settings", GroupOrder = 3)]
-	public float TTSSpeed
-	{
-		get
-		{
-			return _ttsSpeed;
-		}
-		set
-		{
-			if (Math.Abs(_ttsSpeed - value) > 0.01f)
-			{
-				_ttsSpeed = value;
-				this.OnSettingChanged?.Invoke("TTSSpeed", value);
-			}
-		}
-	}
-
-	[SettingPropertyFloatingInteger("TTS Volume", 0.1f, 3f, "0.00", Order = 4, RequireRestart = false, HintText = "Volume multiplier for TTS voice (0.1 = quiet, 1.0 = normal, 3.0 = very loud). The gain is applied during audio encoding.")]
-	[SettingPropertyGroup("API Settings/TTS Settings", GroupOrder = 3)]
-	public float TTSVolume
-	{
-		get
-		{
-			return _ttsVolume;
-		}
-		set
-		{
-			if (Math.Abs(_ttsVolume - value) > 0.01f)
-			{
-				_ttsVolume = value;
-				this.OnSettingChanged?.Invoke("TTSVolume", value);
-			}
-		}
-	}
-
-	[SettingPropertyButton("Export Available Voices", 0, true, "Export Voices", Content = "Export Available Voices", RequireRestart = false, HintText = "Export available TTS voices to a text file in the mod folder. You can use this list to manually edit NPC .json files and assign custom voices.")]
-	[SettingPropertyGroup("API Settings/TTS Settings", GroupOrder = 3)]
-	public Action ExportTTSVoices { get; set; } = delegate
-	{
-		InformationManager.DisplayMessage(new InformationMessage("Voice list export is unavailable: the Player2 client in this build does not expose GetAvailableVoices. Set AssignedTTSVoice in NPC JSON manually.", Colors.Yellow));
-	};
 
 	[SettingPropertyGroup("{=AIInfluence_Group_Prompt}Prompt Settings", GroupOrder = 5)]
 	[SettingPropertyBool("{=AIInfluence_PromptInternalThoughts}Enable AI Internal Thoughts (EXPERIMENTAL)", Order = -1, RequireRestart = false, HintText = "{=AIInfluence_PromptInternalThoughts_Hint}EXPERIMENTAL FEATURE: AI will think through character's motivations, emotions, and internal conflicts before responding. This creates deeper, more nuanced roleplay but may increase response time by 10-30%. The AI's internal thoughts will be logged for debugging but not shown to the player.")]
