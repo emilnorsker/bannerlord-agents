@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using AIInfluence.Diseases;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.LogEntries;
 using TaleWorlds.CampaignSystem.Settlements;
@@ -61,11 +60,7 @@ public static class DeathHistoryPromptGenerator
 		stringBuilder.AppendLine("Died: " + text2);
 		string text3 = null;
 		string text4 = null;
-		if (flag && !string.IsNullOrEmpty(DiseaseManager.PendingPlayerDiseaseDeathName))
-		{
-			text3 = "Died from disease: " + DiseaseManager.PendingPlayerDiseaseDeathName;
-		}
-		else if (nPCContext != null && !string.IsNullOrEmpty(nPCContext.DeathReason))
+		if (nPCContext != null && !string.IsNullOrEmpty(nPCContext.DeathReason))
 		{
 			text3 = nPCContext.DeathReason;
 		}

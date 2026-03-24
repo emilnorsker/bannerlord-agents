@@ -27,6 +27,5 @@ public enum DiplomaticAction
 	RejectReparations,
 	ExpelClan,
 	GrantFief,
-	ReceiveFief,
-	QuarantineSettlement
+	ReceiveFief
 }

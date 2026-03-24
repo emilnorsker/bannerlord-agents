@@ -32,6 +32,4 @@ public class PlayerStatementResult
 	public int ReparationsAmount { get; set; }
 
 	public float TradeAgreementDurationYears { get; set; } = 1f;
-
-	public int QuarantineDurationDays { get; set; }
 }

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using AIInfluence.Diseases;
 using AIInfluence.DynamicEvents;
 using AIInfluence.Util;
 using MCM.Abstractions.Base.Global;
@@ -403,14 +402,14 @@ public class DiplomacyManager
 				}
 				else
 				{
-					if (diplomaticAction != DiplomaticAction.ExpelClan && diplomaticAction != DiplomaticAction.QuarantineSettlement)
+					if (diplomaticAction != DiplomaticAction.ExpelClan)
 					{
 						DiplomacyLogger.Instance.Log($"[DIPLOMACY_MGR] No target kingdoms found for action {diplomaticAction}, skipping");
 						continue;
 					}
 					text = null;
 				}
-				bool flag = diplomaticAction == DiplomaticAction.TransferTerritory || diplomaticAction == DiplomaticAction.RejectTerritory || diplomaticAction == DiplomaticAction.DemandTerritory || diplomaticAction == DiplomaticAction.QuarantineSettlement;
+				bool flag = diplomaticAction == DiplomaticAction.TransferTerritory || diplomaticAction == DiplomaticAction.RejectTerritory || diplomaticAction == DiplomaticAction.DemandTerritory;
 				string text2 = null;
 				if (flag && list3.Any())
 				{
@@ -445,10 +444,6 @@ public class DiplomacyManager
 				{
 					diplomaticActionInfo.ReparationsAmount = statement.ReparationsAmount;
 				}
-				if (diplomaticAction == DiplomaticAction.QuarantineSettlement)
-				{
-					diplomaticActionInfo.QuarantineDurationDays = statement.QuarantineDurationDays;
-				}
 				ExecuteDiplomaticAction(diplomaticActionInfo);
 			}
 		}
@@ -466,7 +461,7 @@ public class DiplomacyManager
 			return;
 		}
 		Kingdom val = ((IEnumerable<Kingdom>)Kingdom.All).FirstOrDefault((Func<Kingdom, bool>)((Kingdom k) => ((MBObjectBase)k).StringId == actionInfo.SourceKingdomId));
-		bool flag = actionInfo.Action != DiplomaticAction.ExpelClan && actionInfo.Action != DiplomaticAction.QuarantineSettlement;
+		bool flag = actionInfo.Action != DiplomaticAction.ExpelClan;
 		Kingdom val2 = (flag ? ((IEnumerable<Kingdom>)Kingdom.All).FirstOrDefault((Func<Kingdom, bool>)((Kingdom k) => ((MBObjectBase)k).StringId == actionInfo.TargetKingdomId)) : null);
 		if (val == null)
 		{
@@ -715,51 +710,6 @@ public class DiplomacyManager
 			else
 			{
 				DiplomacyLogger.Instance.Log("[DIPLOMACY_MGR] Cannot expel clan: no target clan specified");
-			}
-			break;
-		case DiplomaticAction.QuarantineSettlement:
-			DiplomacyLogger.Instance.Log(string.Format("[DIPLOMACY_MGR] Processing QuarantineSettlement action. SettlementId: {0}, Duration: {1}", actionInfo.SettlementId ?? "null", actionInfo.QuarantineDurationDays));
-			if (!string.IsNullOrEmpty(actionInfo.SettlementId))
-			{
-				Settlement val3 = ((IEnumerable<Settlement>)Settlement.All).FirstOrDefault((Func<Settlement, bool>)((Settlement s) => ((MBObjectBase)s).StringId == actionInfo.SettlementId));
-				if (val3 != null)
-				{
-					Clan ownerClan = val3.OwnerClan;
-					if (((ownerClan != null) ? ownerClan.Kingdom : null) == val)
-					{
-						DiseaseManager instance = DiseaseManager.Instance;
-						if (instance != null && instance.SettlementHasDisease(val3))
-						{
-							int num = ((actionInfo.QuarantineDurationDays >= 1) ? actionInfo.QuarantineDurationDays : 14);
-							bool flag2 = instance.IsSettlementUnderQuarantine(val3);
-							if (instance.SetQuarantine(val3, quarantined: true, num, forceByKingdomLeader: true))
-							{
-								string text = (flag2 ? "EXTENDED" : "SET");
-								DiplomacyLogger.Instance.Log($"[DIPLOMACY_MGR] SUCCESS: Quarantine {text} on {val3.Name} by +{num} days by {val.Name}");
-							}
-							else
-							{
-								DiplomacyLogger.Instance.Log($"[DIPLOMACY_MGR] FAILED: Could not set quarantine on {val3.Name}");
-							}
-						}
-						else
-						{
-							DiplomacyLogger.Instance.Log($"[DIPLOMACY_MGR] Cannot quarantine {val3.Name}: no active disease");
-						}
-					}
-					else
-					{
-						DiplomacyLogger.Instance.Log($"[DIPLOMACY_MGR] Cannot quarantine {val3.Name}: not owned by {val.Name}");
-					}
-				}
-				else
-				{
-					DiplomacyLogger.Instance.Log("[DIPLOMACY_MGR] Cannot quarantine: settlement " + actionInfo.SettlementId + " not found");
-				}
-			}
-			else
-			{
-				DiplomacyLogger.Instance.Log("[DIPLOMACY_MGR] Cannot quarantine: no settlement specified");
 			}
 			break;
 		default:
@@ -1817,14 +1767,14 @@ public class DiplomacyManager
 					{
 						continue;
 					}
-					bool isInternalAction = action == DiplomaticAction.ExpelClan || action == DiplomaticAction.QuarantineSettlement;
+					bool isInternalAction = action == DiplomaticAction.ExpelClan;
 					if (!targetKingdomIds.Any() && !isInternalAction)
 					{
 						DiplomacyLogger.Instance.Log($"[DIPLOMACY_MGR] No target kingdoms found for action {action} from {statement.KingdomId}, skipping");
 						continue;
 					}
 					string targetKingdomId = ((isInternalAction && !targetKingdomIds.Any()) ? null : ((actionsToExecute.Count != targetKingdomIds.Count) ? targetKingdomIds[0] : targetKingdomIds[actionIndex]));
-					bool isSettlementAction = action == DiplomaticAction.TransferTerritory || action == DiplomaticAction.RejectTerritory || action == DiplomaticAction.DemandTerritory || action == DiplomaticAction.QuarantineSettlement;
+					bool isSettlementAction = action == DiplomaticAction.TransferTerritory || action == DiplomaticAction.RejectTerritory || action == DiplomaticAction.DemandTerritory;
 					string settlementIdForAction = null;
 					if (isSettlementAction && settlementIds.Any())
 					{
@@ -1850,10 +1800,6 @@ public class DiplomacyManager
 					if (action == DiplomaticAction.DemandReparations)
 					{
 						actionInfo.ReparationsAmount = statement.ReparationsAmount;
-					}
-					if (action == DiplomaticAction.QuarantineSettlement)
-					{
-						actionInfo.QuarantineDurationDays = statement.QuarantineDurationDays;
 					}
 					ExecuteDiplomaticAction(actionInfo);
 				}
@@ -2064,7 +2010,7 @@ public class DiplomacyManager
 				List<string> targetKingdomIds = ((statement.TargetKingdomIds != null && statement.TargetKingdomIds.Any()) ? statement.TargetKingdomIds : ((!string.IsNullOrEmpty(statement.TargetKingdomId)) ? new List<string> { statement.TargetKingdomId } : new List<string>()));
 				if (!targetKingdomIds.Any())
 				{
-					if (!actionsToExecute.All((DiplomaticAction a) => a == DiplomaticAction.ExpelClan || a == DiplomaticAction.QuarantineSettlement))
+					if (!actionsToExecute.All((DiplomaticAction a) => a == DiplomaticAction.ExpelClan))
 					{
 						DiplomacyLogger.Instance.Log("[DIPLOMACY_MGR] No target kingdoms found for statement from " + statement.KingdomId + ", skipping action execution");
 						continue;
@@ -2117,7 +2063,7 @@ public class DiplomacyManager
 						continue;
 					}
 					string targetKingdomId;
-					if ((action2 == DiplomaticAction.ExpelClan || action2 == DiplomaticAction.QuarantineSettlement) && !targetKingdomIds.Any())
+					if (action2 == DiplomaticAction.ExpelClan && !targetKingdomIds.Any())
 					{
 						targetKingdomId = null;
 					}
@@ -2149,7 +2095,7 @@ public class DiplomacyManager
 							continue;
 						}
 					}
-					bool isSettlementAction = action2 == DiplomaticAction.TransferTerritory || action2 == DiplomaticAction.RejectTerritory || action2 == DiplomaticAction.DemandTerritory || action2 == DiplomaticAction.QuarantineSettlement;
+					bool isSettlementAction = action2 == DiplomaticAction.TransferTerritory || action2 == DiplomaticAction.RejectTerritory || action2 == DiplomaticAction.DemandTerritory;
 					string settlementIdForAction = null;
 					if (isSettlementAction && settlementIds.Any())
 					{
@@ -2175,10 +2121,6 @@ public class DiplomacyManager
 					if (action2 == DiplomaticAction.DemandReparations)
 					{
 						actionInfo.ReparationsAmount = statement.ReparationsAmount;
-					}
-					if (action2 == DiplomaticAction.QuarantineSettlement)
-					{
-						actionInfo.QuarantineDurationDays = statement.QuarantineDurationDays;
 					}
 					ExecuteDiplomaticAction(actionInfo);
 				}
@@ -2341,7 +2283,6 @@ public class DiplomacyManager
 				}
 			}
 			List<EconomicEffect> effectsForUpdate = null;
-			DiseaseEventData diseaseDataForUpdate = null;
 			if (analysisResult.EconomicEffects != null && analysisResult.EconomicEffects.Any())
 			{
 				try
@@ -2362,27 +2303,10 @@ public class DiplomacyManager
 					DiplomacyLogger.Instance.LogError("DiplomacyManager.AnalyzeAndExecuteDiplomaticActions", "Failed to apply economic effects for event " + diplomaticEvent.Id, ex2);
 				}
 			}
-			if (analysisResult.DiseaseData != null && !string.IsNullOrEmpty(analysisResult.DiseaseData.SettlementId) && (GlobalSettings<ModSettings>.Instance?.EnableDiseaseSystem ?? false))
-			{
-				try
-				{
-					Disease disease = DiseaseManager.Instance?.CreateDiseaseFromDiseaseEventData(diplomaticEvent, analysisResult.DiseaseData);
-					if (disease != null)
-					{
-						diseaseDataForUpdate = analysisResult.DiseaseData;
-						DiplomacyLogger.Instance.Log("[DIPLOMACY_MGR] Created disease '" + disease.Name + "' in " + analysisResult.DiseaseData.SettlementId + " from analyzer");
-					}
-				}
-				catch (Exception ex)
-				{
-					Exception ex3 = ex;
-					DiplomacyLogger.Instance.Log("[DIPLOMACY_MGR] ERROR creating disease from analyzer: " + ex3.Message);
-				}
-			}
 			if (!string.IsNullOrEmpty(analysisResult.EventUpdate))
 			{
-				diplomaticEvent.AddEventUpdate(analysisResult.EventUpdate, "Diplomatic Analysis", effectsForUpdate, diseaseDataForUpdate);
-				DiplomacyLogger.Instance.Log("[DIPLOMACY_MGR] Added event update to history" + ((effectsForUpdate != null && effectsForUpdate.Any()) ? $" with {effectsForUpdate.Count} economic effects" : "") + ((diseaseDataForUpdate != null) ? " with disease data" : ""));
+				diplomaticEvent.AddEventUpdate(analysisResult.EventUpdate, "Diplomatic Analysis", effectsForUpdate);
+				DiplomacyLogger.Instance.Log("[DIPLOMACY_MGR] Added event update to history" + ((effectsForUpdate != null && effectsForUpdate.Any()) ? $" with {effectsForUpdate.Count} economic effects" : ""));
 				ShowEventUpdateToPlayer(diplomaticEvent, analysisResult.EventUpdate);
 			}
 			if (analysisResult.ShouldEndEvent)
@@ -2775,8 +2699,7 @@ public class DiplomacyManager
 						DailyTributeAmount = analysis.DailyTributeAmount,
 						TributeDurationDays = analysis.TributeDurationDays,
 						ReparationsAmount = analysis.ReparationsAmount,
-						TradeAgreementDurationYears = analysis.TradeAgreementDurationYears,
-						QuarantineDurationDays = analysis.QuarantineDurationDays
+						TradeAgreementDurationYears = analysis.TradeAgreementDurationYears
 					};
 					_pendingPlayerStatements.Add(delayedStatement);
 					DiplomacyLogger.Instance.Log($"[PLAYER_DIPLO] Added statement with {validTargetIds.Count} targets, delay: {hoursDelay} hours");
@@ -2811,8 +2734,7 @@ public class DiplomacyManager
 					DailyTributeAmount = analysis.DailyTributeAmount,
 					TributeDurationDays = analysis.TributeDurationDays,
 					ReparationsAmount = analysis.ReparationsAmount,
-					TradeAgreementDurationYears = analysis.TradeAgreementDurationYears,
-					QuarantineDurationDays = analysis.QuarantineDurationDays
+					TradeAgreementDurationYears = analysis.TradeAgreementDurationYears
 				};
 				_pendingPlayerStatements.Add(delayedStatement2);
 				_storage.SavePendingPlayerStatements(_pendingPlayerStatements);
@@ -2909,13 +2831,13 @@ public class DiplomacyManager
 				{
 					continue;
 				}
-				bool isNoTargetAction = action == DiplomaticAction.QuarantineSettlement || action == DiplomaticAction.ExpelClan;
+				bool isNoTargetAction = action == DiplomaticAction.ExpelClan;
 				if (!targetKingdomIds.Any() && !isNoTargetAction)
 				{
 					DiplomacyLogger.Instance.Log($"[PLAYER_DIPLO] No target kingdoms found for action {action}, skipping");
 					continue;
 				}
-				bool isSettlementAction = action == DiplomaticAction.TransferTerritory || action == DiplomaticAction.RejectTerritory || action == DiplomaticAction.DemandTerritory || action == DiplomaticAction.QuarantineSettlement;
+				bool isSettlementAction = action == DiplomaticAction.TransferTerritory || action == DiplomaticAction.RejectTerritory || action == DiplomaticAction.DemandTerritory;
 				string settlementIdForAction = null;
 				if (isSettlementAction && settlementIds.Any())
 				{
@@ -2931,8 +2853,7 @@ public class DiplomacyManager
 						SourceKingdomId = ((MBObjectBase)statement.PlayerKingdom).StringId,
 						TargetClanId = statement.TargetClanId,
 						Reason = statement.Reason,
-						SettlementId = settlementIdForAction,
-						QuarantineDurationDays = statement.QuarantineDurationDays
+						SettlementId = settlementIdForAction
 					};
 					ExecuteDiplomaticAction(actionInfo);
 					continue;
@@ -2952,8 +2873,7 @@ public class DiplomacyManager
 						DailyTributeAmount = statement.DailyTributeAmount,
 						TributeDurationDays = statement.TributeDurationDays,
 						ReparationsAmount = statement.ReparationsAmount,
-						TradeAgreementDurationYears = statement.TradeAgreementDurationYears,
-						QuarantineDurationDays = statement.QuarantineDurationDays
+						TradeAgreementDurationYears = statement.TradeAgreementDurationYears
 					};
 					ExecuteDiplomaticAction(actionInfo2);
 					continue;

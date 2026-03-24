@@ -3,7 +3,6 @@ using System.Reflection;
 using AIInfluence.Behaviors;
 using AIInfluence.Behaviors.DeathHistory;
 using AIInfluence.Diplomacy;
-using AIInfluence.Diseases;
 using AIInfluence.DynamicEvents;
 using AIInfluence.SettlementCombat;
 using AIInfluence.UI;
@@ -102,7 +101,6 @@ public class SubModule : MBSubModuleBase
 			val.AddBehavior((CampaignBehaviorBase)(object)new DeathHistoryBehavior());
 			val.AddBehavior((CampaignBehaviorBase)(object)new EconomicEffectsManager());
 			val.AddBehavior((CampaignBehaviorBase)(object)new NonCombatantPartyProtector());
-			val.AddBehavior((CampaignBehaviorBase)(object)new DiseaseTreatmentAiBehavior());
 		}
 	}
 

@@ -33,9 +33,6 @@ public class DiplomaticAnalysisResult
 	[JsonProperty("economic_effects")]
 	public List<EconomicEffect> EconomicEffects { get; set; } = new List<EconomicEffect>();
 
-	[JsonProperty("disease_data")]
-	public DiseaseEventData DiseaseData { get; set; }
-
 	[JsonProperty("retry_delay_days")]
 	public int RetryDelayDays { get; set; } = 0;
 }
