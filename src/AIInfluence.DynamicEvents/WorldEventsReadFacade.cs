@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using AIInfluence;
 using TaleWorlds.CampaignSystem;
 
 namespace AIInfluence.DynamicEvents;
@@ -14,8 +15,8 @@ public static class WorldEventsReadFacade
 		return DynamicEventsManager.Instance?.GetActiveEvents() ?? new List<DynamicEvent>();
 	}
 
-	public static List<DynamicEvent> GetEventsKnownToNpc(Hero npc, bool persistKnowledgeSync = true)
+	public static List<DynamicEvent> GetEventsKnownToNpc(Hero npc, bool persistKnowledgeSync = true, NPCContext syncIntoContext = null)
 	{
-		return DynamicEventsManager.Instance?.GetEventsForNPC(npc, persistKnowledgeSync) ?? new List<DynamicEvent>();
+		return DynamicEventsManager.Instance?.GetEventsForNPC(npc, persistKnowledgeSync, syncIntoContext) ?? new List<DynamicEvent>();
 	}
 }

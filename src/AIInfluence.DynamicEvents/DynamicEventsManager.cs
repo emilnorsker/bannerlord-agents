@@ -325,16 +325,16 @@ public class DynamicEventsManager
 		}
 	}
 
-	public List<DynamicEvent> GetEventsForNPC(Hero npc, bool persistKnowledgeSync = true)
+	public List<DynamicEvent> GetEventsForNPC(Hero npc, bool persistKnowledgeSync = true, NPCContext syncIntoContext = null)
 	{
 		if (npc == null)
 		{
 			return new List<DynamicEvent>();
 		}
 		AIInfluenceBehavior instance = AIInfluenceBehavior.Instance;
-		NPCContext tempContext = null;
 		string npcKey = ((MBObjectBase)npc).StringId;
-		if (instance != null)
+		NPCContext tempContext = syncIntoContext;
+		if (tempContext == null && instance != null)
 		{
 			Dictionary<string, NPCContext> nPCContexts = instance.GetNPCContexts();
 			if (nPCContexts != null && nPCContexts.ContainsKey(npcKey))

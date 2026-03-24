@@ -3892,7 +3892,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	{
 		try
 		{
-			List<DynamicEvent> known = DynamicEventsManager.Instance.GetEventsForNPC(npc, persistKnowledgeSync: false);
+			List<DynamicEvent> known = DynamicEventsManager.Instance.GetEventsForNPC(npc, persistKnowledgeSync: false, syncIntoContext: context);
 			int num = 0;
 			foreach (DynamicEvent dynamicEvent in known)
 			{

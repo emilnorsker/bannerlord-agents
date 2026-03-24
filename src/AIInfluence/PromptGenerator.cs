@@ -394,7 +394,7 @@ public static class PromptGenerator
 		DynamicEventsManager instance2 = DynamicEventsManager.Instance;
 		if (instance2 != null)
 		{
-			List<DynamicEvent> eventsForNPC = instance2.GetEventsForNPC(npc);
+			List<DynamicEvent> eventsForNPC = instance2.GetEventsForNPC(npc, persistKnowledgeSync: true, syncIntoContext: context);
 			if (eventsForNPC != null && eventsForNPC.Any())
 			{
 				List<string> list3 = (from evt in (from evt in eventsForNPC
