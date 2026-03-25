@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using AIInfluence;
 using AIInfluence.Util;
+using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Party;
+using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
 
@@ -74,28 +77,54 @@ public sealed class CreatePartyAction : AIActionBase
 			Stop();
 			return;
 		}
-		if (!skipOutlaw && BlgmNpcParty.UseOutlawPath(base.TargetHero, forceOutlaw))
+		if (!skipOutlaw && BlgmOutlawPath.Use(base.TargetHero, forceOutlaw))
 		{
-			BlgmNpcParty.Result blgm = BlgmNpcParty.TryOutlawMinorClan(base.TargetHero, 2, null, leavePlayerClanIfNeeded: true);
-			if (blgm.Ok)
+			Settlement anchor = base.TargetHero.CurrentSettlement ?? base.TargetHero.BornSettlement ?? Settlement.All?.FirstOrDefault(s => s.IsTown);
+			if (anchor == null)
 			{
-				foreach (string w in blgm.Warnings)
-				{
-					LogAction(w);
-					InformationManager.DisplayMessage(new InformationMessage("[AI Influence] " + w, ExtraColors.RedAIInfluence));
-				}
-				_partyCreated = true;
-				TextObject outlawBreakawaySuccessMessage = new TextObject("{=AIAction_CreatePartyOutlawSuccess}{HERO_NAME} broke away as an outlaw clan \"{CLAN_NAME}\" and now roams independently (at war with you and a nearby realm).", (Dictionary<string, object>)null);
-				outlawBreakawaySuccessMessage.SetTextVariable("HERO_NAME", ((object)base.TargetHero.Name)?.ToString() ?? "Unknown");
-				outlawBreakawaySuccessMessage.SetTextVariable("CLAN_NAME", ((object)blgm.Clan?.Name)?.ToString() ?? "Outlaws");
-				ShowSuccessDelayed(((object)outlawBreakawaySuccessMessage).ToString());
-				LogAction($"Created BLGM outlaw minor clan '{blgm.Clan?.Name}' for {base.TargetHero.Name}");
-				Stop();
-				return;
+				LogError("Outlaw path: no settlement anchor");
+				InformationManager.DisplayMessage(new InformationMessage("[AI Influence] Outlaw clan creation failed: no settlement anchor.", ExtraColors.RedAIInfluence));
 			}
-			string outlawFallbackReason = blgm.Err ?? "Unknown error";
-			LogError("Outlaw BLGM path failed, falling back to player-clan party: " + outlawFallbackReason);
-			InformationManager.DisplayMessage(new InformationMessage("[AI Influence] Outlaw clan creation failed; forming a normal clan party instead. " + outlawFallbackReason, ExtraColors.RedAIInfluence));
+			else
+			{
+				BlgmOutlawPath.StripFromMain(base.TargetHero);
+				var sd = new SpawnPartyData { Name = ((object)base.TargetHero.Name)?.ToString() ?? "Outlaw", IsOutlaw = true, InternalOutlawLeader = base.TargetHero };
+				QuestPartyBlgmKernel.R blgm = QuestPartyBlgmKernel.Run(sd, anchor);
+				if (string.IsNullOrEmpty(blgm.Err) && blgm.Hero == base.TargetHero && blgm.Party != null)
+				{
+					try { GameVersionCompatibility.ConditionalEnableAi(blgm.Party); } catch (Exception ex) { LogError(ex.Message); }
+					NonCombatantPartyProtector.Instance?.RegisterPartyForProtection(blgm.Party, base.TargetHero, "CreateParty");
+					_partyCreated = true;
+					TextObject outlawBreakawaySuccessMessage = new TextObject("{=AIAction_CreatePartyOutlawSuccess}{HERO_NAME} broke away as an outlaw clan \"{CLAN_NAME}\" and now roams independently (at war with you and a nearby realm).", (Dictionary<string, object>)null);
+					outlawBreakawaySuccessMessage.SetTextVariable("HERO_NAME", ((object)base.TargetHero.Name)?.ToString() ?? "Unknown");
+					outlawBreakawaySuccessMessage.SetTextVariable("CLAN_NAME", ((object)base.TargetHero.Clan?.Name)?.ToString() ?? "Outlaws");
+					ShowSuccessDelayed(((object)outlawBreakawaySuccessMessage).ToString());
+					LogAction($"Created BLGM outlaw minor clan for {base.TargetHero.Name}");
+					Stop();
+					return;
+				}
+				if (base.TargetHero.Clan == Clan.PlayerClan)
+				{
+					try { RemoveCompanionAction.ApplyByFire(Clan.PlayerClan, base.TargetHero); } catch (Exception ex) { LogError(ex.Message); }
+					blgm = QuestPartyBlgmKernel.Run(sd, anchor);
+					if (string.IsNullOrEmpty(blgm.Err) && blgm.Hero == base.TargetHero && blgm.Party != null)
+					{
+						try { GameVersionCompatibility.ConditionalEnableAi(blgm.Party); } catch (Exception ex2) { LogError(ex2.Message); }
+						NonCombatantPartyProtector.Instance?.RegisterPartyForProtection(blgm.Party, base.TargetHero, "CreateParty");
+						_partyCreated = true;
+						TextObject retrySuccess = new TextObject("{=AIAction_CreatePartyOutlawSuccess}{HERO_NAME} broke away as an outlaw clan \"{CLAN_NAME}\" and now roams independently (at war with you and a nearby realm).", (Dictionary<string, object>)null);
+						retrySuccess.SetTextVariable("HERO_NAME", ((object)base.TargetHero.Name)?.ToString() ?? "Unknown");
+						retrySuccess.SetTextVariable("CLAN_NAME", ((object)base.TargetHero.Clan?.Name)?.ToString() ?? "Outlaws");
+						ShowSuccessDelayed(((object)retrySuccess).ToString());
+						LogAction($"Created BLGM outlaw minor clan for {base.TargetHero.Name} (after leave player clan)");
+						Stop();
+						return;
+					}
+				}
+				string outlawFallbackReason = blgm.Err ?? "unknown";
+				LogError("Outlaw BLGM path failed, falling back to player-clan party: " + outlawFallbackReason);
+				InformationManager.DisplayMessage(new InformationMessage("[AI Influence] Outlaw clan creation failed; forming a normal clan party instead. " + outlawFallbackReason, ExtraColors.RedAIInfluence));
+			}
 		}
 		MobileParty playerClanLordParty = GameVersionCompatibility.CreateNewClanMobileParty(base.TargetHero, Clan.PlayerClan);
 		if (playerClanLordParty == null)

@@ -1052,72 +1052,92 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	}
 
 	/// <summary>
-	/// Spawns a map party from quest_action.spawn_party (or legacy spawn_hostile_party) and attaches it to an existing quest record.
-	/// Used by create_quest and update_quest so a target NPC can reveal bandits on an ongoing quest from the quest giver.
+	/// Runs quest_action.spawn_party via QuestPartyBlgmKernel (BLGM). Caller must ensure BLGM campaign is loaded.
 	/// </summary>
 	private void TrySpawnPartyFromQuestAction(QuestActionData questAction, AIQuestInfo questInfo, Hero npc, NPCContext context, bool skipIfAlreadySpawned)
 	{
 		SpawnPartyData spawnData = questAction.SpawnParty;
-		if (spawnData == null && questAction.SpawnHostileParty)
-		{
-			spawnData = new SpawnPartyData
-			{
-				Alignment = "hostile",
-				PartyName = string.IsNullOrEmpty(questAction.HostilePartyLabel) ? "Quest Enemies" : questAction.HostilePartyLabel,
-				PartySize = Math.Max(5, Math.Min(questAction.HostilePartySize, 1500)),
-				PartyTroops = string.IsNullOrEmpty(questAction.HostileTroopName) ? null : new List<string> { questAction.HostileTroopName },
-				Settlement = npc?.CurrentSettlement != null ? ((object)npc.CurrentSettlement.Name)?.ToString() : null
-			};
-		}
 		if (spawnData == null)
-		{
 			return;
-		}
 		if (skipIfAlreadySpawned && !string.IsNullOrEmpty(questInfo.SpawnedPartyId))
 		{
 			LogMessage("[QUEST] spawn_party skipped: quest already has spawned party " + questInfo.SpawnedPartyId);
 			return;
 		}
-		var spawnService = new NpcSpawnService(LogMessage);
-		var spawnResult = spawnService.Spawn(spawnData);
-		if (spawnResult.Success && spawnResult.Party != null)
+		Vec2 fallbackPos = npc?.PartyBelongedTo != null ? GameVersionCompatibility.GetPosition2D(npc.PartyBelongedTo) : MobileParty.MainParty != null ? GameVersionCompatibility.GetPosition2D(MobileParty.MainParty) : default;
+		Settlement anchor = QuestSpawnSettlementResolver.Resolve(spawnData.Settlement, fallbackPos);
+		if (anchor == null)
 		{
-			string partyStringId = ((MBObjectBase)spawnResult.Party).StringId;
+			LogMessage("[QUEST] spawn_party failed: no settlement anchor");
+			InformationManager.DisplayMessage(new InformationMessage("Quest spawn failed: no settlement anchor", ExtraColors.RedAIInfluence));
+			SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
+			return;
+		}
+		QuestPartyBlgmKernel.R r = QuestPartyBlgmKernel.Run(spawnData, anchor);
+		if (!string.IsNullOrEmpty(r.Err))
+		{
+			LogMessage("[QUEST] spawn_party failed: " + r.Err);
+			InformationManager.DisplayMessage(new InformationMessage("Quest spawn failed: " + r.Err, ExtraColors.RedAIInfluence));
+			SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
+			return;
+		}
+		if (r.Hero != null)
+		{
+			string targetNpcId = ((MBObjectBase)r.Hero).StringId;
+			QuestBase q = Campaign.Current?.QuestManager?.Quests?.FirstOrDefault((QuestBase qq) => ((MBObjectBase)qq).StringId == questInfo.QuestId && qq.IsOngoing);
+			q?.AddTrackedObject((ITrackableCampaignObject)(object)r.Hero);
+			if (q is AIGeneratedQuest agq)
+				agq.AppendTargetNpc(targetNpcId);
+			EnsureQuestTargetContextFileExists(targetNpcId, r.Hero);
+			NPCContext nPCContext = LoadNPCContext(targetNpcId);
+			if (nPCContext != null)
+			{
+				if (nPCContext.IncomingAIQuests == null)
+					nPCContext.IncomingAIQuests = new List<AIQuestInfo>();
+				if (!nPCContext.IncomingAIQuests.Any((AIQuestInfo x) => x.QuestId == questInfo.QuestId))
+					nPCContext.IncomingAIQuests.Add(questInfo);
+				if (string.IsNullOrEmpty(nPCContext.Name) || nPCContext.Name == "Unknown_NPC")
+					nPCContext.Name = ((object)r.Hero.Name)?.ToString() ?? "Unknown_NPC";
+				if (string.IsNullOrEmpty(nPCContext.StringId))
+					nPCContext.StringId = targetNpcId;
+				_npcContexts[targetNpcId] = nPCContext;
+				UpdateStringIdIndex(targetNpcId, targetNpcId);
+				SaveNPCContext(targetNpcId, r.Hero, nPCContext);
+			}
+			if (questInfo.TargetNpcIds == null)
+				questInfo.TargetNpcIds = new List<string>();
+			if (!questInfo.TargetNpcIds.Contains(targetNpcId))
+				questInfo.TargetNpcIds.Add(targetNpcId);
+			if (string.IsNullOrEmpty(questInfo.TargetNpcId))
+				questInfo.TargetNpcId = targetNpcId;
+			LogMessage("[QUEST] spawn_party linked target hero " + targetNpcId);
+			SyncQuestInfoAcrossNpcs(questInfo);
+			NPCContext spawnedContext = GetOrCreateNPCContext(r.Hero);
+			if (spawnedContext != null)
+				SaveNPCContext(targetNpcId, r.Hero, spawnedContext);
+		}
+		if (r.Party != null)
+		{
+			CultureObject troopCulture = r.Party.LeaderHero?.Culture ?? r.Hero?.Culture ?? anchor.Culture;
+			QuestSpawnTroopFill.Apply(r.Party, spawnData, troopCulture);
+			string partyStringId = ((MBObjectBase)r.Party).StringId;
 			questInfo.SpawnedPartyId = partyStringId;
 			questInfo.SpawnedPartyDefeatMeansFailure = !string.Equals(spawnData.Alignment, "hostile", StringComparison.OrdinalIgnoreCase);
-			spawnResult.Party.SetPartyUsedByQuest(true);
+			r.Party.SetPartyUsedByQuest(true);
 			if (string.Equals(spawnData.Alignment, "hostile", StringComparison.OrdinalIgnoreCase))
 			{
-				string partyName = spawnData.PartyName ?? (spawnResult.Party.Name?.ToString()) ?? "a party";
-				string spawnLocation = !string.IsNullOrEmpty(spawnData.Settlement)
-					? spawnData.Settlement
-					: (npc?.PartyBelongedTo != null ? ((npc.Name)?.ToString() ?? "the quest giver") : "the player");
+				string partyName = spawnData.PartyName ?? (r.Party.Name?.ToString()) ?? "a party";
+				string spawnLocation = !string.IsNullOrEmpty(spawnData.Settlement) ? spawnData.Settlement : (npc?.PartyBelongedTo != null ? ((npc.Name)?.ToString() ?? "the quest giver") : "the player");
 				string addNote = "A hostile party '" + partyName + "' (id:" + questInfo.SpawnedPartyId + ") was spawned near " + spawnLocation + ". The quest is complete when this party is destroyed.";
 				questInfo.AIVerificationNotes = string.IsNullOrEmpty(questInfo.AIVerificationNotes) ? addNote : questInfo.AIVerificationNotes + " " + addNote;
 			}
-			QuestBase questBase2 = Campaign.Current?.QuestManager?.Quests?.FirstOrDefault((Func<QuestBase, bool>)((QuestBase q) => ((MBObjectBase)q).StringId == questInfo.QuestId && q.IsOngoing));
+			QuestBase questBase2 = Campaign.Current?.QuestManager?.Quests?.FirstOrDefault((QuestBase qq) => ((MBObjectBase)qq).StringId == questInfo.QuestId && qq.IsOngoing);
 			if (questBase2 is AIGeneratedQuest aiGenQuest)
-			{
 				aiGenQuest.SpawnedPartyId = partyStringId;
-			}
-			questBase2?.AddTrackedObject((ITrackableCampaignObject)(object)spawnResult.Party);
-			spawnResult.Party.IsVisible = true;
+			questBase2?.AddTrackedObject((ITrackableCampaignObject)(object)r.Party);
+			r.Party.IsVisible = true;
 			bool hostileParty = string.Equals(spawnData.Alignment, "hostile", StringComparison.OrdinalIgnoreCase);
 			InformationManager.DisplayMessage(new InformationMessage(hostileParty ? "An enemy party has appeared on the map!" : "A party has appeared on the map!", hostileParty ? ExtraColors.RedAIInfluence : ExtraColors.GreenAIInfluence));
-		}
-		if (spawnResult.Success && spawnResult.Hero != null)
-		{
-			NPCContext spawnedContext = GetOrCreateNPCContext(spawnResult.Hero);
-			if (spawnedContext != null)
-			{
-				SaveNPCContext(((MBObjectBase)spawnResult.Hero).StringId, spawnResult.Hero, spawnedContext);
-			}
-		}
-		if (!spawnResult.Success)
-		{
-			string err = spawnResult.Error ?? "Quest party spawn failed.";
-			LogMessage("[QUEST] spawn_party failed: " + err);
-			InformationManager.DisplayMessage(new InformationMessage("Quest spawn failed: " + err, ExtraColors.RedAIInfluence));
 		}
 		SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
 	}
@@ -4687,10 +4707,14 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				RewardSkillXp = 300,
 				InfluenceChange = 5,
 				CrimeRatingChange = -10,
-				SpawnHostileParty = true,
-				HostilePartySize = 8,
-				HostileTroopName = "looter",
-				HostilePartyLabel = "[DEBUG] Test Bandits",
+				SpawnParty = new SpawnPartyData
+				{
+					Alignment = "hostile",
+					PartyName = "[DEBUG] Test Bandits",
+					PartySize = 8,
+					PartyTroops = new List<string> { "looter" },
+					Settlement = questGiver?.CurrentSettlement != null ? ((object)questGiver.CurrentSettlement.Name)?.ToString() : null
+				},
 				AIVerificationNotes = "Debug quest — always completable.",
 				ProgressTarget = 3,
 				ProgressLabel = "steps completed"
