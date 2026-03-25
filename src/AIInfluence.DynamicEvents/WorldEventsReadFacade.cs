@@ -12,11 +12,11 @@ public static class WorldEventsReadFacade
 {
 	public static List<DynamicEvent> GetActiveEventsMerged()
 	{
-		return DynamicEventsManager.Instance?.GetActiveEvents() ?? new List<DynamicEvent>();
+		return DynamicEventsManager.Instance.GetActiveEvents();
 	}
 
 	public static List<DynamicEvent> GetEventsKnownToNpc(Hero npc, bool persistKnowledgeSync = true, NPCContext syncIntoContext = null)
 	{
-		return DynamicEventsManager.Instance?.GetEventsForNPC(npc, persistKnowledgeSync, syncIntoContext) ?? new List<DynamicEvent>();
+		return DynamicEventsManager.Instance.GetEventsForNPC(npc, persistKnowledgeSync, syncIntoContext);
 	}
 }
