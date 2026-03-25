@@ -74,12 +74,12 @@ public sealed class CreatePartyAction : AIActionBase
 			Stop();
 			return;
 		}
-		if (!skipOutlaw && OutlawPartyBlgmService.ShouldUseOutlawBlgmPath(base.TargetHero, forceOutlaw))
+		if (!skipOutlaw && BlgmNpcParty.UseOutlawPath(base.TargetHero, forceOutlaw))
 		{
-			OutlawPartyBlgmService.Result outlawResult = OutlawPartyBlgmService.TryCreateOutlawMinorClanFromPlayerCompanion(base.TargetHero, 2, null);
-			if (outlawResult.Success)
+			BlgmNpcParty.Result blgm = BlgmNpcParty.TryOutlawMinorClan(base.TargetHero, 2, null, leavePlayerClanIfNeeded: true);
+			if (blgm.Ok)
 			{
-				foreach (string w in outlawResult.Warnings)
+				foreach (string w in blgm.Warnings)
 				{
 					LogAction(w);
 					InformationManager.DisplayMessage(new InformationMessage("[AI Influence] " + w, ExtraColors.RedAIInfluence));
@@ -87,13 +87,13 @@ public sealed class CreatePartyAction : AIActionBase
 				_partyCreated = true;
 				TextObject outlawBreakawaySuccessMessage = new TextObject("{=AIAction_CreatePartyOutlawSuccess}{HERO_NAME} broke away as an outlaw clan \"{CLAN_NAME}\" and now roams independently (at war with you and a nearby realm).", (Dictionary<string, object>)null);
 				outlawBreakawaySuccessMessage.SetTextVariable("HERO_NAME", ((object)base.TargetHero.Name)?.ToString() ?? "Unknown");
-				outlawBreakawaySuccessMessage.SetTextVariable("CLAN_NAME", ((object)outlawResult.Clan?.Name)?.ToString() ?? "Outlaws");
+				outlawBreakawaySuccessMessage.SetTextVariable("CLAN_NAME", ((object)blgm.Clan?.Name)?.ToString() ?? "Outlaws");
 				ShowSuccessDelayed(((object)outlawBreakawaySuccessMessage).ToString());
-				LogAction($"Created BLGM outlaw minor clan '{outlawResult.Clan?.Name}' for {base.TargetHero.Name}");
+				LogAction($"Created BLGM outlaw minor clan '{blgm.Clan?.Name}' for {base.TargetHero.Name}");
 				Stop();
 				return;
 			}
-			string outlawFallbackReason = outlawResult.Error ?? "Unknown error";
+			string outlawFallbackReason = blgm.Err ?? "Unknown error";
 			LogError("Outlaw BLGM path failed, falling back to player-clan party: " + outlawFallbackReason);
 			InformationManager.DisplayMessage(new InformationMessage("[AI Influence] Outlaw clan creation failed; forming a normal clan party instead. " + outlawFallbackReason, ExtraColors.RedAIInfluence));
 		}

@@ -97,16 +97,19 @@ public class NpcSpawnService
 		{
 			if (blgmOutlawHeroParty)
 			{
-				OutlawPartyBlgmService.Result outlaw = OutlawPartyBlgmService.TryCreateOutlawMinorClanForSpawnedHero(hero, 2, data.PartyName);
-				if (!outlaw.Success)
+				BlgmNpcParty.Result outlaw = BlgmNpcParty.TryOutlawMinorClan(hero, 2, data.PartyName, leavePlayerClanIfNeeded: false);
+				if (!outlaw.Ok)
 				{
-					string err = "BLGM outlaw minor clan failed: " + (outlaw.Error ?? "unknown");
+					string err = "BLGM outlaw minor clan failed: " + (outlaw.Err ?? "unknown");
 					InformationManager.DisplayMessage(new InformationMessage("[AI Influence] " + err, ExtraColors.RedAIInfluence));
 					return Fail(err);
 				}
 				party = outlaw.Party;
 				if (outlaw.Warnings.Count > 0)
 					warning = string.Join("; ", outlaw.Warnings);
+				int extraTroops = Math.Max(0, Math.Min(data.PartySize ?? 0, 5000));
+				if (party != null && extraTroops > 0)
+					AddTroopsToParty(party, data.PartyTroops, extraTroops, hero.Culture);
 			}
 			else
 			{
