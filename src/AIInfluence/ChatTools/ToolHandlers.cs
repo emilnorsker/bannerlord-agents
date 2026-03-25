@@ -77,7 +77,7 @@ public static class ToolHandlers
 		AIActionManager.Instance?.StopAction(npc, "follow_player");
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "follow_player", "") != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "follow_player");
-		ChatToolPillBuilder.AppendEncodedMapLine(context, npc, "follow_player");
+		ChatToolPillBuilder.AppendMapToolPill(context, npc, "follow_player");
 		return "ok";
 	}
 
@@ -86,7 +86,7 @@ public static class ToolHandlers
 		string actionName = ParseOrEmpty(argsJson)["action_name"]?.ToString();
 		if (string.IsNullOrEmpty(actionName)) return "missing";
 		AIActionManager.Instance?.StopAction(npc, actionName, showMessage: true);
-		ChatToolPillBuilder.AppendEncodedMapLine(context, npc, actionName + ":STOP");
+		ChatToolPillBuilder.AppendMapToolPill(context, npc, actionName + ":STOP");
 		return "stopped";
 	}
 
@@ -99,7 +99,7 @@ public static class ToolHandlers
 		string param = settlementStringId + ":" + waitDays; // legacy API expects this format
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "go_to_settlement", param) != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "go_to_settlement");
-		ChatToolPillBuilder.AppendEncodedMapLine(context, npc, "go_to_settlement:" + param);
+		ChatToolPillBuilder.AppendMapToolPill(context, npc, "go_to_settlement:" + param);
 		return "ok";
 	}
 
@@ -111,7 +111,7 @@ public static class ToolHandlers
 		string param = parsedArgs["then_return"]?.Value<bool>() == true ? partyStringId + ",then:return" : partyStringId;
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "attack_party", param) != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "attack_party");
-		ChatToolPillBuilder.AppendEncodedMapLine(context, npc, "attack_party:" + param);
+		ChatToolPillBuilder.AppendMapToolPill(context, npc, "attack_party:" + param);
 		return "ok";
 	}
 
@@ -122,7 +122,7 @@ public static class ToolHandlers
 		if (string.IsNullOrEmpty(villageStringId)) return "use find_settlements first";
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "raid_village", villageStringId) != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "raid_village");
-		ChatToolPillBuilder.AppendEncodedMapLine(context, npc, "raid_village:" + villageStringId);
+		ChatToolPillBuilder.AppendMapToolPill(context, npc, "raid_village:" + villageStringId);
 		return "ok";
 	}
 
@@ -134,7 +134,7 @@ public static class ToolHandlers
 		string param = settlementStringId + ":" + (parsedArgs["days"]?.Value<float>() ?? 5f);
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "patrol_settlement", param) != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "patrol_settlement");
-		ChatToolPillBuilder.AppendEncodedMapLine(context, npc, "patrol_settlement:" + param);
+		ChatToolPillBuilder.AppendMapToolPill(context, npc, "patrol_settlement:" + param);
 		return "ok";
 	}
 
@@ -146,7 +146,7 @@ public static class ToolHandlers
 		string param = settlementStringId + ":" + (parsedArgs["days"]?.Value<float>() ?? 2f);
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "wait_near_settlement", param) != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "wait_near_settlement");
-		ChatToolPillBuilder.AppendEncodedMapLine(context, npc, "wait_near_settlement:" + param);
+		ChatToolPillBuilder.AppendMapToolPill(context, npc, "wait_near_settlement:" + param);
 		return "ok";
 	}
 
@@ -157,7 +157,7 @@ public static class ToolHandlers
 		if (string.IsNullOrEmpty(settlementStringId)) return "use find_settlements first";
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "siege_settlement", settlementStringId) != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "siege_settlement");
-		ChatToolPillBuilder.AppendEncodedMapLine(context, npc, "siege_settlement:" + settlementStringId);
+		ChatToolPillBuilder.AppendMapToolPill(context, npc, "siege_settlement:" + settlementStringId);
 		return "ok";
 	}
 
@@ -167,7 +167,7 @@ public static class ToolHandlers
 		AIActionManager.Instance?.StopAction(npc, "return_to_player");
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "return_to_player", "") != true) return "failed";
 		if (AIActionManager.Instance?.StartAction(npc, "return_to_player") != true) return "failed";
-		ChatToolPillBuilder.AppendEncodedMapLine(context, npc, "return_to_player");
+		ChatToolPillBuilder.AppendMapToolPill(context, npc, "return_to_player");
 		return "ok";
 	}
 
@@ -175,7 +175,7 @@ public static class ToolHandlers
 	{
 		bool ok = AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "create_party", "") == true
 			&& AIActionManager.Instance?.StartAction(npc, "create_party") == true;
-		if (ok) ChatToolPillBuilder.AppendEncodedMapLine(context, npc, "create_party");
+		if (ok) ChatToolPillBuilder.AppendMapToolPill(context, npc, "create_party");
 		return ok ? "ok" : "failed";
 	}
 
@@ -187,7 +187,7 @@ public static class ToolHandlers
 		string param = itemName + "|" + (parsedArgs["description"]?.ToString() ?? "");
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "create_rp_item", param) != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "create_rp_item");
-		ChatToolPillBuilder.AppendEncodedMapLine(context, npc, "create_rp_item:" + param);
+		ChatToolPillBuilder.AppendMapToolPill(context, npc, "create_rp_item:" + param);
 		return "ok";
 	}
 
@@ -202,7 +202,7 @@ public static class ToolHandlers
 		string param = direction + ":" + transfers;
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "transfer_troops_and_prisoners", param) != true) return "failed";
 		if (AIActionManager.Instance?.StartAction(npc, "transfer_troops_and_prisoners") != true) return "failed";
-		ChatToolPillBuilder.AppendEncodedMapLine(context, npc, "transfer_troops_and_prisoners:" + param);
+		ChatToolPillBuilder.AppendMapToolPill(context, npc, "transfer_troops_and_prisoners:" + param);
 		return "ok";
 	}
 

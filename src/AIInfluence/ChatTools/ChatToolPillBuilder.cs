@@ -16,7 +16,7 @@ public static class ChatToolPillBuilder
 	public const string ItemTransferColor = "#4CAF50FF";
 	public const string TroopTransferColor = "#78909CFF";
 	public const string QuestActionColor = "#26A69AFF";
-	public const string TechnicalActionColor = "#81C784FF";
+	public const string MapOrderPillColor = "#81C784FF";
 	public const string RomanceActionColor = "#E91E63FF";
 	public const string WorkshopActionColor = "#FFB74DFF";
 	public const string KingdomActionColor = "#5C6BC0FF";
@@ -56,27 +56,27 @@ public static class ChatToolPillBuilder
 	private static string FormatItemList(IEnumerable<ItemTransferData> transfers) =>
 		string.Join(", ", transfers.Select(t => $"{ResolveItemName(t.ItemId)} (x{t.Amount})"));
 
-	/// <summary>One encoded segment as stored by map tools (e.g. <c>follow_player</c>, <c>go_to_settlement:id:3</c>).</summary>
-	public static void AppendEncodedMapLine(NPCContext context, Hero npc, string encoded)
+	/// <summary>Chat pill for one map/order tool (internal tag + payload, e.g. <c>follow_player</c>, <c>go_to_settlement:id:3</c>).</summary>
+	public static void AppendMapToolPill(NPCContext context, Hero npc, string toolTagAndPayload)
 	{
-		if (context == null || string.IsNullOrWhiteSpace(encoded)) return;
+		if (context == null || string.IsNullOrWhiteSpace(toolTagAndPayload)) return;
 		string npcName = ((object)npc?.Name)?.ToString() ?? "Unknown";
-		string[] segs = encoded.Trim().Split(new[] { ':' }, 2);
+		string[] segs = toolTagAndPayload.Trim().Split(new[] { ':' }, 2);
 		string name = segs[0].Trim();
 		string payload = segs.Length > 1 ? segs[1].Trim() : "";
 		bool isStop = payload.Equals("STOP", StringComparison.OrdinalIgnoreCase);
 		if (isStop)
-			context.AppendToolPill($"Stopped {name}", TechnicalActionColor);
+			context.AppendToolPill($"Stopped {name}", MapOrderPillColor);
 		else if (name.Equals("follow_player", StringComparison.OrdinalIgnoreCase))
-			context.AppendToolPill("Now following you", TechnicalActionColor);
+			context.AppendToolPill("Now following you", MapOrderPillColor);
 		else if (name.Equals("return_to_player", StringComparison.OrdinalIgnoreCase))
-			context.AppendToolPill("Returning to you", TechnicalActionColor);
+			context.AppendToolPill("Returning to you", MapOrderPillColor);
 		else if (name.Equals("go_to_settlement", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(payload))
-			context.AppendToolPill($"Traveling to {payload.Split(':')[0]}", TechnicalActionColor);
+			context.AppendToolPill($"Traveling to {payload.Split(':')[0]}", MapOrderPillColor);
 		else if (name.Equals("transfer_troops_and_prisoners", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(payload))
 			context.AppendToolPill(FormatTroopTransferLine(payload, npcName), TroopTransferColor);
 		else if (!string.IsNullOrEmpty(name))
-			context.AppendToolPill(name, TechnicalActionColor);
+			context.AppendToolPill(name, MapOrderPillColor);
 		context.MapToolRanThisTurn = true;
 	}
 
