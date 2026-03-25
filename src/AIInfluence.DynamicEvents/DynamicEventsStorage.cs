@@ -17,8 +17,6 @@ public class DynamicEventsStorage
 
 	private readonly string _eventsFileName = "dynamic_events.json";
 
-	private readonly string _legacyDiplomaticFileName = "diplomatic_events.json";
-
 	public DynamicEventsStorage()
 	{
 		string directoryName = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
@@ -46,8 +44,6 @@ public class DynamicEventsStorage
 
 	private string GetEventsFilePath() => Path.Combine(GetCurrentSaveFolder(), _eventsFileName);
 
-	private string GetLegacyDiplomaticPath() => Path.Combine(GetCurrentSaveFolder(), _legacyDiplomaticFileName);
-
 	private static void EnsureTag(DynamicEvent e, string tag)
 	{
 		if (e == null || string.IsNullOrEmpty(tag))
@@ -69,17 +65,12 @@ public class DynamicEventsStorage
 		return e?.StorageTags != null && e.StorageTags.Contains(tag);
 	}
 
-	/// <summary>Load unified v1 envelope, or migrate legacy <c>dynamic_events.json</c> array + <c>diplomatic_events.json</c>.</summary>
+	/// <summary>Load unified envelope (v2). Pre-v5 shapes (bare array, separate diplomatic file, format_version 1) are not loaded — starts empty.</summary>
 	public UnifiedDynamicEventsEnvelope LoadUnifiedEnvelope()
 	{
 		string path = GetEventsFilePath();
-		string legacyDiplo = GetLegacyDiplomaticPath();
 		if (!File.Exists(path))
 		{
-			if (File.Exists(legacyDiplo))
-			{
-				return MigrateFromLegacyDiplomaticOnly(legacyDiplo);
-			}
 			return NewEmptyEnvelope();
 		}
 		string text = File.ReadAllText(path);
@@ -88,10 +79,20 @@ public class DynamicEventsStorage
 			LogMessage("[DYNAMIC_EVENTS_STORAGE] Events file is empty");
 			return NewEmptyEnvelope();
 		}
-		JToken root = JToken.Parse(text);
+		JToken root;
+		try
+		{
+			root = JToken.Parse(text);
+		}
+		catch (Exception ex)
+		{
+			LogMessage("[DYNAMIC_EVENTS_STORAGE] Invalid JSON in dynamic_events.json: " + ex.Message);
+			return NewEmptyEnvelope();
+		}
 		if (root is JArray)
 		{
-			return MigrateLegacyArrayAndOptionalDiplomatic(text, legacyDiplo);
+			LogMessage("[DYNAMIC_EVENTS_STORAGE] Ignoring pre-v5 bare-array dynamic_events.json (not save-compatible); using empty catalog");
+			return NewEmptyEnvelope();
 		}
 		UnifiedDynamicEventsEnvelope envelope = root.ToObject<UnifiedDynamicEventsEnvelope>();
 		if (envelope == null || envelope.Events == null)
@@ -99,9 +100,10 @@ public class DynamicEventsStorage
 			LogMessage("[DYNAMIC_EVENTS_STORAGE] Failed to deserialize unified envelope");
 			return NewEmptyEnvelope();
 		}
-		if (envelope.FormatVersion <= 0)
+		if (envelope.FormatVersion != UnifiedDynamicEventsEnvelope.CurrentFormatVersion)
 		{
-			envelope.FormatVersion = UnifiedDynamicEventsEnvelope.CurrentFormatVersion;
+			LogMessage($"[DYNAMIC_EVENTS_STORAGE] Unsupported format_version {envelope.FormatVersion} (expected {UnifiedDynamicEventsEnvelope.CurrentFormatVersion}); using empty catalog");
+			return NewEmptyEnvelope();
 		}
 		foreach (DynamicEvent e in envelope.Events.Where(e => e != null))
 		{
@@ -110,134 +112,8 @@ public class DynamicEventsStorage
 				EnsureTag(e, DynamicEventStorageTags.Dynamic);
 			}
 		}
-		if (File.Exists(legacyDiplo))
-		{
-			MergeLegacyDiplomaticFileIntoEnvelope(envelope, legacyDiplo);
-		}
 		LogMessage($"[DYNAMIC_EVENTS_STORAGE] Loaded {envelope.Events.Count} events from unified {path}");
 		return envelope;
-	}
-
-	private UnifiedDynamicEventsEnvelope MigrateFromLegacyDiplomaticOnly(string legacyDiplo)
-	{
-		LogMessage("[DYNAMIC_EVENTS_STORAGE] No dynamic_events.json; migrating from diplomatic_events.json only");
-		DiplomaticEventsData data = ReadLegacyDiplomaticData(legacyDiplo);
-		UnifiedDynamicEventsEnvelope envelope = NewEmptyEnvelope();
-		if (data?.DiplomaticEvents != null)
-		{
-			foreach (DynamicEvent e in data.DiplomaticEvents.Where(x => x != null))
-			{
-				EnsureTag(e, DynamicEventStorageTags.Diplomatic);
-				envelope.Events.Add(e);
-			}
-		}
-		CopyDiplomaticMetadataFromData(envelope, data);
-		SaveUnifiedEnvelope(envelope);
-		TryDeleteLegacyDiplomatic(legacyDiplo);
-		return envelope;
-	}
-
-	private UnifiedDynamicEventsEnvelope MigrateLegacyArrayAndOptionalDiplomatic(string arrayJson, string legacyDiplo)
-	{
-		List<DynamicEvent> primary = JsonConvert.DeserializeObject<List<DynamicEvent>>(arrayJson) ?? new List<DynamicEvent>();
-		foreach (DynamicEvent e in primary)
-		{
-			EnsureTag(e, DynamicEventStorageTags.Dynamic);
-		}
-		Dictionary<string, DynamicEvent> byId = new Dictionary<string, DynamicEvent>();
-		foreach (DynamicEvent e in primary.Where(e => e != null && !string.IsNullOrEmpty(e.Id)))
-		{
-			byId[e.Id] = e;
-		}
-		UnifiedDynamicEventsEnvelope envelope = NewEmptyEnvelope();
-		envelope.Events = byId.Values.ToList();
-		if (File.Exists(legacyDiplo))
-		{
-			DiplomaticEventsData diploData = ReadLegacyDiplomaticData(legacyDiplo);
-			if (diploData?.DiplomaticEvents != null)
-			{
-				foreach (DynamicEvent d in diploData.DiplomaticEvents.Where(x => x != null && !string.IsNullOrEmpty(x.Id)))
-				{
-					if (byId.TryGetValue(d.Id, out DynamicEvent existing))
-					{
-						MergeDiplomaticIntoExisting(existing, d);
-						EnsureTag(existing, DynamicEventStorageTags.Diplomatic);
-					}
-					else
-					{
-						EnsureTag(d, DynamicEventStorageTags.Diplomatic);
-						byId[d.Id] = d;
-					}
-				}
-				CopyDiplomaticMetadataFromData(envelope, diploData);
-			}
-			envelope.Events = byId.Values.ToList();
-		}
-		LogMessage($"[DYNAMIC_EVENTS_STORAGE] Migrated legacy format: {envelope.Events.Count} events → unified v1");
-		SaveUnifiedEnvelope(envelope);
-		TryDeleteLegacyDiplomatic(legacyDiplo);
-		return envelope;
-	}
-
-	private void MergeLegacyDiplomaticFileIntoEnvelope(UnifiedDynamicEventsEnvelope envelope, string legacyDiplo)
-	{
-		DiplomaticEventsData diploData = ReadLegacyDiplomaticData(legacyDiplo);
-		if (diploData?.DiplomaticEvents == null || !diploData.DiplomaticEvents.Any())
-		{
-			TryDeleteLegacyDiplomatic(legacyDiplo);
-			return;
-		}
-		Dictionary<string, DynamicEvent> byId = envelope.Events.Where(e => e != null && !string.IsNullOrEmpty(e.Id)).ToDictionary(e => e.Id, e => e);
-		foreach (DynamicEvent d in diploData.DiplomaticEvents.Where(x => x != null && !string.IsNullOrEmpty(x.Id)))
-		{
-			if (byId.TryGetValue(d.Id, out DynamicEvent existing))
-			{
-				MergeDiplomaticIntoExisting(existing, d);
-				EnsureTag(existing, DynamicEventStorageTags.Diplomatic);
-			}
-			else
-			{
-				EnsureTag(d, DynamicEventStorageTags.Diplomatic);
-				byId[d.Id] = d;
-			}
-		}
-		CopyDiplomaticMetadataFromData(envelope, diploData);
-		envelope.Events = byId.Values.ToList();
-		SaveUnifiedEnvelope(envelope);
-		TryDeleteLegacyDiplomatic(legacyDiplo);
-		LogMessage("[DYNAMIC_EVENTS_STORAGE] Merged leftover diplomatic_events.json into unified file");
-	}
-
-	private static DiplomaticEventsData ReadLegacyDiplomaticData(string path)
-	{
-		try
-		{
-			string text = File.ReadAllText(path);
-			if (string.IsNullOrWhiteSpace(text))
-			{
-				return null;
-			}
-			return JsonConvert.DeserializeObject<DiplomaticEventsData>(text);
-		}
-		catch (Exception ex)
-		{
-			AIInfluenceBehavior.Instance?.LogMessage("[DYNAMIC_EVENTS_STORAGE] ReadLegacyDiplomaticData failed: " + ex.Message);
-			return null;
-		}
-	}
-
-	private static void CopyDiplomaticMetadataFromData(UnifiedDynamicEventsEnvelope envelope, DiplomaticEventsData data)
-	{
-		if (data == null)
-		{
-			return;
-		}
-		envelope.CampaignDays = data.CampaignDays;
-		envelope.SaveTime = data.SaveTime;
-		envelope.StatementSchedules = data.StatementSchedules;
-		envelope.AnalysisSchedules = data.AnalysisSchedules;
-		envelope.StatementQueues = data.StatementQueues;
-		envelope.PendingStatements = data.PendingStatements;
 	}
 
 	private static void MergeDiplomaticIntoExisting(DynamicEvent target, DynamicEvent source)
@@ -309,22 +185,6 @@ public class DynamicEventsStorage
 		catch (Exception ex)
 		{
 			LogMessage("[DYNAMIC_EVENTS_STORAGE] Error saving unified envelope: " + ex.Message + "\n" + ex.StackTrace);
-		}
-	}
-
-	private void TryDeleteLegacyDiplomatic(string legacyDiplo)
-	{
-		try
-		{
-			if (File.Exists(legacyDiplo))
-			{
-				File.Delete(legacyDiplo);
-				LogMessage("[DYNAMIC_EVENTS_STORAGE] Removed legacy diplomatic_events.json after migration");
-			}
-		}
-		catch (Exception ex)
-		{
-			LogMessage("[DYNAMIC_EVENTS_STORAGE] Could not delete legacy diplomatic_events.json: " + ex.Message);
 		}
 	}
 

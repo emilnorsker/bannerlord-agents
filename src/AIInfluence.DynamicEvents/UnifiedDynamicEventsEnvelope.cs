@@ -6,12 +6,12 @@ using Newtonsoft.Json;
 namespace AIInfluence.DynamicEvents;
 
 /// <summary>
-/// Single-file save format (v1) for all <see cref="DynamicEvent"/> rows plus diplomacy postscript metadata
-/// (previously in <c>diplomatic_events.json</c> alongside <c>dynamic_events.json</c>).
+/// Single-file save format for all <see cref="DynamicEvent"/> rows plus diplomacy postscript metadata.
+/// Mod v5.0.0+ only; older save layouts are not loaded.
 /// </summary>
 public class UnifiedDynamicEventsEnvelope
 {
-	public const int CurrentFormatVersion = 1;
+	public const int CurrentFormatVersion = 2;
 
 	[JsonProperty("format_version")]
 	public int FormatVersion { get; set; } = CurrentFormatVersion;

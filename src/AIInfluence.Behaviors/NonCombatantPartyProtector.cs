@@ -135,10 +135,7 @@ public class NonCombatantPartyProtector : CampaignBehaviorBase
 			LogError("SyncData failed at stage=" + syncStage + ". protectedCount=" + (_protectedParties?.Count ?? 0) + ", warningCount=" + (_lastWarningTime?.Count ?? 0) + ". " + ex);
 			if (dataStore.IsLoading)
 			{
-				_protectedParties = new Dictionary<MobileParty, ProtectionInfo>();
-				_lastWarningTime = new Dictionary<Hero, CampaignTime>();
-				LogError("Recovering NonCombatantPartyProtector load failure with empty state.");
-				return;
+				LogError("NonCombatantPartyProtector SyncData load failed; not applying empty state (v5.0.0).");
 			}
 			throw;
 		}

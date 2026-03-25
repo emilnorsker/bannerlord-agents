@@ -75,7 +75,7 @@ A **plot template** is the **authoritative definition** loaded from mod data (JS
 
 ## Dynamic events (implemented baseline)
 
-Normative save layout: **`TECHNICAL_GUIDE.en.md`** — `dynamic_events.json` (format v1, `storage_tags`). Legacy layouts on disk are described there for the **loader** only; the World design does not specify player save migration.
+Normative save layout: **`TECHNICAL_GUIDE.en.md`** — `dynamic_events.json` (format v2 from mod v5.0.0, `storage_tags`). **No** backward compatibility with older mod save layouts; pre-v5 files are ignored for this catalog.
 
 | Topic | Location / rule |
 |--------|------------------|

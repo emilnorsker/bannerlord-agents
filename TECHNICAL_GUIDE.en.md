@@ -17,7 +17,7 @@ AIInfluence DEV/
 ├── save_data/                       # Save data
 │   └── [CAMPAIGN_ID]/               # Campaign folder
 │       ├── NPC (id).json            # Context for each NPC
-│       ├── dynamic_events.json      # All dynamic events + diplomacy schedules (unified v1)
+│       ├── dynamic_events.json      # All dynamic events + diplomacy schedules (unified v2, mod v5.0.0+)
 │       ├── diplomatic_statements.json   # Rulers' statements
 │       ├── alliances.json           # Kingdom alliances
 │       ├── war_statistics.json      # War statistics
@@ -189,10 +189,10 @@ The `UserEdited: true` flag → the system will not touch this field.
 
 ## 📋 `dynamic_events.json`
 
-**What:** Single save file for the dynamic-event catalog and diplomacy postscript data (format v1).
+**What:** Single save file for the dynamic-event catalog and diplomacy postscript data. **Mod v5.0.0+ only** — not compatible with older mod versions or pre-unified layouts.
 
-**Envelope (v1):**
-- `format_version` — `1`
+**Envelope (v2):**
+- `format_version` — `2`
 - `events` — array of event objects (see below)
 - `campaign_days`, `save_time` — bookkeeping
 - Optional diplomacy fields (when diplomacy uses events): `statement_schedules`, `analysis_schedules`, `statement_queues`, `pending_statements` (relative day offsets and queues; same role as the former separate diplomatic events file)
@@ -210,7 +210,7 @@ Additionally, events have:
 - `player_involved` — whether the player participated
 - `spread_speed` — how fast it spreads
 
-**Migration:** Saves that still have a legacy `diplomatic_events.json` are merged into this file on load; the legacy file is then removed.
+**Older files:** A bare JSON array, `diplomatic_events.json`, or `format_version` other than `2` is **not** loaded; the catalog starts empty for that campaign folder.
 
 **NPC link:**  
 The list of NPCs who know about an event is stored in each `NPC (id).json` in the `DynamicEvents` array. `DynamicEventsManager` automatically updates these fields and removes expired events from NPCs.
