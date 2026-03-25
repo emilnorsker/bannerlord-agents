@@ -88,9 +88,13 @@ public class NPCContext
 
 	public AIResponse PendingAIResponse { get; set; }
 
-	/// <summary>In-memory map tool lines for chat UI pills (pipe-separated); cleared each dialogue turn.</summary>
+	/// <summary>True after a map/order chat tool ran this turn (for messenger diagnostics).</summary>
 	[JsonIgnore]
-	public string LastTechnicalActionForDisplay { get; set; }
+	public bool MapToolRanThisTurn { get; set; }
+
+	/// <summary>Chat action pills for the current NPC turn; appended when tools run; cleared at turn start.</summary>
+	[JsonIgnore]
+	public List<(string Text, string Color)> ToolPillsForCurrentTurn { get; set; }
 
 	/// <summary>
 	/// Temporary hold for roleplay death data from the OpenRouter <c>character_death</c> tool. Copied onto <see cref="AIResponse.CharacterDeath"/>
@@ -99,11 +103,15 @@ public class NPCContext
 	[JsonIgnore]
 	public CharacterDeathInfo DeferredCharacterDeathFromTools { get; set; }
 
-	public void AppendMapToolDisplayLine(string line)
+	public void AppendToolPill(string line, string color)
 	{
-		if (string.IsNullOrEmpty(line))
+		if (string.IsNullOrWhiteSpace(line))
 			return;
-		LastTechnicalActionForDisplay = string.IsNullOrEmpty(LastTechnicalActionForDisplay) ? line : LastTechnicalActionForDisplay + "|" + line;
+		ToolPillsForCurrentTurn ??= new List<(string, string)>();
+		string t = line.Trim();
+		if (!t.StartsWith("• ", StringComparison.Ordinal))
+			t = "• " + t;
+		ToolPillsForCurrentTurn.Add((t, color));
 	}
 
 	/// <summary>Set by <c>quest_action</c> tool; applied when the chat UI finishes the typewriter and finalizes the NPC line (not during the async tool round).</summary>

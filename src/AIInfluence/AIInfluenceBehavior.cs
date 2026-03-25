@@ -2221,7 +2221,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		});
 	}
 
-	public void ProcessItemTransfers(Hero npc, NPCContext context, List<ItemTransferData> itemTransfers)
+	public void ProcessItemTransfers(Hero npc, NPCContext context, List<ItemTransferData> itemTransfers, NPCContext contextForToolPills = null)
 	{
 		//IL_0342: Unknown result type (might be due to invalid IL or missing references)
 		//IL_034c: Expected O, but got Unknown
@@ -2261,6 +2261,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			}
 		}
 		string text = ((object)npc.Name)?.ToString() ?? "Unknown";
+		var npcGave = new List<ItemTransferData>();
+		var npcTook = new List<ItemTransferData>();
 		foreach (ItemTransferData transfer in itemTransfers)
 		{
 			bool flag = false;
@@ -2272,6 +2274,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				flag = InventoryHelper.TransferItem(transfer.ItemId, transfer.Amount, npc, Hero.MainHero, out errorReason);
 				if (flag)
 				{
+					npcGave.Add(transfer);
 					LogMessage($"[ITEM_TRANSFER] {text} GAVE {transfer.Amount} of {transfer.ItemId} to Player.");
 					RPItemManager.Instance?.UpdateItemOwner(transfer.ItemId, "MainParty");
 					InformationManager.DisplayMessage(new InformationMessage(((object)new TextObject("{=AIInfluence_NPCGaveItem}{npcName} gave you {amount} {itemId}", new Dictionary<string, object>
@@ -2287,6 +2290,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				flag = InventoryHelper.TransferItem(transfer.ItemId, transfer.Amount, Hero.MainHero, npc, out errorReason);
 				if (flag)
 				{
+					npcTook.Add(transfer);
 					LogMessage($"[ITEM_TRANSFER] {text} TOOK {transfer.Amount} of {transfer.ItemId} from Player.");
 					RPItemManager.Instance?.UpdateItemOwner(transfer.ItemId, ((MBObjectBase)npc).StringId);
 					InformationManager.DisplayMessage(new InformationMessage(((object)new TextObject("{=AIInfluence_NPCTookItem}{npcName} took {amount} {itemId} from you", new Dictionary<string, object>
@@ -2311,9 +2315,16 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				})).ToString(), ExtraColors.RedAIInfluence));
 			}
 		}
+		if (contextForToolPills != null)
+		{
+			if (npcGave.Count > 0)
+				ChatTools.ChatToolPillBuilder.AppendNpcItemGive(contextForToolPills, text, npcGave);
+			if (npcTook.Count > 0)
+				ChatTools.ChatToolPillBuilder.AppendNpcItemTake(contextForToolPills, text, npcTook);
+		}
 	}
 
-	public void ProcessMoneyTransfer(Hero npc, NPCContext context, MoneyTransferInfo moneyTransfer)
+	public void ProcessMoneyTransfer(Hero npc, NPCContext context, MoneyTransferInfo moneyTransfer, NPCContext contextForToolPills = null)
 	{
 		LogMessage($"[DEBUG][MONEY_TRANSFER_EXEC] ProcessMoneyTransfer called for {((object)npc?.Name ?? "null")} - amount={moneyTransfer?.Amount}, action={moneyTransfer?.Action}. If you never see this line after a chat-window transfer, the transfer was never executed.");
 		if (!string.IsNullOrWhiteSpace(moneyTransfer.OpposedAttribute))
@@ -2384,6 +2395,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				{ "npcName", text2 },
 				{ "amount", amount }
 			})).ToString(), ExtraColors.GreenAIInfluence));
+			ChatTools.ChatToolPillBuilder.AppendMoneyGive(contextForToolPills, text2, amount);
 		}
 		else if (text == "receive")
 		{
@@ -2402,6 +2414,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				{ "amount", amount },
 				{ "npcName", text2 }
 			})).ToString(), Colors.Yellow));
+			ChatTools.ChatToolPillBuilder.AppendMoneyReceive(contextForToolPills, text2, amount);
 		}
 		else
 		{
@@ -3174,7 +3187,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		context.DialogueToolDeescalationAttempt = null;
 		context.DialogueToolAllowsLetters = null;
 		context.PendingQuestActionFromTools = null;
-		context.LastTechnicalActionForDisplay = null;
+		context.ToolPillsForCurrentTurn = null;
+		context.MapToolRanThisTurn = false;
 	}
 
 	/// <summary>Merges OpenRouter dialogue tool results into <paramref name="aiResult"/> after deserialize (tools override duplicate JSON fields).</summary>

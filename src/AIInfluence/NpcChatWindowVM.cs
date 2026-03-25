@@ -464,14 +464,6 @@ public class NpcChatWindowVM : ViewModel
     private static readonly Regex EmoteRegex = new Regex(@"\*([^*]*)(?:\*|$)", RegexOptions.Compiled);
     private const string EmoteColor           = "#9B59B6FF";  // purple
     private const string ActionColor          = "#FFD700FF";  // golden (fallback)
-    private const string MoneyTransferColor   = "#E6B800FF";  // amber gold
-    private const string ItemTransferColor    = "#4CAF50FF";  // green
-    private const string TroopTransferColor   = "#78909CFF";  // steel blue-grey
-    private const string QuestActionColor     = "#26A69AFF";  // teal
-    private const string TechnicalActionColor = "#81C784FF";  // soft green
-    private const string RomanceActionColor   = "#E91E63FF";  // pink
-    private const string WorkshopActionColor  = "#FFB74DFF";  // trade orange
-    private const string KingdomActionColor   = "#5C6BC0FF";  // political purple
     private const string RelationMessageColor = "#5B9BD5FF";  // blue
 
     private bool IsPlayerSender(string sender)
@@ -608,126 +600,6 @@ public class NpcChatWindowVM : ViewModel
         return "";
     }
 
-    private static string ResolveItemName(string itemId)
-    {
-        if (string.IsNullOrEmpty(itemId)) return "Unknown item";
-        var item = MBObjectManager.Instance?.GetObject<ItemObject>(itemId);
-        return item?.Name?.ToString() ?? "Unknown item";
-    }
-
-    private static string ResolveTroopName(string stringId)
-    {
-        if (string.IsNullOrEmpty(stringId)) return "Unknown troop";
-        var troop = MBObjectManager.Instance?.GetObject<CharacterObject>(stringId);
-        return troop?.Name?.ToString() ?? "Unknown troop";
-    }
-
-    private static string FormatTroopTransferPill(string payload, string npcName)
-    {
-        string[] dirAndRest = payload.Split(new[] { ':' }, 2);
-        if (dirAndRest.Length < 2) return "Transferred troops";
-        bool toPlayer = dirAndRest[0].Trim().Equals("to_player", StringComparison.OrdinalIgnoreCase);
-        var items = new List<string>();
-        foreach (string part in dirAndRest[1].Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
-        {
-            string[] segs = part.Trim().Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
-            if (segs.Length < 3 || !int.TryParse(segs[2], out int count) || count <= 0) continue;
-            string name = ResolveTroopName(segs[1].Trim());
-            items.Add($"{name} (x{count})");
-        }
-        if (items.Count == 0) return toPlayer ? $"{npcName} transferred troops to you" : $"You transferred troops to {npcName}";
-        string list = string.Join(", ", items);
-        return toPlayer ? $"{npcName} gave you {list}" : $"You gave {list} to {npcName}";
-    }
-
-    private static string FormatItemTransferPillList(IEnumerable<ItemTransferData> transfers) =>
-        string.Join(", ", transfers.Select(t => $"{ResolveItemName(t.ItemId)} (x{t.Amount})"));
-
-    /// <summary>Pills on the <b>player</b> message row mirror the same <see cref="AIResponse"/> as NPC pills (see <see cref="BuildNpcActionPills"/>).</summary>
-    private static IEnumerable<(string text, string textColor)> BuildPlayerActionPills(AIResponse r, string npcName)
-    {
-        if (r == null) yield break;
-        if (r.MoneyTransfer != null && r.MoneyTransfer.Amount != 0)
-        {
-            int amt = Math.Abs(r.MoneyTransfer.Amount);
-            if (string.Equals(r.MoneyTransfer.Action, "receive", StringComparison.OrdinalIgnoreCase))
-                yield return ($"• You gave {amt} gold to {npcName}", MoneyTransferColor);
-            else if (string.Equals(r.MoneyTransfer.Action, "give", StringComparison.OrdinalIgnoreCase))
-                yield return ($"• You received {amt} gold from {npcName}", MoneyTransferColor);
-        }
-        var takeTransfers = r.ItemTransfers?.Where(t => string.Equals(t.Action, "take", StringComparison.OrdinalIgnoreCase)).ToList();
-        if (takeTransfers?.Count > 0)
-            yield return ($"• You gave {FormatItemTransferPillList(takeTransfers)} to {npcName}", ItemTransferColor);
-        var giveTransfers = r.ItemTransfers?.Where(t => string.Equals(t.Action, "give", StringComparison.OrdinalIgnoreCase)).ToList();
-        if (giveTransfers?.Count > 0)
-            yield return ($"• You received {FormatItemTransferPillList(giveTransfers)} from {npcName}", ItemTransferColor);
-    }
-
-    private static IEnumerable<(string text, string textColor)> BuildNpcActionPills(AIResponse r, NPCContext ctx, string npcName)
-    {
-        if (r == null) yield break;
-        if (r.MoneyTransfer != null && r.MoneyTransfer.Amount != 0)
-        {
-            int amt = Math.Abs(r.MoneyTransfer.Amount);
-            if (string.Equals(r.MoneyTransfer.Action, "give", StringComparison.OrdinalIgnoreCase))
-                yield return ($"• {npcName} gave you {amt} gold", MoneyTransferColor);
-            else if (string.Equals(r.MoneyTransfer.Action, "receive", StringComparison.OrdinalIgnoreCase))
-                yield return ($"• {npcName} received {amt} gold from you", MoneyTransferColor);
-        }
-        var giveTransfers = r.ItemTransfers?.Where(t => string.Equals(t.Action, "give", StringComparison.OrdinalIgnoreCase)).ToList();
-        if (giveTransfers?.Count > 0)
-            yield return ($"• {npcName} gave you {FormatItemTransferPillList(giveTransfers)}", ItemTransferColor);
-        var takeTransfers = r.ItemTransfers?.Where(t => string.Equals(t.Action, "take", StringComparison.OrdinalIgnoreCase)).ToList();
-        if (takeTransfers?.Count > 0)
-            yield return ($"• {npcName} took {FormatItemTransferPillList(takeTransfers)} from you", ItemTransferColor);
-        if (!string.IsNullOrEmpty(r.QuestAction?.Action))
-            yield return ($"• Quest: {r.QuestAction.Action}", QuestActionColor);
-        if (!string.IsNullOrEmpty(r.Decision) && r.Decision != "none" && r.Decision != "none\n")
-            yield return ($"• {r.Decision.Trim()}", ActionColor);
-        string techAction = ctx?.LastTechnicalActionForDisplay;
-        if (!string.IsNullOrEmpty(techAction) && !techAction.Equals("none", StringComparison.OrdinalIgnoreCase))
-        {
-            foreach (string action in techAction.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
-            {
-                string[] segs = action.Trim().Split(new[] { ':' }, 2);
-                string name = segs[0].Trim();
-                string payload = segs.Length > 1 ? segs[1].Trim() : "";
-                bool isStop = payload.Equals("STOP", StringComparison.OrdinalIgnoreCase);
-                if (isStop)
-                    yield return ($"• Stopped {name}", TechnicalActionColor);
-                else if (name.Equals("follow_player", StringComparison.OrdinalIgnoreCase))
-                    yield return ("• Now following you", TechnicalActionColor);
-                else if (name.Equals("return_to_player", StringComparison.OrdinalIgnoreCase))
-                    yield return ("• Returning to you", TechnicalActionColor);
-                else if (name.Equals("go_to_settlement", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(payload))
-                    yield return ($"• Traveling to {payload.Split(':')[0]}", TechnicalActionColor);
-                else if (name.Equals("transfer_troops_and_prisoners", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(payload))
-                    yield return ("• " + FormatTroopTransferPill(payload, npcName), TroopTransferColor);
-                else if (!string.IsNullOrEmpty(name))
-                    yield return ($"• {name}", TechnicalActionColor);
-            }
-        }
-        if (!string.IsNullOrEmpty(r.RomanceIntent) && !r.RomanceIntent.Equals("none", StringComparison.OrdinalIgnoreCase))
-        {
-            string ri = r.RomanceIntent.Trim().ToLowerInvariant();
-            string msg = ri == "flirt" ? "Accepted your flirtation" : ri == "romance" ? "Accepted your courtship" : ri == "proposal" ? "Marriage proposal" : $"Romance: {r.RomanceIntent}";
-            yield return ($"• {msg}", RomanceActionColor);
-        }
-        if (!string.IsNullOrEmpty(r.WorkshopAction) && r.WorkshopAction.Equals("sell", StringComparison.OrdinalIgnoreCase))
-            yield return ("• Sold workshop to you", WorkshopActionColor);
-        if (!string.IsNullOrEmpty(r.KingdomAction) && !r.KingdomAction.Equals("none", StringComparison.OrdinalIgnoreCase))
-        {
-            string action = r.KingdomAction.Trim();
-            string reason = string.IsNullOrWhiteSpace(r.KingdomActionReason)
-                ? null
-                : Regex.Replace(r.KingdomActionReason.Trim(), @"\s+", " ");
-            string kingdomPill = string.IsNullOrEmpty(reason)
-                ? $"• Kingdom: {action}"
-                : $"• Kingdom: {action} — {reason}";
-            yield return (kingdomPill, KingdomActionColor);
-        }
-    }
-
     // ── Commands ──────────────────────────────────────────────────────────
 
     public void OnTextChanged(string newText)
@@ -853,8 +725,10 @@ public class NpcChatWindowVM : ViewModel
                 }
 
                 string tone = pendingResponse?.Tone ?? "";
-                var playerPills = BuildPlayerActionPills(pendingResponse, npcName).ToList();
-                var npcPills = BuildNpcActionPills(pendingResponse, ctx, npcName).ToList();
+                var playerPills = new List<(string text, string textColor)>();
+                var npcPills = ctx?.ToolPillsForCurrentTurn != null
+                    ? new List<(string text, string textColor)>(ctx.ToolPillsForCurrentTurn)
+                    : new List<(string text, string textColor)>();
                 string relMsg = GetRelationChangeMessage(pendingResponse, ctx, npcName);
 
                 // Swaps the streaming placeholder for the finalised message item and persists pills.
