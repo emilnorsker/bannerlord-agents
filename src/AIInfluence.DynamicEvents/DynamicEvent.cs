@@ -88,7 +88,6 @@ public class DynamicEvent
 			CampaignTime now = CampaignTime.Now;
 			float num = (float)(now).ToDays;
 			float num2 = num - CreationCampaignDays;
-			DynamicEventsLogger.Instance?.Log($"[DEBUG] DaysSinceCreation: CurrentDays={num:F1}, CreationDays={CreationCampaignDays:F1}, Age={num2:F1} days");
 			return Math.Max(0, (int)num2);
 		}
 	}
