@@ -3147,9 +3147,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	/// <summary>
 	/// During an OpenRouter tool round, tools may store results on <paramref name="context"/> (see
-	/// <see cref="NPCContext.DeferredCharacterDeathFromTools"/> and <see cref="NPCContext.DeferredTechnicalActionFromTools"/>).
-	/// <see cref="OpenRouterDialogueJson.StripGameEffectKeys"/> removes those keys from the assistant JSON before deserialize in <c>NpcOpenRouterAssistantParser</c>;
-	/// this method copies deferrals onto <paramref name="aiResult"/> so <see cref="DialogManager"/> and death scheduling still see <see cref="AIResponse.CharacterDeath"/> and <see cref="AIResponse.TechnicalAction"/>.
+	/// <see cref="NPCContext.DeferredCharacterDeathFromTools"/>).
+	/// The final assistant JSON is deserialized to dialogue-only fields; this copies tool deferrals onto <paramref name="aiResult"/> so <see cref="DialogManager"/> and death scheduling still see <see cref="AIResponse.CharacterDeath"/>.
 	/// </summary>
 	public static void ApplyNpcContextToolDeferralsToAiResponse(NPCContext context, AIResponse aiResult)
 	{
@@ -3159,11 +3158,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			aiResult.CharacterDeath = context.DeferredCharacterDeathFromTools;
 			context.DeferredCharacterDeathFromTools = null;
-		}
-		if (!string.IsNullOrEmpty(context.DeferredTechnicalActionFromTools))
-		{
-			aiResult.TechnicalAction = context.DeferredTechnicalActionFromTools;
-			context.DeferredTechnicalActionFromTools = null;
 		}
 	}
 
@@ -3180,6 +3174,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		context.DialogueToolDeescalationAttempt = null;
 		context.DialogueToolAllowsLetters = null;
 		context.PendingQuestActionFromTools = null;
+		context.LastTechnicalActionForDisplay = null;
 	}
 
 	/// <summary>Merges OpenRouter dialogue tool results into <paramref name="aiResult"/> after deserialize (tools override duplicate JSON fields).</summary>
@@ -3802,10 +3797,10 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			LogMessage("[DEBUG] Player recognized as " + text + ": " + nPCContext.PlayerInfo.ClaimedName + " of " + nPCContext.PlayerInfo.ClaimedClan);
 		}
 		UpdateContextData(nPCContext, npc);
-		InitializeActiveEventsForNPC(nPCContext, npc);
-		LogMessage($"[DEBUG] Initialized NPC context with real player info: Name={nPCContext.PlayerInfo.RealName}, Clan={nPCContext.PlayerInfo.RealClan}, Age={nPCContext.PlayerInfo.RealAge}, Culture={nPCContext.PlayerInfo.RealCulture}, Gender={nPCContext.PlayerInfo.RealGender}");
 		_npcContexts[npcId] = nPCContext;
 		UpdateStringIdIndex(npcId, npcId);
+		InitializeActiveEventsForNPC(nPCContext, npc);
+		LogMessage($"[DEBUG] Initialized NPC context with real player info: Name={nPCContext.PlayerInfo.RealName}, Clan={nPCContext.PlayerInfo.RealClan}, Age={nPCContext.PlayerInfo.RealAge}, Culture={nPCContext.PlayerInfo.RealCulture}, Gender={nPCContext.PlayerInfo.RealGender}");
 		return nPCContext;
 	}
 
@@ -3813,11 +3808,16 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	{
 		try
 		{
-			List<DynamicEvent> known = DynamicEventsManager.Instance.GetEventsForNPC(npc, persistKnowledgeSync: false, syncIntoContext: context);
+			List<DynamicEvent> known = DynamicEventsManager.Instance.GetEventsForNPC(npc, context, persistKnowledgeSync: false);
 			int num = 0;
+			string npcSid = ((MBObjectBase)npc).StringId;
 			foreach (DynamicEvent dynamicEvent in known)
 			{
 				if (dynamicEvent == null)
+				{
+					continue;
+				}
+				if (dynamicEvent.CharactersInvolved == null || !dynamicEvent.CharactersInvolved.Contains(npcSid))
 				{
 					continue;
 				}
@@ -3837,7 +3837,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			}
 			if (num > 0)
 			{
-				LogMessage($"[NPC_CONTEXT_INIT] Initialized {num} active events for {npc.Name} (same visibility as GetEventsForNPC)");
+				LogMessage($"[NPC_CONTEXT_INIT] Initialized {num} CharactersInvolved dynamic events in RecentEvents for {npc.Name}");
 			}
 		}
 		catch (Exception ex)

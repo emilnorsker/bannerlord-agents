@@ -28,7 +28,7 @@ public static class OpenRouterNpcResponseSchema
 			["type"] = "object",
 			["properties"] = BuildDialogueProperties(),
 			["required"] = new JArray(),
-			["additionalProperties"] = true
+			["additionalProperties"] = false
 		};
 	}
 
@@ -52,8 +52,7 @@ public static class OpenRouterNpcResponseSchema
 			["character_personality"] = new JObject { ["type"] = new JArray("string", "null") },
 			["character_backstory"] = new JObject { ["type"] = new JArray("string", "null") },
 			["character_speech_quirks"] = new JObject { ["type"] = new JArray("string", "null") },
-			["allows_letters"] = new JObject { ["type"] = new JArray("boolean", "null") },
-			["tts_instructions"] = new JObject { ["type"] = new JArray("string", "null") }
+			["allows_letters"] = new JObject { ["type"] = new JArray("boolean", "null") }
 		};
 	}
 }

@@ -1,5 +1,4 @@
 using System;
-using AIInfluence.API;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -33,7 +32,7 @@ public static class NpcOpenRouterAssistantParser
 			}
 
 			JObject.Parse(trimmed);
-			jsonForDeserialize = OpenRouterDialogueJson.StripGameEffectKeys(trimmed);
+			jsonForDeserialize = trimmed;
 		}
 		catch (JsonException)
 		{
@@ -53,15 +52,15 @@ public static class NpcOpenRouterAssistantParser
 				};
 			}
 
-			jsonForDeserialize = OpenRouterDialogueJson.StripGameEffectKeys(cleaned);
+			jsonForDeserialize = cleaned;
 		}
 
 		try
 		{
-			AIResponse parsed = JsonConvert.DeserializeObject<AIResponse>(jsonForDeserialize);
-			if (parsed == null)
+			NpcOpenRouterDialogueEnvelope envelope = JsonConvert.DeserializeObject<NpcOpenRouterDialogueEnvelope>(jsonForDeserialize);
+			if (envelope == null)
 				return NeutralWithResponse("");
-			return parsed;
+			return envelope.ToAIResponse();
 		}
 		catch (JsonException ex)
 		{

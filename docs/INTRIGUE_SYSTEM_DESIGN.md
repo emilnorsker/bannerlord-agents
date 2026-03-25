@@ -6,7 +6,7 @@
 
 **Normative:** **Must** and **must not** denote requirements. **Should** denotes a strong recommendation. **May** denotes an optional capability.
 
-**Related documents:** `TECHNICAL_GUIDE.en.md` (file formats, prompts, `dynamic_events.json` v1). `docs/WORLD_SYSTEM_IMPLEMENTATION_PLAN.md` (slices I-01–I-12). Code references: `NPCContext`, `WorldSecret`, `WorldInfoManager.CheckSecretKnowledge`, `PromptGenerator`, `AIInfluence.DynamicEvents`.
+**Related documents:** `TECHNICAL_GUIDE.en.md` (file formats, prompts, `dynamic_events.json` v2). `docs/WORLD_SYSTEM_IMPLEMENTATION_PLAN.md` (slices I-01–I-12). Code references: `NPCContext`, `WorldSecret`, `WorldInfoManager.CheckSecretKnowledge`, `PromptGenerator`, `AIInfluence.DynamicEvents`.
 
 ---
 
@@ -36,6 +36,7 @@
 | **Plot template** | **Mod data** (not a save row): reusable definition identified by **`template_id`**. Contains **`steps[]`**, **`episodes[]`**, optional **pattern library** reference, and metadata (e.g. version) for shipping with the mod. **Plot instances** at runtime reference one `template_id` and store only instance state (phase, completed steps, context). |
 | **Plot point** | A situation beat tied to a plot. Different record type from a secret. Integrates with `DynamicEvent` where designed. |
 | **Runtime secret** | A secret record created by the World pipeline with `origin` pointing at a plot and step (or validated effect), not only a row in `world_secrets.json`. |
+| **Runtime-minted id** | An identifier **assigned by code** when a record is created at runtime (plot pipeline, dynamic event id generator, etc.), as opposed to an id taken verbatim from mod data such as `world_secrets.json`. |
 | **`KnownSecrets`** | Per-`NPCContext` **list of secret ids** that NPC save data records as known to that hero. Prompt and UI use the **same id list** the resolver turns into text (runtime secret store first, then catalog when the id exists only there). **Not** interchangeable with “secrets that could apply” to a hero; only ids **on this list** are treated as known for that interlocutor. |
 | **Chat leverage row** | UI in the NPC chat window for hooks and verified secrets for the current interlocutor. Uses the same record ids as the prompt builder for that hero. |
 
@@ -80,7 +81,7 @@ Normative save layout: **`TECHNICAL_GUIDE.en.md`** — `dynamic_events.json` (fo
 | Topic | Location / rule |
 |--------|------------------|
 | Catalog read | `DynamicEventsManager.GetActiveEvents()` or `WorldEventsReadFacade` |
-| NPC-visible set | `GetEventsForNPC` syncs `NPCContext.DynamicEvents`; same path as prompts |
+| NPC-visible set | `DynamicEventsManager.GetEventsForNPC(hero, context, persist)` syncs `NPCContext.DynamicEvents` on the **canonical** context (must match `AIInfluenceBehavior` registry). UI: `WorldEventsReadFacade.GetEventsKnownToNpcForUi`. |
 | Visibility rules | `DynamicEventsManager.ShouldNPCKnowEvent` (generator dialogue-only path uses it) |
 | Global rumor shortcut | `GlobalRumorImportanceThresholdInclusive` in `DynamicEventsManager` (default 8; 11 disables) |
 | Plot linkage field | `DynamicEvent.PlotId` / JSON `plot_id` (optional until plot pipeline writes it) |
@@ -336,7 +337,7 @@ Stored references must use `Hero.StringId`, `Clan.StringId`, and `Kingdom.String
 
 ## Risks
 
-- **Id overlap or ambiguity** between catalog-defined secret ids and runtime minted ids if naming is not disciplined; document namespace rules in code.
+- **Id overlap or ambiguity** between catalog-defined secret ids and **runtime-minted ids** if naming is not disciplined; document namespace rules in code.
 - Stale snapshots if the host does not refresh before a proposal; refresh and strict **world-history** validation reduce incorrect targets.
 - Concurrent campaign and dialogue HTTP jobs touching one plot: logs must include correlation ids to separate completions.
 - Belief matrix size: sparse storage or participant caps may be required for large casts.

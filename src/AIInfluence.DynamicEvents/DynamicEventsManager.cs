@@ -161,9 +161,10 @@ public class DynamicEventsManager
 				DynamicEventsLogger.Instance.Log($"[DYNAMIC_EVENTS] Skipping automatic generation: Active diplomatic negotiations ({count}) reached limit ({maxSimultaneousDynamicEvents}). Blocking events: [{arg}]");
 				return;
 			}
-			if (EventsList.Count >= maxSimultaneousDynamicEvents)
+			int dynamicTaggedCount = EventsList.Count((DynamicEvent e) => e != null && e.StorageTags != null && e.StorageTags.Contains(DynamicEventStorageTags.Dynamic));
+			if (dynamicTaggedCount >= maxSimultaneousDynamicEvents)
 			{
-				DynamicEventsLogger.Instance.Log($"[DYNAMIC_EVENTS] Warning: Total active events {EventsList.Count}/{maxSimultaneousDynamicEvents}, but continuing because limit applies only to diplomatic-response events.");
+				DynamicEventsLogger.Instance.Log($"[DYNAMIC_EVENTS] Warning: Dynamic-tagged active events {dynamicTaggedCount}/{maxSimultaneousDynamicEvents}, but continuing because limit applies only to diplomatic-response events.");
 			}
 			DynamicEventsLogger.Instance.Log($"[DYNAMIC_EVENTS] Time to generate events. Days since last: {toDays:F1}");
 			if (_generationInProgress)
@@ -214,19 +215,27 @@ public class DynamicEventsManager
 			DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Attempted to add null event");
 			return;
 		}
-		if (!string.IsNullOrEmpty(dynamicEvent.Id) && EventsList.Any((DynamicEvent e) => e.Id == dynamicEvent.Id))
+		if (string.IsNullOrEmpty(dynamicEvent.Id))
+		{
+			DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Rejected event with null or empty Id (cannot persist in unified catalog)");
+			return;
+		}
+		if (EventsList.Any((DynamicEvent e) => e.Id == dynamicEvent.Id))
 		{
 			DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Duplicate event detected by ID, skipping: " + dynamicEvent.Id);
 			return;
 		}
-		if (EventsList.Any((DynamicEvent e) => e.Description == dynamicEvent.Description))
+		string description = dynamicEvent.Description ?? "";
+		if (EventsList.Any((DynamicEvent e) => string.Equals(e.Description ?? "", description, StringComparison.Ordinal)))
 		{
-			DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Duplicate event detected by description, skipping: " + dynamicEvent.Description.Substring(0, Math.Min(50, dynamicEvent.Description.Length)) + "...");
+			string descPreview = description.Length <= 50 ? description : description.Substring(0, 50) + "...";
+			DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Duplicate event detected by description, skipping: " + descPreview);
 			return;
 		}
 		EnsureDynamicStorageTag(dynamicEvent);
 		EventsList.Add(dynamicEvent);
-		DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Added new event: " + dynamicEvent.Type + " - " + dynamicEvent.Description.Substring(0, Math.Min(50, dynamicEvent.Description.Length)) + "...");
+		string addedDescPreview = description.Length <= 50 ? description : description.Substring(0, 50) + "...";
+		DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Added new event: " + dynamicEvent.Type + " - " + addedDescPreview);
 		DynamicEventsLogger.Instance.LogEventCreated(dynamicEvent);
 		PersistCatalog();
 		DisplayEventNotification(dynamicEvent);
@@ -325,33 +334,41 @@ public class DynamicEventsManager
 		}
 	}
 
-	public List<DynamicEvent> GetEventsForNPC(Hero npc, bool persistKnowledgeSync = true, NPCContext syncIntoContext = null)
+	/// <summary>
+	/// Returns catalog events this NPC is treated as knowing, after syncing <see cref="NPCContext.DynamicEvents"/>.
+	/// </summary>
+	/// <param name="syncIntoContext">Required. Must be the canonical context for this hero (same reference as <see cref="AIInfluenceBehavior.GetNPCContexts"/> when registered).</param>
+	public List<DynamicEvent> GetEventsForNPC(Hero npc, NPCContext syncIntoContext, bool persistKnowledgeSync = true)
 	{
 		if (npc == null)
 		{
 			return new List<DynamicEvent>();
 		}
-		AIInfluenceBehavior instance = AIInfluenceBehavior.Instance;
+		if (syncIntoContext == null)
+		{
+			throw new ArgumentNullException(nameof(syncIntoContext));
+		}
 		string npcKey = ((MBObjectBase)npc).StringId;
-		NPCContext tempContext = syncIntoContext;
-		if (tempContext == null && instance != null)
+		if (string.IsNullOrEmpty(npcKey))
+		{
+			throw new ArgumentException("Hero has empty StringId.", nameof(npc));
+		}
+		if (!string.Equals(syncIntoContext.StringId, npcKey, StringComparison.Ordinal))
+		{
+			throw new ArgumentException("syncIntoContext.StringId must match hero.StringId (got '" + syncIntoContext.StringId + "', expected '" + npcKey + "').", nameof(syncIntoContext));
+		}
+		AIInfluenceBehavior instance = AIInfluenceBehavior.Instance;
+		if (instance != null)
 		{
 			Dictionary<string, NPCContext> nPCContexts = instance.GetNPCContexts();
-			if (nPCContexts != null && nPCContexts.ContainsKey(npcKey))
+			if (nPCContexts != null && nPCContexts.TryGetValue(npcKey, out NPCContext registered) && !ReferenceEquals(registered, syncIntoContext))
 			{
-				tempContext = nPCContexts[npcKey];
+				throw new InvalidOperationException("syncIntoContext is not the registered NPCContext for '" + npcKey + "'. Use AIInfluenceBehavior.GetOrCreateNPCContext(hero) so prompts, UI, and disk stay aligned.");
 			}
 		}
-		if (tempContext == null)
-		{
-			tempContext = new NPCContext
-			{
-				StringId = npcKey
-			};
-		}
 		List<DynamicEvent> catalog = BuildMergedActiveEvents();
-		SyncNpcDynamicEventKnowledge(npc, tempContext, instance, npcKey, persistKnowledgeSync, catalog);
-		HashSet<string> knownIds = (tempContext.DynamicEvents != null && tempContext.DynamicEvents.Any()) ? new HashSet<string>(tempContext.DynamicEvents) : new HashSet<string>();
+		SyncNpcDynamicEventKnowledge(npc, syncIntoContext, instance, npcKey, persistKnowledgeSync, catalog);
+		HashSet<string> knownIds = (syncIntoContext.DynamicEvents != null && syncIntoContext.DynamicEvents.Any()) ? new HashSet<string>(syncIntoContext.DynamicEvents) : new HashSet<string>();
 		return (from e in catalog
 			where e != null && !string.IsNullOrEmpty(e.Id) && !e.IsExpired() && knownIds.Contains(e.Id)
 			orderby e.Importance descending, e.DaysSinceCreation
@@ -408,16 +425,17 @@ public class DynamicEventsManager
 		//IL_008e: Expected O, but got Unknown
 		if (dynamicEvent != null)
 		{
+			string notificationDescription = dynamicEvent.Description ?? "";
+			string notificationPreview = notificationDescription.Length <= 50 ? notificationDescription : notificationDescription.Substring(0, 50) + "...";
 			if (GlobalSettings<ModSettings>.Instance.DynamicEventsDialogueOnly)
 			{
-				DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Skipping notification in dialogue-only mode: " + dynamicEvent.Description.Substring(0, Math.Min(50, dynamicEvent.Description.Length)) + "...");
+				DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Skipping notification in dialogue-only mode: " + notificationPreview);
 				return;
 			}
 			Color val = default(Color);
 			val = new Color(1f, 0.55f, 0f, 1f);
-			string text = dynamicEvent.Description ?? "";
-			InformationManager.DisplayMessage(new InformationMessage(text, val));
-			DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Displayed notification: " + dynamicEvent.Description.Substring(0, Math.Min(50, dynamicEvent.Description.Length)) + "...");
+			InformationManager.DisplayMessage(new InformationMessage(notificationDescription, val));
+			DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Displayed notification: " + notificationPreview);
 		}
 	}
 
@@ -466,7 +484,9 @@ public class DynamicEventsManager
 					instance.SaveNPCContext(key, val, context);
 					if (enableDetailedInfoLogging)
 					{
-						DynamicEventsLogger.Instance.Log($"[DYNAMIC_EVENTS_SPREAD] {val.Name} learned about event: {dynamicEvent.Description.Substring(0, Math.Min(50, dynamicEvent.Description.Length))}...");
+						string spreadDesc = dynamicEvent.Description ?? "";
+						string spreadPreview = spreadDesc.Length <= 50 ? spreadDesc : spreadDesc.Substring(0, 50) + "...";
+						DynamicEventsLogger.Instance.Log($"[DYNAMIC_EVENTS_SPREAD] {val.Name} learned about event: {spreadPreview}");
 					}
 				}
 			}
@@ -808,9 +828,10 @@ public class DynamicEventsManager
 			InformationManager.DisplayMessage(new InformationMessage($"Cannot generate event: Limit of {maxEvents} active diplomatic negotiation(s) reached.", new Color(1f, 0f, 0f, 1f)));
 			return;
 		}
-		if (EventsList.Count >= maxEvents)
+		int dynamicTaggedCountManual = EventsList.Count((DynamicEvent e) => e != null && e.StorageTags != null && e.StorageTags.Contains(DynamicEventStorageTags.Dynamic));
+		if (dynamicTaggedCountManual >= maxEvents)
 		{
-			DynamicEventsLogger.Instance.Log($"[DYNAMIC_EVENTS] Warning: Total active events {EventsList.Count}/{maxEvents}, but continuing manual generation (limit applies only to diplomatic-response events).");
+			DynamicEventsLogger.Instance.Log($"[DYNAMIC_EVENTS] Warning: Dynamic-tagged active events {dynamicTaggedCountManual}/{maxEvents}, but continuing manual generation (limit applies only to diplomatic-response events).");
 		}
 		_isGeneratingManually = true;
 		try

@@ -23,7 +23,7 @@ public static class ToolHandlers
 			"find_parties" => RunFindParties(argsJson, npc),
 			"find_items" => RunFindItems(argsJson),
 			"follow_player" => RunFollowPlayer(npc, context),
-			"stop_action" => RunStopAction(argsJson, npc),
+			"stop_action" => RunStopAction(argsJson, npc, context),
 			"go_to_settlement" => RunGoToSettlement(argsJson, npc, context),
 			"attack_party" => RunAttackParty(argsJson, npc, context),
 			"raid_village" => RunRaidVillage(argsJson, npc, context),
@@ -38,8 +38,8 @@ public static class ToolHandlers
 			"kingdom_action" => RunKingdomAction(argsJson, npc, context, behavior),
 			"quest_action" => RunQuestAction(argsJson, npc, context, behavior),
 			"character_death" => RunCharacterDeath(argsJson, context),
-			"technical_action" => RunTechnicalAction(argsJson, context),
-			"map_command" => RunMapCommand(argsJson, context),
+			"return_to_player" => RunReturnToPlayer(npc, context),
+			"transfer_troops" => RunTransferTroops(argsJson, npc, context),
 			"suspected_lie" => RunSuspectedLie(argsJson, context),
 			"dialogue_decision" => RunDialogueDecision(argsJson, context),
 			"romance_intent" => RunRomanceIntent(argsJson, context),
@@ -78,15 +78,16 @@ public static class ToolHandlers
 		AIActionManager.Instance?.StopAction(npc, "follow_player");
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "follow_player", "") != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "follow_player");
-		context.LastTechnicalActionForDisplay = "follow_player";
+		context.AppendMapToolDisplayLine("follow_player");
 		return "ok";
 	}
 
-	private static string RunStopAction(string argsJson, Hero npc)
+	private static string RunStopAction(string argsJson, Hero npc, NPCContext context)
 	{
 		string actionName = ParseOrEmpty(argsJson)["action_name"]?.ToString();
 		if (string.IsNullOrEmpty(actionName)) return "missing";
 		AIActionManager.Instance?.StopAction(npc, actionName, showMessage: true);
+		context?.AppendMapToolDisplayLine(actionName + ":STOP");
 		return "stopped";
 	}
 
@@ -99,7 +100,7 @@ public static class ToolHandlers
 		string param = settlementStringId + ":" + waitDays; // legacy API expects this format
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "go_to_settlement", param) != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "go_to_settlement");
-		context.LastTechnicalActionForDisplay = param;
+		context.AppendMapToolDisplayLine("go_to_settlement:" + param);
 		return "ok";
 	}
 
@@ -111,7 +112,7 @@ public static class ToolHandlers
 		string param = parsedArgs["then_return"]?.Value<bool>() == true ? partyStringId + ",then:return" : partyStringId;
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "attack_party", param) != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "attack_party");
-		context.LastTechnicalActionForDisplay = param;
+		context.AppendMapToolDisplayLine("attack_party:" + param);
 		return "ok";
 	}
 
@@ -122,7 +123,7 @@ public static class ToolHandlers
 		if (string.IsNullOrEmpty(villageStringId)) return "use find_settlements first";
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "raid_village", villageStringId) != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "raid_village");
-		context.LastTechnicalActionForDisplay = villageStringId;
+		context.AppendMapToolDisplayLine("raid_village:" + villageStringId);
 		return "ok";
 	}
 
@@ -134,7 +135,7 @@ public static class ToolHandlers
 		string param = settlementStringId + ":" + (parsedArgs["days"]?.Value<float>() ?? 5f);
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "patrol_settlement", param) != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "patrol_settlement");
-		context.LastTechnicalActionForDisplay = param;
+		context.AppendMapToolDisplayLine("patrol_settlement:" + param);
 		return "ok";
 	}
 
@@ -146,7 +147,7 @@ public static class ToolHandlers
 		string param = settlementStringId + ":" + (parsedArgs["days"]?.Value<float>() ?? 2f);
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "wait_near_settlement", param) != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "wait_near_settlement");
-		context.LastTechnicalActionForDisplay = param;
+		context.AppendMapToolDisplayLine("wait_near_settlement:" + param);
 		return "ok";
 	}
 
@@ -157,7 +158,17 @@ public static class ToolHandlers
 		if (string.IsNullOrEmpty(settlementStringId)) return "use find_settlements first";
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "siege_settlement", settlementStringId) != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "siege_settlement");
-		context.LastTechnicalActionForDisplay = settlementStringId;
+		context.AppendMapToolDisplayLine("siege_settlement:" + settlementStringId);
+		return "ok";
+	}
+
+	private static string RunReturnToPlayer(Hero npc, NPCContext context)
+	{
+		if (npc.IsPrisoner) return "prisoner";
+		AIActionManager.Instance?.StopAction(npc, "return_to_player");
+		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "return_to_player", "") != true) return "failed";
+		if (AIActionManager.Instance?.StartAction(npc, "return_to_player") != true) return "failed";
+		context.AppendMapToolDisplayLine("return_to_player");
 		return "ok";
 	}
 
@@ -169,7 +180,10 @@ public static class ToolHandlers
 		bool prepared = AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "create_party", param) == true;
 		bool started = AIActionManager.Instance?.StartAction(npc, "create_party") == true;
 		if (prepared && started)
-			return JsonConvert.SerializeObject(new { status = "ok", note = "Check in-game messages for BLGM/outlaw clan outcome, warnings, or fallback to a normal party." });
+		{
+			context.AppendMapToolDisplayLine("create_party");
+			return JsonConvert.SerializeObject(new { status = "ok" });
+		}
 		string err = "create_party failed (prepare or start returned false).";
 		InformationManager.DisplayMessage(new InformationMessage("[AI Influence] " + err, ExtraColors.RedAIInfluence));
 		return JsonConvert.SerializeObject(new { status = "failed", error = err });
@@ -183,7 +197,22 @@ public static class ToolHandlers
 		string param = itemName + "|" + (parsedArgs["description"]?.ToString() ?? "");
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "create_rp_item", param) != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "create_rp_item");
-		context.LastTechnicalActionForDisplay = itemName;
+		context.AppendMapToolDisplayLine("create_rp_item:" + param);
+		return "ok";
+	}
+
+	private static string RunTransferTroops(string argsJson, Hero npc, NPCContext context)
+	{
+		JObject parsedArgs = ParseOrEmpty(argsJson);
+		string direction = parsedArgs["direction"]?.ToString();
+		string transfers = parsedArgs["transfers"]?.ToString();
+		if (string.IsNullOrEmpty(direction) || string.IsNullOrEmpty(transfers)) return "missing";
+		string malformed = ValidateTransferTroopsSegments(transfers);
+		if (malformed != null) return malformed;
+		string param = direction + ":" + transfers;
+		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "transfer_troops_and_prisoners", param) != true) return "failed";
+		if (AIActionManager.Instance?.StartAction(npc, "transfer_troops_and_prisoners") != true) return "failed";
+		context.AppendMapToolDisplayLine("transfer_troops_and_prisoners:" + param);
 		return "ok";
 	}
 
@@ -299,30 +328,6 @@ public static class ToolHandlers
 		return "ok";
 	}
 
-	private static string RunTechnicalAction(string argsJson, NPCContext context)
-	{
-		JObject parsedArgs = ParseOrEmpty(argsJson);
-		string npcMapCommandLine = parsedArgs["value"]?.ToString();
-		if (string.IsNullOrEmpty(npcMapCommandLine))
-			return "ok";
-		context.DeferredTechnicalActionFromTools = npcMapCommandLine;
-		return "ok";
-	}
-
-	/// <summary>Structured map command: <c>action</c> + optional <c>payload</c> (replaces stringly <c>technical_action</c> for new prompts).</summary>
-	private static string RunMapCommand(string argsJson, NPCContext context)
-	{
-		JObject parsedArgs = ParseOrEmpty(argsJson);
-		string actionName = parsedArgs["action"]?.ToString();
-		if (string.IsNullOrEmpty(actionName))
-			return "missing_action";
-		JToken payloadToken = parsedArgs["payload"];
-		string payload = payloadToken == null || payloadToken.Type == JTokenType.Null ? null : payloadToken.ToString();
-		string line = string.IsNullOrEmpty(payload) ? actionName : actionName + ":" + payload;
-		context.DeferredTechnicalActionFromTools = line;
-		return "ok";
-	}
-
 	private static string RunQuestAction(string argsJson, Hero npc, NPCContext context, AIInfluenceBehavior behavior)
 	{
 		JObject parsedArgs = ParseOrEmpty(argsJson);
@@ -335,6 +340,29 @@ public static class ToolHandlers
 			context.PendingQuestActionFromTools = questAction;
 		}
 		return "ok";
+	}
+
+	private static string ValidateTransferTroopsSegments(string transfersBody)
+	{
+		if (string.IsNullOrWhiteSpace(transfersBody))
+			return "malformed_transfers_empty";
+		foreach (string seg in transfersBody.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+		{
+			string s = seg.Trim();
+			if (s.Length == 0)
+				continue;
+			string[] p = s.Split(new[] { ':' }, StringSplitOptions.None);
+			if (p.Length != 3)
+				return "malformed_transfer_segment:" + s;
+			string kind = p[0].Trim().ToLowerInvariant();
+			if (kind != "troop" && kind != "prisoner")
+				return "malformed_transfer_type:" + s;
+			if (p[1].Trim().Length == 0)
+				return "malformed_transfer_segment:" + s;
+			if (!int.TryParse(p[2].Trim(), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out int n) || n <= 0)
+				return "malformed_transfer_count:" + s;
+		}
+		return null;
 	}
 
 	private static JObject ParseOrEmpty(string argsJson) =>

@@ -217,6 +217,14 @@ Additionally, events have:
 **NPC link:**  
 The list of NPCs who know about an event is stored in each `NPC (id).json` in the `DynamicEvents` array. `DynamicEventsManager` automatically updates these fields and removes expired events from NPCs.
 
+**Code API (maintainers):**
+
+- **`DynamicEventsManager.GetEventsForNPC(Hero npc, NPCContext context, bool persistKnowledgeSync)`** — Required: **`context`** is the **same object** as in `AIInfluenceBehavior.GetNPCContexts()` for that hero (typically from **`GetOrCreateNPCContext`**). `StringId` must match the hero. Throws if a different instance is already registered. Syncs visibility into `context.DynamicEvents`; **`persistKnowledgeSync: true`** updates the in-memory behavior dictionary (disk save follows normal NPC save paths).
+- **`WorldEventsReadFacade.GetEventsKnownToNpcForUi(npc, context)`** — Read-only for panels (`persistKnowledgeSync: false`).
+- **`WorldEventsReadFacade.GetEventsKnownToNpcPersisting(npc, context)`** — Same as manager with persist `true` (e.g. prompt assembly).
+
+Do not pass a freshly allocated `NPCContext` that is not the registered one: event knowledge would diverge from prompts and JSON files.
+
 **Editing:** Not recommended (managed automatically).
 
 ---
