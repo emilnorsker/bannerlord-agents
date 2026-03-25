@@ -3815,9 +3815,14 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			List<DynamicEvent> known = DynamicEventsManager.Instance.GetEventsForNPC(npc, context, persistKnowledgeSync: false);
 			int num = 0;
+			string npcSid = ((MBObjectBase)npc).StringId;
 			foreach (DynamicEvent dynamicEvent in known)
 			{
 				if (dynamicEvent == null)
+				{
+					continue;
+				}
+				if (dynamicEvent.CharactersInvolved == null || !dynamicEvent.CharactersInvolved.Contains(npcSid))
 				{
 					continue;
 				}
@@ -3837,7 +3842,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			}
 			if (num > 0)
 			{
-				LogMessage($"[NPC_CONTEXT_INIT] Initialized {num} active events for {npc.Name} (same visibility as GetEventsForNPC)");
+				LogMessage($"[NPC_CONTEXT_INIT] Initialized {num} CharactersInvolved dynamic events in RecentEvents for {npc.Name}");
 			}
 		}
 		catch (Exception ex)

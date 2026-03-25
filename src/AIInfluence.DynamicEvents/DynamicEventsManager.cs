@@ -161,9 +161,10 @@ public class DynamicEventsManager
 				DynamicEventsLogger.Instance.Log($"[DYNAMIC_EVENTS] Skipping automatic generation: Active diplomatic negotiations ({count}) reached limit ({maxSimultaneousDynamicEvents}). Blocking events: [{arg}]");
 				return;
 			}
-			if (EventsList.Count >= maxSimultaneousDynamicEvents)
+			int dynamicTaggedCount = EventsList.Count((DynamicEvent e) => e != null && e.StorageTags != null && e.StorageTags.Contains(DynamicEventStorageTags.Dynamic));
+			if (dynamicTaggedCount >= maxSimultaneousDynamicEvents)
 			{
-				DynamicEventsLogger.Instance.Log($"[DYNAMIC_EVENTS] Warning: Total active events {EventsList.Count}/{maxSimultaneousDynamicEvents}, but continuing because limit applies only to diplomatic-response events.");
+				DynamicEventsLogger.Instance.Log($"[DYNAMIC_EVENTS] Warning: Dynamic-tagged active events {dynamicTaggedCount}/{maxSimultaneousDynamicEvents}, but continuing because limit applies only to diplomatic-response events.");
 			}
 			DynamicEventsLogger.Instance.Log($"[DYNAMIC_EVENTS] Time to generate events. Days since last: {toDays:F1}");
 			if (_generationInProgress)

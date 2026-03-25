@@ -14,18 +14,18 @@ public static class WorldEventsReadFacade
 {
 	public static List<DynamicEvent> GetActiveEventsMerged()
 	{
-		return DynamicEventsManager.Instance.GetActiveEvents();
+		return DynamicEventsManager.Instance?.GetActiveEvents() ?? new List<DynamicEvent>();
 	}
 
 	/// <summary>Same as <see cref="DynamicEventsManager.GetEventsForNPC"/> with <c>persistKnowledgeSync: false</c> (typical for UI).</summary>
 	public static List<DynamicEvent> GetEventsKnownToNpcForUi(Hero npc, NPCContext context)
 	{
-		return DynamicEventsManager.Instance.GetEventsForNPC(npc, context, persistKnowledgeSync: false);
+		return DynamicEventsManager.Instance?.GetEventsForNPC(npc, context, persistKnowledgeSync: false) ?? new List<DynamicEvent>();
 	}
 
 	/// <summary>When knowledge changes must be written through <see cref="AIInfluenceBehavior.SaveNPCContext"/> (e.g. prompt build).</summary>
 	public static List<DynamicEvent> GetEventsKnownToNpcPersisting(Hero npc, NPCContext context)
 	{
-		return DynamicEventsManager.Instance.GetEventsForNPC(npc, context, persistKnowledgeSync: true);
+		return DynamicEventsManager.Instance?.GetEventsForNPC(npc, context, persistKnowledgeSync: true) ?? new List<DynamicEvent>();
 	}
 }
