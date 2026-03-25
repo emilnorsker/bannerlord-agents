@@ -187,15 +187,6 @@ public class DialogManager
 		}
 	}
 
-	private bool TryPrepareTechnicalActionParameter(Hero npc, string actionName, string parameter)
-	{
-		if (npc == null)
-		{
-			return false;
-		}
-		return AIActionIntegration.Instance.TryPrepareActionParameter(npc, actionName, parameter);
-	}
-
 	private DialogManager(AIInfluenceBehavior behavior)
 	{
 		_behavior = behavior;
@@ -661,87 +652,6 @@ public class DialogManager
 					NPCContext context = _behavior.GetOrCreateNPCContext(npc);
 					if (context.PendingAIResponse != null)
 					{
-						if (!string.IsNullOrEmpty(context.PendingAIResponse.TechnicalAction) && context.PendingAIResponse.TechnicalAction != "none")
-						{
-							try
-							{
-								string technicalAction = context.PendingAIResponse.TechnicalAction;
-								_behavior.LogMessage("[DEBUG] Processing technical action: " + technicalAction);
-								HashSet<string> hashSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "create_rp_item" };
-								string[] array;
-								if (technicalAction.Contains(":"))
-								{
-									string item = technicalAction.Split(new char[1] { ':' }, 2)[0].Trim();
-									array = ((!hashSet.Contains(item)) ? technicalAction.Split(new char[1] { '|' }, StringSplitOptions.RemoveEmptyEntries) : new string[1] { technicalAction });
-								}
-								else
-								{
-									array = technicalAction.Split(new char[1] { '|' }, StringSplitOptions.RemoveEmptyEntries);
-								}
-								string[] array2 = array;
-								foreach (string text in array2)
-								{
-									string text2 = text.Trim();
-									if (!string.IsNullOrEmpty(text2))
-									{
-										_behavior.LogMessage("[DEBUG] Processing single action: " + text2);
-										string[] array3 = text2.Split(new char[1] { ':' }, 2);
-										if (array3.Length != 0)
-										{
-											string text3 = array3[0].Trim();
-											string text4 = ((array3.Length > 1) ? array3[1].Trim() : "");
-											_behavior.LogMessage("[DEBUG] Action name: '" + text3 + "', payload: '" + text4 + "'");
-											if (npc.IsPrisoner && !text4.Equals("STOP", StringComparison.OrdinalIgnoreCase))
-											{
-												_behavior.LogMessage($"[TECHNICAL_ACTION] Skipping technical action '{text3}' for prisoner {npc.Name} - prisoners cannot execute actions requiring freedom of movement.");
-												context.PendingAIResponse.TechnicalAction = null;
-											}
-											else if (text4.Equals("STOP", StringComparison.OrdinalIgnoreCase))
-											{
-												bool flag = false;
-												if (text3.Equals("follow_player", StringComparison.OrdinalIgnoreCase))
-												{
-													string text5 = context.PendingAIResponse?.Decision?.ToLower() ?? "";
-													if (text5 == "release")
-													{
-														flag = true;
-														_behavior.LogMessage("[TECHNICAL_ACTION] Will show message when stopping follow_player because decision is 'release'");
-													}
-												}
-												if (AIActionManager.Instance.StopAction(npc, text3, flag))
-												{
-													_behavior.LogMessage($"[TECHNICAL_ACTION] Successfully stopped {text3} for {npc.Name} (showMessage: {flag})");
-												}
-												else
-												{
-													_behavior.LogMessage($"[TECHNICAL_ACTION] Failed to stop {text3} for {npc.Name} - action not active");
-												}
-											}
-											else
-											{
-												AIActionManager.Instance.StopAction(npc, text3);
-												_behavior.LogMessage($"[TECHNICAL_ACTION] Preparing action '{text3}' with payload '{text4}' for {npc.Name}");
-												bool flag2 = TryPrepareTechnicalActionParameter(npc, text3, text4);
-												_behavior.LogMessage($"[TECHNICAL_ACTION] TryPrepareTechnicalActionParameter returned {flag2} for {npc.Name}");
-												if (flag2)
-												{
-													bool flag3 = AIActionManager.Instance.StartAction(npc, text3);
-													_behavior.LogMessage($"[TECHNICAL_ACTION] StartAction returned {flag3} for {npc.Name}");
-												}
-												else
-												{
-													_behavior.LogMessage($"[TECHNICAL_ACTION] Failed to prepare action '{text3}' for {npc.Name}");
-												}
-											}
-										}
-									}
-								}
-							}
-							catch (Exception ex2)
-							{
-								_behavior.LogMessage("[ERROR] Failed to process technical action: " + ex2.Message + "\n" + ex2.StackTrace);
-							}
-						}
 						if (!string.IsNullOrEmpty(context.PendingAIResponse.KingdomAction) && context.PendingAIResponse.KingdomAction != "none")
 						{
 							try

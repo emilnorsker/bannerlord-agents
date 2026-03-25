@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AIInfluence.API;
 using AIInfluence.Behaviors.AIActions;
@@ -1538,7 +1539,6 @@ public class NPCInitiativeSystem
 			AIInfluenceBehavior.ApplyNpcDialogueToolsToAiResponse(context, response);
 			LogMessage("[NPC_MESSENGER_DEBUG] Parsed response from " + npcName + ":");
 			LogMessage("  - response: " + (response?.Response?.Substring(0, Math.Min(100, (response?.Response?.Length).GetValueOrDefault())) ?? "null") + "...");
-			LogMessage("  - technical_action: " + (response?.TechnicalAction ?? "null"));
 			LogMessage("  - romance_intent: " + (response?.RomanceIntent ?? "null"));
 			if (response == null || string.IsNullOrEmpty(response.Response) || response.Response.Equals("null", StringComparison.OrdinalIgnoreCase) || response.Response.Equals("no_response", StringComparison.OrdinalIgnoreCase))
 			{
@@ -1576,11 +1576,8 @@ public class NPCInitiativeSystem
 				InformationManager.DisplayMessage(new InformationMessage(((object)new TextObject("{=" + statusTextId + "}" + fallbackText, letterStatusDict)).ToString(), Colors.Gray));
 			}
 			LogMessage("[NPC_MESSENGER] " + npcName + " response: " + message);
-			if (!string.IsNullOrEmpty(response.TechnicalAction) && response.TechnicalAction != "null")
-			{
-				LogMessage("[NPC_MESSENGER] NPC " + npcName + " requested action via letter: " + response.TechnicalAction);
-				ProcessLetterTechnicalAction(npc, response.TechnicalAction);
-			}
+			if (LetterReplyImpliesLikelyMapCommitment(message) && string.IsNullOrEmpty(context.LastTechnicalActionForDisplay))
+				LogMessage("[NPC_MESSENGER] Letter text suggests travel or map commitment, but no map tools ran this turn — the campaign map will not change until the model calls go_to_settlement, wait_near_settlement, or follow_player.");
 			if (!context.KnowledgeGenerated)
 			{
 				WorldInfoManager.WorldSecretsManager.Instance.CheckSecretKnowledge(npc, context);
@@ -1600,50 +1597,20 @@ public class NPCInitiativeSystem
 		}
 	}
 
+	private static bool LetterReplyImpliesLikelyMapCommitment(string message)
+	{
+		if (string.IsNullOrEmpty(message))
+			return false;
+		string m = message.ToLowerInvariant();
+		return Regex.IsMatch(m, @"\b(will\s+(go|travel|head|ride|march|leave|come|join|meet)|i'?ll\s+(go|travel|head|come|join|meet)|travell?ing\s+to|heading\s+to|on\s+my\s+way|leave\s+for|wait(?:ing)?\s+(?:at|near|outside)|meet\s+you\s+(?:at|in|there)|come\s+to\s+you|follow\s+you)\b");
+	}
+
 	private string GenerateLetterResponsePrompt(Hero npc, NPCContext context, string playerMessage)
 	{
 		string text = PromptGenerator.GeneratePrompt(npc, context, false, isMessengerMode: true);
 		string text2 = ((object)Hero.MainHero.Name).ToString();
-		string text3 = "\n\n=== SPECIAL SITUATION: YOU RECEIVED A LETTER ===\nYou have received a letter from " + text2 + " via messenger.\n\n**THE PLAYER'S LETTER:**\n\"" + playerMessage + "\"\n\n**YOUR OPTIONS:**\n1. **Reply** - Write a response letter. Set `response` to your reply message.\n2. **No Reply** - If you don't want to respond, set `response` to \"null\" or \"no_response\". NO letter will be sent back.\n\n**AVAILABLE ACTIONS:**\nUse `technical_action` ONLY if the player EXPLICITLY asks you to do one of these:\n- `go_to_settlement:<settlement_id>:<days>` - Travel to a settlement. Use exact settlement_id from the list above or from Nearby/Mentioned Settlements.\n- `wait_near_settlement:<settlement_id>:<days>` - Wait near a settlement. Use exact settlement_id.\n- `follow_player` - Come to the player and follow them.\nIf the player doesn't ask you to go somewhere or come to them, set `technical_action` to null.\n\n**CRITICAL INSTRUCTIONS:**\n- This is a WRITTEN MESSAGE. Do NOT use **asterisks** for actions.\n- Consider your relationship with the player and your character when deciding whether to reply.\n- Only perform actions if the player EXPLICITLY requests it in their letter.\n- If you don't want to reply (annoyed, busy, hostile), set response to \"null\".\n" + $"- Your response should be at least {GlobalSettings<ModSettings>.Instance.PromptMinResponseLength} characters (if you reply).\n" + $"- Do not exceed {GlobalSettings<ModSettings>.Instance.PromptMaxResponseLength} characters.\n";
+		string text3 = "\n\n=== SPECIAL SITUATION: YOU RECEIVED A LETTER ===\nYou have received a letter from " + text2 + " via messenger.\n\n**THE PLAYER'S LETTER:**\n\"" + playerMessage + "\"\n\n**YOUR OPTIONS:**\n1. **Reply** - Write a response letter. Set `response` to your reply message.\n2. **No Reply** - If you don't want to respond, set `response` to \"null\" or \"no_response\". NO letter will be sent back.\n\n**MAP (TOOLS ONLY — ONLY IF THE PLAYER EXPLICITLY ASKS IN THE LETTER):**\n- `go_to_settlement` with settlement_id from find_settlements and wait_days.\n- `wait_near_settlement` with settlement_id and days.\n- `follow_player` to come to the player and follow them.\nIf they did not ask for travel or to join them, do not call map tools.\n\n**CRITICAL INSTRUCTIONS:**\n- This is a WRITTEN MESSAGE. Do NOT use **asterisks** for actions.\n- Consider your relationship with the player and your character when deciding whether to reply.\n- Only perform actions if the player EXPLICITLY requests it in their letter.\n- If you don't want to reply (annoyed, busy, hostile), set response to \"null\".\n" + $"- Your response should be at least {GlobalSettings<ModSettings>.Instance.PromptMinResponseLength} characters (if you reply).\n" + $"- Do not exceed {GlobalSettings<ModSettings>.Instance.PromptMaxResponseLength} characters.\n";
 		return text + text3;
-	}
-
-	private void ProcessLetterTechnicalAction(Hero npc, string technicalAction)
-	{
-		if (string.IsNullOrEmpty(technicalAction) || technicalAction == "null")
-		{
-			return;
-		}
-		string[] array = technicalAction.Split(new char[1] { ':' }, 2);
-		string text = array[0].Trim().ToLowerInvariant();
-		string text2 = ((array.Length > 1) ? array[1].Trim() : string.Empty);
-		if (text != "go_to_settlement" && text != "wait_near_settlement" && text != "follow_player")
-		{
-			LogMessage("[NPC_MESSENGER] Action '" + text + "' is not allowed for letter responses - ignoring");
-			return;
-		}
-		try
-		{
-			if (AIActionIntegration.Instance.TryPrepareActionParameter(npc, text, text2))
-			{
-				if (AIActionManager.Instance.StartAction(npc, text, forceRestart: true))
-				{
-					LogMessage($"[NPC_MESSENGER] Started action '{text}' for {npc.Name} from letter response");
-				}
-				else
-				{
-					LogMessage($"[NPC_MESSENGER] FAILED to start '{text}' for {npc.Name}");
-				}
-			}
-			else
-			{
-				LogMessage("[NPC_MESSENGER] FAILED to prepare parameters for '" + text + "' with payload: " + text2);
-			}
-		}
-		catch (Exception ex)
-		{
-			LogMessage("[ERROR] Failed to process letter action: " + ex.Message);
-		}
 	}
 
 	private void ScheduleNPCLetterDelivery(Hero npc, string message, float deliveryHours)
