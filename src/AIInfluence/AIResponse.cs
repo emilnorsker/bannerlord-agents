@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace AIInfluence;
 
-[JsonSerializable]
+/// <summary>Model reply deserialized from JSON. OpenRouter NPC chat uses <see cref="NpcOpenRouterDialogueEnvelope"/> for the wire shape; <c>tts_instructions</c> is not in that schema and is not a property here (intentionally retired).</summary>
 public class AIResponse
 {
 	[JsonProperty("internal_thoughts")]
@@ -51,14 +51,6 @@ public class AIResponse
 
 	[JsonProperty("kingdom_action_reason")]
 	public string KingdomActionReason { get; set; }
-
-	/// <summary>
-	/// One-line command for this NPC’s map AI (Bannerlord campaign map: follow player, travel to settlement, raid, siege, etc.).
-	/// <see cref="DialogManager"/> reads it from the pending dialogue reply. With OpenRouter tools, the <c>technical_action</c> tool fills this
-	/// property after <see cref="AIInfluenceBehavior.ApplyNpcContextToolDeferralsToAiResponse"/>; other backends may still set it from the model JSON.
-	/// </summary>
-	[JsonProperty("technical_action")]
-	public string TechnicalAction { get; set; }
 
 	[JsonProperty("claimed_gold")]
 	public int ClaimedGold { get; set; }
