@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using AIInfluence;
 using AIInfluence.Diplomacy;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -143,12 +144,17 @@ public class DynamicEventsStorage
 			}
 			foreach (EventUpdate update in source.EventHistory)
 			{
-				if (!target.EventHistory.Any((EventUpdate u) => u.Description == update.Description && Math.Abs(u.CampaignDays - update.CampaignDays) < 0.01f))
+				if (update == null)
+				{
+					continue;
+				}
+				string updateDescription = update.Description ?? "";
+				if (!target.EventHistory.Any((EventUpdate u) => string.Equals(u?.Description ?? "", updateDescription, StringComparison.Ordinal) && Math.Abs(u.CampaignDays - update.CampaignDays) < 0.01f))
 				{
 					target.EventHistory.Add(update);
 				}
 			}
-			target.EventHistory = target.EventHistory.OrderByDescending((EventUpdate u) => u.CampaignDays).ToList();
+			target.EventHistory = target.EventHistory.Where(u => u != null).OrderByDescending((EventUpdate u) => u.CampaignDays).ToList();
 		}
 	}
 
@@ -164,12 +170,13 @@ public class DynamicEventsStorage
 		};
 	}
 
-	public void SaveUnifiedEnvelope(UnifiedDynamicEventsEnvelope envelope)
+	/// <returns><c>false</c> if the envelope was null or the file write failed (in-memory catalog unchanged on disk).</returns>
+	public bool SaveUnifiedEnvelope(UnifiedDynamicEventsEnvelope envelope)
 	{
 		if (envelope == null)
 		{
 			LogMessage("[DYNAMIC_EVENTS_STORAGE] SaveUnifiedEnvelope: null envelope");
-			return;
+			return false;
 		}
 		envelope.FormatVersion = UnifiedDynamicEventsEnvelope.CurrentFormatVersion;
 		CampaignTime now = CampaignTime.Now;
@@ -186,10 +193,12 @@ public class DynamicEventsStorage
 			string contents = JsonConvert.SerializeObject(envelope, settings);
 			File.WriteAllText(path, contents);
 			LogMessage($"[DYNAMIC_EVENTS_STORAGE] Saved {envelope.Events?.Count ?? 0} events to unified {path}");
+			return true;
 		}
 		catch (Exception ex)
 		{
 			LogMessage("[DYNAMIC_EVENTS_STORAGE] Error saving unified envelope: " + ex.Message + "\n" + ex.StackTrace);
+			return false;
 		}
 	}
 
@@ -272,7 +281,26 @@ public class DynamicEventsStorage
 		}
 		CampaignTime now = CampaignTime.Now;
 		float currentCampaignDays = (float)now.ToDays;
-		return statementSchedules.ToDictionary(kvp => kvp.Key, kvp => (float)kvp.Value.ToDays - currentCampaignDays);
+		Dictionary<string, float> relativeDaysByEventId = new Dictionary<string, float>();
+		int duplicateStatementScheduleKeys = 0;
+		foreach (KeyValuePair<string, CampaignTime> pair in statementSchedules)
+		{
+			if (string.IsNullOrEmpty(pair.Key))
+			{
+				continue;
+			}
+			float relativeDays = (float)pair.Value.ToDays - currentCampaignDays;
+			if (relativeDaysByEventId.ContainsKey(pair.Key))
+			{
+				duplicateStatementScheduleKeys++;
+			}
+			relativeDaysByEventId[pair.Key] = relativeDays;
+		}
+		if (duplicateStatementScheduleKeys > 0)
+		{
+			LogStorageStatic("[DYNAMIC_EVENTS_STORAGE] SerializeStatementSchedules: duplicate keys (last wins): " + duplicateStatementScheduleKeys);
+		}
+		return relativeDaysByEventId.Count == 0 ? null : relativeDaysByEventId;
 	}
 
 	private static Dictionary<string, float> SerializeAnalysisSchedules(Dictionary<string, CampaignTime> analysisSchedules)
@@ -283,7 +311,26 @@ public class DynamicEventsStorage
 		}
 		CampaignTime now = CampaignTime.Now;
 		float currentCampaignDays = (float)now.ToDays;
-		return analysisSchedules.ToDictionary(kvp => kvp.Key, kvp => (float)kvp.Value.ToDays - currentCampaignDays);
+		Dictionary<string, float> relativeDaysByEventId = new Dictionary<string, float>();
+		int duplicateAnalysisScheduleKeys = 0;
+		foreach (KeyValuePair<string, CampaignTime> pair in analysisSchedules)
+		{
+			if (string.IsNullOrEmpty(pair.Key))
+			{
+				continue;
+			}
+			float relativeDays = (float)pair.Value.ToDays - currentCampaignDays;
+			if (relativeDaysByEventId.ContainsKey(pair.Key))
+			{
+				duplicateAnalysisScheduleKeys++;
+			}
+			relativeDaysByEventId[pair.Key] = relativeDays;
+		}
+		if (duplicateAnalysisScheduleKeys > 0)
+		{
+			LogStorageStatic("[DYNAMIC_EVENTS_STORAGE] SerializeAnalysisSchedules: duplicate keys (last wins): " + duplicateAnalysisScheduleKeys);
+		}
+		return relativeDaysByEventId.Count == 0 ? null : relativeDaysByEventId;
 	}
 
 	private static Dictionary<string, List<QueuedStatementData>> SerializeStatementQueues(Dictionary<string, Queue<(Kingdom kingdom, CampaignTime scheduledTime)>> statementQueues)
@@ -294,22 +341,39 @@ public class DynamicEventsStorage
 		}
 		CampaignTime now = CampaignTime.Now;
 		float currentCampaignDays = (float)now.ToDays;
-		Dictionary<string, List<QueuedStatementData>> dictionary = new Dictionary<string, List<QueuedStatementData>>();
-		foreach (KeyValuePair<string, Queue<(Kingdom, CampaignTime)>> statementQueue in statementQueues)
+		Dictionary<string, List<QueuedStatementData>> serializedQueuesByEventId = new Dictionary<string, List<QueuedStatementData>>();
+		int duplicateQueueKeys = 0;
+		foreach (KeyValuePair<string, Queue<(Kingdom, CampaignTime)>> queueByEventId in statementQueues)
 		{
-			List<QueuedStatementData> list = new List<QueuedStatementData>();
-			foreach (var item in statementQueue.Value)
+			if (string.IsNullOrEmpty(queueByEventId.Key))
 			{
-				QueuedStatementData obj = new QueuedStatementData
-				{
-					KingdomId = ((MBObjectBase)item.Item1).StringId,
-					ScheduledTimeDays = (float)item.Item2.ToDays - currentCampaignDays
-				};
-				list.Add(obj);
+				continue;
 			}
-			dictionary[statementQueue.Key] = list;
+			List<QueuedStatementData> serializedItems = new List<QueuedStatementData>();
+			foreach ((Kingdom kingdom, CampaignTime scheduledTime) kingdomAndTime in queueByEventId.Value)
+			{
+				if (kingdomAndTime.kingdom == null)
+				{
+					continue;
+				}
+				QueuedStatementData row = new QueuedStatementData
+				{
+					KingdomId = ((MBObjectBase)kingdomAndTime.kingdom).StringId,
+					ScheduledTimeDays = (float)kingdomAndTime.scheduledTime.ToDays - currentCampaignDays
+				};
+				serializedItems.Add(row);
+			}
+			if (serializedQueuesByEventId.ContainsKey(queueByEventId.Key))
+			{
+				duplicateQueueKeys++;
+			}
+			serializedQueuesByEventId[queueByEventId.Key] = serializedItems;
 		}
-		return dictionary;
+		if (duplicateQueueKeys > 0)
+		{
+			LogStorageStatic("[DYNAMIC_EVENTS_STORAGE] SerializeStatementQueues: duplicate keys (last wins): " + duplicateQueueKeys);
+		}
+		return serializedQueuesByEventId.Count == 0 ? null : serializedQueuesByEventId;
 	}
 
 	private static Dictionary<string, string> SerializePendingStatements(Dictionary<string, Kingdom> pendingStatements)
@@ -318,7 +382,26 @@ public class DynamicEventsStorage
 		{
 			return null;
 		}
-		return pendingStatements.ToDictionary(kvp => kvp.Key, kvp => ((MBObjectBase)kvp.Value).StringId);
+		Dictionary<string, string> kingdomIdByStatementKey = new Dictionary<string, string>();
+		int duplicatePendingKeys = 0;
+		foreach (KeyValuePair<string, Kingdom> pair in pendingStatements)
+		{
+			if (string.IsNullOrEmpty(pair.Key) || pair.Value == null)
+			{
+				continue;
+			}
+			string kingdomStringId = ((MBObjectBase)pair.Value).StringId;
+			if (kingdomIdByStatementKey.ContainsKey(pair.Key))
+			{
+				duplicatePendingKeys++;
+			}
+			kingdomIdByStatementKey[pair.Key] = kingdomStringId;
+		}
+		if (duplicatePendingKeys > 0)
+		{
+			LogStorageStatic("[DYNAMIC_EVENTS_STORAGE] SerializePendingStatements: duplicate keys (last wins): " + duplicatePendingKeys);
+		}
+		return kingdomIdByStatementKey.Count == 0 ? null : kingdomIdByStatementKey;
 	}
 
 	public DiplomaticEventsLoadResult LoadDiplomaticSliceFromEnvelope(UnifiedDynamicEventsEnvelope envelope)
@@ -442,6 +525,11 @@ public class DynamicEventsStorage
 	}
 
 	private void LogMessage(string message)
+	{
+		LogStorageStatic(message);
+	}
+
+	private static void LogStorageStatic(string message)
 	{
 		AIInfluenceBehavior.Instance?.LogMessage(message);
 	}

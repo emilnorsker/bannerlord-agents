@@ -4914,7 +4914,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			{
 				string text = $"[{item.Type.ToUpper()}] [Importance: {item.Importance}/10] [Age: {item.DaysSinceCreation} days]";
 				InformationManager.DisplayMessage(new InformationMessage(text, Colors.Cyan));
-				string text2 = ((item.Description.Length > 200) ? (item.Description.Substring(0, 197) + "...") : item.Description);
+				string description = item.Description ?? "";
+				string text2 = description.Length > 200 ? description.Substring(0, 197) + "..." : description;
 				InformationManager.DisplayMessage(new InformationMessage(text2, Colors.White));
 				string text3 = "Kingdoms: ";
 				text3 = ((item.KingdomsInvolved != null) ? ((!(item.KingdomsInvolved is string text4) || !(text4 == "all")) ? (text3 + string.Join(", ", item.GetKingdomStringIds())) : (text3 + "all (global)")) : (text3 + "none (neutral)"));
