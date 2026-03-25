@@ -391,19 +391,15 @@ public static class PromptGenerator
 		}
 		// Dynamic events: ids in NPCContext.DynamicEvents + DynamicEventsManager spread rules (merged registry). Distinct from RecentEvents (engine log) below.
 		string text21 = "none";
-		DynamicEventsManager instance2 = DynamicEventsManager.Instance;
-		if (instance2 != null)
+		List<DynamicEvent> eventsForNPC = DynamicEventsManager.Instance.GetEventsForNPC(npc, context, persistKnowledgeSync: true);
+		if (eventsForNPC.Any())
 		{
-			List<DynamicEvent> eventsForNPC = instance2.GetEventsForNPC(npc, persistKnowledgeSync: true, syncIntoContext: context);
-			if (eventsForNPC != null && eventsForNPC.Any())
-			{
-				List<string> list3 = (from evt in (from evt in eventsForNPC
-						where evt != null && !evt.IsExpired()
-						orderby evt.Importance descending, evt.DaysSinceCreation
-						select evt).Take(5)
-					select PersonalizeEventForNPC(evt, npc)).ToList();
-				text21 = (list3.Any() ? string.Join("; ", list3) : "none");
-			}
+			List<string> list3 = (from evt in (from evt in eventsForNPC
+					where !evt.IsExpired()
+					orderby evt.Importance descending, evt.DaysSinceCreation
+					select evt).Take(5)
+				select PersonalizeEventForNPC(evt, npc)).ToList();
+			text21 = (list3.Any() ? string.Join("; ", list3) : "none");
 		}
 		// RecentEvents: Bannerlord campaign-style log (battles, deaths, etc.) when PromptIncludeEvents is enabled — not the AI dynamic-events pipeline.
 		string text22 = "none";

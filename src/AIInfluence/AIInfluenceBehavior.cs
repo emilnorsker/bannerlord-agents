@@ -3802,10 +3802,10 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			LogMessage("[DEBUG] Player recognized as " + text + ": " + nPCContext.PlayerInfo.ClaimedName + " of " + nPCContext.PlayerInfo.ClaimedClan);
 		}
 		UpdateContextData(nPCContext, npc);
-		InitializeActiveEventsForNPC(nPCContext, npc);
-		LogMessage($"[DEBUG] Initialized NPC context with real player info: Name={nPCContext.PlayerInfo.RealName}, Clan={nPCContext.PlayerInfo.RealClan}, Age={nPCContext.PlayerInfo.RealAge}, Culture={nPCContext.PlayerInfo.RealCulture}, Gender={nPCContext.PlayerInfo.RealGender}");
 		_npcContexts[npcId] = nPCContext;
 		UpdateStringIdIndex(npcId, npcId);
+		InitializeActiveEventsForNPC(nPCContext, npc);
+		LogMessage($"[DEBUG] Initialized NPC context with real player info: Name={nPCContext.PlayerInfo.RealName}, Clan={nPCContext.PlayerInfo.RealClan}, Age={nPCContext.PlayerInfo.RealAge}, Culture={nPCContext.PlayerInfo.RealCulture}, Gender={nPCContext.PlayerInfo.RealGender}");
 		return nPCContext;
 	}
 
@@ -3813,7 +3813,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	{
 		try
 		{
-			List<DynamicEvent> known = DynamicEventsManager.Instance.GetEventsForNPC(npc, persistKnowledgeSync: false, syncIntoContext: context);
+			List<DynamicEvent> known = DynamicEventsManager.Instance.GetEventsForNPC(npc, context, persistKnowledgeSync: false);
 			int num = 0;
 			foreach (DynamicEvent dynamicEvent in known)
 			{

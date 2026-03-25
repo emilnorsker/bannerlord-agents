@@ -325,33 +325,41 @@ public class DynamicEventsManager
 		}
 	}
 
-	public List<DynamicEvent> GetEventsForNPC(Hero npc, bool persistKnowledgeSync = true, NPCContext syncIntoContext = null)
+	/// <summary>
+	/// Returns catalog events this NPC is treated as knowing, after syncing <see cref="NPCContext.DynamicEvents"/>.
+	/// </summary>
+	/// <param name="syncIntoContext">Required. Must be the canonical context for this hero (same reference as <see cref="AIInfluenceBehavior.GetNPCContexts"/> when registered).</param>
+	public List<DynamicEvent> GetEventsForNPC(Hero npc, NPCContext syncIntoContext, bool persistKnowledgeSync = true)
 	{
 		if (npc == null)
 		{
 			return new List<DynamicEvent>();
 		}
-		AIInfluenceBehavior instance = AIInfluenceBehavior.Instance;
+		if (syncIntoContext == null)
+		{
+			throw new ArgumentNullException(nameof(syncIntoContext));
+		}
 		string npcKey = ((MBObjectBase)npc).StringId;
-		NPCContext tempContext = syncIntoContext;
-		if (tempContext == null && instance != null)
+		if (string.IsNullOrEmpty(npcKey))
+		{
+			throw new ArgumentException("Hero has empty StringId.", nameof(npc));
+		}
+		if (!string.Equals(syncIntoContext.StringId, npcKey, StringComparison.Ordinal))
+		{
+			throw new ArgumentException("syncIntoContext.StringId must match hero.StringId (got '" + syncIntoContext.StringId + "', expected '" + npcKey + "').", nameof(syncIntoContext));
+		}
+		AIInfluenceBehavior instance = AIInfluenceBehavior.Instance;
+		if (instance != null)
 		{
 			Dictionary<string, NPCContext> nPCContexts = instance.GetNPCContexts();
-			if (nPCContexts != null && nPCContexts.ContainsKey(npcKey))
+			if (nPCContexts != null && nPCContexts.TryGetValue(npcKey, out NPCContext registered) && !ReferenceEquals(registered, syncIntoContext))
 			{
-				tempContext = nPCContexts[npcKey];
+				throw new InvalidOperationException("syncIntoContext is not the registered NPCContext for '" + npcKey + "'. Use AIInfluenceBehavior.GetOrCreateNPCContext(hero) so prompts, UI, and disk stay aligned.");
 			}
 		}
-		if (tempContext == null)
-		{
-			tempContext = new NPCContext
-			{
-				StringId = npcKey
-			};
-		}
 		List<DynamicEvent> catalog = BuildMergedActiveEvents();
-		SyncNpcDynamicEventKnowledge(npc, tempContext, instance, npcKey, persistKnowledgeSync, catalog);
-		HashSet<string> knownIds = (tempContext.DynamicEvents != null && tempContext.DynamicEvents.Any()) ? new HashSet<string>(tempContext.DynamicEvents) : new HashSet<string>();
+		SyncNpcDynamicEventKnowledge(npc, syncIntoContext, instance, npcKey, persistKnowledgeSync, catalog);
+		HashSet<string> knownIds = (syncIntoContext.DynamicEvents != null && syncIntoContext.DynamicEvents.Any()) ? new HashSet<string>(syncIntoContext.DynamicEvents) : new HashSet<string>();
 		return (from e in catalog
 			where e != null && !string.IsNullOrEmpty(e.Id) && !e.IsExpired() && knownIds.Contains(e.Id)
 			orderby e.Importance descending, e.DaysSinceCreation

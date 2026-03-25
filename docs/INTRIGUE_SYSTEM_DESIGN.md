@@ -80,7 +80,7 @@ Normative save layout: **`TECHNICAL_GUIDE.en.md`** — `dynamic_events.json` (fo
 | Topic | Location / rule |
 |--------|------------------|
 | Catalog read | `DynamicEventsManager.GetActiveEvents()` or `WorldEventsReadFacade` |
-| NPC-visible set | `GetEventsForNPC` syncs `NPCContext.DynamicEvents`; same path as prompts |
+| NPC-visible set | `DynamicEventsManager.GetEventsForNPC(hero, context, persist)` syncs `NPCContext.DynamicEvents` on the **canonical** context (must match `AIInfluenceBehavior` registry). UI: `WorldEventsReadFacade.GetEventsKnownToNpcForUi`. |
 | Visibility rules | `DynamicEventsManager.ShouldNPCKnowEvent` (generator dialogue-only path uses it) |
 | Global rumor shortcut | `GlobalRumorImportanceThresholdInclusive` in `DynamicEventsManager` (default 8; 11 disables) |
 | Plot linkage field | `DynamicEvent.PlotId` / JSON `plot_id` (optional until plot pipeline writes it) |
