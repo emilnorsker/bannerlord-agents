@@ -910,6 +910,23 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 	}
 
+	/// <summary>Runs <see cref="ProcessKingdomAction"/> for <c>kingdom_action</c> staged during tools. Call from chat UI after the NPC line and pills are visible (after streaming).</summary>
+	public void ApplyPendingKingdomActionFromTools(Hero npc, NPCContext context)
+	{
+		if (npc == null || context?.PendingKingdomActionFromTools == null)
+			return;
+		AIResponse k = context.PendingKingdomActionFromTools;
+		context.PendingKingdomActionFromTools = null;
+		try
+		{
+			ProcessKingdomAction(npc, k, context, executeImmediately: true);
+		}
+		catch (Exception ex)
+		{
+			LogMessage("[ERROR] Chat kingdom action failed: " + ex.Message);
+		}
+	}
+
 	public void ProcessQuestAction(Hero npc, NPCContext context, QuestActionData questAction)
 	{
 		string text = ((npc == null) ? null : ((object)npc.Name)?.ToString()) ?? "Unknown";
@@ -3206,6 +3223,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		context.DialogueToolDeescalationAttempt = null;
 		context.DialogueToolAllowsLetters = null;
 		context.PendingQuestActionFromTools = null;
+		context.PendingKingdomActionFromTools = null;
 		context.ToolPillsForCurrentTurn = null;
 		context.ToolPlayerPillsForCurrentTurn = null;
 		context.MapToolRanThisTurn = false;
@@ -6104,10 +6122,16 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}, false, (Func<string, Tuple<bool, string>>)null, "", ""));
 	}
 
-	public void ProcessKingdomAction(Hero npc, AIResponse aiResult, NPCContext context)
+	public void ProcessKingdomAction(Hero npc, AIResponse aiResult, NPCContext context, bool executeImmediately = false)
 	{
 		if (!GlobalSettings<ModSettings>.Instance.EnableModification || npc == null || aiResult == null || string.IsNullOrWhiteSpace(aiResult.KingdomAction) || aiResult.KingdomAction.Equals("none", StringComparison.OrdinalIgnoreCase))
 		{
+			return;
+		}
+		if (executeImmediately)
+		{
+			LogMessage("[KINGDOM_ACTION] Immediate execute (NPC chat finalize) '" + aiResult.KingdomAction + "' for " + (((object)npc.Name)?.ToString() ?? "?") + ".");
+			ExecuteKingdomAction(npc, aiResult, context);
 			return;
 		}
 		DelayedTaskManager delayedTaskManager = GetDelayedTaskManager();

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using AIInfluence;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.Core;
@@ -103,6 +104,22 @@ public static class ChatToolPillBuilder
 
 	public static void AppendPlayerItemReceive(NPCContext context, string npcName, IEnumerable<ItemTransferData> transfers) =>
 		context?.AppendToolPill($"You received {FormatItemListForPill(transfers)} from {npcName}", ItemTransferColor);
+
+	/// <summary>One pill for a pending <c>kingdom_action</c> (shown when chat row finalizes after streaming).</summary>
+	public static (string Text, string Color) FormatKingdomActionPill(AIResponse k)
+	{
+		if (k == null || string.IsNullOrWhiteSpace(k.KingdomAction))
+			return ("", "");
+		string action = k.KingdomAction.Trim();
+		string reason = k.KingdomActionReason;
+		string line = string.IsNullOrWhiteSpace(reason)
+			? "Kingdom: " + action
+			: "Kingdom: " + action + " — " + Regex.Replace(reason.Trim(), @"\s+", " ");
+		string t = line.Trim();
+		if (!t.StartsWith("• ", StringComparison.Ordinal))
+			t = "• " + t;
+		return (t, KingdomActionColor);
+	}
 
 	public static void AppendRomanceIntent(NPCContext context, string intent)
 	{

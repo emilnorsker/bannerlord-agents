@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using AIInfluence.Behaviors.AIActions;
 using AIInfluence;
 using Newtonsoft.Json;
@@ -240,16 +239,12 @@ public static class ToolHandlers
 		string kingdomAction = parsedArgs["action"]?.ToString();
 		if (string.IsNullOrEmpty(kingdomAction)) return "ok";
 		string reason = parsedArgs["reason"]?.ToString() ?? "";
-		behavior.ProcessKingdomAction(npc, new AIResponse
+		context.PendingKingdomActionFromTools = new AIResponse
 		{
 			KingdomAction = kingdomAction,
 			KingdomActionReason = reason,
 			SettlementId = parsedArgs["settlement_id"]?.ToString()
-		}, context);
-		string kingdomLine = string.IsNullOrWhiteSpace(reason)
-			? "Kingdom action scheduled: " + kingdomAction.Trim()
-			: "Kingdom action scheduled: " + kingdomAction.Trim() + " — " + Regex.Replace(reason.Trim(), @"\s+", " ");
-		context.AppendToolPill(kingdomLine, ChatToolPillBuilder.KingdomActionColor);
+		};
 		return "ok";
 	}
 

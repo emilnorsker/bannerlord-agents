@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using AIInfluence.ChatTools;
 using AIInfluence.Diplomacy;
 using AIInfluence.DynamicEvents;
 using AIInfluence.Services;
@@ -764,6 +765,12 @@ public class NpcChatWindowVM : ViewModel
             var npcPills = ctx?.ToolPillsForCurrentTurn != null
                 ? new List<(string text, string textColor)>(ctx.ToolPillsForCurrentTurn)
                 : new List<(string text, string textColor)>();
+            if (ctx?.PendingKingdomActionFromTools != null)
+            {
+                (string kText, string kColor) = ChatToolPillBuilder.FormatKingdomActionPill(ctx.PendingKingdomActionFromTools);
+                if (!string.IsNullOrEmpty(kText))
+                    npcPills.Add((kText, kColor));
+            }
             string relMsg = GetRelationChangeMessage(pendingResponse, ctx, npcName);
             bool needsChatRows = !string.IsNullOrEmpty(reply) || npcPills.Count > 0 || playerPills.Count > 0 || !string.IsNullOrEmpty(relMsg);
             string npcLineBody = string.IsNullOrEmpty(reply) ? "(actions only)" : reply;
@@ -810,6 +817,7 @@ public class NpcChatWindowVM : ViewModel
                             catch (Exception ex) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] SaveNPCContext after pill persist failed: " + ex.Message); }
                         }
                         AIInfluenceBehavior.Instance?.ApplyPendingQuestActionFromTools(_npc, ctx);
+                        AIInfluenceBehavior.Instance?.ApplyPendingKingdomActionFromTools(_npc, ctx);
                         if (ctx != null && AIInfluenceBehavior.Instance != null)
                         {
                             try
@@ -863,6 +871,7 @@ public class NpcChatWindowVM : ViewModel
                     MessageList.Remove(streamingItem);
                 }
                 AIInfluenceBehavior.Instance?.ApplyPendingQuestActionFromTools(_npc, ctx);
+                AIInfluenceBehavior.Instance?.ApplyPendingKingdomActionFromTools(_npc, ctx);
                 if (ctx != null && AIInfluenceBehavior.Instance != null)
                     MainThreadDispatcher.Queue.Enqueue(() =>
                     {

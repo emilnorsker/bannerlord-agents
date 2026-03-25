@@ -141,6 +141,10 @@ public class NPCContext
 	[JsonIgnore]
 	public QuestActionData PendingQuestActionFromTools { get; set; }
 
+	/// <summary>Set by <c>kingdom_action</c> chat tool; applied when the chat row is finalized after streaming (no 6s delay).</summary>
+	[JsonIgnore]
+	public AIResponse PendingKingdomActionFromTools { get; set; }
+
 	/// <summary>OpenRouter dialogue tools: merged into <see cref="AIResponse"/> after deserialize (tools override JSON when set).</summary>
 	[JsonIgnore]
 	public bool? DialogueToolSuspectedLie { get; set; }
