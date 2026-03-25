@@ -3,7 +3,6 @@ using Newtonsoft.Json;
 namespace AIInfluence;
 
 /// <summary>Subset of fields allowed in the OpenRouter NPC final assistant JSON. Gameplay effects must use tools — extra JSON keys are ignored on deserialize.</summary>
-[JsonSerializable]
 public sealed class NpcOpenRouterDialogueEnvelope
 {
 	[JsonProperty("internal_thoughts")]

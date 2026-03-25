@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AIInfluence.API;
 using AIInfluence.Behaviors.AIActions;
@@ -1575,6 +1576,8 @@ public class NPCInitiativeSystem
 				InformationManager.DisplayMessage(new InformationMessage(((object)new TextObject("{=" + statusTextId + "}" + fallbackText, letterStatusDict)).ToString(), Colors.Gray));
 			}
 			LogMessage("[NPC_MESSENGER] " + npcName + " response: " + message);
+			if (LetterReplyImpliesLikelyMapCommitment(message) && string.IsNullOrEmpty(context.LastTechnicalActionForDisplay))
+				LogMessage("[NPC_MESSENGER] Letter text suggests travel or map commitment, but no map tools ran this turn — the campaign map will not change until the model calls go_to_settlement, wait_near_settlement, or follow_player.");
 			if (!context.KnowledgeGenerated)
 			{
 				WorldInfoManager.WorldSecretsManager.Instance.CheckSecretKnowledge(npc, context);
@@ -1592,6 +1595,14 @@ public class NPCInitiativeSystem
 			Exception ex3 = ex;
 			LogMessage("[ERROR] GenerateNPCResponseToPlayerLetter failed: " + ex3.Message + "\n" + ex3.StackTrace);
 		}
+	}
+
+	private static bool LetterReplyImpliesLikelyMapCommitment(string message)
+	{
+		if (string.IsNullOrEmpty(message))
+			return false;
+		string m = message.ToLowerInvariant();
+		return Regex.IsMatch(m, @"\b(will\s+(go|travel|head|ride|march|leave|come|join|meet)|i'?ll\s+(go|travel|head|come|join|meet)|travell?ing\s+to|heading\s+to|on\s+my\s+way|leave\s+for|wait(?:ing)?\s+(?:at|near|outside)|meet\s+you\s+(?:at|in|there)|come\s+to\s+you|follow\s+you)\b");
 	}
 
 	private string GenerateLetterResponsePrompt(Hero npc, NPCContext context, string playerMessage)

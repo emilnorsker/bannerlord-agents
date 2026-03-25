@@ -196,6 +196,8 @@ public static class ToolHandlers
 		string direction = parsedArgs["direction"]?.ToString();
 		string transfers = parsedArgs["transfers"]?.ToString();
 		if (string.IsNullOrEmpty(direction) || string.IsNullOrEmpty(transfers)) return "missing";
+		string malformed = ValidateTransferTroopsSegments(transfers);
+		if (malformed != null) return malformed;
 		string param = direction + ":" + transfers;
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "transfer_troops_and_prisoners", param) != true) return "failed";
 		if (AIActionManager.Instance?.StartAction(npc, "transfer_troops_and_prisoners") != true) return "failed";
@@ -327,6 +329,29 @@ public static class ToolHandlers
 			context.PendingQuestActionFromTools = questAction;
 		}
 		return "ok";
+	}
+
+	private static string ValidateTransferTroopsSegments(string transfersBody)
+	{
+		if (string.IsNullOrWhiteSpace(transfersBody))
+			return "malformed_transfers_empty";
+		foreach (string seg in transfersBody.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+		{
+			string s = seg.Trim();
+			if (s.Length == 0)
+				continue;
+			string[] p = s.Split(new[] { ':' }, StringSplitOptions.None);
+			if (p.Length != 3)
+				return "malformed_transfer_segment:" + s;
+			string kind = p[0].Trim().ToLowerInvariant();
+			if (kind != "troop" && kind != "prisoner")
+				return "malformed_transfer_type:" + s;
+			if (p[1].Trim().Length == 0)
+				return "malformed_transfer_segment:" + s;
+			if (!int.TryParse(p[2].Trim(), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out int n) || n <= 0)
+				return "malformed_transfer_count:" + s;
+		}
+		return null;
 	}
 
 	private static JObject ParseOrEmpty(string argsJson) =>

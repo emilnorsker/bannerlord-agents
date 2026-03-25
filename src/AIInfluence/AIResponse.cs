@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace AIInfluence;
 
-[JsonSerializable]
+/// <summary>Model reply deserialized from JSON. OpenRouter NPC chat uses <see cref="NpcOpenRouterDialogueEnvelope"/> for the wire shape; <c>tts_instructions</c> is not in that schema and is not a property here (intentionally retired).</summary>
 public class AIResponse
 {
 	[JsonProperty("internal_thoughts")]
