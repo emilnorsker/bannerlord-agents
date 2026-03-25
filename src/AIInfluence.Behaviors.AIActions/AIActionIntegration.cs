@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using AIInfluence.Behaviors.AIActions.TaskSystem;
-using Newtonsoft.Json.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Settlements;
@@ -35,31 +34,6 @@ public class AIActionIntegration
 
 	private AIActionIntegration()
 	{
-	}
-
-	public string ProcessAIResponse(string aiResponse, Hero npc)
-	{
-		//IL_0044: Unknown result type (might be due to invalid IL or missing references)
-		//IL_004b: Invalid comparison between Unknown and I4
-		if (string.IsNullOrEmpty(aiResponse) || npc == null)
-		{
-			return aiResponse;
-		}
-		try
-		{
-			string text = JsonCleaner.CleanJsonResponse(aiResponse);
-			JObject val = JObject.Parse(text);
-			if (val["response"] != null)
-			{
-				return ((object)val["response"]).ToString();
-			}
-			return aiResponse;
-		}
-		catch (Exception ex2)
-		{
-			LogMessage("ERROR parsing AI response for actions: " + ex2.Message);
-			return aiResponse;
-		}
 	}
 
 	public string GenerateActionsPrompt(Hero hero = null)
@@ -895,18 +869,6 @@ public class AIActionIntegration
 			return value;
 		}
 		return requestedAction;
-	}
-
-	public static string EnhancePromptWithActions(string originalPrompt, Hero npc)
-	{
-		string text = Instance.GenerateActionsPrompt(npc);
-		string text2 = Instance.GenerateActiveActionsContext(npc);
-		return originalPrompt + text + text2;
-	}
-
-	public static string ProcessDialogResponse(string aiResponse, Hero npc)
-	{
-		return Instance.ProcessAIResponse(aiResponse, npc);
 	}
 
 	private bool IsVillageOwnedByHero(Settlement village, Hero hero)
