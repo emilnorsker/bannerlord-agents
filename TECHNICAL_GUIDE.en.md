@@ -33,6 +33,8 @@ AIInfluence DEV/
     └── dynamicEvents.log
 ```
 
+**Embedded campaign save (SyncData, mod v5.0.0+):** AI Influence still persists core state inside the Bannerlord save via `CampaignBehaviorBase.SyncData`. Active keys include `AIInfluence_followingHeroIds`, `AIInfluence_aiActionState`, `AIInfluence_npcContexts`, `AIInfluence_currentSaveFolder`, plus other behaviors (e.g. task manager, non-combatant protector, death history, settlement penalties, economic effects, dialog logger, messenger menu). **Arena training and the disease system were removed** in this line of development: they no longer register behaviors or SyncData slots. Older dev saves may still contain stale binary blobs for removed keys; the engine typically ignores unknown keys. **v5 does not migrate or recover pre-v5 embedded payloads** — use a new campaign for a supported layout.
+
 ---
 
 ## 🌍 `world.txt`

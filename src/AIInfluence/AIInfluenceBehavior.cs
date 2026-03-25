@@ -5487,7 +5487,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				if (_followingHeroIds == null)
 				{
 					_followingHeroIds = new List<string>();
-					LogMessage("[LOAD] Initialized empty following hero IDs list (old save format)");
+					LogMessage("[LOAD] Following hero IDs list was null after SyncData read; using empty list (v5.0.0).");
 				}
 				bool flag = false;
 				if (!string.IsNullOrEmpty(_serializedActionState))

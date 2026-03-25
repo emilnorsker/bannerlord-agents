@@ -127,7 +127,7 @@ public class SubModule : MBSubModuleBase
 			_loadMessageTimer += dt;
 			if (_loadMessageTimer >= 1f)
 			{
-				InformationManager.DisplayMessage(new InformationMessage("AI Influence Mod Loaded [BETA 4.0.2]"));
+				InformationManager.DisplayMessage(new InformationMessage("AI Influence Mod Loaded [v5.0.0]"));
 				_loadMessageDisplayed = true;
 			}
 		}
@@ -136,7 +136,7 @@ public class SubModule : MBSubModuleBase
 			_startMessageTimer += dt;
 			if (_startMessageTimer >= 1f)
 			{
-				InformationManager.DisplayMessage(new InformationMessage("AI Influence Mod Started in Game [BETA 4.0.2]"));
+				InformationManager.DisplayMessage(new InformationMessage("AI Influence Mod Started in Game [v5.0.0]"));
 				_startMessageDisplayed = true;
 			}
 		}
