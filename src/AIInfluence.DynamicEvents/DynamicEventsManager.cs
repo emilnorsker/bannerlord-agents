@@ -225,14 +225,17 @@ public class DynamicEventsManager
 			DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Duplicate event detected by ID, skipping: " + dynamicEvent.Id);
 			return;
 		}
-		if (EventsList.Any((DynamicEvent e) => e.Description == dynamicEvent.Description))
+		string description = dynamicEvent.Description ?? "";
+		if (EventsList.Any((DynamicEvent e) => string.Equals(e.Description ?? "", description, StringComparison.Ordinal)))
 		{
-			DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Duplicate event detected by description, skipping: " + dynamicEvent.Description.Substring(0, Math.Min(50, dynamicEvent.Description.Length)) + "...");
+			string descPreview = description.Length <= 50 ? description : description.Substring(0, 50) + "...";
+			DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Duplicate event detected by description, skipping: " + descPreview);
 			return;
 		}
 		EnsureDynamicStorageTag(dynamicEvent);
 		EventsList.Add(dynamicEvent);
-		DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Added new event: " + dynamicEvent.Type + " - " + dynamicEvent.Description.Substring(0, Math.Min(50, dynamicEvent.Description.Length)) + "...");
+		string addedDescPreview = description.Length <= 50 ? description : description.Substring(0, 50) + "...";
+		DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Added new event: " + dynamicEvent.Type + " - " + addedDescPreview);
 		DynamicEventsLogger.Instance.LogEventCreated(dynamicEvent);
 		PersistCatalog();
 		DisplayEventNotification(dynamicEvent);
@@ -422,16 +425,17 @@ public class DynamicEventsManager
 		//IL_008e: Expected O, but got Unknown
 		if (dynamicEvent != null)
 		{
+			string notificationDescription = dynamicEvent.Description ?? "";
+			string notificationPreview = notificationDescription.Length <= 50 ? notificationDescription : notificationDescription.Substring(0, 50) + "...";
 			if (GlobalSettings<ModSettings>.Instance.DynamicEventsDialogueOnly)
 			{
-				DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Skipping notification in dialogue-only mode: " + dynamicEvent.Description.Substring(0, Math.Min(50, dynamicEvent.Description.Length)) + "...");
+				DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Skipping notification in dialogue-only mode: " + notificationPreview);
 				return;
 			}
 			Color val = default(Color);
 			val = new Color(1f, 0.55f, 0f, 1f);
-			string text = dynamicEvent.Description ?? "";
-			InformationManager.DisplayMessage(new InformationMessage(text, val));
-			DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Displayed notification: " + dynamicEvent.Description.Substring(0, Math.Min(50, dynamicEvent.Description.Length)) + "...");
+			InformationManager.DisplayMessage(new InformationMessage(notificationDescription, val));
+			DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Displayed notification: " + notificationPreview);
 		}
 	}
 
@@ -480,7 +484,9 @@ public class DynamicEventsManager
 					instance.SaveNPCContext(key, val, context);
 					if (enableDetailedInfoLogging)
 					{
-						DynamicEventsLogger.Instance.Log($"[DYNAMIC_EVENTS_SPREAD] {val.Name} learned about event: {dynamicEvent.Description.Substring(0, Math.Min(50, dynamicEvent.Description.Length))}...");
+						string spreadDesc = dynamicEvent.Description ?? "";
+						string spreadPreview = spreadDesc.Length <= 50 ? spreadDesc : spreadDesc.Substring(0, 50) + "...";
+						DynamicEventsLogger.Instance.Log($"[DYNAMIC_EVENTS_SPREAD] {val.Name} learned about event: {spreadPreview}");
 					}
 				}
 			}
@@ -822,9 +828,10 @@ public class DynamicEventsManager
 			InformationManager.DisplayMessage(new InformationMessage($"Cannot generate event: Limit of {maxEvents} active diplomatic negotiation(s) reached.", new Color(1f, 0f, 0f, 1f)));
 			return;
 		}
-		if (EventsList.Count >= maxEvents)
+		int dynamicTaggedCountManual = EventsList.Count((DynamicEvent e) => e != null && e.StorageTags != null && e.StorageTags.Contains(DynamicEventStorageTags.Dynamic));
+		if (dynamicTaggedCountManual >= maxEvents)
 		{
-			DynamicEventsLogger.Instance.Log($"[DYNAMIC_EVENTS] Warning: Total active events {EventsList.Count}/{maxEvents}, but continuing manual generation (limit applies only to diplomatic-response events).");
+			DynamicEventsLogger.Instance.Log($"[DYNAMIC_EVENTS] Warning: Dynamic-tagged active events {dynamicTaggedCountManual}/{maxEvents}, but continuing manual generation (limit applies only to diplomatic-response events).");
 		}
 		_isGeneratingManually = true;
 		try

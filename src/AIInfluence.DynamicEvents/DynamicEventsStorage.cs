@@ -207,10 +207,18 @@ public class DynamicEventsStorage
 		}
 		HashSet<string> dIds = new HashSet<string>(diplomaticEvents.Where(e => e != null && !string.IsNullOrEmpty(e.Id)).Select(e => e.Id));
 		Dictionary<string, DynamicEvent> byId = new Dictionary<string, DynamicEvent>();
+		int skippedNullEvents = 0;
+		int skippedEmptyIdEvents = 0;
 		foreach (DynamicEvent e in envelope.Events)
 		{
-			if (e == null || string.IsNullOrEmpty(e.Id))
+			if (e == null)
 			{
+				skippedNullEvents++;
+				continue;
+			}
+			if (string.IsNullOrEmpty(e.Id))
+			{
+				skippedEmptyIdEvents++;
 				continue;
 			}
 			bool hasDiplo = HasTag(e, DynamicEventStorageTags.Diplomatic);
@@ -233,6 +241,10 @@ public class DynamicEventsStorage
 				EnsureTag(d, DynamicEventStorageTags.Diplomatic);
 				byId[d.Id] = d;
 			}
+		}
+		if (skippedNullEvents > 0 || skippedEmptyIdEvents > 0)
+		{
+			LogMessage($"[DYNAMIC_EVENTS_STORAGE] SaveDiplomaticSliceInto: dropped {skippedNullEvents} null event(s) and {skippedEmptyIdEvents} empty-id event(s) from envelope when rebuilding catalog");
 		}
 		envelope.Events = byId.Values.ToList();
 		envelope.StatementSchedules = SerializeStatementSchedules(statementSchedules);
