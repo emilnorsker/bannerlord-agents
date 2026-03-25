@@ -378,11 +378,21 @@ public class DynamicEventsManager
 			select e).ToList();
 	}
 
-	public void SyncNpcDynamicEventKnowledge(Hero npc, NPCContext context, AIInfluenceBehavior behavior, string npcContextKey, bool persist = true, List<DynamicEvent> catalog = null)
+	/// <summary>Mutates <paramref name="context"/> only; callers must pass the canonical instance (same as <see cref="GetEventsForNPC"/>). Not public so the registered-context check cannot be bypassed.</summary>
+	private void SyncNpcDynamicEventKnowledge(Hero npc, NPCContext context, AIInfluenceBehavior behavior, string npcContextKey, bool persist = true, List<DynamicEvent> catalog = null)
 	{
 		if (npc == null || context == null || string.IsNullOrEmpty(npcContextKey))
 		{
 			return;
+		}
+		string heroKey = ((MBObjectBase)npc).StringId;
+		if (string.Equals(npcContextKey, heroKey, StringComparison.Ordinal) && behavior != null)
+		{
+			Dictionary<string, NPCContext> registeredContexts = behavior.GetNPCContexts();
+			if (registeredContexts != null && registeredContexts.TryGetValue(heroKey, out NPCContext registered) && !ReferenceEquals(registered, context))
+			{
+				throw new InvalidOperationException("context is not the registered NPCContext for '" + heroKey + "'. Use AIInfluenceBehavior.GetOrCreateNPCContext(hero).");
+			}
 		}
 		List<DynamicEvent> merged = catalog ?? BuildMergedActiveEvents();
 		HashSet<string> mergedIds = new HashSet<string>(from e in merged
