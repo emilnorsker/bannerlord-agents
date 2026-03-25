@@ -3415,10 +3415,10 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		context.PendingAIResponse = aiResult;
 		context.LastAIResponseJson = JsonConvert.SerializeObject(aiResult);
 		context.LastDynamicResponse = reply;
-		context.AddMessage(npcName + ": " + reply);
+		context.AddMessage(npcName + ": " + (string.IsNullOrEmpty(reply) ? "(actions only)" : reply));
 		if (Campaign.Current?.ConversationManager != null)
 		{
-			try { MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", reply, false); }
+			try { MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", string.IsNullOrEmpty(reply) ? "(actions only)" : reply, false); }
 			catch (Exception ex) { LogMessage("[ChatWindow] SetTextVariable failed: " + ex.Message); }
 		}
 		bool decisionHandled = false;
