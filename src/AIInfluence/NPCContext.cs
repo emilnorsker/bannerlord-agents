@@ -96,6 +96,14 @@ public class NPCContext
 	[JsonIgnore]
 	public List<(string Text, string Color)> ToolPillsForCurrentTurn { get; set; }
 
+	/// <summary>Chat action pills for the <b>player</b> message row (economy perspective); cleared at turn start.</summary>
+	[JsonIgnore]
+	public List<(string Text, string Color)> ToolPlayerPillsForCurrentTurn { get; set; }
+
+	/// <summary>Pills to append when delayed effects complete (e.g. workshop sale); drained by <see cref="NpcChatWindowVM.AppendDeferredChatPills"/>.</summary>
+	[JsonIgnore]
+	public List<(string Text, string Color, bool ForPlayerRow)> DeferredChatPillAppends { get; set; }
+
 	/// <summary>
 	/// Temporary hold for roleplay death data from the OpenRouter <c>character_death</c> tool. Copied onto <see cref="AIResponse.CharacterDeath"/>
 	/// by <see cref="AIInfluenceBehavior.ApplyNpcContextToolDeferralsToAiResponse"/> before the rest of the mod runs.
@@ -108,10 +116,25 @@ public class NPCContext
 		if (string.IsNullOrWhiteSpace(line))
 			return;
 		ToolPillsForCurrentTurn ??= new List<(string, string)>();
+		string t = NormalizePillLine(line);
+		ToolPillsForCurrentTurn.Add((t, color));
+	}
+
+	public void AppendPlayerToolPill(string line, string color)
+	{
+		if (string.IsNullOrWhiteSpace(line))
+			return;
+		ToolPlayerPillsForCurrentTurn ??= new List<(string, string)>();
+		string t = NormalizePillLine(line);
+		ToolPlayerPillsForCurrentTurn.Add((t, color));
+	}
+
+	private static string NormalizePillLine(string line)
+	{
 		string t = line.Trim();
 		if (!t.StartsWith("• ", StringComparison.Ordinal))
 			t = "• " + t;
-		ToolPillsForCurrentTurn.Add((t, color));
+		return t;
 	}
 
 	/// <summary>Set by <c>quest_action</c> tool; applied when the chat UI finishes the typewriter and finalizes the NPC line (not during the async tool round).</summary>

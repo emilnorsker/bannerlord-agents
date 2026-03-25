@@ -2198,6 +2198,17 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 							{ "PRICE", agreedPrice }
 						});
 						InformationManager.DisplayMessage(new InformationMessage(((object)val2).ToString(), ExtraColors.GreenAIInfluence));
+						string npcN = ((object)npc.Name)?.ToString() ?? "NPC";
+						context.DeferredChatPillAppends ??= new List<(string, string, bool)>();
+						context.DeferredChatPillAppends.Add(($"{npcN} sold you a workshop", ChatTools.ChatToolPillBuilder.WorkshopActionColor, false));
+						context.DeferredChatPillAppends.Add(("You bought a workshop", ChatTools.ChatToolPillBuilder.WorkshopActionColor, true));
+						MainThreadDispatcher.Queue.Enqueue(() =>
+						{
+							if (!NpcChatWindowManager.IsOpen) return;
+							NpcChatWindowVM vm = NpcChatWindowManager.GetCurrentViewModel();
+							if (vm == null || vm.TargetHero != npc) return;
+							vm.AppendDeferredChatPills(context);
+						});
 						return;
 					}
 					catch (Exception ex3)
@@ -2318,9 +2329,15 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		if (contextForToolPills != null)
 		{
 			if (npcGave.Count > 0)
+			{
 				ChatTools.ChatToolPillBuilder.AppendNpcItemGive(contextForToolPills, text, npcGave);
+				contextForToolPills.AppendPlayerToolPill($"You received {ChatTools.ChatToolPillBuilder.FormatItemListForPill(npcGave)} from {text}", ChatTools.ChatToolPillBuilder.ItemTransferColor);
+			}
 			if (npcTook.Count > 0)
+			{
 				ChatTools.ChatToolPillBuilder.AppendNpcItemTake(contextForToolPills, text, npcTook);
+				contextForToolPills.AppendPlayerToolPill($"You gave {ChatTools.ChatToolPillBuilder.FormatItemListForPill(npcTook)} to {text}", ChatTools.ChatToolPillBuilder.ItemTransferColor);
+			}
 		}
 	}
 
@@ -2396,6 +2413,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				{ "amount", amount }
 			})).ToString(), ExtraColors.GreenAIInfluence));
 			ChatTools.ChatToolPillBuilder.AppendMoneyGive(contextForToolPills, text2, amount);
+			contextForToolPills?.AppendPlayerToolPill($"You received {amount} gold from {text2}", ChatTools.ChatToolPillBuilder.MoneyTransferColor);
 		}
 		else if (text == "receive")
 		{
@@ -2415,6 +2433,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				{ "npcName", text2 }
 			})).ToString(), Colors.Yellow));
 			ChatTools.ChatToolPillBuilder.AppendMoneyReceive(contextForToolPills, text2, amount);
+			contextForToolPills?.AppendPlayerToolPill($"You gave {amount} gold to {text2}", ChatTools.ChatToolPillBuilder.MoneyTransferColor);
 		}
 		else
 		{
@@ -3188,6 +3207,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		context.DialogueToolAllowsLetters = null;
 		context.PendingQuestActionFromTools = null;
 		context.ToolPillsForCurrentTurn = null;
+		context.ToolPlayerPillsForCurrentTurn = null;
 		context.MapToolRanThisTurn = false;
 	}
 

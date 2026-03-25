@@ -81,6 +81,43 @@ public class NpcChatWindowVM : ViewModel
 
     private void AddNewestMessage(ChatMessageItemVM item) => MessageList.Add(item);
 
+    /// <summary>Hero this chat window is for (deferred pills from delayed tasks must match).</summary>
+    public Hero TargetHero => _npc;
+
+    /// <summary>Appends pills queued when an effect finishes after the chat row was built (e.g. workshop sale).</summary>
+    public void AppendDeferredChatPills(NPCContext context)
+    {
+        if (context?.DeferredChatPillAppends == null || context.DeferredChatPillAppends.Count == 0)
+            return;
+        int lastNpc = -1;
+        int lastPlayer = -1;
+        for (int i = MessageList.Count - 1; i >= 0; i--)
+        {
+            ChatMessageItemVM row = MessageList[i];
+            if (row.IsPlayer)
+            {
+                if (lastPlayer < 0)
+                    lastPlayer = i;
+            }
+            else if (lastNpc < 0)
+                lastNpc = i;
+            if (lastPlayer >= 0 && lastNpc >= 0)
+                break;
+        }
+        foreach ((string text, string color, bool forPlayerRow) in context.DeferredChatPillAppends)
+        {
+            string bullet = (text != null && text.StartsWith("• ", StringComparison.Ordinal)) ? text : "• " + (text ?? "").Trim();
+            if (forPlayerRow)
+            {
+                if (lastPlayer >= 0)
+                    MessageList[lastPlayer].ContentSegments.Add(new ContentSegmentVM(bullet, color));
+            }
+            else if (lastNpc >= 0)
+                MessageList[lastNpc].ContentSegments.Add(new ContentSegmentVM(bullet, color));
+        }
+        context.DeferredChatPillAppends.Clear();
+    }
+
     public NpcChatWindowVM(Hero npc, NPCContext context, Action onReturn)
     {
         _npc = npc ?? throw new ArgumentNullException(nameof(npc));
@@ -708,32 +745,31 @@ public class NpcChatWindowVM : ViewModel
             });
             // Keep _isSending true until doFinalize runs so a second send cannot start ProcessChatInput
             // and ClearNpcTurnDialogueTools before quest_action is applied (see ApplyPendingQuestActionFromTools).
-            if (!string.IsNullOrEmpty(reply))
+            NPCContext ctx = null;
+            AIResponse pendingResponse = null;
+            try
             {
-                // Call GetOrCreateNPCContext once — avoids two off-thread calls and a
-                // race with the main game tick that could mutate the context dictionary.
-                NPCContext ctx = null;
-                AIResponse pendingResponse = null;
-                try
-                {
-                    ctx = AIInfluenceBehavior.Instance?.GetOrCreateNPCContext(_npc);
-                    pendingResponse = ctx?.PendingAIResponse;
-                }
-                catch (Exception ex)
-                {
-                    AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] GetOrCreateNPCContext failed: " + ex.Message);
-                }
+                ctx = AIInfluenceBehavior.Instance?.GetOrCreateNPCContext(_npc);
+                pendingResponse = ctx?.PendingAIResponse;
+            }
+            catch (Exception ex)
+            {
+                AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] GetOrCreateNPCContext failed: " + ex.Message);
+            }
 
-                string tone = pendingResponse?.Tone ?? "";
-                var playerPills = new List<(string text, string textColor)>();
-                var npcPills = ctx?.ToolPillsForCurrentTurn != null
-                    ? new List<(string text, string textColor)>(ctx.ToolPillsForCurrentTurn)
-                    : new List<(string text, string textColor)>();
-                string relMsg = GetRelationChangeMessage(pendingResponse, ctx, npcName);
+            string tone = pendingResponse?.Tone ?? "";
+            var playerPills = ctx?.ToolPlayerPillsForCurrentTurn != null
+                ? new List<(string text, string textColor)>(ctx.ToolPlayerPillsForCurrentTurn)
+                : new List<(string text, string textColor)>();
+            var npcPills = ctx?.ToolPillsForCurrentTurn != null
+                ? new List<(string text, string textColor)>(ctx.ToolPillsForCurrentTurn)
+                : new List<(string text, string textColor)>();
+            string relMsg = GetRelationChangeMessage(pendingResponse, ctx, npcName);
+            bool needsChatRows = !string.IsNullOrEmpty(reply) || npcPills.Count > 0 || playerPills.Count > 0 || !string.IsNullOrEmpty(relMsg);
+            string npcLineBody = string.IsNullOrEmpty(reply) ? "(actions only)" : reply;
 
-                // Swaps the streaming placeholder for the finalised message item and persists pills.
-                // Called immediately for non-streaming responses, or by the pump once the typewriter
-                // animation has finished revealing all characters.
+            if (needsChatRows)
+            {
                 Action doFinalize = () =>
                 {
                     try
@@ -748,12 +784,13 @@ public class NpcChatWindowVM : ViewModel
                                 playerMessageItem.ContentSegments.Add(new ContentSegmentVM(text, textColor));
                         }
 
-                        var npcItem = ParseLine($"{npcName}: {reply}", tone);
+                        var npcItem = ParseLine($"{npcName}: {npcLineBody}", tone);
                         foreach (var (text, textColor) in npcPills)
                             npcItem.ContentSegments.Add(new ContentSegmentVM(text, textColor));
                         if (!string.IsNullOrEmpty(relMsg))
                             npcItem.ContentSegments.Add(new ContentSegmentVM(relMsg, RelationMessageColor));
                         AddNewestMessage(npcItem);
+                        AppendDeferredChatPills(ctx);
 
                         if (ctx?.ConversationHistory != null)
                         {
@@ -784,7 +821,7 @@ public class NpcChatWindowVM : ViewModel
                             catch (Exception ex) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] UpdateContextData failed: " + ex.Message); }
                             MainThreadDispatcher.Queue.Enqueue(() =>
                             {
-                                if (!NpcChatWindowManager.IsOpen || NpcChatWindowManager.GetCurrentViewModel() != this) return; // Skip if closed or reopened (wrong VM)
+                                if (!NpcChatWindowManager.IsOpen || NpcChatWindowManager.GetCurrentViewModel() != this) return;
                                 RefreshTraitOverlay(_npc, ctx);
                                 RefreshCharacterSection(_npc, ctx);
                             });
@@ -804,9 +841,8 @@ public class NpcChatWindowVM : ViewModel
                 if (streamingItem != null)
                 {
                     releaseSendLockInFinally = false;
-                    // Let the typewriter pump finish animating to the full reply, then finalize.
                     finalizeNpcMessage = doFinalize;
-                    streamingTargetText = reply;
+                    streamingTargetText = npcLineBody;
                     if (!streamPumpActive && streamPumpStep != null)
                     {
                         streamPumpActive = true;
@@ -826,17 +862,16 @@ public class NpcChatWindowVM : ViewModel
                     streamingRetired = true;
                     MessageList.Remove(streamingItem);
                 }
-                NPCContext ctx = null;
-                try { ctx = AIInfluenceBehavior.Instance?.GetOrCreateNPCContext(_npc); }
-                catch (Exception ex) { AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] GetOrCreateNPCContext (empty reply) failed: " + ex.Message); }
                 AIInfluenceBehavior.Instance?.ApplyPendingQuestActionFromTools(_npc, ctx);
                 if (ctx != null && AIInfluenceBehavior.Instance != null)
                     MainThreadDispatcher.Queue.Enqueue(() =>
                     {
-                        if (!NpcChatWindowManager.IsOpen || NpcChatWindowManager.GetCurrentViewModel() != this) return; // Skip if closed or reopened (wrong VM)
+                        if (!NpcChatWindowManager.IsOpen || NpcChatWindowManager.GetCurrentViewModel() != this) return;
                         RefreshTraitOverlay(_npc, ctx);
                         RefreshCharacterSection(_npc, ctx);
                     });
+                _isSending = false;
+                ((ViewModel)this).OnPropertyChangedWithValue(true, "IsSendEnabled");
             }
         }
         catch (Exception ex)

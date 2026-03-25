@@ -53,7 +53,7 @@ public static class ChatToolPillBuilder
 		return toPlayer ? $"{npcName} gave you {list}" : $"You gave {list} to {npcName}";
 	}
 
-	private static string FormatItemList(IEnumerable<ItemTransferData> transfers) =>
+	public static string FormatItemListForPill(IEnumerable<ItemTransferData> transfers) =>
 		string.Join(", ", transfers.Select(t => $"{ResolveItemName(t.ItemId)} (x{t.Amount})"));
 
 	/// <summary>Chat pill for one map/order tool (internal tag + payload, e.g. <c>follow_player</c>, <c>go_to_settlement:id:3</c>).</summary>
@@ -93,16 +93,16 @@ public static class ChatToolPillBuilder
 		context?.AppendToolPill($"You received {amount} gold from {npcName}", MoneyTransferColor);
 
 	public static void AppendNpcItemGive(NPCContext context, string npcName, IEnumerable<ItemTransferData> transfers) =>
-		context?.AppendToolPill($"{npcName} gave you {FormatItemList(transfers)}", ItemTransferColor);
+		context?.AppendToolPill($"{npcName} gave you {FormatItemListForPill(transfers)}", ItemTransferColor);
 
 	public static void AppendNpcItemTake(NPCContext context, string npcName, IEnumerable<ItemTransferData> transfers) =>
-		context?.AppendToolPill($"{npcName} took {FormatItemList(transfers)} from you", ItemTransferColor);
+		context?.AppendToolPill($"{npcName} took {FormatItemListForPill(transfers)} from you", ItemTransferColor);
 
 	public static void AppendPlayerItemGive(NPCContext context, string npcName, IEnumerable<ItemTransferData> transfers) =>
-		context?.AppendToolPill($"You gave {FormatItemList(transfers)} to {npcName}", ItemTransferColor);
+		context?.AppendToolPill($"You gave {FormatItemListForPill(transfers)} to {npcName}", ItemTransferColor);
 
 	public static void AppendPlayerItemReceive(NPCContext context, string npcName, IEnumerable<ItemTransferData> transfers) =>
-		context?.AppendToolPill($"You received {FormatItemList(transfers)} from {npcName}", ItemTransferColor);
+		context?.AppendToolPill($"You received {FormatItemListForPill(transfers)} from {npcName}", ItemTransferColor);
 
 	public static void AppendRomanceIntent(NPCContext context, string intent)
 	{

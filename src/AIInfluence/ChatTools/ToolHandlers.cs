@@ -231,8 +231,6 @@ public static class ToolHandlers
 	{
 		JObject parsedArgs = ParseOrEmpty(argsJson);
 		behavior.ProcessWorkshopSale(npc, context, parsedArgs["workshop_string_id"]?.ToString(), parsedArgs["price"]?.Value<int>() ?? 0);
-		if (context.PendingWorkshopSale != null)
-			context.AppendToolPill("Workshop sale scheduled", ChatToolPillBuilder.WorkshopActionColor);
 		return "ok";
 	}
 
@@ -249,8 +247,8 @@ public static class ToolHandlers
 			SettlementId = parsedArgs["settlement_id"]?.ToString()
 		}, context);
 		string kingdomLine = string.IsNullOrWhiteSpace(reason)
-			? "Kingdom: " + kingdomAction.Trim()
-			: "Kingdom: " + kingdomAction.Trim() + " — " + Regex.Replace(reason.Trim(), @"\s+", " ");
+			? "Kingdom action scheduled: " + kingdomAction.Trim()
+			: "Kingdom action scheduled: " + kingdomAction.Trim() + " — " + Regex.Replace(reason.Trim(), @"\s+", " ");
 		context.AppendToolPill(kingdomLine, ChatToolPillBuilder.KingdomActionColor);
 		return "ok";
 	}
