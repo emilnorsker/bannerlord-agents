@@ -314,68 +314,68 @@ public class DynamicEventsStorage
 		try
 		{
 			CampaignTime now = CampaignTime.Now;
-			float num = (float)now.ToDays;
-			float campaignDays = envelope.CampaignDays;
-			float num2 = num - campaignDays;
-			Dictionary<string, CampaignTime> dictionary = new Dictionary<string, CampaignTime>();
+			float currentCampaignDays = (float)now.ToDays;
+			float savedEnvelopeCampaignDays = envelope.CampaignDays;
+			float daysDriftSinceSave = currentCampaignDays - savedEnvelopeCampaignDays;
+			Dictionary<string, CampaignTime> restoredStatementSchedules = new Dictionary<string, CampaignTime>();
 			if (envelope.StatementSchedules != null)
 			{
 				foreach (KeyValuePair<string, float> statementSchedule in envelope.StatementSchedules)
 				{
-					float num3 = statementSchedule.Value - num2;
-					dictionary[statementSchedule.Key] = CampaignTime.DaysFromNow(num3);
+					float adjustedStatementDays = statementSchedule.Value - daysDriftSinceSave;
+					restoredStatementSchedules[statementSchedule.Key] = CampaignTime.DaysFromNow(adjustedStatementDays);
 				}
 			}
-			Dictionary<string, CampaignTime> dictionary2 = new Dictionary<string, CampaignTime>();
+			Dictionary<string, CampaignTime> restoredAnalysisSchedules = new Dictionary<string, CampaignTime>();
 			if (envelope.AnalysisSchedules != null)
 			{
 				foreach (KeyValuePair<string, float> analysisSchedule in envelope.AnalysisSchedules)
 				{
-					float num4 = analysisSchedule.Value - num2;
-					dictionary2[analysisSchedule.Key] = CampaignTime.DaysFromNow(num4);
+					float adjustedAnalysisDays = analysisSchedule.Value - daysDriftSinceSave;
+					restoredAnalysisSchedules[analysisSchedule.Key] = CampaignTime.DaysFromNow(adjustedAnalysisDays);
 				}
 			}
-			Dictionary<string, Queue<(Kingdom, CampaignTime)>> dictionary3 = new Dictionary<string, Queue<(Kingdom, CampaignTime)>>();
+			Dictionary<string, Queue<(Kingdom, CampaignTime)>> restoredStatementQueues = new Dictionary<string, Queue<(Kingdom, CampaignTime)>>();
 			if (envelope.StatementQueues != null)
 			{
 				foreach (KeyValuePair<string, List<QueuedStatementData>> statementQueue in envelope.StatementQueues)
 				{
 					Queue<(Kingdom, CampaignTime)> queue = new Queue<(Kingdom, CampaignTime)>();
-					foreach (QueuedStatementData item in statementQueue.Value ?? Enumerable.Empty<QueuedStatementData>())
+					foreach (QueuedStatementData queuedStatement in statementQueue.Value ?? Enumerable.Empty<QueuedStatementData>())
 					{
-						Kingdom val = Kingdom.All.FirstOrDefault((Kingdom k) => ((MBObjectBase)k).StringId == item.KingdomId);
-						if (val != null)
+						Kingdom matchedKingdom = Kingdom.All.FirstOrDefault((Kingdom k) => ((MBObjectBase)k).StringId == queuedStatement.KingdomId);
+						if (matchedKingdom != null)
 						{
-							float num5 = item.ScheduledTimeDays - num2;
-							CampaignTime item2 = CampaignTime.DaysFromNow(num5);
-							queue.Enqueue((val, item2));
+							float adjustedQueueItemDays = queuedStatement.ScheduledTimeDays - daysDriftSinceSave;
+							CampaignTime restoredScheduledTime = CampaignTime.DaysFromNow(adjustedQueueItemDays);
+							queue.Enqueue((matchedKingdom, restoredScheduledTime));
 						}
 					}
 					if (queue.Count > 0)
 					{
-						dictionary3[statementQueue.Key] = queue;
+						restoredStatementQueues[statementQueue.Key] = queue;
 					}
 				}
 			}
-			Dictionary<string, Kingdom> dictionary4 = new Dictionary<string, Kingdom>();
+			Dictionary<string, Kingdom> restoredPendingStatements = new Dictionary<string, Kingdom>();
 			if (envelope.PendingStatements != null)
 			{
 				foreach (KeyValuePair<string, string> pending in envelope.PendingStatements)
 				{
-					Kingdom val2 = Kingdom.All.FirstOrDefault((Kingdom k) => ((MBObjectBase)k).StringId == pending.Value);
-					if (val2 != null)
+					Kingdom pendingKingdom = Kingdom.All.FirstOrDefault((Kingdom k) => ((MBObjectBase)k).StringId == pending.Value);
+					if (pendingKingdom != null)
 					{
-						dictionary4[pending.Key] = val2;
+						restoredPendingStatements[pending.Key] = pendingKingdom;
 					}
 				}
 			}
 			return new DiplomaticEventsLoadResult
 			{
 				Events = diplomaticEvents,
-				StatementSchedules = dictionary,
-				AnalysisSchedules = dictionary2,
-				StatementQueues = dictionary3,
-				PendingStatements = dictionary4
+				StatementSchedules = restoredStatementSchedules,
+				AnalysisSchedules = restoredAnalysisSchedules,
+				StatementQueues = restoredStatementQueues,
+				PendingStatements = restoredPendingStatements
 			};
 		}
 		catch (Exception ex)
