@@ -15,9 +15,7 @@ using AIInfluence.ChatTools;
 using AIInfluence.Behaviors.AIActions.TaskSystem;
 using AIInfluence.Behaviors.RolePlay;
 using AIInfluence.Diplomacy;
-using AIInfluence.Diseases;
 using AIInfluence.DynamicEvents;
-using AIInfluence.Patches.Diseases;
 using AIInfluence.Services;
 using AIInfluence.SettlementCombat;
 using AIInfluence.UI;
@@ -363,8 +361,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		CampaignEvents.SettlementEntered.AddNonSerializedListener((object)this, (Action<MobileParty, Settlement, Hero>)OnSettlementEntered);
 		CampaignEvents.OnSettlementLeftEvent.AddNonSerializedListener((object)this, (Action<MobileParty, Settlement>)OnSettlementLeft);
 		CampaignEvents.OnMissionEndedEvent.AddNonSerializedListener((object)this, (Action<IMission>)OnMissionEnded);
-		CampaignEvents.MapEventStarted.AddNonSerializedListener((object)this, (Action<MapEvent, PartyBase, PartyBase>)OnMapEventStartedForDisease);
-		CampaignEvents.MapEventEnded.AddNonSerializedListener((object)this, (Action<MapEvent>)OnMapEventEndedForDisease);
 		CampaignEvents.HeroPrisonerTaken.AddNonSerializedListener((object)this, (Action<PartyBase, Hero>)OnHeroPrisonerTaken);
 		CampaignEvents.HeroPrisonerReleased.AddNonSerializedListener((object)this, (Action<Hero, PartyBase, IFaction, EndCaptivityDetail, bool>)OnHeroPrisonerReleased);
 		CampaignEvents.MobilePartyDestroyed.AddNonSerializedListener((object)this, (Action<MobileParty, PartyBase>)OnMobilePartyDestroyed);
@@ -474,7 +470,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 		_delayedTaskManager.Tick(dt);
 		_saveQueueManager.Tick(dt);
-		DiseaseManager.Instance?.TickInMission(dt);
 		if (_npcInitiativeSystem != null)
 		{
 			_npcInitiativeSystem.Tick(dt);
@@ -498,7 +493,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		_delayedTaskManager.Tick(dt);
 		_worldInfoManager?.Tick(dt);
 		_saveQueueManager?.Tick(dt);
-		DiseaseManager.Instance?.TickDiseaseQueue();
 		AIActionIntegration.Instance.Update(dt);
 	}
 
@@ -715,14 +709,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				_hourlyTickCounter = 0;
 				InitializeNearbyNPCs();
 			}
-		}
-		try
-		{
-			DiseaseManager.Instance?.OnHourlyTick();
-		}
-		catch (Exception ex)
-		{
-			LogMessage("[ERROR] DiseaseManager OnHourlyTick error: " + ex.Message);
 		}
 		CheckSpawnedQuestPartiesGone();
 	}
@@ -3539,70 +3525,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 	}
 
-	private void UpdateDiseaseInfoForNPC(NPCContext context, Hero npc)
-	{
-		//IL_0134: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0139: Unknown result type (might be due to invalid IL or missing references)
-		try
-		{
-			DiseaseManager instance = DiseaseManager.Instance;
-			if (instance == null || !GlobalSettings<ModSettings>.Instance.EnableDiseaseSystem)
-			{
-				context.IsSick = false;
-				context.CurrentDiseases = new List<NPCDiseaseInfo>();
-				context.DiseaseProgress = 0f;
-				context.IsTreated = false;
-				return;
-			}
-			List<DiseaseInstance> heroDiseases = instance.GetHeroDiseases(npc);
-			if (heroDiseases == null || heroDiseases.Count == 0)
-			{
-				context.IsSick = false;
-				context.CurrentDiseases = new List<NPCDiseaseInfo>();
-				context.DiseaseProgress = 0f;
-				context.IsTreated = false;
-				return;
-			}
-			context.IsSick = true;
-			context.CurrentDiseases = new List<NPCDiseaseInfo>();
-			float num = 0f;
-			bool isTreated = false;
-			foreach (DiseaseInstance item2 in heroDiseases)
-			{
-				Disease diseaseById = instance.GetDiseaseById(item2.DiseaseId);
-				if (diseaseById != null)
-				{
-					NPCDiseaseInfo obj = new NPCDiseaseInfo
-					{
-						Name = (diseaseById.Name ?? "Unknown disease"),
-						Severity = diseaseById.Severity,
-						Progress = item2.DiseaseProgress,
-						IsTreated = item2.IsTreated
-					};
-					CampaignTime now = CampaignTime.Now;
-					obj.DaysInfected = (int)((now).ToDays - (double)item2.InfectedAt);
-					NPCDiseaseInfo item = obj;
-					context.CurrentDiseases.Add(item);
-					num += item2.DiseaseProgress;
-					if (item2.IsTreated)
-					{
-						isTreated = true;
-					}
-				}
-			}
-			context.DiseaseProgress = ((heroDiseases.Count > 0) ? (num / (float)heroDiseases.Count) : 0f);
-			context.IsTreated = isTreated;
-		}
-		catch (Exception ex)
-		{
-			LogMessage($"[ERROR] UpdateDiseaseInfoForNPC failed for {((npc != null) ? npc.Name : null)}: {ex.Message}");
-			context.IsSick = false;
-			context.CurrentDiseases = new List<NPCDiseaseInfo>();
-			context.DiseaseProgress = 0f;
-			context.IsTreated = false;
-		}
-	}
-
 	public void UpdateContextData(NPCContext context, Hero npc)
 	{
 		//IL_04a7: Unknown result type (might be due to invalid IL or missing references)
@@ -3692,7 +3614,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			LogMessage($"[CONTEXT] Cleaned events for {npc.Name}: {num} → {num2} (removed {num - num2})");
 		}
-		UpdateDiseaseInfoForNPC(context, npc);
 		SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
 		LogMessage($"[CONTEXT] Updated and saved context data for {npc.Name}. Events count: {context.RecentEvents?.Count ?? 0}. Player info: Name={context.PlayerInfo.RealName}, Clan={context.PlayerInfo.RealClan}, Age={context.PlayerInfo.RealAge}, Culture={context.PlayerInfo.RealCulture}");
 	}
@@ -3933,10 +3854,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			{
 				return null;
 			}
-			if (stringId == "diseases" || stringId == "disease_instances" || stringId == "settlement_disease_instances")
-			{
-				return null;
-			}
 			if (_npcFilePathCache.TryGetValue(stringId, out var value))
 			{
 				if (File.Exists(value))
@@ -3985,14 +3902,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 						case "rp_items.json":
 							continue;
 						case "reparations.json":
-							continue;
-						case "disease_instances.json":
-							continue;
-						case "diseases.json":
-							continue;
-						}
-						if (fileName == "settlement_disease_instances.json")
-						{
 							continue;
 						}
 						string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(text);
@@ -4051,10 +3960,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			if (string.IsNullOrEmpty(npcId))
 			{
 				LogMessage("[ERROR] LoadNPCContext called with empty npcId. Returning empty context.");
-				return new NPCContext();
-			}
-			if (npcId == "diseases" || npcId == "disease_instances" || npcId == "settlement_disease_instances")
-			{
 				return new NPCContext();
 			}
 			if (_npcContexts.TryGetValue(npcId, out var cached))
@@ -4609,7 +4514,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			NPCRelationsCache.Instance.ClearCache();
 			LogMessage("[CACHE] All caches cleared on session launch");
 			InitializationManager.Instance.InitializeAllSystems(this, campaignGameStarter);
-			DiseaseMedicinePerkPatch.ApplyDiseaseDescriptions();
 			SyncQuestsWithGameState();
 			Campaign current = Campaign.Current;
 			if (((current != null) ? current.ConversationManager : null) != null)
@@ -5366,14 +5270,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			NPCContext context = _npcContexts[((MBObjectBase)hero).StringId];
 			TrackSettlementVisitForHero(context, hero, settlement);
 		}
-		try
-		{
-			DiseaseManager.Instance?.OnPartyEnteredSettlement(party, settlement, hero);
-		}
-		catch (Exception ex)
-		{
-			LogMessage("[ERROR] Disease settlement entry treatment error: " + ex.Message);
-		}
 		if (party != MobileParty.MainParty || settlement == null)
 		{
 			return;
@@ -5705,14 +5601,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 						continue;
 					case "reparations.json":
 						continue;
-					case "disease_instances.json":
-						continue;
-					case "diseases.json":
-						continue;
-					}
-					if (fileName == "settlement_disease_instances.json")
-					{
-						continue;
 					}
 					string text2 = File.ReadAllText(text);
 					NPCContext nPCContext = JsonConvert.DeserializeObject<NPCContext>(text2);
@@ -5800,7 +5688,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			HashSet<string> hashSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
 			{
 				"dynamic_events.json", "pending_player_statements.json", "diplomatic_events.json", "war_statistics.json", "diplomatic_statements.json", "alliances.json", "alliance_data.json", "economic_effects.json", "settlement_ownership_history.json", "kingdom_leadership_history.json",
-				"trade_agreements.json", "territory_transfers.json", "tribute_agreements.json", "tributes.json", "reparations.json", "rp_items.json", "disease_instances.json", "diseases.json", "settlement_disease_instances.json"
+				"trade_agreements.json", "territory_transfers.json", "tribute_agreements.json", "tributes.json", "reparations.json", "rp_items.json"
 			};
 			string[] files = Directory.GetFiles(activeSaveDirectory, "*.json");
 			string[] array = files;
@@ -8213,38 +8101,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			Hero obj4 = hero;
 			LogMessage($"[ERROR] Failed to kill character {((obj4 != null) ? obj4.Name : null)}: {ex2.Message}");
 			LogMessage("[ERROR] Stack trace: " + ex2.StackTrace);
-		}
-	}
-
-	private void OnMapEventStartedForDisease(MapEvent mapEvent, PartyBase attackerParty, PartyBase defenderParty)
-	{
-		try
-		{
-			ModSettings instance = GlobalSettings<ModSettings>.Instance;
-			if (instance != null && instance.EnableDiseaseSystem)
-			{
-				DiseaseManager.Instance?.OnBattleStarted(mapEvent);
-			}
-		}
-		catch (Exception ex)
-		{
-			LogMessage("[ERROR] OnMapEventStartedForDisease: " + ex.Message);
-		}
-	}
-
-	private void OnMapEventEndedForDisease(MapEvent mapEvent)
-	{
-		try
-		{
-			ModSettings instance = GlobalSettings<ModSettings>.Instance;
-			if (instance != null && instance.EnableDiseaseSystem)
-			{
-				DiseaseManager.Instance?.OnBattleEnded(mapEvent);
-			}
-		}
-		catch (Exception ex)
-		{
-			LogMessage("[ERROR] OnMapEventEndedForDisease: " + ex.Message);
 		}
 	}
 

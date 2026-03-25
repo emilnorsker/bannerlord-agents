@@ -169,14 +169,6 @@ public class WorldEventsWindowViewModel : ViewModel
 				text = (string.IsNullOrWhiteSpace(text) ? text2 : (text + "\n\n" + text2));
 			}
 		}
-		if (dynamicEvent.IsDiseaseEvent && dynamicEvent.DiseaseData != null)
-		{
-			string text3 = BuildDiseaseInfoText(dynamicEvent.DiseaseData);
-			if (!string.IsNullOrWhiteSpace(text3))
-			{
-				text = (string.IsNullOrWhiteSpace(text) ? text3 : (text + "\n\n" + text3));
-			}
-		}
 		string issuedTime = FormatEventTime(dynamicEvent);
 		string involvedFactionsText = GetInvolvedFactionsText(dynamicEvent);
 		string locationHint = GetLocationHint(dynamicEvent);
@@ -205,14 +197,6 @@ public class WorldEventsWindowViewModel : ViewModel
 			if (!string.IsNullOrWhiteSpace(text2))
 			{
 				text = (string.IsNullOrWhiteSpace(text) ? text2 : (text + "\n\n" + text2));
-			}
-		}
-		if (update.DiseaseData != null)
-		{
-			string text3 = BuildDiseaseInfoText(update.DiseaseData);
-			if (!string.IsNullOrWhiteSpace(text3))
-			{
-				text = (string.IsNullOrWhiteSpace(text) ? text3 : (text + "\n\n" + text3));
 			}
 		}
 		string issuedTime = FormatIssuedTimeFromCampaignDays(update.CampaignDays);
@@ -441,25 +425,6 @@ public class WorldEventsWindowViewModel : ViewModel
 		}
 		if (!string.IsNullOrWhiteSpace(statement.Reason))
 		{
-		}
-		return list.Any() ? string.Join("\n", list) : "";
-	}
-
-	private string BuildDiseaseInfoText(DiseaseEventData diseaseData)
-	{
-		//IL_0034: Unknown result type (might be due to invalid IL or missing references)
-		if (diseaseData == null)
-		{
-			return "";
-		}
-		List<string> list = new List<string>();
-		if (!string.IsNullOrWhiteSpace(diseaseData.DiseaseName))
-		{
-			list.Add(((object)new TextObject("{=AIInfluence_Disease_EventTitle} {NAME}", (Dictionary<string, object>)null).SetTextVariable("NAME", diseaseData.DiseaseName)).ToString());
-		}
-		if (!string.IsNullOrWhiteSpace(diseaseData.DiseaseDescription))
-		{
-			list.Add(diseaseData.DiseaseDescription);
 		}
 		return list.Any() ? string.Join("\n", list) : "";
 	}
@@ -745,7 +710,7 @@ public class WorldEventsWindowViewModel : ViewModel
 		for (int i = 0; i < list.Count && i <= actionIndex; i++)
 		{
 			DiplomaticAction diplomaticAction = list[i];
-			bool flag = diplomaticAction == DiplomaticAction.TransferTerritory || diplomaticAction == DiplomaticAction.RejectTerritory || diplomaticAction == DiplomaticAction.DemandTerritory || diplomaticAction == DiplomaticAction.QuarantineSettlement;
+			bool flag = diplomaticAction == DiplomaticAction.TransferTerritory || diplomaticAction == DiplomaticAction.RejectTerritory || diplomaticAction == DiplomaticAction.DemandTerritory;
 			if (flag && i == actionIndex)
 			{
 				return (num < array.Length) ? array[num].Trim() : array[0].Trim();
@@ -785,17 +750,6 @@ public class WorldEventsWindowViewModel : ViewModel
 		//IL_0717: Unknown result type (might be due to invalid IL or missing references)
 		//IL_07d9: Unknown result type (might be due to invalid IL or missing references)
 		string sourceName = GetKingdomName(statement.KingdomId);
-		if (action == DiplomaticAction.QuarantineSettlement)
-		{
-			string text = ResolveSettlementIdForAction(statement, actionIndex);
-			string text2 = GetSettlementName(text);
-			if (string.IsNullOrWhiteSpace(text2) && !string.IsNullOrWhiteSpace(text))
-			{
-				text2 = text;
-			}
-			int num = ((statement.QuarantineDurationDays > 0) ? statement.QuarantineDurationDays : 14);
-			return ((object)new TextObject("{=AIInfluence_Action_QuarantineSettlement}{SOURCE} closed {SETTLEMENT} for quarantine for {DAYS} days", (Dictionary<string, object>)null).SetTextVariable("SOURCE", sourceName).SetTextVariable("SETTLEMENT", text2 ?? "").SetTextVariable("DAYS", num)).ToString();
-		}
 		List<string> list = new List<string>();
 		List<DiplomaticAction> list2 = ((statement.Actions != null && statement.Actions.Any()) ? statement.Actions : new List<DiplomaticAction> { statement.Action });
 		if (list2.Count == targetKingdomIds.Count && actionIndex < targetKingdomIds.Count)
@@ -870,7 +824,6 @@ public class WorldEventsWindowViewModel : ViewModel
 			DiplomaticAction.DemandTerritory => ((object)new TextObject("{=AIInfluence_Action_DemandTerritory}{SOURCE} demands territory from {TARGETS}", (Dictionary<string, object>)null).SetTextVariable("SOURCE", sourceName).SetTextVariable("TARGETS", text3)).ToString(), 
 			DiplomaticAction.RejectTerritory => ((object)new TextObject("{=AIInfluence_Action_RejectTerritory}{SOURCE} rejects territory demand from {TARGETS}", (Dictionary<string, object>)null).SetTextVariable("SOURCE", sourceName).SetTextVariable("TARGETS", text3)).ToString(), 
 			DiplomaticAction.ExpelClan => ((object)new TextObject("{=AIInfluence_Action_ExpelClan}{SOURCE} expels clan {TARGETS} from the kingdom", (Dictionary<string, object>)null).SetTextVariable("SOURCE", sourceName).SetTextVariable("TARGETS", text3)).ToString(), 
-			DiplomaticAction.QuarantineSettlement => "", 
 			_ => "", 
 		};
 	}
@@ -1048,7 +1001,6 @@ public class WorldEventsWindowViewModel : ViewModel
 			"news" => ("AIInfluence_Category_News", "News"), 
 			"local" => ("AIInfluence_Category_Local", "Local"), 
 			"rumor" => ("AIInfluence_Category_Rumor", "Rumor"), 
-			"disease_outbreak" => ("AIInfluence_Category_DiseaseOutbreak", "Disease Outbreak"), 
 			_ => ("AIInfluence_Category_Other", "Other"), 
 		};
 		return ((object)new TextObject("{=" + text + "}" + text2, (Dictionary<string, object>)null)).ToString();
@@ -1066,7 +1018,6 @@ public class WorldEventsWindowViewModel : ViewModel
 			"news" => "#DC143C22", 
 			"local" => "#8B451322", 
 			"rumor" => "#70809022", 
-			"disease_outbreak" => "#8B000022", 
 			_ => "#9DE07722", 
 		};
 	}

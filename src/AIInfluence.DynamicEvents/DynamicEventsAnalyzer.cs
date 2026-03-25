@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using AIInfluence.API;
 using AIInfluence.Diplomacy;
-using AIInfluence.Diseases;
 using AIInfluence.Util;
 using MCM.Abstractions.Base.Global;
 using Newtonsoft.Json;
@@ -174,17 +173,6 @@ public class DynamicEventsAnalyzer
 		stringBuilder.AppendLine("- **CRITICAL:** For target_type=\"kingdom\" or \"clan\", target_id REQUIRED (exact string_id). Multiple kingdoms → MULTIPLE objects.");
 		stringBuilder.AppendLine("- Values within range? (Check OUTPUT FORMAT) Reason logical/specific? **IMPORTANT:** prosperity_delta_per_day MORE VISIBLE.");
 		stringBuilder.AppendLine();
-		ModSettings instance = GlobalSettings<ModSettings>.Instance;
-		if (instance != null && instance.EnableDiseaseSystem)
-		{
-			ModSettings instance2 = GlobalSettings<ModSettings>.Instance;
-			stringBuilder.AppendLine("**STEP 7b: DISEASE_DATA (if applicable)**");
-			stringBuilder.AppendLine("- Review 'ACTIVE DISEASES'. Spread logical? (event narrative, proximity, trade) settlement_id exists in world?");
-			stringBuilder.AppendLine($"- disease_data works for ANY event type (like economic_effects). severity 1-{instance2.DiseaseMaxSeverity}, spread_rate 0.1-{instance2.DiseaseMaxSpreadRate:F1}, disease_effects modifiers {instance2.DiseaseMinCombatModifier:F1}-1.0.");
-			stringBuilder.AppendLine("- Only include disease_data if creating NEW disease (e.g. spread to another settlement).");
-			stringBuilder.AppendLine($"- **LIMIT:** Max {instance2.DiseaseMaxSimultaneous} simultaneous diseases. Check ACTIVE DISEASES count before creating new ones.");
-			stringBuilder.AppendLine();
-		}
 		if (flag)
 		{
 			stringBuilder.AppendLine("**STEP 8: VERIFY OVERRIDE RULES COMPLIANCE (MANDATORY)**");
@@ -299,26 +287,9 @@ public class DynamicEventsAnalyzer
 		stringBuilder.AppendLine("- END EVENT: Repetition of ruler statements without progress (monotonous, constantly repeating the same thing) for 2+ rounds/4+ days. OR, the event has reached a logical conclusion, CONSIDERING ALL EVENT PARTICIPANTS. NEVER end if pending proposals exist (peace, reparations, tribute and everything that requires logical confirmation).");
 		stringBuilder.AppendLine("- CONTINUE: Continue the event if all statements in the current event contain interest and development, OTHERWISE end the event.");
 		stringBuilder.AppendLine("- ECONOMIC EFFECTS: Only for concrete consequences (embargo, sanctions). Check 'ACTIVE ECONOMIC EFFECTS' to avoid conflicts");
-		ModSettings instance = GlobalSettings<ModSettings>.Instance;
-		if (instance != null && instance.EnableDiseaseSystem)
-		{
-			stringBuilder.AppendLine("- QUARANTINE WORD: Do NOT use 'quarantine' in event_update or economic_effects reason for settlements NOT marked [QUARANTINED] in ACTIVE DISEASES. Only kingdom rulers impose quarantine.");
-		}
 		stringBuilder.AppendLine("  **CRITICAL: For target_type=\"kingdom\" or \"clan\", target_id is REQUIRED (use kingdom/clan string_id). To affect multiple kingdoms, create MULTIPLE objects.**");
 		stringBuilder.AppendLine("  **target_scope values: \"all_settlements\", \"towns\", \"castles\", \"villages\" (NOT \"all\"). target_scope only works when target_id is provided.**");
 		stringBuilder.AppendLine();
-		if (diplomaticEvent.IsDiseaseEvent)
-		{
-			stringBuilder.AppendLine("## DISEASE EVENT LOGIC:");
-			stringBuilder.AppendLine("- ADD KINGDOMS: If disease is spreading to other kingdoms' settlements, ADD those kingdoms to the event");
-			stringBuilder.AppendLine("- QUARANTINE: Kingdoms can quarantine their OWN diseased settlements (quarantine_settlement action from kingdom statements)");
-			stringBuilder.AppendLine("- BLAME & COOPERATION: Kingdoms may blame each other for disease origin/spread, or cooperate to fight it");
-			stringBuilder.AppendLine("- ECONOMIC EFFECTS: Disease impacts prosperity (negative), food supply, security, and income of affected settlements");
-			stringBuilder.AppendLine("- END EVENT: When disease expires/is cured AND all diplomatic tensions are resolved. Also end if disease is no longer relevant");
-			stringBuilder.AppendLine("- NARRATIVE: Focus on disease progression, public health measures, humanitarian aspects, and political consequences");
-			stringBuilder.AppendLine("- RELATION CHANGES: Disease cooperation improves relations; blame, closed borders, or refusal to help worsens them");
-			stringBuilder.AppendLine();
-		}
 		stringBuilder.AppendLine("## string_id USAGE (MANDATORY FOR ACTIONS):");
 		stringBuilder.AppendLine("**CRITICAL: You MUST use exact string_id values for all kingdom references in JSON.**");
 		stringBuilder.AppendLine("Throughout this prompt, data is formatted as: \"Kingdom Name (string_id:value)\"");
@@ -369,8 +340,7 @@ public class DynamicEventsAnalyzer
 		stringBuilder.AppendLine($"    \"income_multiplier\": {instance2.IncomeMultiplierMin:F2},  // 1.0 = no change, 0.8 = -20%, 1.2 = +20%. Range: {instance2.IncomeMultiplierMin:F2} to {instance2.IncomeMultiplierMax:F2}");
 		stringBuilder.AppendLine($"    \"duration_days\": {instance2.DurationDaysMin},  // How long the effect lasts (for _per_day effects). Range: {instance2.DurationDaysMin} to {instance2.DurationDaysMax} days");
 		stringBuilder.AppendLine("    \"reason\": \"Example: Trade embargo after failed negotiations\"");
-		ModSettings instance3 = GlobalSettings<ModSettings>.Instance;
-		stringBuilder.AppendLine((instance3 != null && instance3.EnableDiseaseSystem) ? "  }]," : "  }]");
+		stringBuilder.AppendLine("  }]");
 		stringBuilder.AppendLine("  // CRITICAL RULES FOR economic_effects:");
 		stringBuilder.AppendLine("  // - For target_type=\"kingdom\" or \"clan\": target_id is REQUIRED (use kingdom/clan string_id)");
 		stringBuilder.AppendLine("  // - target_scope only works when target_id is provided");
@@ -380,17 +350,6 @@ public class DynamicEventsAnalyzer
 		stringBuilder.AppendLine("  //   Use prosperity_delta_per_day for noticeable lasting effects (e.g., -1 per day for 21 days = -21 total)");
 		stringBuilder.AppendLine("  // - FOR VILLAGES: Only prosperity_delta and prosperity_delta_per_day are available (applied to Hearth).");
 		stringBuilder.AppendLine("  //   Food/Security/Loyalty effects DO NOT EXIST for villages - do NOT use them for village target_id!");
-		ModSettings instance4 = GlobalSettings<ModSettings>.Instance;
-		if (instance4 != null && instance4.EnableDiseaseSystem)
-		{
-			ModSettings instance5 = GlobalSettings<ModSettings>.Instance;
-			stringBuilder.AppendLine("  // disease_data: YOU (AI) MUST SET these — generate from context, do NOT copy placeholders");
-			stringBuilder.AppendLine("  \"disease_data\": {");
-			stringBuilder.AppendLine($"    \"disease_name\": \"<your generated name>\", \"disease_description\": \"<your description>\", \"severity\": <1-{instance5.DiseaseMaxSeverity}>, \"settlement_id\": \"<valid settlement string_id from world>\", \"spread_rate\": <0.1-{instance5.DiseaseMaxSpreadRate:F1}>,");
-			stringBuilder.AppendLine("    \"duration_days\": <7-120>,  // OPTIONAL: how many days the disease stays active. If omitted, auto-calculated from severity (sev1=30d, sev2=45d, sev3=60d, sev4=75d, sev5=90d)");
-			stringBuilder.AppendLine($"    \"disease_effects\": {{ \"physical_skill_penalty\": <{instance5.DiseaseMaxPhysicalSkillPenalty:F0} to 0>, \"combat_damage_modifier\": <{instance5.DiseaseMinCombatModifier:F1}-1.0>, \"combat_defense_modifier\": <{instance5.DiseaseMinCombatModifier:F1}-1.0>, \"combat_speed_modifier\": <{instance5.DiseaseMinCombatModifier:F1}-1.0>, \"map_speed_modifier\": <{instance5.DiseaseMinMapSpeedModifier:F1}-1.0>, \"morale_modifier\": <{instance5.DiseaseMaxMoralePenalty:F0} to 0>, \"death_chance\": <0-{instance5.DiseaseMaxDeathChance:F1}> }}");
-			stringBuilder.AppendLine("  }");
-		}
 		stringBuilder.AppendLine("}");
 		stringBuilder.AppendLine("```");
 		stringBuilder.AppendLine();
@@ -954,21 +913,6 @@ public class DynamicEventsAnalyzer
 		string activeEconomicEffectsData = GetActiveEconomicEffectsData();
 		stringBuilder.AppendLine(activeEconomicEffectsData);
 		stringBuilder.AppendLine();
-		ModSettings instance6 = GlobalSettings<ModSettings>.Instance;
-		if (instance6 != null && instance6.EnableDiseaseSystem)
-		{
-			ModSettings instance7 = GlobalSettings<ModSettings>.Instance;
-			stringBuilder.AppendLine("### ACTIVE DISEASES ###");
-			stringBuilder.AppendLine("Current diseases in the world. Use disease_data to CREATE a new disease in any settlement (works for ANY event type):");
-			stringBuilder.AppendLine("**QUARANTINE:** Only settlements marked [QUARANTINED] are officially quarantined by kingdom rulers. Do NOT use 'quarantine' in event_update or economic_effects reason for settlements without [QUARANTINED] status.");
-			int valueOrDefault = (DiseaseManager.Instance?.GetAllDiseases()?.Count).GetValueOrDefault();
-			bool flag9 = valueOrDefault < instance7.DiseaseMaxSimultaneous;
-			stringBuilder.AppendLine(string.Format("**DISEASE LIMIT:** {0}/{1} active diseases.{2}", valueOrDefault, instance7.DiseaseMaxSimultaneous, flag9 ? "" : " LIMIT REACHED — do NOT create new diseases."));
-			stringBuilder.AppendLine();
-			string activeDiseasesData = GetActiveDiseasesData();
-			stringBuilder.AppendLine(activeDiseasesData);
-			stringBuilder.AppendLine();
-		}
 		stringBuilder.AppendLine("### === NEGOTIATION HISTORY (WHAT WAS SAID) ===");
 		stringBuilder.AppendLine("This section shows statements and proposals made during negotiations.");
 		stringBuilder.AppendLine("**IMPORTANT DISTINCTIONS:**");
@@ -1215,23 +1159,7 @@ public class DynamicEventsAnalyzer
 			{
 				DynamicEventsLogger.Instance.Log("[EVENTS_ANALYZER] No economic_effects field in AI response");
 			}
-			if (val.disease_data != null)
-			{
-				try
-				{
-					diplomaticAnalysisResult2.DiseaseData = val.disease_data?.ToObject<DiseaseEventData>();
-					if (diplomaticAnalysisResult2.DiseaseData != null && !string.IsNullOrEmpty(diplomaticAnalysisResult2.DiseaseData.SettlementId))
-					{
-						DynamicEventsLogger.Instance.Log("[EVENTS_ANALYZER] Parsed disease_data: " + diplomaticAnalysisResult2.DiseaseData.DiseaseName + " in " + diplomaticAnalysisResult2.DiseaseData.SettlementId);
-					}
-				}
-				catch (Exception ex4)
-				{
-					DynamicEventsLogger.Instance.Log("[EVENTS_ANALYZER] ERROR parsing disease_data: " + ex4.Message);
-					diplomaticAnalysisResult2.DiseaseData = null;
-				}
-			}
-			DynamicEventsLogger.Instance.Log(string.Format("[EVENTS_ANALYZER] Parsed result: {0} actions to execute, {1} relation changes, {2} economic effects{3}", diplomaticAnalysisResult2.ActionsToExecute.Count, diplomaticAnalysisResult2.RelationChanges.Count, diplomaticAnalysisResult2.EconomicEffects.Count, (diplomaticAnalysisResult2.DiseaseData != null) ? ", 1 disease" : ""));
+			DynamicEventsLogger.Instance.Log(string.Format("[EVENTS_ANALYZER] Parsed result: {0} actions to execute, {1} relation changes, {2} economic effects", diplomaticAnalysisResult2.ActionsToExecute.Count, diplomaticAnalysisResult2.RelationChanges.Count, diplomaticAnalysisResult2.EconomicEffects.Count));
 			DynamicEventsLogger.Instance.Log($"[EVENTS_ANALYZER] Kingdoms to add: {diplomaticAnalysisResult2.KingdomsToAdd.Count}, Kingdoms to remove: {diplomaticAnalysisResult2.KingdomsToRemove.Count}");
 			if (diplomaticAnalysisResult2.KingdomsToAdd.Any())
 			{
@@ -1585,48 +1513,6 @@ public class DynamicEventsAnalyzer
 		{
 			Settlement val = ((IEnumerable<Settlement>)Settlement.All).FirstOrDefault((Func<Settlement, bool>)((Settlement s) => ((MBObjectBase)s).StringId == targetId));
 			return (val == null) ? targetId : $"{val.Name} ({((MBObjectBase)val).StringId})";
-		}
-	}
-
-	private string GetActiveDiseasesData()
-	{
-		try
-		{
-			DiseaseManager instance = DiseaseManager.Instance;
-			if (instance == null)
-			{
-				return "Disease system not available.";
-			}
-			List<Disease> allDiseases = instance.GetAllDiseases();
-			if (allDiseases == null || !allDiseases.Any())
-			{
-				return "No active diseases. Use disease_data to create a new disease outbreak in a settlement.";
-			}
-			StringBuilder stringBuilder = new StringBuilder();
-			foreach (Disease d in allDiseases)
-			{
-				Settlement val = ((IEnumerable<Settlement>)Settlement.All).FirstOrDefault((Func<Settlement, bool>)((Settlement s) => ((MBObjectBase)s).StringId == d.SettlementId));
-				string text = ((val == null) ? null : ((object)val.Name)?.ToString()) ?? d.SettlementId;
-				object obj;
-				if (val == null)
-				{
-					obj = null;
-				}
-				else
-				{
-					Clan ownerClan = val.OwnerClan;
-					obj = ((ownerClan != null) ? ownerClan.Kingdom : null);
-				}
-				string text2 = ((obj == null) ? null : ((object)((Kingdom)obj).Name)?.ToString()) ?? "Unknown";
-				string text3 = (d.IsQuarantined ? " [QUARANTINED]" : "");
-				stringBuilder.AppendLine($"- {d.Name} in {text} (string_id:{d.SettlementId}), {text2}{text3}, severity {d.Severity}/5");
-			}
-			return stringBuilder.ToString();
-		}
-		catch (Exception ex)
-		{
-			DynamicEventsLogger.Instance.Log("[EVENTS_ANALYZER] Error getting active diseases: " + ex.Message);
-			return "Error retrieving diseases data.";
 		}
 	}
 

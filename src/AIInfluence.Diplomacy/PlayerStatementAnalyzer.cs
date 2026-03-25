@@ -5,7 +5,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AIInfluence.API;
-using AIInfluence.Diseases;
 using AIInfluence.DynamicEvents;
 using MCM.Abstractions.Base.Global;
 using Newtonsoft.Json;
@@ -254,52 +253,6 @@ public class PlayerStatementAnalyzer
 		}
 		stringBuilder.AppendLine("- 'demand_tribute' - Player demands daily tribute (requires daily_amount and duration_days)");
 		stringBuilder.AppendLine("- 'demand_reparations' - Player demands one-time war reparations (requires reparations_amount)");
-		bool flag8 = false;
-		ModSettings instance2 = GlobalSettings<ModSettings>.Instance;
-		if (instance2 != null && instance2.EnableDiseaseSystem)
-		{
-			DiseaseManager diseaseManager = DiseaseManager.Instance;
-			if (diseaseManager != null)
-			{
-				List<Settlement> source = ((IEnumerable<Settlement>)Settlement.All).Where(delegate(Settlement s)
-				{
-					int result;
-					if (s.IsTown || s.IsCastle)
-					{
-						if (s.OwnerClan != Clan.PlayerClan)
-						{
-							Clan ownerClan = s.OwnerClan;
-							result = ((((ownerClan != null) ? ownerClan.Kingdom : null) == playerKingdom) ? 1 : 0);
-						}
-						else
-						{
-							result = 1;
-						}
-					}
-					else
-					{
-						result = 0;
-					}
-					return (byte)result != 0;
-				}).ToList();
-				List<Settlement> list2 = source.Where((Settlement s) => diseaseManager.SettlementHasDisease(s)).ToList();
-				if (list2.Any())
-				{
-					flag8 = true;
-					stringBuilder.AppendLine("- 'quarantine_settlement' - Close a settlement for quarantine due to disease (requires settlement_id + quarantine_duration_days)");
-					stringBuilder.AppendLine("  Available settlements with disease:");
-					foreach (Settlement item6 in list2)
-					{
-						string arg = (diseaseManager.IsSettlementUnderQuarantine(item6) ? " [QUARANTINED]" : "");
-						stringBuilder.AppendLine($"    - {item6.Name} (string_id: {((MBObjectBase)item6).StringId}){arg}");
-					}
-				}
-				else
-				{
-					stringBuilder.AppendLine("- 'quarantine_settlement' - NOT AVAILABLE (no diseased settlements)");
-				}
-			}
-		}
 		stringBuilder.AppendLine("- 'none' - Just a statement without specific action");
 		stringBuilder.AppendLine();
 		stringBuilder.AppendLine("**MULTIPLE ACTIONS:** Player can propose multiple actions at once (e.g., 'accept_peace,transfer_territory,demand_reparations'). In this case, return ALL actions as comma-separated string.");
@@ -361,8 +314,7 @@ public class PlayerStatementAnalyzer
 		stringBuilder.AppendLine("  \"daily_tribute_amount\": 0, // REQUIRED for tribute demand (gold per day), 0 otherwise");
 		stringBuilder.AppendLine("  \"tribute_duration_days\": 0, // REQUIRED for tribute demand (duration), 0 otherwise");
 		stringBuilder.AppendLine("  \"reparations_amount\": 0, // REQUIRED for reparations demand (one-time payment), 0 otherwise");
-		stringBuilder.AppendLine("  \"trade_agreement_duration_years\": 1.0, // For trade agreements, default 1.0");
-		stringBuilder.AppendLine("  \"quarantine_duration_days\": 0 // For quarantine_settlement: positive integer (days), minimum 1, auto-lifts after");
+		stringBuilder.AppendLine("  \"trade_agreement_duration_years\": 1.0 // For trade agreements, default 1.0");
 		stringBuilder.AppendLine("}");
 		stringBuilder.AppendLine();
 		stringBuilder.AppendLine("IMPORTANT:");
@@ -521,10 +473,9 @@ public class PlayerStatementAnalyzer
 				DailyTributeAmount = response.DailyTributeAmount,
 				TributeDurationDays = response.TributeDurationDays,
 				ReparationsAmount = response.ReparationsAmount,
-				TradeAgreementDurationYears = ((response.TradeAgreementDurationYears > 0f) ? response.TradeAgreementDurationYears : 1f),
-				QuarantineDurationDays = response.QuarantineDurationDays
+				TradeAgreementDurationYears = ((response.TradeAgreementDurationYears > 0f) ? response.TradeAgreementDurationYears : 1f)
 			};
-			DiplomacyLogger.Instance.Log(string.Format("[PLAYER_ANALYZER] Result created: Actions={0}, Settlement={1}, Tribute={2}/{3}, Reparations={4}, Quarantine={5}", string.Join(",", playerStatementResult.Actions), playerStatementResult.SettlementId, playerStatementResult.DailyTributeAmount, playerStatementResult.TributeDurationDays, playerStatementResult.ReparationsAmount, playerStatementResult.QuarantineDurationDays));
+			DiplomacyLogger.Instance.Log(string.Format("[PLAYER_ANALYZER] Result created: Actions={0}, Settlement={1}, Tribute={2}/{3}, Reparations={4}", string.Join(",", playerStatementResult.Actions), playerStatementResult.SettlementId, playerStatementResult.DailyTributeAmount, playerStatementResult.TributeDurationDays, playerStatementResult.ReparationsAmount));
 			return playerStatementResult;
 		}
 		catch (Exception ex)
@@ -571,7 +522,6 @@ public class PlayerStatementAnalyzer
 			"demand_reparations" => DiplomaticAction.DemandReparations, 
 			"accept_reparations" => DiplomaticAction.AcceptReparations, 
 			"reject_reparations" => DiplomaticAction.RejectReparations, 
-			"quarantine_settlement" => DiplomaticAction.QuarantineSettlement, 
 			_ => DiplomaticAction.None, 
 		};
 	}

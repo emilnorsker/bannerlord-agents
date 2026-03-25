@@ -464,19 +464,6 @@ public class BattleHistoryManager
 		return list.Any() ? string.Join(", ", list) : "moderate archaeological potential";
 	}
 
-	private bool IsDiseaseVulnerable(Settlement settlement)
-	{
-		if (settlement.Town == null)
-		{
-			return false;
-		}
-		bool flag = settlement.Town.Prosperity < (float)DynamicEventsGenerator.PROSPERITY_MEDIUM_THRESHOLD;
-		bool flag2 = ((Fief)settlement.Town).FoodStocks < (float)DynamicEventsGenerator.FOOD_STOCKS_LOW_THRESHOLD;
-		bool flag3 = settlement.Town.Security < (float)DynamicEventsGenerator.TOWN_SECURITY_LOW_THRESHOLD;
-		bool isUnderSiege = settlement.IsUnderSiege;
-		return flag || flag2 || flag3 || isUnderSiege;
-	}
-
 	private string GetVulnerabilityLevel(Settlement settlement)
 	{
 		if (settlement.Town == null)

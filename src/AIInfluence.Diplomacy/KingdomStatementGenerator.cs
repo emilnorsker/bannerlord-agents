@@ -5,7 +5,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AIInfluence.API;
-using AIInfluence.Diseases;
 using AIInfluence.DynamicEvents;
 using AIInfluence.Util;
 using MCM.Abstractions.Base.Global;
@@ -609,7 +608,6 @@ public class KingdomStatementGenerator
 		stringBuilder.AppendLine("  - Territory: demand_territory, transfer_territory, reject_territory (requires settlement_id)");
 		stringBuilder.AppendLine("  - Tribute: demand_tribute, accept_tribute, reject_tribute (requires amount+days)");
 		stringBuilder.AppendLine("  - Reparations: demand_reparations, accept_reparations, reject_reparations (requires amount)");
-		stringBuilder.AppendLine("  - Quarantine: quarantine_settlement (requires settlement_id + quarantine_duration_days). Close OWN settlement with active disease for quarantine. AI parties cannot enter/leave. Only kingdom's own settlements with disease.");
 		stringBuilder.AppendLine("**MULTIPLE ACTIONS:** Comma-separated: 'accept_peace,transfer_territory,demand_reparations'. Statement text MUST match actions. When using multiple actions with different target kingdoms, see 'Action-Target Pairing by Index' section in OUTPUT FORMAT.");
 		stringBuilder.AppendLine();
 		stringBuilder.AppendLine("## string_id USAGE (MANDATORY FOR ACTIONS):");
@@ -643,8 +641,7 @@ public class KingdomStatementGenerator
 		stringBuilder.AppendLine("  \"daily_tribute_amount\": 0,");
 		stringBuilder.AppendLine("  \"tribute_duration_days\": 0,");
 		stringBuilder.AppendLine("  \"reparations_amount\": 0,");
-		stringBuilder.AppendLine("  \"trade_agreement_duration_years\": 1.0,");
-		stringBuilder.AppendLine("  \"quarantine_duration_days\": 0 // For quarantine_settlement: positive integer (days), minimum 1, auto-lifts after");
+		stringBuilder.AppendLine("  \"trade_agreement_duration_years\": 1.0");
 		stringBuilder.AppendLine("}");
 		stringBuilder.AppendLine();
 		stringBuilder.AppendLine("**CRITICAL: Action-Target Pairing by Index**");
@@ -834,75 +831,6 @@ public class KingdomStatementGenerator
 				stringBuilder.AppendLine("### TRADE AGREEMENTS ###");
 				stringBuilder.AppendLine("No active trade agreements.");
 				stringBuilder.AppendLine();
-			}
-			ModSettings instance = GlobalSettings<ModSettings>.Instance;
-			if (instance != null && instance.EnableDiseaseSystem)
-			{
-				DiseaseManager diseaseManager = DiseaseManager.Instance;
-				if (diseaseManager != null)
-				{
-					List<Settlement> source2 = ((IEnumerable<Settlement>)Settlement.All).Where(delegate(Settlement s)
-					{
-						int result;
-						if (s.IsTown || s.IsCastle)
-						{
-							Clan ownerClan2 = s.OwnerClan;
-							result = ((((ownerClan2 != null) ? ownerClan2.Kingdom : null) == kingdom) ? 1 : 0);
-						}
-						else
-						{
-							result = 0;
-						}
-						return (byte)result != 0;
-					}).ToList();
-					List<Settlement> list3 = source2.Where((Settlement s) => diseaseManager.SettlementHasDisease(s)).ToList();
-					if (list3.Any())
-					{
-						stringBuilder.AppendLine("### DISEASE STATUS IN YOUR SETTLEMENTS ###");
-						stringBuilder.AppendLine("**You can use quarantine_settlement action to close diseased settlements. Requires settlement_id and quarantine_duration_days (positive integer, minimum 1 day; quarantine auto-lifts). You decide the duration.**");
-						stringBuilder.AppendLine("**QUARANTINE DURATION GUIDANCE:** To be effective, quarantine_duration_days should be at least equal to the disease's 'Days remaining'. Setting it shorter than the disease duration means the quarantine will lift while the disease is still active. For severe diseases (severity 4-5) consider adding extra days as buffer.");
-						foreach (Settlement item4 in list3)
-						{
-							List<Disease> allDiseasesForSettlement = diseaseManager.GetAllDiseasesForSettlement(item4);
-							string arg;
-							if (diseaseManager.IsSettlementUnderQuarantine(item4))
-							{
-								int num2 = 0;
-								foreach (Disease item5 in allDiseasesForSettlement)
-								{
-									if (!item5.IsQuarantined || !item5.QuarantineEndDays.HasValue)
-									{
-										continue;
-									}
-									_ = CampaignTime.Now;
-									if (true)
-									{
-										float value = item5.QuarantineEndDays.Value;
-										val2 = CampaignTime.Now;
-										int num3 = (int)(value - (float)(val2).ToDays);
-										if (num3 > num2)
-										{
-											num2 = num3;
-										}
-									}
-								}
-								arg = ((num2 > 0) ? $" [QUARANTINED, {num2} days remaining — if you quarantine again, duration will be EXTENDED by adding new days to remaining]" : " [QUARANTINED, indefinite]");
-							}
-							else
-							{
-								arg = " [NOT QUARANTINED]";
-							}
-							stringBuilder.AppendLine($"- {item4.Name} (string_id:{((MBObjectBase)item4).StringId}){arg}");
-							foreach (Disease item6 in allDiseasesForSettlement)
-							{
-								int val3 = item6.DurationDays - item6.DaysSinceCreation;
-								int num4 = Math.Max(0, val3);
-								stringBuilder.AppendLine($"  Disease: {item6.Name}, Severity: {item6.Severity}/5, Days active: {item6.DaysSinceCreation}, Days remaining: {num4} → recommended quarantine_duration_days: at least {num4}");
-							}
-						}
-						stringBuilder.AppendLine();
-					}
-				}
 			}
 			stringBuilder.AppendLine("### CLANS IN YOUR KINGDOM ###");
 			bool flag = false;
@@ -1982,10 +1910,9 @@ public class KingdomStatementGenerator
 				DailyTributeAmount = diplomaticStatementResponse.DailyTributeAmount,
 				TributeDurationDays = diplomaticStatementResponse.TributeDurationDays,
 				ReparationsAmount = diplomaticStatementResponse.ReparationsAmount,
-				TradeAgreementDurationYears = ((diplomaticStatementResponse.TradeAgreementDurationYears > 0f) ? diplomaticStatementResponse.TradeAgreementDurationYears : 1f),
-				QuarantineDurationDays = diplomaticStatementResponse.QuarantineDurationDays
+				TradeAgreementDurationYears = ((diplomaticStatementResponse.TradeAgreementDurationYears > 0f) ? diplomaticStatementResponse.TradeAgreementDurationYears : 1f)
 			};
-			DiplomacyLogger.Instance.Log(string.Format("[STATEMENT_GEN] Statement created: Actions={0}, Settlement={1}, Tribute={2}/{3}, Reparations={4}, Quarantine={5}", string.Join(",", kingdomStatement.Actions), kingdomStatement.SettlementId, kingdomStatement.DailyTributeAmount, kingdomStatement.TributeDurationDays, kingdomStatement.ReparationsAmount, kingdomStatement.QuarantineDurationDays));
+			DiplomacyLogger.Instance.Log(string.Format("[STATEMENT_GEN] Statement created: Actions={0}, Settlement={1}, Tribute={2}/{3}, Reparations={4}", string.Join(",", kingdomStatement.Actions), kingdomStatement.SettlementId, kingdomStatement.DailyTributeAmount, kingdomStatement.TributeDurationDays, kingdomStatement.ReparationsAmount));
 			DiplomaticStatementsStorage.Instance.AddStatement(kingdomStatement);
 			return kingdomStatement;
 		}
@@ -2034,7 +1961,6 @@ public class KingdomStatementGenerator
 			"accept_reparations" => DiplomaticAction.AcceptReparations, 
 			"reject_reparations" => DiplomaticAction.RejectReparations, 
 			"expel_clan" => DiplomaticAction.ExpelClan, 
-			"quarantine_settlement" => DiplomaticAction.QuarantineSettlement, 
 			_ => DiplomaticAction.None, 
 		};
 	}

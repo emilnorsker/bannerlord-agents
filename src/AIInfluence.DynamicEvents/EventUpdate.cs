@@ -22,9 +22,6 @@ public class EventUpdate
 	[JsonProperty("economic_effects")]
 	public List<EconomicEffect> EconomicEffects { get; set; } = new List<EconomicEffect>();
 
-	[JsonProperty("disease_data")]
-	public DiseaseEventData DiseaseData { get; set; }
-
 	[JsonIgnore]
 	public CampaignTime Timestamp
 	{
