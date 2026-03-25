@@ -172,7 +172,7 @@ public static class AIClient
 		var (systemPrompt, userMessage, _) = ExtractLastPlayerMessage(prompt);
 		var messages = new JArray
 		{
-			new JObject { ["role"] = "system", ["content"] = systemPrompt + "\n\n**TOOLS:** Prefer tools over stuffing fields into JSON. **Dialogue:** `suspected_lie`, `dialogue_decision`, `romance_intent`, `escalation_update`, `allows_letters`. **World:** transfers, quests, kingdom, workshops, travel, search, character_death. **Map:** use map tools (`follow_player`, `go_to_settlement`, `stop_action`, etc.) — not JSON fields. Final assistant JSON may be `{}` if you used tools for everything.\n" },
+			new JObject { ["role"] = "system", ["content"] = systemPrompt + "\n\n**TOOLS:** All gameplay (map, transfers, quests, kingdom, workshop, death, search, …) uses tools. **Dialogue tools:** `suspected_lie`, `dialogue_decision`, `romance_intent`, `escalation_update`, `allows_letters`. **Final assistant JSON:** only the dialogue envelope from `response_format` (spoken line, claims, tone, …) or `{}` if the turn was tool-only — never duplicate tool effects as extra JSON keys.\n" },
 			new JObject { ["role"] = "user", ["content"] = userMessage }
 		};
 		var tools = ChatTools.ToolCatalog.GetToolsForApi();

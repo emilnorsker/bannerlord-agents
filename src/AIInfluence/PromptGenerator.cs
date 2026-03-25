@@ -928,7 +928,7 @@ public static class PromptGenerator
 		}
 		if (!isMessengerMode)
 		{
-			stringBuilder.Append("### Response fields ###\nPrefer **dialogue tools** (`suspected_lie`, `dialogue_decision`, …) and world tools. Final JSON may be `{}` if tools carried the turn. Optional JSON: `response` for spoken line when not fully expressed via tools, plus `claimed_*`, `tts_instructions` when needed.\n\n**REQUIRED fields (always include):**\n");
+			stringBuilder.Append("### Response fields ###\nUse **dialogue tools** for lie/decision/romance/escalation/letters. Use **world tools** for everything else. Final JSON is **only** the schema in `response_format` (dialogue envelope) or `{}`.\n\n**REQUIRED fields (always include):**\n");
 		}
 		else
 		{
@@ -958,11 +958,11 @@ public static class PromptGenerator
 			null
 		};
 		obj8[2] = "";
-		obj8[3] = "\n**OPTIONAL fields (include ONLY if relevant, NEVER repeat actions from Previous Response — they are ALREADY EXECUTED):**\n" + (!isMessengerMode ? "Gold, items, workshop, map, death, quests, kingdom use **tools**. Tone, lie detection, decisions, romance, escalation, letters use **dialogue tools** (`suspected_lie`, `dialogue_decision`, …) — prefer those over duplicating the same data in JSON below.\n" : "");
+		obj8[3] = "\n**OPTIONAL fields (include ONLY if relevant, NEVER repeat actions from Previous Response — they are ALREADY EXECUTED):**\n" + (!isMessengerMode ? "Do not put tool-backed data in JSON; the game reads tools only.\n" : "");
 		obj8[4] = (isMessengerMode ? "" : "");
 		obj8[5] = (isMessengerMode ? "" : "");
 		obj8[6] = "";
-		obj8[7] = (isMessengerMode ? "" : "- **Map AI:** use **map tools** only (`follow_player`, `go_to_settlement`, `attack_party`, `stop_action`, `return_to_player`, `transfer_troops`, etc.). Do not put map commands in JSON. **Omit tools** if no map behavior change.\n");
+		obj8[7] = "";
 		obj8[8] = "";
 		obj8[9] = (GlobalSettings<ModSettings>.Instance.PromptEnableQuests ? (isMessengerMode ? GetQuestJsonFieldDescription(npc, context, isMessengerMode) : "") : "");
 		obj8[10] = "\n";

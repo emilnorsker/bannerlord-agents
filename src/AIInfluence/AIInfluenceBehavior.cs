@@ -3162,8 +3162,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	/// <summary>
 	/// During an OpenRouter tool round, tools may store results on <paramref name="context"/> (see
 	/// <see cref="NPCContext.DeferredCharacterDeathFromTools"/>).
-	/// <see cref="OpenRouterDialogueJson.StripGameEffectKeys"/> removes those keys from the assistant JSON before deserialize in <c>NpcOpenRouterAssistantParser</c>;
-	/// this method copies deferrals onto <paramref name="aiResult"/> so <see cref="DialogManager"/> and death scheduling still see <see cref="AIResponse.CharacterDeath"/>.
+	/// The final assistant JSON is deserialized to dialogue-only fields; this copies tool deferrals onto <paramref name="aiResult"/> so <see cref="DialogManager"/> and death scheduling still see <see cref="AIResponse.CharacterDeath"/>.
 	/// </summary>
 	public static void ApplyNpcContextToolDeferralsToAiResponse(NPCContext context, AIResponse aiResult)
 	{
