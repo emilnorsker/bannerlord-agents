@@ -237,7 +237,7 @@ public static class ToolHandlers
 	{
 		JObject parsedArgs = ParseOrEmpty(argsJson);
 		string kingdomAction = parsedArgs["action"]?.ToString();
-		if (string.IsNullOrEmpty(kingdomAction)) return "ok";
+		if (string.IsNullOrEmpty(kingdomAction) || kingdomAction.Equals("none", StringComparison.OrdinalIgnoreCase)) return "ok";
 		string reason = parsedArgs["reason"]?.ToString() ?? "";
 		context.PendingKingdomActionFromTools = new AIResponse
 		{

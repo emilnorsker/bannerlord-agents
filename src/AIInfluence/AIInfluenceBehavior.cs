@@ -3849,38 +3849,47 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			LogMessage("[DEBUG] Player recognized as " + text + ": " + nPCContext.PlayerInfo.ClaimedName + " of " + nPCContext.PlayerInfo.ClaimedClan);
 		}
 		UpdateContextData(nPCContext, npc);
-		InitializeActiveEventsForNPC(nPCContext, npc);
-		LogMessage($"[DEBUG] Initialized NPC context with real player info: Name={nPCContext.PlayerInfo.RealName}, Clan={nPCContext.PlayerInfo.RealClan}, Age={nPCContext.PlayerInfo.RealAge}, Culture={nPCContext.PlayerInfo.RealCulture}, Gender={nPCContext.PlayerInfo.RealGender}");
 		_npcContexts[npcId] = nPCContext;
 		UpdateStringIdIndex(npcId, npcId);
+		InitializeActiveEventsForNPC(nPCContext, npc);
+		LogMessage($"[DEBUG] Initialized NPC context with real player info: Name={nPCContext.PlayerInfo.RealName}, Clan={nPCContext.PlayerInfo.RealClan}, Age={nPCContext.PlayerInfo.RealAge}, Culture={nPCContext.PlayerInfo.RealCulture}, Gender={nPCContext.PlayerInfo.RealGender}");
 		return nPCContext;
 	}
 
 	private void InitializeActiveEventsForNPC(NPCContext context, Hero npc)
 	{
-		//IL_00bc: Unknown result type (might be due to invalid IL or missing references)
 		try
 		{
-			List<DynamicEvent> activeEvents = DynamicEventsManager.Instance.GetActiveEvents();
+			List<DynamicEvent> known = DynamicEventsManager.Instance.GetEventsForNPC(npc, context, persistKnowledgeSync: false);
 			int num = 0;
-			foreach (DynamicEvent dynamicEvent in activeEvents)
+			string npcSid = ((MBObjectBase)npc).StringId;
+			foreach (DynamicEvent dynamicEvent in known)
 			{
-				if (dynamicEvent.CharactersInvolved != null && dynamicEvent.CharactersInvolved.Contains(((MBObjectBase)npc).StringId) && !context.RecentEvents.Any((CampaignEvent e) => e.Description == dynamicEvent.Description && e.Type == dynamicEvent.Type))
+				if (dynamicEvent == null)
 				{
-					CampaignEvent item = new CampaignEvent
-					{
-						Type = dynamicEvent.Type,
-						Description = dynamicEvent.Description,
-						Timestamp = CampaignTime.DaysFromNow((float)(-dynamicEvent.DaysSinceCreation))
-					};
-					context.RecentEvents.Add(item);
-					num++;
-					LogMessage($"[NPC_CONTEXT_INIT] Added active event '{dynamicEvent.Description}' to {npc.Name} context");
+					continue;
 				}
+				if (dynamicEvent.CharactersInvolved == null || !dynamicEvent.CharactersInvolved.Contains(npcSid))
+				{
+					continue;
+				}
+				if (context.RecentEvents.Any((CampaignEvent e) => e.Description == dynamicEvent.Description && e.Type == dynamicEvent.Type))
+				{
+					continue;
+				}
+				CampaignEvent item = new CampaignEvent
+				{
+					Type = dynamicEvent.Type,
+					Description = dynamicEvent.Description,
+					Timestamp = CampaignTime.DaysFromNow((float)(-dynamicEvent.DaysSinceCreation))
+				};
+				context.RecentEvents.Add(item);
+				num++;
+				LogMessage($"[NPC_CONTEXT_INIT] Added active dynamic event to RecentEvents for {npc.Name}: {dynamicEvent.Type}");
 			}
 			if (num > 0)
 			{
-				LogMessage($"[NPC_CONTEXT_INIT] Initialized {num} active events for {npc.Name}");
+				LogMessage($"[NPC_CONTEXT_INIT] Initialized {num} CharactersInvolved dynamic events in RecentEvents for {npc.Name}");
 			}
 		}
 		catch (Exception ex)
@@ -4957,7 +4966,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			{
 				string text = $"[{item.Type.ToUpper()}] [Importance: {item.Importance}/10] [Age: {item.DaysSinceCreation} days]";
 				InformationManager.DisplayMessage(new InformationMessage(text, Colors.Cyan));
-				string text2 = ((item.Description.Length > 200) ? (item.Description.Substring(0, 197) + "...") : item.Description);
+				string description = item.Description ?? "";
+				string text2 = description.Length > 200 ? description.Substring(0, 197) + "..." : description;
 				InformationManager.DisplayMessage(new InformationMessage(text2, Colors.White));
 				string text3 = "Kingdoms: ";
 				text3 = ((item.KingdomsInvolved != null) ? ((!(item.KingdomsInvolved is string text4) || !(text4 == "all")) ? (text3 + string.Join(", ", item.GetKingdomStringIds())) : (text3 + "all (global)")) : (text3 + "none (neutral)"));
@@ -5524,15 +5534,13 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					catch (Exception ex)
 					{
 						LogMessage("[ERROR] Failed to deserialize NPC contexts from game save. stage=" + syncStage + ", payloadLength=" + (_npcContextsJson?.Length ?? 0) + ". " + ex);
-						_npcContexts = new Dictionary<string, NPCContext>();
-						_npcContextsJson = null;
-						LogMessage("[ERROR] Recovering load with empty NPC context state to keep save loadable.");
+						throw;
 					}
 				}
 				if (_followingHeroIds == null)
 				{
 					_followingHeroIds = new List<string>();
-					LogMessage("[LOAD] Initialized empty following hero IDs list (old save format)");
+					LogMessage("[LOAD] Following hero IDs list was null after SyncData read; using empty list (v5.0.0).");
 				}
 				bool flag = false;
 				if (!string.IsNullOrEmpty(_serializedActionState))
@@ -5569,11 +5577,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			LogMessage("[ERROR] SyncData failed at stage=" + syncStage + ". followingHeroIdsCount=" + (_followingHeroIds?.Count ?? 0) + ", aiActionStateLength=" + (_serializedActionState?.Length ?? 0) + ", npcPayloadLength=" + (_npcContextsJson?.Length ?? 0) + ". " + ex);
 			if (dataStore.IsLoading)
 			{
-				_followingHeroIds = new List<string>();
-				_npcContexts = new Dictionary<string, NPCContext>();
-				_npcContextsJson = null;
-				LogMessage("[ERROR] Recovering SyncData load failure with default AIInfluence state.");
-				return;
+				LogMessage("[ERROR] SyncData load failed at stage=" + syncStage + "; not applying default state (v5.0.0).");
 			}
 			throw;
 		}

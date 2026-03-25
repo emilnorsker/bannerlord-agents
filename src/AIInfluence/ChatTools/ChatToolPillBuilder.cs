@@ -88,10 +88,10 @@ public static class ChatToolPillBuilder
 		context?.AppendToolPill($"{npcName} received {amount} gold from you", MoneyTransferColor);
 
 	public static void AppendPlayerMoneyGive(NPCContext context, string npcName, int amount) =>
-		context?.AppendToolPill($"You gave {amount} gold to {npcName}", MoneyTransferColor);
+		context?.AppendPlayerToolPill($"You gave {amount} gold to {npcName}", MoneyTransferColor);
 
 	public static void AppendPlayerMoneyReceive(NPCContext context, string npcName, int amount) =>
-		context?.AppendToolPill($"You received {amount} gold from {npcName}", MoneyTransferColor);
+		context?.AppendPlayerToolPill($"You received {amount} gold from {npcName}", MoneyTransferColor);
 
 	public static void AppendNpcItemGive(NPCContext context, string npcName, IEnumerable<ItemTransferData> transfers) =>
 		context?.AppendToolPill($"{npcName} gave you {FormatItemListForPill(transfers)}", ItemTransferColor);
@@ -100,10 +100,10 @@ public static class ChatToolPillBuilder
 		context?.AppendToolPill($"{npcName} took {FormatItemListForPill(transfers)} from you", ItemTransferColor);
 
 	public static void AppendPlayerItemGive(NPCContext context, string npcName, IEnumerable<ItemTransferData> transfers) =>
-		context?.AppendToolPill($"You gave {FormatItemListForPill(transfers)} to {npcName}", ItemTransferColor);
+		context?.AppendPlayerToolPill($"You gave {FormatItemListForPill(transfers)} to {npcName}", ItemTransferColor);
 
 	public static void AppendPlayerItemReceive(NPCContext context, string npcName, IEnumerable<ItemTransferData> transfers) =>
-		context?.AppendToolPill($"You received {FormatItemListForPill(transfers)} from {npcName}", ItemTransferColor);
+		context?.AppendPlayerToolPill($"You received {FormatItemListForPill(transfers)} from {npcName}", ItemTransferColor);
 
 	/// <summary>One pill for a pending <c>kingdom_action</c> (shown when chat row finalizes after streaming).</summary>
 	public static (string Text, string Color) FormatKingdomActionPill(AIResponse k)
@@ -111,6 +111,8 @@ public static class ChatToolPillBuilder
 		if (k == null || string.IsNullOrWhiteSpace(k.KingdomAction))
 			return ("", "");
 		string action = k.KingdomAction.Trim();
+		if (action.Equals("none", StringComparison.OrdinalIgnoreCase))
+			return ("", "");
 		string reason = k.KingdomActionReason;
 		string line = string.IsNullOrWhiteSpace(reason)
 			? "Kingdom: " + action

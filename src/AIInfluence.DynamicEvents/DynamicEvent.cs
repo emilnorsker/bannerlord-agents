@@ -39,6 +39,12 @@ public class DynamicEvent
 	[JsonProperty("importance")]
 	public int Importance { get; set; }
 
+	[JsonProperty("plot_id")]
+	public string PlotId { get; set; }
+
+	[JsonProperty("storage_tags")]
+	public List<string> StorageTags { get; set; }
+
 	[JsonProperty("spread_speed")]
 	public string SpreadSpeed { get; set; }
 
@@ -82,7 +88,6 @@ public class DynamicEvent
 			CampaignTime now = CampaignTime.Now;
 			float num = (float)(now).ToDays;
 			float num2 = num - CreationCampaignDays;
-			DynamicEventsLogger.Instance?.Log($"[DEBUG] DaysSinceCreation: CurrentDays={num:F1}, CreationDays={CreationCampaignDays:F1}, Age={num2:F1} days");
 			return Math.Max(0, (int)num2);
 		}
 	}

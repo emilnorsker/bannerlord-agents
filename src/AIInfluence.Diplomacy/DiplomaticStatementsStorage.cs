@@ -174,22 +174,12 @@ public class DiplomaticStatementsStorage
 			DynamicEventsManager instance = DynamicEventsManager.Instance;
 			if (instance != null)
 			{
-				List<DynamicEvent> activeEvents = instance.GetActiveEvents();
-				foreach (DynamicEvent item in activeEvents)
+				foreach (DynamicEvent item in instance.GetActiveEvents())
 				{
 					if (item != null && !string.IsNullOrEmpty(item.Id) && item.IsExpired())
 					{
 						expiredEventIds.Add(item.Id);
 					}
-				}
-			}
-			DiplomacyStorage diplomacyStorage = new DiplomacyStorage();
-			List<DynamicEvent> list = diplomacyStorage.LoadDiplomaticEvents() ?? new List<DynamicEvent>();
-			foreach (DynamicEvent item2 in list)
-			{
-				if (item2 != null && !string.IsNullOrEmpty(item2.Id) && item2.IsExpired())
-				{
-					expiredEventIds.Add(item2.Id);
 				}
 			}
 		}
