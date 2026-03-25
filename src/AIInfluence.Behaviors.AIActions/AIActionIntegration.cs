@@ -212,7 +212,8 @@ public class AIActionIntegration
 				if (flag2)
 				{
 					text += "### create_party\n";
-					text += "**Purpose**: Leave the player's party; command an independent party on the campaign map.\n";
+					text += "**Purpose**: Companion in the player's clan gains an independent **MobileParty** on the campaign map (requires `CanExecute`: in `Clan.PlayerClan`, alive, not prisoner, not already leading a non-main party).\n";
+					text += "**Faction outcome**: `mode` omitted or `normal`, or non-bandit culture without `outlaw`: hero stays in **Clan.PlayerClan** (`CreateNewClanMobileParty`). Bandit-type culture default, or `mode` `outlaw`: hero is removed from the player's clan into a new minor clan (`ClanGenerator.CreateMinorClan`); `DeclareWar` as below.\n";
 					text += "**Tool** `create_party` with optional `mode` `outlaw`|`normal`, or **technical_action**:\n";
 					text += "- `create_party` — If the hero's culture matches a bandit-type culture flag set, the mod uses Bannerlord.GameMaster `ClanGenerator.CreateMinorClan`: new minor clan, lord party, `DeclareWar` on the player's map faction and on the map faction of the nearest non-hideout settlement (bandit factions excluded). Otherwise `CreateNewClanMobileParty` in the player's clan.\n";
 					text += "- `create_party:outlaw` — Force the minor-clan branch when the hero is in the player's clan and other preconditions pass.\n";
