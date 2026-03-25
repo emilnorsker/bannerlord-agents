@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AIInfluence.Util;
+using Bannerlord.GameMaster;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.Extensions;
@@ -58,13 +60,18 @@ public class NpcSpawnService
 		if (clan == null)
 			return Fail("Could not resolve a clan for NPC spawn");
 
+		Clan resolvedBanditClan = clan.IsBanditFaction ? clan : null;
+		bool blgmOutlawHeroParty = resolvedBanditClan != null && WantsParty(data) && BLGMObjectManager.CampaignFullyLoaded;
+
 		if (clan.IsBanditFaction || clan.FactionMidSettlement == null)
 		{
-			_log($"[NPC_SPAWN] Clan '{clan.Name}' is bandit or has no FactionMidSettlement; using settlement owner for lord party");
+			if (!blgmOutlawHeroParty)
+				_log($"[NPC_SPAWN] Clan '{clan.Name}' is bandit or has no FactionMidSettlement; using settlement owner for lord party");
 			clan = ValidClanOrFallback(settlement.OwnerClan) ?? Clan.PlayerClan;
 		}
 
-		CharacterObject template = ResolveTemplate(data.Culture, data.Occupation, data.IsFemale, settlement);
+		CultureObject templateCultureOverride = blgmOutlawHeroParty && resolvedBanditClan?.Culture != null ? resolvedBanditClan.Culture : null;
+		CharacterObject template = ResolveTemplate(data.Culture, data.Occupation, data.IsFemale, settlement, templateCultureOverride);
 		if (template == null)
 			return Fail("Could not resolve a character template");
 
@@ -88,11 +95,27 @@ public class NpcSpawnService
 		string warning = null;
 		if (WantsParty(data))
 		{
-			party = SpawnLordParty(hero, data, settlement);
-			if (party == null)
+			if (blgmOutlawHeroParty)
 			{
-				warning = "Party creation failed; hero placed in settlement instead";
-				_log("[NPC_SPAWN] " + warning);
+				OutlawPartyBlgmService.Result outlaw = OutlawPartyBlgmService.TryCreateOutlawMinorClanForSpawnedHero(hero, 2, data.PartyName);
+				if (!outlaw.Success)
+				{
+					string err = "BLGM outlaw minor clan failed: " + (outlaw.Error ?? "unknown");
+					InformationManager.DisplayMessage(new InformationMessage("[AI Influence] " + err, ExtraColors.RedAIInfluence));
+					return Fail(err);
+				}
+				party = outlaw.Party;
+				if (outlaw.Warnings.Count > 0)
+					warning = string.Join("; ", outlaw.Warnings);
+			}
+			else
+			{
+				party = SpawnLordParty(hero, data, settlement);
+				if (party == null)
+				{
+					warning = "Party creation failed; hero placed in settlement instead";
+					_log("[NPC_SPAWN] " + warning);
+				}
 			}
 		}
 
@@ -516,9 +539,9 @@ public class NpcSpawnService
 		return null;
 	}
 
-	private CharacterObject ResolveTemplate(string cultureName, string occupationName, bool? isFemale, Settlement settlement)
+	private CharacterObject ResolveTemplate(string cultureName, string occupationName, bool? isFemale, Settlement settlement, CultureObject cultureOverride = null)
 	{
-		CultureObject culture = ResolveCulture(cultureName, settlement);
+		CultureObject culture = cultureOverride ?? ResolveCulture(cultureName, settlement);
 		Occupation occupation = ParseOccupation(occupationName);
 
 		CharacterObject template = Campaign.Current?.Models?.HeroCreationModel

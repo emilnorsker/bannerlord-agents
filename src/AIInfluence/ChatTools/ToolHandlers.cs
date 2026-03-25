@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using AIInfluence.Behaviors.AIActions;
 using AIInfluence;
+using AIInfluence.Util;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Party;
+using TaleWorlds.Library;
 
 namespace AIInfluence.ChatTools;
 
@@ -28,7 +30,7 @@ public static class ToolHandlers
 			"patrol_settlement" => RunPatrolSettlement(argsJson, npc, context),
 			"wait_near_settlement" => RunWaitNearSettlement(argsJson, npc, context),
 			"siege_settlement" => RunSiegeSettlement(argsJson, npc, context),
-			"create_party" => RunCreateParty(npc),
+			"create_party" => RunCreateParty(argsJson, npc, context),
 			"create_rp_item" => RunCreateRPItem(argsJson, npc, context),
 			"transfer_money" => RunTransferMoney(argsJson, npc, context, behavior),
 			"transfer_items" => RunTransferItems(argsJson, npc, context, behavior),
@@ -159,10 +161,18 @@ public static class ToolHandlers
 		return "ok";
 	}
 
-	private static string RunCreateParty(Hero npc)
+	private static string RunCreateParty(string argsJson, Hero npc, NPCContext context)
 	{
-		return AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "create_party", "") == true
-			&& AIActionManager.Instance?.StartAction(npc, "create_party") == true ? "ok" : "failed";
+		JObject parsed = ParseOrEmpty(argsJson);
+		string mode = parsed["mode"]?.ToString();
+		string param = string.IsNullOrEmpty(mode) ? "" : (mode.Equals("normal", StringComparison.OrdinalIgnoreCase) ? "normal:true" : "outlaw:true");
+		bool prepared = AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "create_party", param) == true;
+		bool started = AIActionManager.Instance?.StartAction(npc, "create_party") == true;
+		if (prepared && started)
+			return JsonConvert.SerializeObject(new { status = "ok", note = "Check in-game messages for BLGM/outlaw clan outcome, warnings, or fallback to a normal party." });
+		string err = "create_party failed (prepare or start returned false).";
+		InformationManager.DisplayMessage(new InformationMessage("[AI Influence] " + err, ExtraColors.RedAIInfluence));
+		return JsonConvert.SerializeObject(new { status = "failed", error = err });
 	}
 
 	private static string RunCreateRPItem(string argsJson, Hero npc, NPCContext context)

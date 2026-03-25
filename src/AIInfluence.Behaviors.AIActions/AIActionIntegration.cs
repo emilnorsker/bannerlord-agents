@@ -300,8 +300,8 @@ public class AIActionIntegration
 				{
 					text += "### create_party\n";
 					text += "**Purpose**: Form your own party (leave the player's party and act independently).\n";
-					text += "**Usage**: Confirm in dialogue, then set `technical_action: \"create_party\"`.\n";
-					text += "**Note**: This is a one-time action that creates your independent party. Use if they ask you to create your own party and move independently.\n\n";
+					text += "**Usage**: Confirm in dialogue, then set `technical_action: \"create_party\"` or with flags: `create_party:outlaw` / `create_party:normal` (outlaw = BLGM minor clan if bandit culture; normal = always player-clan lord party).\n";
+					text += "**Note**: Bandit-culture companions use the outlaw path by default (minor clan + war on player + nearest realm). Other cultures use a lord party in the player's clan.\n\n";
 				}
 				break;
 			case "create_rp_item":
@@ -390,6 +390,11 @@ public class AIActionIntegration
 		if (npc == null)
 		{
 			return false;
+		}
+		if (string.Equals(actionName, "create_party", StringComparison.OrdinalIgnoreCase))
+		{
+			ApplyCreatePartyParameter(parameter);
+			return true;
 		}
 		if (string.IsNullOrWhiteSpace(parameter))
 		{
@@ -935,6 +940,38 @@ public class AIActionIntegration
 		default:
 			return true;
 		}
+	}
+
+	private static void ApplyCreatePartyParameter(string parameter)
+	{
+		CreatePartyAction.NextForceOutlawBlgm = false;
+		CreatePartyAction.NextSkipOutlawBlgm = false;
+		if (string.IsNullOrWhiteSpace(parameter))
+			return;
+		foreach (string raw in parameter.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+		{
+			string t = raw.Trim();
+			if (t.Length == 0)
+				continue;
+			if (t.Equals("outlaw", StringComparison.OrdinalIgnoreCase) || t.Equals("bandit", StringComparison.OrdinalIgnoreCase))
+				CreatePartyAction.NextForceOutlawBlgm = true;
+			else if (t.StartsWith("outlaw:", StringComparison.OrdinalIgnoreCase) || t.StartsWith("bandit:", StringComparison.OrdinalIgnoreCase))
+			{
+				string[] kv = t.Split(new[] { ':' }, 2);
+				if (kv.Length > 1 && (kv[1].Trim().Equals("true", StringComparison.OrdinalIgnoreCase) || kv[1].Trim() == "1"))
+					CreatePartyAction.NextForceOutlawBlgm = true;
+			}
+			else if (t.Equals("normal", StringComparison.OrdinalIgnoreCase))
+				CreatePartyAction.NextSkipOutlawBlgm = true;
+			else if (t.StartsWith("normal:", StringComparison.OrdinalIgnoreCase))
+			{
+				string[] kv2 = t.Split(new[] { ':' }, 2);
+				if (kv2.Length > 1 && (kv2[1].Trim().Equals("true", StringComparison.OrdinalIgnoreCase) || kv2[1].Trim() == "1"))
+					CreatePartyAction.NextSkipOutlawBlgm = true;
+			}
+		}
+		if (CreatePartyAction.NextSkipOutlawBlgm)
+			CreatePartyAction.NextForceOutlawBlgm = false;
 	}
 
 	private void LogMessage(string message)
