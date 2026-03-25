@@ -215,7 +215,12 @@ public class DynamicEventsManager
 			DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Attempted to add null event");
 			return;
 		}
-		if (!string.IsNullOrEmpty(dynamicEvent.Id) && EventsList.Any((DynamicEvent e) => e.Id == dynamicEvent.Id))
+		if (string.IsNullOrEmpty(dynamicEvent.Id))
+		{
+			DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Rejected event with null or empty Id (cannot persist in unified catalog)");
+			return;
+		}
+		if (EventsList.Any((DynamicEvent e) => e.Id == dynamicEvent.Id))
 		{
 			DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] Duplicate event detected by ID, skipping: " + dynamicEvent.Id);
 			return;

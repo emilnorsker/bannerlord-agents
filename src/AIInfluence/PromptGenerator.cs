@@ -395,7 +395,6 @@ public static class PromptGenerator
 		if (eventsForNPC.Any())
 		{
 			List<string> list3 = (from evt in (from evt in eventsForNPC
-					where !evt.IsExpired()
 					orderby evt.Importance descending, evt.DaysSinceCreation
 					select evt).Take(5)
 				select PersonalizeEventForNPC(evt, npc)).ToList();
