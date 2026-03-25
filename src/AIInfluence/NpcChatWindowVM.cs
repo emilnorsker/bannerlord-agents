@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using AIInfluence.Diplomacy;
 using AIInfluence.DynamicEvents;
 using AIInfluence.Services;
 using MCM.Abstractions.Base.Global;
@@ -224,7 +223,7 @@ public class NpcChatWindowVM : ViewModel
             BuildCharacterHistorySection(context, headerMuted),
             BuildBehaviorSection(context, headerMuted),
             BuildQuestSection(context, headerMuted, questGold),
-            BuildWorldEventsSection(headerMuted),
+            BuildWorldEventsSection(context, headerMuted),
             BuildNpcPartySection(npc)
         };
         foreach (var section in built)
@@ -303,12 +302,12 @@ public class NpcChatWindowVM : ViewModel
         return $"{t} — {d}";
     }
 
-    private InfoSectionVM BuildWorldEventsSection(string headerMuted)
+    private InfoSectionVM BuildWorldEventsSection(NPCContext context, string headerMuted)
     {
         var section = new InfoSectionVM { HeaderText = "World events", HeaderSkillId = DefaultSkills.Scouting.StringId };
         try
         {
-            foreach (var e in GetMergedEvents().OrderByDescending(ev => ev.CreationCampaignDays).Take(5))
+            foreach (var e in WorldEventsReadFacade.GetEventsKnownToNpcForUi(_npc, context).OrderByDescending(ev => ev.CreationCampaignDays).Take(5))
             {
                 string text = FormatWorldEventDisplayText(e);
                 if (string.IsNullOrWhiteSpace(text))
@@ -413,38 +412,6 @@ public class NpcChatWindowVM : ViewModel
     }
     /// <summary>Formats an incoming quest line (NPC is delivery target).</summary>
     private static string FormatIncomingQuestLine(AIQuestInfo q) => $"• {q.Title} (deliver here)";
-
-    private static List<DynamicEvent> GetMergedEvents()
-    {
-        var list = DynamicEventsManager.Instance?.GetActiveEvents() ?? new List<DynamicEvent>();
-        List<DynamicEvent> diplomatic = new List<DynamicEvent>();
-        try
-        {
-            var storage = new DiplomacyStorage();
-            diplomatic = storage.LoadDiplomaticEvents() ?? new List<DynamicEvent>();
-        }
-        catch (Exception ex)
-        {
-            AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] LoadDiplomaticEvents failed: " + ex.Message);
-        }
-        var merged = new List<DynamicEvent>();
-        var seen = new HashSet<string>();
-        foreach (var e in list)
-        {
-            if (e == null) continue;
-            merged.Add(e);
-            if (!string.IsNullOrEmpty(e.Id)) seen.Add(e.Id);
-        }
-        foreach (var e in diplomatic)
-        {
-            if (e != null && !string.IsNullOrEmpty(e.Id) && !seen.Contains(e.Id))
-            {
-                merged.Add(e);
-                seen.Add(e.Id);
-            }
-        }
-        return merged;
-    }
 
     private void RefreshCharacterSection(Hero npc, NPCContext context)
     {

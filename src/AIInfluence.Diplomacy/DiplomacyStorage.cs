@@ -236,98 +236,19 @@ public class DiplomacyStorage
 
 	public void SaveDiplomaticEvents(List<DynamicEvent> diplomaticEvents, Dictionary<string, CampaignTime> statementSchedules, Dictionary<string, CampaignTime> analysisSchedules, Dictionary<string, Queue<(Kingdom kingdom, CampaignTime scheduledTime)>> statementQueues, Dictionary<string, Kingdom> pendingStatements)
 	{
-		//IL_0036: Unknown result type (might be due to invalid IL or missing references)
-		//IL_003b: Unknown result type (might be due to invalid IL or missing references)
-		//IL_021b: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0220: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0255: Unknown result type (might be due to invalid IL or missing references)
-		//IL_025a: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0262: Unknown result type (might be due to invalid IL or missing references)
-		//IL_026c: Expected O, but got Unknown
-		//IL_013d: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0142: Unknown result type (might be due to invalid IL or missing references)
 		if (diplomaticEvents == null)
 		{
 			LogMessage("[DIPLOMACY_STORAGE] Attempted to save null diplomatic events list");
 			return;
 		}
-		try
+		DynamicEventsManager dynamicEventsManager = DynamicEventsManager.Instance;
+		if (dynamicEventsManager == null)
 		{
-			string text = Path.Combine(GetCurrentSaveFolder(), _diplomaticEventsFileName);
-			CampaignTime val = CampaignTime.Now;
-			float currentCampaignDays = (float)(val).ToDays;
-			Dictionary<string, float> statementSchedules2 = null;
-			if (statementSchedules != null)
-			{
-				statementSchedules2 = statementSchedules.ToDictionary((KeyValuePair<string, CampaignTime> kvp) => kvp.Key, delegate(KeyValuePair<string, CampaignTime> kvp)
-				{
-					//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-					//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-					CampaignTime value = kvp.Value;
-					return (float)(value).ToDays - currentCampaignDays;
-				});
-			}
-			Dictionary<string, float> analysisSchedules2 = null;
-			if (analysisSchedules != null)
-			{
-				analysisSchedules2 = analysisSchedules.ToDictionary((KeyValuePair<string, CampaignTime> kvp) => kvp.Key, delegate(KeyValuePair<string, CampaignTime> kvp)
-				{
-					//IL_0002: Unknown result type (might be due to invalid IL or missing references)
-					//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-					CampaignTime value = kvp.Value;
-					return (float)(value).ToDays - currentCampaignDays;
-				});
-			}
-			Dictionary<string, List<QueuedStatementData>> dictionary = null;
-			if (statementQueues != null)
-			{
-				dictionary = new Dictionary<string, List<QueuedStatementData>>();
-				foreach (KeyValuePair<string, Queue<(Kingdom, CampaignTime)>> statementQueue in statementQueues)
-				{
-					List<QueuedStatementData> list = new List<QueuedStatementData>();
-					foreach (var item in statementQueue.Value)
-					{
-						QueuedStatementData obj = new QueuedStatementData
-						{
-							KingdomId = ((MBObjectBase)item.Item1).StringId
-						};
-						val = item.Item2;
-						obj.ScheduledTimeDays = (float)(val).ToDays - currentCampaignDays;
-						list.Add(obj);
-					}
-					dictionary[statementQueue.Key] = list;
-				}
-			}
-			Dictionary<string, string> pendingStatements2 = null;
-			if (pendingStatements != null)
-			{
-				pendingStatements2 = pendingStatements.ToDictionary((KeyValuePair<string, Kingdom> kvp) => kvp.Key, (KeyValuePair<string, Kingdom> kvp) => ((MBObjectBase)kvp.Value).StringId);
-			}
-			DiplomaticEventsData obj2 = new DiplomaticEventsData
-			{
-				DiplomaticEvents = diplomaticEvents,
-				SaveTime = DateTime.Now
-			};
-			val = CampaignTime.Now;
-			obj2.CampaignDays = (float)(val).ToDays;
-			obj2.StatementSchedules = statementSchedules2;
-			obj2.AnalysisSchedules = analysisSchedules2;
-			obj2.StatementQueues = dictionary;
-			obj2.PendingStatements = pendingStatements2;
-			DiplomaticEventsData diplomaticEventsData = obj2;
-			JsonSerializerSettings val2 = new JsonSerializerSettings
-			{
-				Formatting = (Formatting)1,
-				NullValueHandling = (NullValueHandling)1
-			};
-			string contents = JsonConvert.SerializeObject((object)diplomaticEventsData, val2);
-			File.WriteAllText(text, contents);
-			LogMessage($"[DIPLOMACY_STORAGE] Saved {diplomaticEvents.Count} diplomatic events to {text}");
+			LogMessage("[DIPLOMACY_STORAGE] SaveDiplomaticEvents: DynamicEventsManager.Instance is null");
+			return;
 		}
-		catch (Exception ex)
-		{
-			LogMessage("[DIPLOMACY_STORAGE] Error saving diplomatic events: " + ex.Message + "\n" + ex.StackTrace);
-		}
+		dynamicEventsManager.SaveDiplomaticSlice(diplomaticEvents, statementSchedules, analysisSchedules, statementQueues, pendingStatements);
+		LogMessage($"[DIPLOMACY_STORAGE] Saved {diplomaticEvents.Count} diplomatic events via unified dynamic_events.json");
 	}
 
 	public List<DynamicEvent> LoadDiplomaticEvents()
@@ -338,144 +259,41 @@ public class DiplomacyStorage
 
 	public DiplomaticEventsLoadResult LoadDiplomaticEventsWithSchedules()
 	{
-		//IL_014c: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0151: Unknown result type (might be due to invalid IL or missing references)
-		//IL_01b2: Unknown result type (might be due to invalid IL or missing references)
-		//IL_0221: Unknown result type (might be due to invalid IL or missing references)
-		//IL_02e5: Unknown result type (might be due to invalid IL or missing references)
-		//IL_02ea: Unknown result type (might be due to invalid IL or missing references)
-		//IL_02f0: Unknown result type (might be due to invalid IL or missing references)
 		try
 		{
-			string text = Path.Combine(GetCurrentSaveFolder(), _diplomaticEventsFileName);
-			if (!File.Exists(text))
+			DynamicEventsManager dynamicEventsManager = DynamicEventsManager.Instance;
+			if (dynamicEventsManager == null)
 			{
-				LogMessage("[DIPLOMACY_STORAGE] No diplomatic events file found at " + text);
-				return new DiplomaticEventsLoadResult
-				{
-					Events = new List<DynamicEvent>(),
-					StatementSchedules = new Dictionary<string, CampaignTime>(),
-					AnalysisSchedules = new Dictionary<string, CampaignTime>(),
-					StatementQueues = new Dictionary<string, Queue<(Kingdom, CampaignTime)>>(),
-					PendingStatements = new Dictionary<string, Kingdom>()
-				};
+				LogMessage("[DIPLOMACY_STORAGE] LoadDiplomaticEventsWithSchedules: DynamicEventsManager.Instance is null");
+				return EmptyDiplomaticLoadResult();
 			}
-			string text2 = File.ReadAllText(text);
-			if (string.IsNullOrWhiteSpace(text2))
+			UnifiedDynamicEventsEnvelope envelope = dynamicEventsManager.GetUnifiedEnvelope();
+			if (envelope == null)
 			{
-				LogMessage("[DIPLOMACY_STORAGE] Diplomatic events file is empty");
-				return new DiplomaticEventsLoadResult
-				{
-					Events = new List<DynamicEvent>(),
-					StatementSchedules = new Dictionary<string, CampaignTime>(),
-					AnalysisSchedules = new Dictionary<string, CampaignTime>(),
-					StatementQueues = new Dictionary<string, Queue<(Kingdom, CampaignTime)>>(),
-					PendingStatements = new Dictionary<string, Kingdom>()
-				};
+				return EmptyDiplomaticLoadResult();
 			}
-			DiplomaticEventsData diplomaticEventsData = JsonConvert.DeserializeObject<DiplomaticEventsData>(text2);
-			if (diplomaticEventsData == null)
-			{
-				LogMessage("[DIPLOMACY_STORAGE] Failed to deserialize diplomatic events data");
-				return new DiplomaticEventsLoadResult
-				{
-					Events = new List<DynamicEvent>(),
-					StatementSchedules = new Dictionary<string, CampaignTime>(),
-					AnalysisSchedules = new Dictionary<string, CampaignTime>(),
-					StatementQueues = new Dictionary<string, Queue<(Kingdom, CampaignTime)>>(),
-					PendingStatements = new Dictionary<string, Kingdom>()
-				};
-			}
-			CampaignTime now = CampaignTime.Now;
-			float num = (float)(now).ToDays;
-			float campaignDays = diplomaticEventsData.CampaignDays;
-			float num2 = num - campaignDays;
-			Dictionary<string, CampaignTime> dictionary = new Dictionary<string, CampaignTime>();
-			if (diplomaticEventsData.StatementSchedules != null)
-			{
-				foreach (KeyValuePair<string, float> statementSchedule in diplomaticEventsData.StatementSchedules)
-				{
-					float num3 = statementSchedule.Value - num2;
-					dictionary[statementSchedule.Key] = CampaignTime.DaysFromNow(num3);
-				}
-			}
-			Dictionary<string, CampaignTime> dictionary2 = new Dictionary<string, CampaignTime>();
-			if (diplomaticEventsData.AnalysisSchedules != null)
-			{
-				foreach (KeyValuePair<string, float> analysisSchedule in diplomaticEventsData.AnalysisSchedules)
-				{
-					float num4 = analysisSchedule.Value - num2;
-					dictionary2[analysisSchedule.Key] = CampaignTime.DaysFromNow(num4);
-				}
-			}
-			Dictionary<string, Queue<(Kingdom, CampaignTime)>> dictionary3 = new Dictionary<string, Queue<(Kingdom, CampaignTime)>>();
-			if (diplomaticEventsData.StatementQueues != null)
-			{
-				foreach (KeyValuePair<string, List<QueuedStatementData>> statementQueue in diplomaticEventsData.StatementQueues)
-				{
-					Queue<(Kingdom, CampaignTime)> queue = new Queue<(Kingdom, CampaignTime)>();
-					foreach (QueuedStatementData item in statementQueue.Value)
-					{
-						Kingdom val = ((IEnumerable<Kingdom>)Kingdom.All).FirstOrDefault((Func<Kingdom, bool>)((Kingdom k) => ((MBObjectBase)k).StringId == item.KingdomId));
-						if (val != null)
-						{
-							float num5 = item.ScheduledTimeDays - num2;
-							CampaignTime item2 = CampaignTime.DaysFromNow(num5);
-							queue.Enqueue((val, item2));
-						}
-					}
-					if (queue.Count > 0)
-					{
-						dictionary3[statementQueue.Key] = queue;
-					}
-				}
-			}
-			Dictionary<string, Kingdom> dictionary4 = new Dictionary<string, Kingdom>();
-			if (diplomaticEventsData.PendingStatements != null)
-			{
-				foreach (KeyValuePair<string, string> pending in diplomaticEventsData.PendingStatements)
-				{
-					Kingdom val2 = ((IEnumerable<Kingdom>)Kingdom.All).FirstOrDefault((Func<Kingdom, bool>)((Kingdom k) => ((MBObjectBase)k).StringId == pending.Value));
-					if (val2 != null)
-					{
-						dictionary4[pending.Key] = val2;
-					}
-				}
-			}
-			LogMessage($"[DIPLOMACY_STORAGE] Loaded {diplomaticEventsData.DiplomaticEvents.Count} diplomatic events from {text}");
-			if (dictionary.Count > 0)
-			{
-				LogMessage($"[DIPLOMACY_STORAGE] Restored {dictionary.Count} statement schedules");
-			}
-			if (dictionary2.Count > 0)
-			{
-				LogMessage($"[DIPLOMACY_STORAGE] Restored {dictionary2.Count} analysis schedules");
-			}
-			if (dictionary3.Count > 0)
-			{
-				LogMessage($"[DIPLOMACY_STORAGE] Restored {dictionary3.Count} statement queues");
-			}
-			return new DiplomaticEventsLoadResult
-			{
-				Events = (diplomaticEventsData.DiplomaticEvents ?? new List<DynamicEvent>()),
-				StatementSchedules = dictionary,
-				AnalysisSchedules = dictionary2,
-				StatementQueues = dictionary3,
-				PendingStatements = dictionary4
-			};
+			DynamicEventsStorage storage = new DynamicEventsStorage();
+			DiplomaticEventsLoadResult diplomaticEventsLoadResult = storage.LoadDiplomaticSliceFromEnvelope(envelope);
+			LogMessage($"[DIPLOMACY_STORAGE] Loaded {diplomaticEventsLoadResult.Events.Count} diplomatic-tagged events from unified storage");
+			return diplomaticEventsLoadResult;
 		}
 		catch (Exception ex)
 		{
 			LogMessage("[DIPLOMACY_STORAGE] Error loading diplomatic events: " + ex.Message + "\n" + ex.StackTrace);
-			return new DiplomaticEventsLoadResult
-			{
-				Events = new List<DynamicEvent>(),
-				StatementSchedules = new Dictionary<string, CampaignTime>(),
-				AnalysisSchedules = new Dictionary<string, CampaignTime>(),
-				StatementQueues = new Dictionary<string, Queue<(Kingdom, CampaignTime)>>(),
-				PendingStatements = new Dictionary<string, Kingdom>()
-			};
+			return EmptyDiplomaticLoadResult();
 		}
+	}
+
+	private static DiplomaticEventsLoadResult EmptyDiplomaticLoadResult()
+	{
+		return new DiplomaticEventsLoadResult
+		{
+			Events = new List<DynamicEvent>(),
+			StatementSchedules = new Dictionary<string, CampaignTime>(),
+			AnalysisSchedules = new Dictionary<string, CampaignTime>(),
+			StatementQueues = new Dictionary<string, Queue<(Kingdom, CampaignTime)>>(),
+			PendingStatements = new Dictionary<string, Kingdom>()
+		};
 	}
 
 	public void SavePendingPlayerStatements(List<DelayedPlayerStatement> statements)

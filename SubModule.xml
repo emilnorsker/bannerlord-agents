@@ -2,7 +2,7 @@
 <Module xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <Name value="AIInfluence" />
     <Id value="AIInfluence" />
-    <Version value="v4.0.2" />
+    <Version value="v5.0.0" />
     <Official value="false" />
     <DefaultModule value="false" />
     <SingleplayerModule value="true" />
