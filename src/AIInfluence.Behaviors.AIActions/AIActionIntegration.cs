@@ -299,9 +299,11 @@ public class AIActionIntegration
 				if (flag2)
 				{
 					text += "### create_party\n";
-					text += "**Purpose**: Form your own party (leave the player's party and act independently).\n";
-					text += "**Usage**: Confirm in dialogue, then set `technical_action: \"create_party\"` or with flags: `create_party:outlaw` / `create_party:normal` (outlaw = BLGM minor clan if bandit culture; normal = always player-clan lord party).\n";
-					text += "**Note**: Bandit-culture companions use the outlaw path by default (minor clan + war on player + nearest realm). Other cultures use a lord party in the player's clan.\n\n";
+					text += "**Purpose**: Leave the player's party; command an independent party on the campaign map.\n";
+					text += "**technical_action**:\n";
+					text += "- `create_party` — If the hero's culture matches a bandit-type culture flag set, the mod uses Bannerlord.GameMaster `ClanGenerator.CreateMinorClan`: new minor clan, lord party, `DeclareWar` on the player's map faction and on the map faction of the nearest non-hideout settlement (bandit factions excluded). Otherwise `CreateNewClanMobileParty` in the player's clan.\n";
+					text += "- `create_party:outlaw` — Force the minor-clan branch when the hero is in the player's clan and other preconditions pass.\n";
+					text += "- `create_party:normal` — Force the player-clan lord party branch.\n\n";
 				}
 				break;
 			case "create_rp_item":
