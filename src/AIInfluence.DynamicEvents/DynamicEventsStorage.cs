@@ -105,7 +105,12 @@ public class DynamicEventsStorage
 			LogMessage($"[DYNAMIC_EVENTS_STORAGE] Unsupported format_version {envelope.FormatVersion} (expected {UnifiedDynamicEventsEnvelope.CurrentFormatVersion}); using empty catalog");
 			return NewEmptyEnvelope();
 		}
-		foreach (DynamicEvent e in envelope.Events.Where(e => e != null))
+		int removedInvalid = envelope.Events.RemoveAll(e => e == null || string.IsNullOrEmpty(e?.Id));
+		if (removedInvalid > 0)
+		{
+			LogMessage($"[DYNAMIC_EVENTS_STORAGE] Removed {removedInvalid} event(s) with null or empty Id from loaded envelope");
+		}
+		foreach (DynamicEvent e in envelope.Events)
 		{
 			if (e.StorageTags == null || !e.StorageTags.Any())
 			{
@@ -209,6 +214,7 @@ public class DynamicEventsStorage
 		Dictionary<string, DynamicEvent> byId = new Dictionary<string, DynamicEvent>();
 		int skippedNullEvents = 0;
 		int skippedEmptyIdEvents = 0;
+		int duplicateEnvelopeIds = 0;
 		foreach (DynamicEvent e in envelope.Events)
 		{
 			if (e == null)
@@ -227,6 +233,10 @@ public class DynamicEventsStorage
 			{
 				continue;
 			}
+			if (byId.ContainsKey(e.Id))
+			{
+				duplicateEnvelopeIds++;
+			}
 			byId[e.Id] = e;
 		}
 		foreach (DynamicEvent d in diplomaticEvents.Where(x => x != null && !string.IsNullOrEmpty(x.Id)))
@@ -242,9 +252,9 @@ public class DynamicEventsStorage
 				byId[d.Id] = d;
 			}
 		}
-		if (skippedNullEvents > 0 || skippedEmptyIdEvents > 0)
+		if (skippedNullEvents > 0 || skippedEmptyIdEvents > 0 || duplicateEnvelopeIds > 0)
 		{
-			LogMessage($"[DYNAMIC_EVENTS_STORAGE] SaveDiplomaticSliceInto: dropped {skippedNullEvents} null event(s) and {skippedEmptyIdEvents} empty-id event(s) from envelope when rebuilding catalog");
+			LogMessage($"[DYNAMIC_EVENTS_STORAGE] SaveDiplomaticSliceInto: dropped {skippedNullEvents} null, {skippedEmptyIdEvents} empty-id; duplicate Ids in envelope (last wins): {duplicateEnvelopeIds}");
 		}
 		envelope.Events = byId.Values.ToList();
 		envelope.StatementSchedules = SerializeStatementSchedules(statementSchedules);

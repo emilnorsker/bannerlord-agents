@@ -67,7 +67,14 @@ public class DynamicEventsLogger
 
 	public void LogEventCreated(DynamicEvent dynamicEvent)
 	{
-		Log("EVENT CREATED: [" + dynamicEvent.Type + "] " + dynamicEvent.Description.Substring(0, Math.Min(100, dynamicEvent.Description.Length)) + "...");
+		if (dynamicEvent == null)
+		{
+			Log("EVENT CREATED: (null event)");
+			return;
+		}
+		string desc = dynamicEvent.Description ?? "";
+		string preview = desc.Length <= 100 ? desc : desc.Substring(0, 100) + "...";
+		Log("EVENT CREATED: [" + dynamicEvent.Type + "] " + preview);
 		Log("  - ID: " + dynamicEvent.Id);
 		Log($"  - Importance: {dynamicEvent.Importance}");
 		Log($"  - Player Involved: {dynamicEvent.PlayerInvolved}");
@@ -86,7 +93,9 @@ public class DynamicEventsLogger
 
 	public void LogEventExpired(string eventId, string description)
 	{
-		Log("EVENT EXPIRED: " + eventId + " - " + description.Substring(0, Math.Min(100, description.Length)) + "...");
+		string desc = description ?? "";
+		string preview = desc.Length <= 100 ? desc : desc.Substring(0, 100) + "...";
+		Log("EVENT EXPIRED: " + eventId + " - " + preview);
 	}
 
 	private string GetKingdomsString(DynamicEvent evt)
