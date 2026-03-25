@@ -223,7 +223,7 @@ public class NpcChatWindowVM : ViewModel
             BuildCharacterHistorySection(context, headerMuted),
             BuildBehaviorSection(context, headerMuted),
             BuildQuestSection(context, headerMuted, questGold),
-            BuildWorldEventsSection(headerMuted),
+            BuildWorldEventsSection(context, headerMuted),
             BuildNpcPartySection(npc)
         };
         foreach (var section in built)
@@ -302,12 +302,12 @@ public class NpcChatWindowVM : ViewModel
         return $"{t} — {d}";
     }
 
-    private InfoSectionVM BuildWorldEventsSection(string headerMuted)
+    private InfoSectionVM BuildWorldEventsSection(NPCContext context, string headerMuted)
     {
         var section = new InfoSectionVM { HeaderText = "World events", HeaderSkillId = DefaultSkills.Scouting.StringId };
         try
         {
-            foreach (var e in WorldEventsReadFacade.GetEventsKnownToNpc(_npc, persistKnowledgeSync: false).OrderByDescending(ev => ev.CreationCampaignDays).Take(5))
+            foreach (var e in WorldEventsReadFacade.GetEventsKnownToNpc(_npc, persistKnowledgeSync: false, syncIntoContext: context).OrderByDescending(ev => ev.CreationCampaignDays).Take(5))
             {
                 string text = FormatWorldEventDisplayText(e);
                 if (string.IsNullOrWhiteSpace(text))
