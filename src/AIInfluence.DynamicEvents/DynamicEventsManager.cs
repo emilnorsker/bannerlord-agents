@@ -60,7 +60,10 @@ public class DynamicEventsManager
 
 	private void PersistCatalog()
 	{
-		_storage.SaveUnifiedEnvelope(_eventEnvelope);
+		if (!_storage.SaveUnifiedEnvelope(_eventEnvelope))
+		{
+			DynamicEventsLogger.Instance.Log("[DYNAMIC_EVENTS] ERROR: SaveUnifiedEnvelope failed — disk catalog may be stale vs memory");
+		}
 	}
 
 	private static void EnsureDynamicStorageTag(DynamicEvent e)

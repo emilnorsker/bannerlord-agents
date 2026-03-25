@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using MCM.Abstractions.Base.Global;
@@ -43,8 +44,9 @@ public class DynamicEventsLogger
 			string contents = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}{Environment.NewLine}";
 			File.AppendAllText(_logFilePath, contents);
 		}
-		catch (Exception)
+		catch (Exception ex)
 		{
+			Debug.WriteLine("[DynamicEventsLogger] Log write failed: " + ex.Message);
 		}
 	}
 
@@ -122,8 +124,9 @@ public class DynamicEventsLogger
 				Log("Log cleared");
 			}
 		}
-		catch (Exception)
+		catch (Exception ex)
 		{
+			Debug.WriteLine("[DynamicEventsLogger] ClearLog failed: " + ex.Message);
 		}
 	}
 }

@@ -351,9 +351,10 @@ public class WorldEventsWindowViewModel : ViewModel
 			string text4 = ((object)new TextObject("{=AIInfluence_MultipleFactions}Multiple factions", (Dictionary<string, object>)null)).ToString();
 			return text + ": " + text4;
 		}
-		if (!string.IsNullOrEmpty(dynamicEvent.Description))
+		string eventDescription = dynamicEvent.Description ?? "";
+		if (!string.IsNullOrEmpty(eventDescription))
 		{
-			string text5 = ((dynamicEvent.Description.Length > 50) ? (dynamicEvent.Description.Substring(0, 50) + "...") : dynamicEvent.Description);
+			string text5 = eventDescription.Length > 50 ? eventDescription.Substring(0, 50) + "..." : eventDescription;
 			return text + ": " + text5;
 		}
 		return text;
