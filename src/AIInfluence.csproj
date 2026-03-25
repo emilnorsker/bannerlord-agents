@@ -14,9 +14,9 @@
 
   <ItemGroup>
     <Reference Include="System.Net.Http" />
-    <!-- Compile against BLGM from the game install (same path as SubModule dependency). Set BANNERLORD_GAME_DIR to your Bannerlord root. -->
+    <!-- BLGM is a SubModule dependency; compile against its DLL under your game folder (GameFolder / BANNERLORD_GAME_DIR from BUTR SDK). -->
     <Reference Include="Bannerlord.GameMaster">
-      <HintPath>$(BANNERLORD_GAME_DIR)Modules\Bannerlord.GameMaster\bin\Win64_Shipping_Client\Bannerlord.GameMaster.dll</HintPath>
+      <HintPath>$(GameFolder)Modules\Bannerlord.GameMaster\bin\Win64_Shipping_Client\Bannerlord.GameMaster.dll</HintPath>
       <Private>false</Private>
     </Reference>
   </ItemGroup>

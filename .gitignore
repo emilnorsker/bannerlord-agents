@@ -5,9 +5,6 @@ logs/
 mod_log.txt
 _game_folder/
 
-# Third-party mod binaries (resolve via BANNERLORD_GAME_DIR / Modules at compile time)
-lib/Bannerlord.GameMaster/
-
 # Legacy TTS / lip-sync (rhubarb) and PCM→OGG stack — removed from OpenRouter-only builds; do not re-commit
 bin/Win64_Shipping_Client/rhubarb.exe
 bin/Win64_Shipping_Client/res/

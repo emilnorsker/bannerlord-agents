@@ -23,6 +23,13 @@ jobs:
       - name: Install tools
         run: sudo apt-get install -y p7zip-full libxml2-utils
 
+      - name: Fetch Bannerlord.GameMaster for compile reference
+        run: |
+          mkdir -p _game_folder/Modules/Bannerlord.GameMaster/bin/Win64_Shipping_Client
+          curl -sL -o /tmp/blgm.zip "https://github.com/SolWayward/Bannerlord.GameMaster/releases/download/v1.3.14.11/Bannerlord.GameMaster-v1.3.14.11.zip"
+          unzip -p /tmp/blgm.zip "Bannerlord.GameMaster/bin/Win64_Shipping_Client/Bannerlord.GameMaster.dll" > _game_folder/Modules/Bannerlord.GameMaster/bin/Win64_Shipping_Client/Bannerlord.GameMaster.dll
+          test -s _game_folder/Modules/Bannerlord.GameMaster/bin/Win64_Shipping_Client/Bannerlord.GameMaster.dll
+
       - name: Restore & build
         run: |
           dotnet restore src/AIInfluence.csproj
