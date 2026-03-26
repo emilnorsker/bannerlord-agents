@@ -391,7 +391,7 @@ public static class PromptGenerator
 		}
 		// Dynamic events: ids in NPCContext.DynamicEvents + DynamicEventsManager spread rules (merged registry). Distinct from RecentEvents (engine log) below.
 		string text21 = "none";
-		List<DynamicEvent> eventsForNPC = DynamicEventsManager.Instance?.GetEventsForNPC(npc, context, persistKnowledgeSync: true) ?? new List<DynamicEvent>();
+		List<DynamicEvent> eventsForNPC = WorldEventsReadFacade.GetEventsKnownToNpcPersisting(npc, context);
 		if (eventsForNPC.Any())
 		{
 			List<string> list3 = (from evt in (from evt in eventsForNPC
