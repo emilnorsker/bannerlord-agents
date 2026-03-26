@@ -1104,6 +1104,13 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
 			return;
 		}
+		if (spawnOutcome.Hero != null && (spawnOutcome.Hero == Hero.MainHero || spawnOutcome.Hero.Clan == Clan.PlayerClan))
+		{
+			LogMessage("[QUEST] spawn_party rejected: hero is main hero or in player clan (use another flow, not spawn_party target lookup)");
+			InformationManager.DisplayMessage(new InformationMessage("Quest spawn failed: invalid target hero", ExtraColors.RedAIInfluence));
+			SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
+			return;
+		}
 		bool targetLookupOnly = !string.IsNullOrWhiteSpace(spawnData.TargetHeroStringId) || !string.IsNullOrWhiteSpace(spawnData.TargetHeroQuery);
 		bool createdNewNamedHero = !string.IsNullOrWhiteSpace(spawnData.Name) && !targetLookupOnly;
 		if (spawnOutcome.Hero != null && spawnOutcome.Party == null && createdNewNamedHero)
