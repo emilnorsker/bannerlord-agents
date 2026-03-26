@@ -690,6 +690,7 @@ public class NpcChatWindowVM : ViewModel
                 {
                     streamingVisibleText = streamingTargetText;
                     ReplaceStreamingSegments(streamingItem, npcName, streamingVisibleText);
+                    streamPumpActive = false;
                 }
                 else // visible == target: animation complete
                 {
@@ -828,7 +829,7 @@ public class NpcChatWindowVM : ViewModel
                             streamPumpActive = true;
                             streamPumpStep();
                         }
-                        if (!streamPumpActive)
+                        if (!streamPumpActive && finalizeNpcMessage != null)
                         {
                             finalizeNpcMessage = null;
                             doFinalize();
