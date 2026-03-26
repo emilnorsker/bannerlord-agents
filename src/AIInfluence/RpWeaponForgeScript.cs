@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Collections.Generic;
 using AIInfluence.Behaviors.RolePlay;
 using Bannerlord.GameMaster.Items;
 using TaleWorlds.CampaignSystem;
@@ -13,6 +14,23 @@ namespace AIInfluence;
 
 public static class RpWeaponForgeScript
 {
+	private static bool ModifierAllowedOn(ItemObject template, ItemModifier m)
+	{
+		if (m == null || template == null)
+			return true;
+		MethodInfo x = typeof(ItemObject).GetMethod("IsValidModifier", BindingFlags.Instance | BindingFlags.Public);
+		object r = x?.Invoke(template, new object[] { m });
+		return r is bool ok ? ok : true;
+	}
+
+	private static string ValidModifierHint(ItemObject t)
+	{
+		if (t == null)
+			return "";
+		IEnumerable<string> names = ItemModifierHelper.GetAllModifiers().Where(m => ModifierAllowedOn(t, m)).Take(24).Select(m => m.Name.ToString());
+		return " Retry with one of these modifier names for this template: " + string.Join(", ", names) + ".";
+	}
+
 	public static ItemObject RestoreForgedWeaponFromRpData(RPItemData d)
 	{
 		ItemObject t = MBObjectManager.Instance.GetObject<ItemObject>(d.BaseItemId);
@@ -31,9 +49,11 @@ public static class RpWeaponForgeScript
 		ItemObject t = ItemQueries.QueryItems(query, types, true, tier, culture ?? "", false, "tier", true).FirstOrDefault(i => i.WeaponComponent != null) ?? throw new InvalidOperationException("no weapon match for " + displayName);
 		(ItemModifier m, string err) = ItemModifierHelper.ParseModifier(modToken);
 		if (err != null)
-			throw new InvalidOperationException(err);
+			throw new InvalidOperationException(err + (err.IndexOf("Did you mean", StringComparison.OrdinalIgnoreCase) >= 0 ? "" : ValidModifierHint(t)));
 		if (m != null && !ItemModifierHelper.CanHaveModifier(t))
 			throw new InvalidOperationException(t.Name + " cannot have quality modifiers.");
+		if (m != null && !ModifierAllowedOn(t, m))
+			throw new InvalidOperationException("That modifier cannot be applied to this weapon." + ValidModifierHint(t));
 		ItemObject w = (ItemObject)typeof(object).GetMethod("MemberwiseClone", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(t, null);
 		string id = "rp_w_" + Guid.NewGuid().ToString("N").Substring(0, 8);
 		((MBObjectBase)w).StringId = id;
