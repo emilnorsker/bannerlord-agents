@@ -1052,6 +1052,29 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	}
 
 	/// <summary>
+	/// Removes a BLGM-created quest hero that would otherwise leak; logs success or full exception (no silent catch).
+	/// </summary>
+	private void TryRemoveOrphanQuestSpawnHero(Hero hero, string reason)
+	{
+		if (hero == null || hero.IsDead)
+			return;
+		if (hero == Hero.MainHero)
+		{
+			LogMessage("[QUEST] Orphan cleanup skipped: hero is MainHero. " + reason);
+			return;
+		}
+		try
+		{
+			KillCharacterAction.ApplyByRemove(hero, showNotification: false, isForced: true);
+			LogMessage("[QUEST] Removed orphan quest spawn hero " + ((MBObjectBase)hero).StringId + " via KillCharacterAction.ApplyByRemove. " + reason);
+		}
+		catch (Exception ex)
+		{
+			LogMessage("[QUEST] Failed to remove orphan quest spawn hero " + ((MBObjectBase)hero).StringId + ": " + ex.Message + "\n" + ex.StackTrace);
+		}
+	}
+
+	/// <summary>
 	/// Runs quest_action.spawn_party via QuestPartyBlgmKernel (BLGM). Caller must ensure BLGM campaign is loaded.
 	/// </summary>
 	private void TrySpawnPartyFromQuestAction(QuestActionData questAction, AIQuestInfo questInfo, Hero npc, NPCContext context, bool skipIfAlreadySpawned)
@@ -1078,6 +1101,16 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			LogMessage("[QUEST] spawn_party failed: " + r.Err);
 			InformationManager.DisplayMessage(new InformationMessage("Quest spawn failed: " + r.Err, ExtraColors.RedAIInfluence));
+			SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
+			return;
+		}
+		bool targetLookupOnly = !string.IsNullOrWhiteSpace(spawnData.TargetHeroStringId) || !string.IsNullOrWhiteSpace(spawnData.TargetHeroQuery);
+		bool createdNewNamedHero = !string.IsNullOrWhiteSpace(spawnData.Name) && !targetLookupOnly;
+		if (r.Hero != null && r.Party == null && createdNewNamedHero)
+		{
+			TryRemoveOrphanQuestSpawnHero(r.Hero, "Inconsistent BLGM result: new named hero but no party.");
+			LogMessage("[QUEST] spawn_party failed: hero without party after create");
+			InformationManager.DisplayMessage(new InformationMessage("Quest spawn failed: inconsistent hero spawn", ExtraColors.RedAIInfluence));
 			SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
 			return;
 		}
