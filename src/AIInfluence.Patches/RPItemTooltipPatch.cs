@@ -7,6 +7,7 @@ using TaleWorlds.Core;
 using TaleWorlds.Core.ViewModelCollection;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
+using TaleWorlds.ObjectSystem;
 
 namespace AIInfluence.Patches;
 
@@ -22,11 +23,13 @@ public static class RPItemTooltipPatch
 		try
 		{
 			EquipmentElement equipmentElement = ((ItemVM)item).ItemRosterElement.EquipmentElement;
-			if ((int)(equipmentElement).Item.ItemType != 22 || !((equipmentElement).Item.ItemComponent is RPItemComponent rPItemComponent) || !(rPItemComponent.Description != (TextObject)null) || string.IsNullOrEmpty(((object)rPItemComponent.Description).ToString()))
-			{
+			string text = null;
+			if (RPItemManager.Instance?.GetItemData(((MBObjectBase)equipmentElement.Item).StringId) is RPItemData rd && !string.IsNullOrEmpty(rd.Description))
+				text = rd.Description;
+			else if ((int)equipmentElement.Item.ItemType == 22 && equipmentElement.Item.ItemComponent is RPItemComponent rPItemComponent && rPItemComponent.Description != null && !string.IsNullOrEmpty(((object)rPItemComponent.Description).ToString()))
+				text = ((object)rPItemComponent.Description).ToString();
+			if (string.IsNullOrEmpty(text))
 				return;
-			}
-			string text = ((object)rPItemComponent.Description).ToString();
 			MethodInfo method = typeof(ItemMenuVM).GetMethod("CreateProperty", BindingFlags.Instance | BindingFlags.NonPublic);
 			if (method != null)
 			{
