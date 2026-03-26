@@ -271,7 +271,7 @@
 |-------|--------|------|---------------------|
 | I-01 | agent | 2026-03-26 | `PlotInstancePersistenceTests` (3 tests), `IntrigueStoreTests` (6 tests), `SyncData` wiring, MCM debug button |
 | I-02 | agent | 2026-03-26 | `RuntimeSecretStoreTests` (3 tests), `SecretResolverTests` (4 tests), `IntrigueStoreSecretsTests` (1 test), `PromptGenerator` resolver wiring |
-| I-03 | | | |
+| I-03 | agent | 2026-03-26 | `EventDiaryTests` (7), `PatternMatcherTests` (11), `EpisodeTests` (4), `PlotTemplateTests` (3), `StepExecutorTests` (7), `PatternLibraryTests` (4), `IntrigueStoreDiaryTests` (1) |
 | I-04 | | | |
 | I-05 | | | |
 | I-06 | | | |
