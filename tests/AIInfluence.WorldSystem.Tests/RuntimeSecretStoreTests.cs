@@ -54,4 +54,14 @@ public class RuntimeSecretStoreTests
         Assert.That(restored.GetById("s1"), Is.Not.Null);
         Assert.That(restored.GetById("s1").Description, Is.EqualTo("desc1"));
     }
+
+    [Test]
+    public void Add_DuplicateId_Throws()
+    {
+        var store = new RuntimeSecretStore();
+        store.Add(new RuntimeSecretRecord { Id = "s1", Description = "d", AccessLevel = "a", Status = "active" });
+
+        Assert.Throws<System.ArgumentException>(() =>
+            store.Add(new RuntimeSecretRecord { Id = "s1", Description = "d2", AccessLevel = "a", Status = "active" }));
+    }
 }

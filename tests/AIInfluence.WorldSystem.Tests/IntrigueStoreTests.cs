@@ -74,6 +74,15 @@ public class IntrigueStoreTests
         Assert.That(IntrigueStore.Deserialize("").GetAllPlots(), Is.Empty);
     }
 
+    [Test]
+    public void AddPlot_DuplicateId_Throws()
+    {
+        var store = new IntrigueStore();
+        store.AddPlot(MakePlot("p1"));
+
+        Assert.Throws<System.ArgumentException>(() => store.AddPlot(MakePlot("p1")));
+    }
+
     private static PlotInstance MakePlot(string id)
     {
         return new PlotInstance

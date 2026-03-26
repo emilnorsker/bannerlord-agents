@@ -8,21 +8,35 @@ public class StepExecutor
     private readonly IntrigueStore _store;
     private readonly EventDiary _diary;
     private readonly Func<string, bool> _requiresPredicate;
+    private readonly BeliefService _beliefService;
 
     public StepExecutor(IntrigueStore store, EventDiary diary)
-        : this(store, diary, _ => true) { }
+        : this(store, diary, _ => true, null) { }
 
     public StepExecutor(IntrigueStore store, EventDiary diary, Func<string, bool> requiresPredicate)
+        : this(store, diary, requiresPredicate, null) { }
+
+    public StepExecutor(IntrigueStore store, EventDiary diary, Func<string, bool> requiresPredicate, BeliefService beliefService)
     {
         _store = store;
         _diary = diary;
         _requiresPredicate = requiresPredicate;
+        _beliefService = beliefService;
     }
 
     public StepExecutionResult Execute(PlotStep step, string plotId, string correlationId)
     {
         var plot = _store.GetPlotById(plotId);
-        if (plot != null && plot.CompletedStepIds.Contains(step.StepId))
+        if (plot == null)
+        {
+            return new StepExecutionResult
+            {
+                Success = false,
+                Reason = $"Plot '{plotId}' not found in intrigue store."
+            };
+        }
+
+        if (plot.CompletedStepIds.Contains(step.StepId))
         {
             return new StepExecutionResult
             {
@@ -48,10 +62,7 @@ public class StepExecutor
             ApplyEffect(effect, plotId, step.StepId, correlationId);
         }
 
-        if (plot != null)
-        {
-            plot.CompletedStepIds.Add(step.StepId);
-        }
+        plot.CompletedStepIds.Add(step.StepId);
 
         return new StepExecutionResult { Success = true };
     }
@@ -70,6 +81,7 @@ public class StepExecutor
                 AdvancePlotPhase(effect, plotId);
                 break;
             case PlotEffectType.PropagateKnowledge:
+                PropagateKnowledge(effect);
                 break;
             case PlotEffectType.EmitDynamicEvent:
                 EmitPlotPoint(effect, plotId, correlationId);
@@ -113,5 +125,25 @@ public class StepExecutor
         {
             plot.Phase = effect.TargetId;
         }
+    }
+
+    private void PropagateKnowledge(PlotEffect effect)
+    {
+        if (_beliefService == null)
+            return;
+
+        var sourceHero = effect.Parameters != null && effect.Parameters.ContainsKey("source_hero")
+            ? effect.Parameters["source_hero"] : null;
+        var targetHero = effect.Parameters != null && effect.Parameters.ContainsKey("target_hero")
+            ? effect.Parameters["target_hero"] : null;
+
+        if (sourceHero == null || targetHero == null)
+            return;
+
+        var confidence = 0.8;
+        if (effect.Parameters.ContainsKey("confidence") && double.TryParse(effect.Parameters["confidence"], out var parsed))
+            confidence = parsed;
+
+        _beliefService.Propagate(effect.TargetId, sourceHero, targetHero, confidence);
     }
 }

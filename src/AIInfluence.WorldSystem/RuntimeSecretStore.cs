@@ -12,6 +12,8 @@ public class RuntimeSecretStore
 
     public void Add(RuntimeSecretRecord secret)
     {
+        if (_secrets.Any(s => s.Id == secret.Id))
+            throw new System.ArgumentException($"Runtime secret with id '{secret.Id}' already exists.");
         _secrets.Add(secret);
     }
 

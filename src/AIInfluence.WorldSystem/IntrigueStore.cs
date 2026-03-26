@@ -32,6 +32,8 @@ public class IntrigueStore
 
     public void AddPlot(PlotInstance plot)
     {
+        if (_plots.Any(p => p.Id == plot.Id))
+            throw new System.ArgumentException($"Plot with id '{plot.Id}' already exists.");
         _plots.Add(plot);
     }
 

@@ -8,9 +8,32 @@ namespace AIInfluence.WorldSystem.Tests;
 public class StepExecutorTests
 {
     [Test]
+    public void Execute_MissingPlot_Rejected()
+    {
+        var store = new IntrigueStore();
+        var diary = new EventDiary();
+        var executor = new StepExecutor(store, diary);
+
+        var step = new PlotStep
+        {
+            StepId = "step_x",
+            Effects = new List<PlotEffect>
+            {
+                new PlotEffect { EffectType = PlotEffectType.EmitPlotPoint, TargetId = "pp_x" }
+            }
+        };
+
+        var result = executor.Execute(step, "nonexistent", "corr_01");
+        Assert.That(result.Success, Is.False);
+        Assert.That(result.Reason, Does.Contain("not found"));
+        Assert.That(diary.GetAll(), Is.Empty);
+    }
+
+    [Test]
     public void Execute_EmitSecret_AddsToRuntimeStore()
     {
         var store = new IntrigueStore();
+        AddTestPlot(store, "plot_01");
         var diary = new EventDiary();
         var executor = new StepExecutor(store, diary);
 
@@ -44,6 +67,7 @@ public class StepExecutorTests
     public void Execute_EmitPlotPoint_AppendsToDiary()
     {
         var store = new IntrigueStore();
+        AddTestPlot(store, "plot_01");
         var diary = new EventDiary();
         var executor = new StepExecutor(store, diary);
 
@@ -108,6 +132,7 @@ public class StepExecutorTests
     public void Execute_FailedRequires_WritesNothing()
     {
         var store = new IntrigueStore();
+        AddTestPlot(store, "plot_01");
         var diary = new EventDiary();
         var predicates = new Dictionary<string, bool> { ["hero_alive:lord_a"] = false };
         var executor = new StepExecutor(store, diary, pred => predicates.ContainsKey(pred) && predicates[pred]);
@@ -231,5 +256,52 @@ public class StepExecutorTests
         Assert.That(diary.GetAll(), Has.Count.EqualTo(1));
         Assert.That(store.RuntimeSecrets.GetById("secret_b"), Is.Not.Null);
         Assert.That(store.GetPlotById("plot_01").Phase, Is.EqualTo("phase_2"));
+    }
+
+    [Test]
+    public void Execute_PropagateKnowledge_UpdatesBeliefService()
+    {
+        var store = new IntrigueStore();
+        AddTestPlot(store, "plot_01");
+        var diary = new EventDiary();
+        var beliefs = new BeliefService();
+        var executor = new StepExecutor(store, diary, _ => true, beliefs);
+
+        var step = new PlotStep
+        {
+            StepId = "step_propagate",
+            Effects = new List<PlotEffect>
+            {
+                new PlotEffect
+                {
+                    EffectType = PlotEffectType.PropagateKnowledge,
+                    TargetId = "secret_01",
+                    Parameters = new Dictionary<string, string>
+                    {
+                        ["source_hero"] = "lord_a",
+                        ["target_hero"] = "lord_b",
+                        ["confidence"] = "0.9"
+                    }
+                }
+            }
+        };
+
+        var result = executor.Execute(step, "plot_01", "corr_01");
+
+        Assert.That(result.Success, Is.True);
+        Assert.That(beliefs.GetConfidence("secret_01", "lord_b", "lord_b"), Is.EqualTo(0.9).Within(0.001));
+        Assert.That(beliefs.GetConfidence("secret_01", "lord_a", "lord_b"), Is.EqualTo(0.9).Within(0.001));
+    }
+
+    private static void AddTestPlot(IntrigueStore store, string plotId)
+    {
+        store.AddPlot(new PlotInstance
+        {
+            Id = plotId,
+            TemplateId = "tmpl_test",
+            Status = PlotStatus.Active,
+            Phase = "init",
+            StartedCampaignDay = 1
+        });
     }
 }
