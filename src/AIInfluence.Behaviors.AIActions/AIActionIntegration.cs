@@ -854,8 +854,8 @@ public class AIActionIntegration
 
 	private static void ApplyCreatePartyParameter(string parameter)
 	{
-		CreatePartyAction.NextForceOutlawBlgm = false;
-		CreatePartyAction.NextSkipOutlawBlgm = false;
+		CreatePartyAction.PendingOutlawMinorClanOverride = false;
+		CreatePartyAction.PendingPlayerClanLordPartyOverride = false;
 		if (string.IsNullOrWhiteSpace(parameter))
 			return;
 		foreach (string raw in parameter.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
@@ -864,24 +864,24 @@ public class AIActionIntegration
 			if (t.Length == 0)
 				continue;
 			if (t.Equals("outlaw", StringComparison.OrdinalIgnoreCase) || t.Equals("bandit", StringComparison.OrdinalIgnoreCase))
-				CreatePartyAction.NextForceOutlawBlgm = true;
+				CreatePartyAction.PendingOutlawMinorClanOverride = true;
 			else if (t.StartsWith("outlaw:", StringComparison.OrdinalIgnoreCase) || t.StartsWith("bandit:", StringComparison.OrdinalIgnoreCase))
 			{
 				string[] kv = t.Split(new[] { ':' }, 2);
 				if (kv.Length > 1 && (kv[1].Trim().Equals("true", StringComparison.OrdinalIgnoreCase) || kv[1].Trim() == "1"))
-					CreatePartyAction.NextForceOutlawBlgm = true;
+					CreatePartyAction.PendingOutlawMinorClanOverride = true;
 			}
 			else if (t.Equals("normal", StringComparison.OrdinalIgnoreCase))
-				CreatePartyAction.NextSkipOutlawBlgm = true;
+				CreatePartyAction.PendingPlayerClanLordPartyOverride = true;
 			else if (t.StartsWith("normal:", StringComparison.OrdinalIgnoreCase))
 			{
 				string[] kv2 = t.Split(new[] { ':' }, 2);
 				if (kv2.Length > 1 && (kv2[1].Trim().Equals("true", StringComparison.OrdinalIgnoreCase) || kv2[1].Trim() == "1"))
-					CreatePartyAction.NextSkipOutlawBlgm = true;
+					CreatePartyAction.PendingPlayerClanLordPartyOverride = true;
 			}
 		}
-		if (CreatePartyAction.NextSkipOutlawBlgm)
-			CreatePartyAction.NextForceOutlawBlgm = false;
+		if (CreatePartyAction.PendingPlayerClanLordPartyOverride)
+			CreatePartyAction.PendingOutlawMinorClanOverride = false;
 	}
 
 	private void LogMessage(string message)

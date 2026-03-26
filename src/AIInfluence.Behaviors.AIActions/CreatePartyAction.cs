@@ -14,9 +14,11 @@ namespace AIInfluence.Behaviors.AIActions;
 
 public sealed class CreatePartyAction : AIActionBase
 {
-	public static bool NextForceOutlawBlgm { get; set; }
+	/// <summary>Next <see cref="OnStart"/>: use BLGM outlaw minor-clan path even when culture would not normally choose it.</summary>
+	public static bool PendingOutlawMinorClanOverride { get; set; }
 
-	public static bool NextSkipOutlawBlgm { get; set; }
+	/// <summary>Next <see cref="OnStart"/>: skip outlaw path; create a normal player-clan lord party.</summary>
+	public static bool PendingPlayerClanLordPartyOverride { get; set; }
 
 	private bool _partyCreated;
 
@@ -57,10 +59,10 @@ public sealed class CreatePartyAction : AIActionBase
 
 	protected override void OnStart()
 	{
-		bool forceOutlaw = NextForceOutlawBlgm;
-		bool skipOutlaw = NextSkipOutlawBlgm;
-		NextForceOutlawBlgm = false;
-		NextSkipOutlawBlgm = false;
+		bool forceOutlaw = PendingOutlawMinorClanOverride;
+		bool skipOutlaw = PendingPlayerClanLordPartyOverride;
+		PendingOutlawMinorClanOverride = false;
+		PendingPlayerClanLordPartyOverride = false;
 		//IL_003f: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0046: Expected O, but got Unknown
 		//IL_011c: Unknown result type (might be due to invalid IL or missing references)
