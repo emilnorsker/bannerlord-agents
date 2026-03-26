@@ -303,15 +303,35 @@ public static class ToolHandlers
 	{
 		JObject parsedArgs = ParseOrEmpty(argsJson);
 		JToken questToken = parsedArgs["quest"];
-		if (questToken == null) return "ok";
-		QuestActionData questAction = JsonConvert.DeserializeObject<QuestActionData>(questToken.ToString());
-		if (questAction != null)
+		if (questToken == null)
 		{
-			questAction.Category = parsedArgs["category"]?.ToString();
-			context.PendingQuestActionFromTools = questAction;
-			if (!string.IsNullOrEmpty(questAction.Action))
-				context.AppendToolPill("Quest: " + questAction.Action, ChatToolPillBuilder.QuestActionColor);
+			behavior?.LogMessage("[QUEST_TOOL] quest_action called without quest parameter");
+			return "error: missing quest parameter";
 		}
+		QuestActionData questAction;
+		try
+		{
+			questAction = JsonConvert.DeserializeObject<QuestActionData>(questToken.ToString());
+		}
+		catch (JsonException deserializeException)
+		{
+			behavior?.LogMessage("[QUEST_TOOL] Failed to deserialize quest object: " + deserializeException.Message);
+			return "error: invalid quest JSON";
+		}
+		if (questAction == null)
+		{
+			behavior?.LogMessage("[QUEST_TOOL] quest object deserialized to null");
+			return "error: quest was null";
+		}
+		if (string.IsNullOrEmpty(questAction.Action))
+		{
+			behavior?.LogMessage("[QUEST_TOOL] quest_action called without action field");
+			return "error: missing action field in quest (use create_quest, update_quest, complete_quest, or fail_quest)";
+		}
+		questAction.Category = parsedArgs["category"]?.ToString();
+		context.PendingQuestActionFromTools = questAction;
+		context.AppendToolPill("Quest: " + questAction.Action, ChatToolPillBuilder.QuestActionColor);
+		behavior?.LogMessage("[QUEST_TOOL] Staged " + questAction.Action + " (title: " + (questAction.Title ?? "n/a") + ")");
 		return "ok";
 	}
 

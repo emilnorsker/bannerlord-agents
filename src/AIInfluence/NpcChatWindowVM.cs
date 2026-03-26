@@ -844,10 +844,10 @@ public class NpcChatWindowVM : ViewModel
             }
             else
             {
-                AIInfluenceBehavior.Instance?.ApplyPendingQuestActionFromTools(_npc, ctx);
-                AIInfluenceBehavior.Instance?.ApplyPendingKingdomActionFromTools(_npc, ctx);
                 MainThreadDispatcher.Queue.Enqueue(() =>
                 {
+                    AIInfluenceBehavior.Instance?.ApplyPendingQuestActionFromTools(_npc, ctx);
+                    AIInfluenceBehavior.Instance?.ApplyPendingKingdomActionFromTools(_npc, ctx);
                     if (streamingItem != null)
                     {
                         streamingRetired = true;

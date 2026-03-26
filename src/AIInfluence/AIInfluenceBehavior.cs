@@ -900,13 +900,14 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			return;
 		QuestActionData questData = context.PendingQuestActionFromTools;
 		context.PendingQuestActionFromTools = null;
+		LogMessage("[QUEST] ApplyPendingQuestActionFromTools: action=" + (questData.Action ?? "(null)") + ", title=" + (questData.Title ?? "(null)"));
 		try
 		{
 			ProcessQuestAction(npc, context, questData);
 		}
 		catch (Exception ex)
 		{
-			LogMessage("[ERROR] Chat quest action failed: " + ex.Message);
+			LogMessage("[ERROR] Chat quest action failed: " + ex.Message + "\n" + ex.StackTrace);
 		}
 	}
 
@@ -969,6 +970,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		//IL_0189: Unknown result type (might be due to invalid IL or missing references)
 		//IL_018e: Unknown result type (might be due to invalid IL or missing references)
 		string text = ((npc == null) ? null : ((object)npc.Name)?.ToString()) ?? "Unknown";
+		LogMessage($"[QUEST] ProcessCreateQuest from {text}: title={questAction.Title ?? "(null)"}, description={(questAction.Description != null ? questAction.Description.Length + " chars" : "(null)")}, reward={questAction.RewardGold}, duration={questAction.DurationDays}d");
 		if (string.IsNullOrEmpty(questAction.Title) || string.IsNullOrEmpty(questAction.Description))
 		{
 			LogMessage("[QUEST] Quest from " + text + " has no title or description, ignoring");
