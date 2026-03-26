@@ -5552,7 +5552,9 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					catch (Exception ex)
 					{
 						LogMessage("[ERROR] Failed to deserialize NPC contexts from game save. stage=" + syncStage + ", payloadLength=" + (_npcContextsJson?.Length ?? 0) + ". " + ex);
-						throw;
+						_npcContexts = new Dictionary<string, NPCContext>();
+						_npcContextsJson = null;
+						LogMessage("[ERROR] Recovering load with empty NPC context state to keep save loadable.");
 					}
 				}
 				if (_followingHeroIds == null)
@@ -5595,7 +5597,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			LogMessage("[ERROR] SyncData failed at stage=" + syncStage + ". followingHeroIdsCount=" + (_followingHeroIds?.Count ?? 0) + ", aiActionStateLength=" + (_serializedActionState?.Length ?? 0) + ", npcPayloadLength=" + (_npcContextsJson?.Length ?? 0) + ". " + ex);
 			if (dataStore.IsLoading)
 			{
-				LogMessage("[ERROR] SyncData load failed at stage=" + syncStage + "; not applying default state (v5.0.0).");
+				_followingHeroIds ??= new List<string>();
+				_npcContexts ??= new Dictionary<string, NPCContext>();
+				_npcContextsJson = null;
+				LogMessage("[ERROR] Recovering SyncData load failure with default AIInfluence state.");
+				return;
 			}
 			throw;
 		}
