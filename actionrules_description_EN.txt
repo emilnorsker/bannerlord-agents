@@ -176,6 +176,15 @@ NPCs can combine actions with commas, creating a sequence of tasks that will be 
 **Important**: The item is automatically given to the player upon creation. Before creating an item, check the player's inventory to verify they don't already have an item with the same name or description. Creating duplicate items is forbidden.
 
 
+5.3. create_rp_weapon
+---------------------
+**What it does**: Resolves `query` to a weapon, adds one copy to the NPC party inventory, optionally transfers one copy to the player when `give_to_player` is true.
+**When used**: When the narrative is a forged or commissioned equippable weapon; use `create_rp_item` for non-weapon narrative props.
+**Preconditions**: The NPC is in a party with an item roster; the tool is available in the current mod load order.
+**Parameters**: `query` (text to select a weapon), `display_name` (shown name), `give_to_player` (boolean), optional `description` (stored with the item), optional `item_types` (default `Weapon`), optional `culture` (plain name or phrase, fuzzy-matched; empty for any), optional `tier` (0–6: below 3 substandard for military use, 3–4 standard, 5 exceptional, 6 mythic), optional `modifier` (quality label or empty).
+**Roleplay**: The tool only creates the item; agree payment, materials, or quest hooks in dialogue first when appropriate; use `transfer_money` / `transfer_items` if resources change hands in the same turn.
+
+
 6. DIPLOMATIC ACTIONS (kingdom_action)
 ======================================
 
@@ -499,6 +508,19 @@ If NPC creates duplicate items or uses create_rp_item incorrectly:
 - For voluntary handoffs of narrative-only objects, use create_rp_item (not item_transfers). For contested taking of items that exist in the NPC's inventory (real item IDs), use item_transfers + opposed attribute, not create_rp_item.
 
 - NPC should verify the item name and description are appropriate and match what they're actually giving to the player in the dialogue.
+```
+
+
+9.12. Rules for create_rp_weapon
+--------------------------------
+```
+- NPC should use `create_rp_weapon` when the outcome is an equippable weapon. NPC should use `create_rp_item` for narrative-only props (letters, packages, trophies that are not weapons).
+
+- NPC should set `give_to_player` to true when the player receives the weapon in the scene; false when it remains only in the NPC party inventory.
+
+- NPC should pass `query` text that describes the weapon to create. Optional `item_types`, `culture`, `tier`, and `modifier` narrow the match; empty `modifier` means no quality modifier.
+
+- NPC should not call `create_rp_weapon` if the NPC has no party item roster or the tool is not listed as available for this session.
 ```
 
 

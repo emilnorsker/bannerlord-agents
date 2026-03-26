@@ -53,17 +53,23 @@ public static class RpWeaponForgeScript
 		return w;
 	}
 
-	public static void ForgeToNpcBag(Hero npc, string query, ItemTypes types, string culture, int tier, string modToken, string displayName, string description = null)
+	/// <summary>Adds the forged weapon to the NPC party roster and returns it. Caller may transfer to the player.</summary>
+	public static ItemObject ForgeToNpcBag(Hero npc, string query, ItemTypes types, string culture, int tier, string modToken, string displayName, string description = null)
 	{
 		ItemRoster bag = npc?.PartyBelongedTo?.ItemRoster ?? throw new InvalidOperationException((((object)npc?.Name)?.ToString() ?? "NPC") + " does not belong to a party.");
 		ItemObject t = ItemQueries.QueryItems(query, types, true, tier, culture ?? "", false, "tier", true).FirstOrDefault(i => i.WeaponComponent != null) ?? throw new InvalidOperationException("no weapon match for " + displayName);
-		(ItemModifier m, string err) = ItemModifierHelper.ParseModifier(modToken);
-		if (err != null)
-			throw new InvalidOperationException(err + (err.IndexOf("Did you mean", StringComparison.OrdinalIgnoreCase) >= 0 ? "" : ValidModifierHint(t)));
-		if (m != null && !ItemModifierHelper.CanHaveModifier(t))
-			throw new InvalidOperationException(t.Name + " cannot have quality modifiers.");
-		if (m != null && !ModifierAllowedOn(t, m))
-			throw new InvalidOperationException("That modifier cannot be applied to this weapon." + ValidModifierHint(t));
+		ItemModifier m = null;
+		if (!string.IsNullOrWhiteSpace(modToken))
+		{
+			(ItemModifier pm, string err) = ItemModifierHelper.ParseModifier(modToken);
+			if (err != null)
+				throw new InvalidOperationException(err + (err.IndexOf("Did you mean", StringComparison.OrdinalIgnoreCase) >= 0 ? "" : ValidModifierHint(t)));
+			if (!ItemModifierHelper.CanHaveModifier(t))
+				throw new InvalidOperationException(t.Name + " cannot have quality modifiers.");
+			if (!ModifierAllowedOn(t, pm))
+				throw new InvalidOperationException("That modifier cannot be applied to this weapon." + ValidModifierHint(t));
+			m = pm;
+		}
 		// Shallow clone: native item templates treat WeaponComponent as immutable after init.
 		ItemObject w = (ItemObject)typeof(object).GetMethod("MemberwiseClone", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(t, null);
 		string id = "rp_w_" + Guid.NewGuid().ToString("N").Substring(0, 8);
@@ -73,5 +79,6 @@ public static class RpWeaponForgeScript
 			throw new InvalidOperationException("weapon id collision: " + id);
 		RPItemManager.Instance.RegisterForgedWeapon(w, ((MBObjectBase)t).StringId, displayName, description, ((MBObjectBase)npc).StringId, m, ((MBObjectBase)npc).StringId);
 		bag.AddToCounts(new EquipmentElement(w, m), 1);
+		return w;
 	}
 }

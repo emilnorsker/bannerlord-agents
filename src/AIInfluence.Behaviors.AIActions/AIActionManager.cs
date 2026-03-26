@@ -61,7 +61,7 @@ public class AIActionManager
 
 	private HashSet<Hero> _heroesWithFollowActionHistory;
 
-	private static readonly HashSet<string> _nonPersistentActions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "create_party" };
+	private static readonly HashSet<string> _nonPersistentActions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "create_party", "create_rp_weapon" };
 
 	private float _settlementEntryCheckTimer = 0f;
 
@@ -142,6 +142,7 @@ public class AIActionManager
 		RegisterAction<WaitNearSettlementAction>();
 		RegisterAction<RaidVillageAction>();
 		RegisterAction<CreateRPItemAction>();
+		RegisterAction<CreateRPWeaponAction>();
 		RegisterAction<TransferTroopsAndPrisonersAction>();
 	}
 

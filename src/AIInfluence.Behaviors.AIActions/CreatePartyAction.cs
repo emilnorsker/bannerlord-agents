@@ -1,8 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using AIInfluence;
 using AIInfluence.Util;
+using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Party;
+using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
 
@@ -32,16 +36,16 @@ public sealed class CreatePartyAction : AIActionBase
 		}
 		if (base.TargetHero.Clan != Clan.PlayerClan)
 		{
-			TextObject val = new TextObject("{=AIAction_CreatePartyNotClan}{HERO_NAME} cannot create a party - not a member of your clan.", (Dictionary<string, object>)null);
-			val.SetTextVariable("HERO_NAME", base.TargetHero.Name);
-			ShowErrorMessage(val);
+			TextObject notInClanMessage = new TextObject("{=AIAction_CreatePartyNotClan}{HERO_NAME} cannot create a party - not a member of your clan.", (Dictionary<string, object>)null);
+			notInClanMessage.SetTextVariable("HERO_NAME", base.TargetHero.Name);
+			ShowErrorMessage(notInClanMessage);
 			return false;
 		}
 		if (base.TargetHero.PartyBelongedTo != null && base.TargetHero.PartyBelongedTo != MobileParty.MainParty)
 		{
-			TextObject val2 = new TextObject("{=AIAction_CreatePartyAlreadyHas}{HERO_NAME} cannot create a party - already commands their own party.", (Dictionary<string, object>)null);
-			val2.SetTextVariable("HERO_NAME", base.TargetHero.Name);
-			ShowErrorMessage(val2);
+			TextObject alreadyCommandsPartyMessage = new TextObject("{=AIAction_CreatePartyAlreadyHas}{HERO_NAME} cannot create a party - already commands their own party.", (Dictionary<string, object>)null);
+			alreadyCommandsPartyMessage.SetTextVariable("HERO_NAME", base.TargetHero.Name);
+			ShowErrorMessage(alreadyCommandsPartyMessage);
 			return false;
 		}
 		return true;
@@ -49,6 +53,10 @@ public sealed class CreatePartyAction : AIActionBase
 
 	protected override void OnStart()
 	{
+		NPCContext ctx = AIInfluenceBehavior.Instance?.GetOrCreateNPCContext(base.TargetHero);
+		bool forceOutlaw = ctx?.PendingCreatePartyForceOutlaw == true;
+		if (ctx != null)
+			ctx.PendingCreatePartyForceOutlaw = null;
 		//IL_003f: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0046: Expected O, but got Unknown
 		//IL_011c: Unknown result type (might be due to invalid IL or missing references)
@@ -65,20 +73,93 @@ public sealed class CreatePartyAction : AIActionBase
 			Stop();
 			return;
 		}
-		MobileParty val = GameVersionCompatibility.CreateNewClanMobileParty(base.TargetHero, Clan.PlayerClan);
-		if (val == null)
+		if (BlgmOutlawPath.Use(base.TargetHero, forceOutlaw))
 		{
-			TextObject val2 = new TextObject("{=AIAction_CreatePartyFailed}{HERO_NAME} failed to create a party.", (Dictionary<string, object>)null);
+			Settlement anchor = base.TargetHero.CurrentSettlement ?? base.TargetHero.BornSettlement ?? Settlement.All?.FirstOrDefault(s => s.IsTown);
+			if (anchor == null)
+			{
+				LogError("Outlaw path: no settlement anchor");
+				InformationManager.DisplayMessage(new InformationMessage("[AI Influence] Outlaw clan creation failed: no settlement anchor.", ExtraColors.RedAIInfluence));
+			}
+			else
+			{
+				BlgmOutlawPath.StripFromMain(base.TargetHero);
+				var outlawSpawnData = new SpawnPartyData { Name = ((object)base.TargetHero.Name)?.ToString() ?? "Outlaw", IsOutlaw = true, InternalOutlawLeader = base.TargetHero };
+				QuestPartyBlgmKernel.QuestPartySpawnOutcome outlawSpawnOutcome = QuestPartyBlgmKernel.Run(outlawSpawnData, anchor);
+				if (string.IsNullOrEmpty(outlawSpawnOutcome.ErrorToken) && outlawSpawnOutcome.Hero == base.TargetHero && outlawSpawnOutcome.Party != null)
+				{
+					try { GameVersionCompatibility.ConditionalEnableAi(outlawSpawnOutcome.Party); } catch (Exception ex) { LogError(ex.Message); }
+					NonCombatantPartyProtector.Instance?.RegisterPartyForProtection(outlawSpawnOutcome.Party, base.TargetHero, "CreateParty");
+					_partyCreated = true;
+					TextObject outlawBreakawaySuccessMessage = new TextObject("{=AIAction_CreatePartyOutlawSuccess}{HERO_NAME} broke away as an outlaw clan \"{CLAN_NAME}\" and now roams independently (at war with you and a nearby realm).", (Dictionary<string, object>)null);
+					outlawBreakawaySuccessMessage.SetTextVariable("HERO_NAME", ((object)base.TargetHero.Name)?.ToString() ?? "Unknown");
+					outlawBreakawaySuccessMessage.SetTextVariable("CLAN_NAME", ((object)base.TargetHero.Clan?.Name)?.ToString() ?? "Outlaws");
+					ShowSuccessDelayed(((object)outlawBreakawaySuccessMessage).ToString());
+					LogAction($"Created BLGM outlaw minor clan for {base.TargetHero.Name}");
+					Stop();
+					return;
+				}
+				if (base.TargetHero.Clan == Clan.PlayerClan)
+				{
+					try { RemoveCompanionAction.ApplyByFire(Clan.PlayerClan, base.TargetHero); } catch (Exception ex) { LogError(ex.Message); }
+					outlawSpawnOutcome = QuestPartyBlgmKernel.Run(outlawSpawnData, anchor);
+					if (string.IsNullOrEmpty(outlawSpawnOutcome.ErrorToken) && outlawSpawnOutcome.Hero == base.TargetHero && outlawSpawnOutcome.Party != null)
+					{
+						try { GameVersionCompatibility.ConditionalEnableAi(outlawSpawnOutcome.Party); } catch (Exception ex2) { LogError(ex2.Message); }
+						NonCombatantPartyProtector.Instance?.RegisterPartyForProtection(outlawSpawnOutcome.Party, base.TargetHero, "CreateParty");
+						_partyCreated = true;
+						TextObject retrySuccess = new TextObject("{=AIAction_CreatePartyOutlawSuccess}{HERO_NAME} broke away as an outlaw clan \"{CLAN_NAME}\" and now roams independently (at war with you and a nearby realm).", (Dictionary<string, object>)null);
+						retrySuccess.SetTextVariable("HERO_NAME", ((object)base.TargetHero.Name)?.ToString() ?? "Unknown");
+						retrySuccess.SetTextVariable("CLAN_NAME", ((object)base.TargetHero.Clan?.Name)?.ToString() ?? "Outlaws");
+						ShowSuccessDelayed(((object)retrySuccess).ToString());
+						LogAction($"Created BLGM outlaw minor clan for {base.TargetHero.Name} (after leave player clan)");
+						Stop();
+						return;
+					}
+				}
+				string outlawFallbackReason = outlawSpawnOutcome.ErrorToken ?? "unknown";
+				LogError("Outlaw BLGM path failed, falling back to player-clan party: " + outlawFallbackReason);
+				InformationManager.DisplayMessage(new InformationMessage("[AI Influence] Outlaw clan creation failed; forming a normal clan party instead. " + outlawFallbackReason, ExtraColors.RedAIInfluence));
+				TryPutCompanionBackInMainParty(base.TargetHero);
+			}
+		}
+		if (base.TargetHero.Clan != Clan.PlayerClan)
+		{
+			try
+			{
+				AddCompanionAction.Apply(Clan.PlayerClan, base.TargetHero);
+			}
+			catch (Exception restoreCompanionException)
+			{
+				LogError("create_party: could not restore hero to player clan: " + restoreCompanionException.Message);
+			}
+			if (base.TargetHero.Clan != Clan.PlayerClan)
+			{
+				LogError("create_party: hero left player clan; outlaw failed — cannot form player-clan party");
+				InformationManager.DisplayMessage(new InformationMessage("[AI Influence] Party creation failed: hero is no longer in your clan after outlaw attempt.", ExtraColors.RedAIInfluence));
+				Stop();
+				return;
+			}
+			InformationManager.DisplayMessage(new InformationMessage("[AI Influence] Outlaw path failed; restored companion to your clan. No new party was created.", ExtraColors.RedAIInfluence));
+			TryPutCompanionBackInMainParty(base.TargetHero);
+			Stop();
+			return;
+		}
+		MobileParty playerClanLordParty = GameVersionCompatibility.CreateNewClanMobileParty(base.TargetHero, Clan.PlayerClan);
+		if (playerClanLordParty == null)
+		{
+			TextObject createPartyFailedMessage = new TextObject("{=AIAction_CreatePartyFailed}{HERO_NAME} failed to create a party.", (Dictionary<string, object>)null);
 			Hero targetHero = base.TargetHero;
-			val2.SetTextVariable("HERO_NAME", ((targetHero == null) ? null : ((object)targetHero.Name)?.ToString()) ?? "Unknown");
-			InformationManager.DisplayMessage(new InformationMessage(((object)val2).ToString(), ExtraColors.RedAIInfluence));
+			createPartyFailedMessage.SetTextVariable("HERO_NAME", ((targetHero == null) ? null : ((object)targetHero.Name)?.ToString()) ?? "Unknown");
+			InformationManager.DisplayMessage(new InformationMessage(((object)createPartyFailedMessage).ToString(), ExtraColors.RedAIInfluence));
 			LogError("CreateNewClanMobileParty returned null");
+			TryPutCompanionBackInMainParty(base.TargetHero);
 			Stop();
 			return;
 		}
 		try
 		{
-			GameVersionCompatibility.ConditionalEnableAi(val);
+			GameVersionCompatibility.ConditionalEnableAi(playerClanLordParty);
 		}
 		catch (Exception ex)
 		{
@@ -87,31 +168,16 @@ public sealed class CreatePartyAction : AIActionBase
 		NonCombatantPartyProtector instance = NonCombatantPartyProtector.Instance;
 		if (instance != null)
 		{
-			instance.RegisterPartyForProtection(val, base.TargetHero, "CreateParty");
-			LogAction($"Registered party {val.Name} for non-combatant protection");
+			instance.RegisterPartyForProtection(playerClanLordParty, base.TargetHero, "CreateParty");
+			LogAction($"Registered party {playerClanLordParty.Name} for non-combatant protection");
 		}
 		_partyCreated = true;
-		TextObject val3 = new TextObject("{=AIAction_CreatePartySuccess}{HERO_NAME} formed the party \"{PARTY_NAME}\" and now roams independently.", (Dictionary<string, object>)null);
+		TextObject standardSuccessMessage = new TextObject("{=AIAction_CreatePartySuccess}{HERO_NAME} formed the party \"{PARTY_NAME}\" and now roams independently.", (Dictionary<string, object>)null);
 		Hero targetHero2 = base.TargetHero;
-		val3.SetTextVariable("HERO_NAME", ((targetHero2 == null) ? null : ((object)targetHero2.Name)?.ToString()) ?? "Unknown");
-		val3.SetTextVariable("PARTY_NAME", ((val == null) ? null : ((object)val.Name)?.ToString()) ?? "Unnamed party");
-		DelayedTaskManager delayedTaskManager = AIInfluenceBehavior.Instance?.GetDelayedTaskManager();
-		if (delayedTaskManager != null)
-		{
-			string text = ((object)val3).ToString();
-			delayedTaskManager.AddTask(6.0, delegate
-			{
-				//IL_0007: Unknown result type (might be due to invalid IL or missing references)
-				//IL_000c: Unknown result type (might be due to invalid IL or missing references)
-				//IL_0016: Expected O, but got Unknown
-				InformationManager.DisplayMessage(new InformationMessage(text, ExtraColors.GreenAIInfluence));
-			});
-		}
-		else
-		{
-			InformationManager.DisplayMessage(new InformationMessage(((object)val3).ToString(), ExtraColors.GreenAIInfluence));
-		}
-		LogAction($"Created independent party '{val.Name}' for {base.TargetHero.Name} at {val.GetPosition2D()}");
+		standardSuccessMessage.SetTextVariable("HERO_NAME", ((targetHero2 == null) ? null : ((object)targetHero2.Name)?.ToString()) ?? "Unknown");
+		standardSuccessMessage.SetTextVariable("PARTY_NAME", ((object)playerClanLordParty.Name)?.ToString() ?? "Unnamed party");
+		ShowSuccessDelayed(((object)standardSuccessMessage).ToString());
+		LogAction($"Created independent party '{playerClanLordParty.Name}' for {base.TargetHero.Name} at {playerClanLordParty.GetPosition2D()}");
 		Stop();
 	}
 
@@ -125,5 +191,33 @@ public sealed class CreatePartyAction : AIActionBase
 
 	protected override void OnUpdate(float deltaTime)
 	{
+	}
+
+	/// <summary>After outlaw strip-from-main, rejoin the main party if the hero is still in the player clan but has no party.</summary>
+	private static void TryPutCompanionBackInMainParty(Hero hero)
+	{
+		if (hero == null || MobileParty.MainParty == null || hero.Clan != Clan.PlayerClan)
+			return;
+		if (hero.PartyBelongedTo == MobileParty.MainParty)
+			return;
+		if (hero.PartyBelongedTo != null)
+			return;
+		try
+		{
+			AddHeroToPartyAction.Apply(hero, MobileParty.MainParty, true);
+		}
+		catch (Exception exception)
+		{
+			AIInfluenceBehavior.Instance?.LogMessage("[CreatePartyAction] TryPutCompanionBackInMainParty: " + exception.Message);
+		}
+	}
+
+	private static void ShowSuccessDelayed(string text)
+	{
+		DelayedTaskManager delayedTaskManager = AIInfluenceBehavior.Instance?.GetDelayedTaskManager();
+		if (delayedTaskManager != null)
+			delayedTaskManager.AddTask(6.0, delegate { InformationManager.DisplayMessage(new InformationMessage(text, ExtraColors.GreenAIInfluence)); });
+		else
+			InformationManager.DisplayMessage(new InformationMessage(text, ExtraColors.GreenAIInfluence));
 	}
 }

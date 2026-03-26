@@ -78,16 +78,16 @@ The north star doc must **not** treat step 5 as a permanent home for “a little
 
 ## Phase 1 — NPC chat: tool-first dialogue (speech + social + flow)
 
-**Status:** **In progress.** Dialogue tools + merge + `ClearNpcTurnDialogueTools` remain. **`NpcOpenRouterAssistantParser`** is the single entry for assistant text → `AIResponse`: tries raw JSON, then **`JsonCleaner` only on parse failure**, then **`OpenRouterDialogueJson.StripGameEffectKeys`**. **`OpenRouterNpcResponseSchema`** no longer requires `response` (tool-only `{}` turns).
+**Status:** **Largely complete.** Dual-authority dialogue tools (`suspected_lie`, `dialogue_decision`, `romance_intent`, `escalation_update`, `allows_letters`) removed — dialogue state flows exclusively through `NpcOpenRouterDialogueEnvelope` JSON, not through tool scratch fields merged back into `AIResponse`. `ClearNpcTurnDialogueTools` now only resets action-tool scratch (quest, kingdom, pills, map). **`NpcOpenRouterAssistantParser`** is the single entry for assistant text → `AIResponse`.
 
 | Deliverable | Notes |
 |-------------|--------|
-| Define tool schemas + handlers | Ongoing; explicit map tools vs legacy strings still mixed. |
+| Define tool schemas + handlers | Done for game-effect tools; dialogue state lives only in JSON schema. |
+| Remove dual-authority merge | **Done** — `ApplyNpcDialogueToolsToAiResponse` and 7 `DialogueTool*` scratch fields deleted. |
 | Remove `DeserializeObject<AIResponse>` for NPC final message | **Not complete** — still deserialize after strip; **target is: no envelope execution from this step**. |
 | Remove `JsonCleaner` on default NPC path | **Reduced** — must become unnecessary once tools own dialogue. |
-| **Optional** minimal `response_format` | Only if the API requires non-empty assistant content; **must not** become a second schema for game effects. |
 
-**Exit:** NPC chat turn is **tool calls + subscriber/UI updates**, not one parsed dialogue object driving mechanics. **Not fully at exit yet.**
+**Exit:** NPC chat turn is **tool calls + subscriber/UI updates**, not one parsed dialogue object driving mechanics. Dialogue-state dual authority is resolved; remaining work is `JsonCleaner` removal and full envelope shrink.
 
 ---
 

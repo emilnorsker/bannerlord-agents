@@ -4,6 +4,8 @@ src/obj/
 logs/
 mod_log.txt
 _game_folder/
+# Copied from repo root by AIInfluence.csproj SyncSubModuleIntoModuleFolder before BUTR post-build
+src/_Module/SubModule.xml
 
 # Legacy TTS / lip-sync (rhubarb) and PCM→OGG stack — removed from OpenRouter-only builds; do not re-commit
 bin/Win64_Shipping_Client/rhubarb.exe

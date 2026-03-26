@@ -76,6 +76,8 @@ public static class ChatToolPillBuilder
 			context.AppendToolPill($"Traveling to {payload.Split(':')[0]}", MapOrderPillColor);
 		else if (name.Equals("transfer_troops_and_prisoners", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(payload))
 			context.AppendToolPill(FormatTroopTransferLine(payload, npcName), TroopTransferColor);
+		else if (name.Equals("create_rp_weapon", StringComparison.OrdinalIgnoreCase))
+			context.AppendToolPill(string.IsNullOrWhiteSpace(payload) ? "create_rp_weapon" : payload.Trim(), MapOrderPillColor);
 		else if (!string.IsNullOrEmpty(name))
 			context.AppendToolPill(name, MapOrderPillColor);
 		context.MapToolRanThisTurn = true;
@@ -123,11 +125,4 @@ public static class ChatToolPillBuilder
 		return (t, KingdomActionColor);
 	}
 
-	public static void AppendRomanceIntent(NPCContext context, string intent)
-	{
-		if (context == null || string.IsNullOrEmpty(intent) || intent.Equals("none", StringComparison.OrdinalIgnoreCase)) return;
-		string ri = intent.Trim().ToLowerInvariant();
-		string msg = ri == "flirt" ? "Accepted your flirtation" : ri == "romance" ? "Accepted your courtship" : ri == "proposal" ? "Marriage proposal" : $"Romance: {intent.Trim()}";
-		context.AppendToolPill(msg, RomanceActionColor);
-	}
 }

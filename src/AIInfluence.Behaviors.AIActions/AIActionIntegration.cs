@@ -2,7 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using AIInfluence;
 using AIInfluence.Behaviors.AIActions.TaskSystem;
+using AIInfluence.Util;
+using Bannerlord.GameMaster.Items;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Settlements;
@@ -212,9 +215,11 @@ public class AIActionIntegration
 				if (flag2)
 				{
 					text += "### create_party\n";
-					text += "**Purpose**: Form your own party (leave the player's party and act independently).\n";
-					text += "**Usage**: Confirm in dialogue, then call tool `create_party`.\n";
-					text += "**Note**: This is a one-time action that creates your independent party. Use if they ask you to create your own party and move independently.\n\n";
+					text += "**Who sees this**: Only companions and household members of the player clan who travel in the main party (or have no party yet). Other NPCs never receive this tool in their action list.\n";
+					text += "**Purpose**: Start your own **MobileParty** on the campaign map (leave the main party or act independently when the player asks).\n";
+					text += "**Preconditions** (`CanExecute`): you are in the **player clan**, alive, not a prisoner, and you do not already command a separate party.\n";
+					text += "**Outcomes**: With bandit-type culture or bandit clan, or with tool `mode` `outlaw`, the game may create a new minor clan and lord party and declare wars on the player's map faction and on a nearby non-bandit faction. Otherwise you remain in the **player clan** and get a new party under that clan.\n";
+					text += "**Tool**: `create_party`; optional argument `mode`: `outlaw` selects the minor-clan path when culture or clan would not.\n\n";
 				}
 				break;
 			case "create_rp_item":
@@ -226,6 +231,15 @@ public class AIActionIntegration
 				text += "**Example**: name \"Letter\", description \"Important message\".\n";
 				text += "**Important**: Consensual handoff only — item is given automatically. Do not use `item_transfers` for voluntary RP handoffs; use `item_transfers` + opposed attribute only for contested takes of real inventory items.\n";
 				text += "**CRITICAL**: Check \"CRITICAL - Player's Inventory (UNKNOWN TO YOU)\" section BEFORE creating. Do NOT create duplicate items.\n\n";
+				break;
+			case "create_rp_weapon":
+				text += "### create_rp_weapon\n";
+				text += "**Effect**: Adds a weapon matched from `query` to this character's party inventory. If `give_to_player` is true, one copy is transferred to the player's inventory.\n";
+				text += "**Requires**: This character is in a party that has an item roster.\n";
+				text += "**Roleplay**: The tool applies the item only; gold, materials, prior agreement, quest completion, and similar constraints stay in dialogue. Charge or refuse in speech before calling the tool when that fits the scene; use `transfer_money` / `transfer_items` if payment or materials change hands in the same turn.\n";
+				text += "**Arguments**: `query` (weapon to match), `display_name` (name shown in-game), `give_to_player` (boolean). Optional: `description` (extra text stored with the item), `item_types` (Weapon, OneHanded, TwoHanded, Polearm, Ranged, Thrown, Bow, Crossbow, Shield, or None; default Weapon), `culture` (plain culture name or phrase for fuzzy matching, or empty), `tier` (integer item tier; see scale below), `modifier` (quality label or empty).\n";
+				text += "**Tier scale**: 0–2 substandard for a professional military issue; 3–4 standard service arms; 5 exceptional; 6 mythic. Use tier 6 sparingly.\n";
+				text += "**Difference from `create_rp_item`**: `create_rp_item` only creates narrative props. `create_rp_weapon` creates equippable weapons.\n\n";
 				break;
 			case "transfer_troops_and_prisoners":
 				if (flag)
@@ -296,6 +310,11 @@ public class AIActionIntegration
 		{
 			return false;
 		}
+		if (string.Equals(actionName, "create_party", StringComparison.OrdinalIgnoreCase))
+		{
+			ApplyCreatePartyParameter(npc, parameter);
+			return true;
+		}
 		if (string.IsNullOrWhiteSpace(parameter))
 		{
 			return true;
@@ -310,7 +329,7 @@ public class AIActionIntegration
 			string[] array13 = parameter.Split(new char[1] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 			if (array13.Length == 0)
 			{
-				LogMessage($"ERROR: Empty parameter for go_to_settlement (NPC {npc.Name}).");
+				LogPrepareError(npc, "Empty parameter for go_to_settlement.");
 				return false;
 			}
 			if (array13.Length == 1)
@@ -338,12 +357,12 @@ public class AIActionIntegration
 					}
 					catch (Exception ex6)
 					{
-						LogMessage("ERROR creating task for go_to_settlement: " + ex6.Message);
+						LogPrepareError(npc, "go_to_settlement task failed: " + ex6.Message);
 					}
 					LogMessage($"Prepared go_to_settlement for {npc.Name} -> {settlement3.Name} (wait {num7} days)");
 					return true;
 				}
-				LogMessage($"ERROR: Failed to find settlement '{text17}' for go_to_settlement (NPC {npc.Name}).");
+				LogPrepareError(npc, "Failed to find settlement for go_to_settlement: " + text17 + ".");
 				return false;
 			}
 			try
@@ -351,7 +370,7 @@ public class AIActionIntegration
 				TaskManager instance7 = TaskManager.Instance;
 				if (instance7 == null)
 				{
-					LogMessage("ERROR: TaskManager not available for multi-step task");
+					LogPrepareError(npc, "Task manager not available for multi-step travel task.");
 					return false;
 				}
 				TaskBuilder taskBuilder6 = new TaskBuilder(npc);
@@ -371,13 +390,13 @@ public class AIActionIntegration
 						string[] array16 = text19.Split(new char[1] { ':' }, 2);
 						if (array16.Length < 2)
 						{
-							LogMessage("ERROR: Invalid attack directive '" + text19 + "' in multi-step task");
+							LogPrepareError(npc, "Invalid attack step in multi-step travel: " + text19 + ".");
 							continue;
 						}
 						string text20 = array16[1].Trim();
 						if (string.IsNullOrEmpty(text20))
 						{
-							LogMessage("ERROR: Empty attack target in '" + text19 + "'");
+							LogPrepareError(npc, "Empty attack target in multi-step travel.");
 							continue;
 						}
 						taskBuilder6.AttackParty(text20);
@@ -401,7 +420,7 @@ public class AIActionIntegration
 					}
 					else
 					{
-						LogMessage("ERROR: Failed to find settlement '" + text21 + "' in multi-step task");
+						LogPrepareError(npc, "Multi-step travel: settlement not found: " + text21 + ".");
 					}
 				}
 				if (!flag7)
@@ -415,12 +434,12 @@ public class AIActionIntegration
 					LogMessage($"Prepared go_to_settlement multi-step task for {npc.Name}");
 					return true;
 				}
-				LogMessage($"ERROR: Failed to build multi-step task for {npc.Name}");
+				LogPrepareError(npc, "Failed to build multi-step travel task.");
 				return false;
 			}
 			catch (Exception ex7)
 			{
-				LogMessage("ERROR creating multi-step task: " + ex7.Message);
+				LogPrepareError(npc, "Multi-step travel task failed: " + ex7.Message);
 				return false;
 			}
 		}
@@ -430,7 +449,7 @@ public class AIActionIntegration
 			string[] array10 = parameter.Split(new char[1] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 			if (array10.Length == 0)
 			{
-				LogMessage($"ERROR: Empty parameter for attack_party (NPC {npc.Name}).");
+				LogPrepareError(npc, "Empty parameter for attack_party.");
 				return false;
 			}
 			string text13 = array10[0].Trim();
@@ -440,12 +459,12 @@ public class AIActionIntegration
 			}
 			if (string.IsNullOrEmpty(text13))
 			{
-				LogMessage($"ERROR: Missing target party id for attack_party (NPC {npc.Name}).");
+				LogPrepareError(npc, "Missing target party id for attack_party.");
 				return false;
 			}
 			if (!AttackPartyAction.PrepareAttackTarget(npc, text13))
 			{
-				LogMessage($"ERROR: Failed to prepare attack target '{text13}' for {npc.Name}");
+				LogPrepareError(npc, "Failed to prepare attack_party target: " + text13 + ".");
 				return false;
 			}
 			bool flag5 = false;
@@ -476,7 +495,7 @@ public class AIActionIntegration
 			}
 			catch (Exception ex4)
 			{
-				LogMessage("ERROR creating attack task: " + ex4.Message);
+				LogPrepareError(npc, "attack_party task failed: " + ex4.Message);
 			}
 			LogMessage($"Prepared attack_party for {npc.Name} -> {text13}");
 			return true;
@@ -487,27 +506,26 @@ public class AIActionIntegration
 			string[] array9 = parameter.Split(new char[1] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 			if (array9.Length == 0)
 			{
-				LogMessage($"ERROR: Empty parameter for raid_village (NPC {npc.Name}).");
+				LogPrepareError(npc, "Empty parameter for raid_village.");
 				return false;
 			}
 			string raidPrimaryToken = array9[0].Trim();
 			if (string.IsNullOrEmpty(raidPrimaryToken))
 			{
-				LogMessage($"ERROR: Missing village id for raid_village (NPC {npc.Name}).");
+				LogPrepareError(npc, "Missing village id for raid_village.");
 				return false;
 			}
 			Settlement val2 = ((IEnumerable<Settlement>)Settlement.All).FirstOrDefault((Func<Settlement, bool>)((Settlement s) => ((MBObjectBase)s).StringId == raidPrimaryToken));
 			if (val2 == null || !val2.IsVillage)
 			{
-				LogMessage($"ERROR: Target '{raidPrimaryToken}' is not a valid village for raid_village (NPC {npc.Name}).");
+				LogPrepareError(npc, "Target is not a valid village for raid_village: " + raidPrimaryToken + ".");
 				return false;
 			}
 			if (IsVillageOwnedByHero(val2, npc))
 			{
-				TextObject name = npc.Name;
 				TextObject name2 = val2.Name;
 				Clan clan = npc.Clan;
-				LogMessage(string.Format("ERROR: {0} attempted to raid own village {1} (belongs to {2}). Action blocked.", name, name2, ((clan == null) ? null : ((object)clan.Name)?.ToString()) ?? "their faction"));
+				LogPrepareError(npc, string.Format("Cannot raid own village {0} (faction: {1}).", name2, ((clan == null) ? null : ((object)clan.Name)?.ToString()) ?? "their faction"));
 				return false;
 			}
 			bool flag4 = false;
@@ -521,7 +539,7 @@ public class AIActionIntegration
 			}
 			if (!RaidVillageAction.PrepareRaidTarget(npc, raidPrimaryToken))
 			{
-				LogMessage($"ERROR: Failed to prepare raid target '{raidPrimaryToken}' for {npc.Name}");
+				LogPrepareError(npc, "Failed to prepare raid_village target: " + raidPrimaryToken + ".");
 				return false;
 			}
 			try
@@ -543,7 +561,7 @@ public class AIActionIntegration
 			}
 			catch (Exception ex3)
 			{
-				LogMessage("ERROR creating raid_village task: " + ex3.Message);
+				LogPrepareError(npc, "raid_village task failed: " + ex3.Message);
 			}
 			LogMessage($"Prepared raid_village for {npc.Name} -> {val2.Name}");
 			return true;
@@ -554,7 +572,7 @@ public class AIActionIntegration
 			string[] array11 = parameter.Split(new char[1] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 			if (array11.Length == 0)
 			{
-				LogMessage($"ERROR: Empty parameter for patrol_settlement (NPC {npc.Name}).");
+				LogPrepareError(npc, "Empty parameter for patrol_settlement.");
 				return false;
 			}
 			string patrolSettlementId;
@@ -580,7 +598,7 @@ public class AIActionIntegration
 			}
 			if (!PatrolSettlementAction.PreparePatrolRequest(npc, patrolSettlementId, num5, flag6))
 			{
-				LogMessage($"ERROR: Failed to prepare patrol request '{patrolSettlementId}' for {npc.Name}");
+				LogPrepareError(npc, "Failed to prepare patrol_settlement: " + patrolSettlementId + ".");
 				return false;
 			}
 			try
@@ -603,7 +621,7 @@ public class AIActionIntegration
 			}
 			catch (Exception ex5)
 			{
-				LogMessage("ERROR creating patrol task: " + ex5.Message);
+				LogPrepareError(npc, "patrol_settlement task failed: " + ex5.Message);
 			}
 			LogMessage($"Prepared patrol_settlement for {npc.Name} -> {patrolSettlementId} (duration {num5} days, return {flag6})");
 			return true;
@@ -614,7 +632,7 @@ public class AIActionIntegration
 			string[] array6 = parameter.Split(new char[1] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 			if (array6.Length == 0)
 			{
-				LogMessage($"ERROR: Empty parameter for siege_settlement (NPC {npc.Name}).");
+				LogPrepareError(npc, "Empty parameter for siege_settlement.");
 				return false;
 			}
 			string text8 = array6[0].Trim();
@@ -629,7 +647,7 @@ public class AIActionIntegration
 			}
 			if (!GoToSettlementAction.PrepareDestination(npc, text8, out var settlement))
 			{
-				LogMessage("ERROR: Failed to find settlement '" + text8 + "' for siege_settlement.");
+				LogPrepareError(npc, "Failed to find settlement for siege_settlement: " + text8 + ".");
 				return false;
 			}
 			SiegeSettlementAction.PrepareSiegeTarget(npc, ((MBObjectBase)settlement).StringId, flag2);
@@ -652,7 +670,7 @@ public class AIActionIntegration
 			}
 			catch (Exception ex)
 			{
-				LogMessage("ERROR creating siege task: " + ex.Message);
+				LogPrepareError(npc, "siege_settlement task failed: " + ex.Message);
 			}
 			LogMessage($"Prepared siege_settlement for {npc.Name} -> {settlement.Name}");
 			return true;
@@ -663,19 +681,19 @@ public class AIActionIntegration
 			string[] array7 = parameter.Split(new char[1] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 			if (array7.Length == 0)
 			{
-				LogMessage($"ERROR: Empty parameter for wait_near_settlement (NPC {npc.Name}).");
+				LogPrepareError(npc, "Empty parameter for wait_near_settlement.");
 				return false;
 			}
 			string text10 = array7[0].Trim();
 			if (string.IsNullOrWhiteSpace(text10))
 			{
-				LogMessage($"ERROR: Invalid wait_near_settlement parameter '{parameter}' (NPC {npc.Name}).");
+				LogPrepareError(npc, "Invalid wait_near_settlement parameter.");
 				return false;
 			}
 			string[] array8 = text10.Split(new char[1] { ':' }, StringSplitOptions.RemoveEmptyEntries);
 			if (array8.Length == 0)
 			{
-				LogMessage($"ERROR: Invalid wait_near_settlement parameter '{parameter}' (NPC {npc.Name}).");
+				LogPrepareError(npc, "Invalid wait_near_settlement parameter.");
 				return false;
 			}
 			string waitSettlementToken = array8[0].Trim();
@@ -701,12 +719,12 @@ public class AIActionIntegration
 			Settlement val = ((IEnumerable<Settlement>)Settlement.All).FirstOrDefault((Func<Settlement, bool>)((Settlement s) => ((MBObjectBase)s).StringId.Equals(waitSettlementToken, StringComparison.OrdinalIgnoreCase) || (((object)s.Name)?.ToString().Equals(waitSettlementToken, StringComparison.OrdinalIgnoreCase) ?? false)));
 			if (val == null)
 			{
-				LogMessage("ERROR: Failed to find settlement '" + waitSettlementToken + "' for wait_near_settlement.");
+				LogPrepareError(npc, "Failed to find settlement for wait_near_settlement: " + waitSettlementToken + ".");
 				return false;
 			}
 			if (!WaitNearSettlementAction.PrepareWaitRequest(npc, val, num, num2))
 			{
-				LogMessage($"ERROR: Failed to prepare wait_near_settlement for {npc.Name}.");
+				LogPrepareError(npc, "Failed to prepare wait_near_settlement.");
 				return false;
 			}
 			try
@@ -728,7 +746,7 @@ public class AIActionIntegration
 			}
 			catch (Exception ex2)
 			{
-				LogMessage("ERROR creating wait_near_settlement task: " + ex2.Message);
+				LogPrepareError(npc, "wait_near_settlement task failed: " + ex2.Message);
 			}
 			GoToSettlementAction.PrepareDestination(npc, val, 0.05f);
 			SetActionStartOverride(npc, "go_to_settlement");
@@ -740,28 +758,49 @@ public class AIActionIntegration
 			LogMessage($"Parsing create_rp_item parameter for {npc.Name}: '{parameter}'");
 			if (string.IsNullOrWhiteSpace(parameter))
 			{
-				LogMessage($"ERROR: Empty parameter for create_rp_item (NPC {npc.Name}).");
+				LogPrepareError(npc, "Empty parameter for create_rp_item.");
 				return false;
 			}
 			string[] array5 = parameter.Split(new char[1] { '|' }, 3);
 			if (array5.Length < 2)
 			{
-				LogMessage($"ERROR: Invalid parameter format for create_rp_item. Expected: name|description|type (NPC {npc.Name}).");
+				LogPrepareError(npc, "Invalid create_rp_item format. Expected name|description.");
 				return false;
 			}
 			string text7 = array5[0].Trim();
 			string itemDescription = array5[1].Trim();
 			if (string.IsNullOrWhiteSpace(text7))
 			{
-				LogMessage($"ERROR: Item name is required for create_rp_item (NPC {npc.Name}).");
+				LogPrepareError(npc, "Item name is required for create_rp_item.");
 				return false;
 			}
 			if (!CreateRPItemAction.PrepareItemCreation(npc, text7, itemDescription))
 			{
-				LogMessage($"ERROR: Failed to prepare create_rp_item for {npc.Name}");
+				LogPrepareError(npc, "Failed to prepare create_rp_item.");
 				return false;
 			}
 			LogMessage($"Prepared create_rp_item for {npc.Name}: {text7}");
+			return true;
+		}
+		case "create_rp_weapon":
+		{
+			LogMessage($"Parsing create_rp_weapon parameter for {npc.Name}: '{parameter}'");
+			if (string.IsNullOrWhiteSpace(parameter))
+			{
+				LogPrepareError(npc, "Empty parameter for create_rp_weapon.");
+				return false;
+			}
+			if (!TryParseCreateRpWeaponParameter(parameter, out CreateRPWeaponAction.WeaponCreationRequest weaponRequest))
+			{
+				LogPrepareError(npc, "Invalid create_rp_weapon format or unknown item_types. Expected query, display_name, and eight pipe-separated fields (description may contain '|').");
+				return false;
+			}
+			if (!CreateRPWeaponAction.PrepareWeaponCreation(npc, weaponRequest))
+			{
+				LogPrepareError(npc, "Failed to prepare create_rp_weapon.");
+				return false;
+			}
+			LogMessage($"Prepared create_rp_weapon for {npc.Name}: {weaponRequest.DisplayName}");
 			return true;
 		}
 		case "transfer_troops_and_prisoners":
@@ -769,20 +808,20 @@ public class AIActionIntegration
 			LogMessage($"Parsing transfer_troops_and_prisoners parameter for {npc.Name}: '{parameter}'");
 			if (string.IsNullOrWhiteSpace(parameter))
 			{
-				LogMessage($"ERROR: Empty parameter for transfer_troops_and_prisoners (NPC {npc.Name}).");
+				LogPrepareError(npc, "Empty parameter for transfer_troops.");
 				return false;
 			}
 			string[] array = parameter.Split(new char[1] { ':' }, 2);
 			if (array.Length < 2)
 			{
-				LogMessage($"ERROR: Invalid parameter format for transfer_troops_and_prisoners. Expected: direction:transfers (NPC {npc.Name}).");
+				LogPrepareError(npc, "Invalid transfer_troops format. Expected direction:transfers.");
 				return false;
 			}
 			string text = array[0].Trim().ToLowerInvariant();
 			bool flag = text == "to_player";
 			if (!flag && text != "from_player")
 			{
-				LogMessage($"ERROR: Invalid direction '{text}' for transfer_troops_and_prisoners. Must be 'to_player' or 'from_player' (NPC {npc.Name}).");
+				LogPrepareError(npc, "transfer_troops direction must be to_player or from_player.");
 				return false;
 			}
 			string text2 = array[1].Trim();
@@ -796,14 +835,14 @@ public class AIActionIntegration
 				string[] array4 = text4.Split(new char[1] { ':' }, StringSplitOptions.RemoveEmptyEntries);
 				if (array4.Length < 3)
 				{
-					LogMessage($"ERROR: Invalid transfer item format '{text4}'. Expected: type:string_id:count (NPC {npc.Name}).");
+					LogPrepareError(npc, "Invalid transfer_troops segment (expected type:id:count): " + text4 + ".");
 					continue;
 				}
 				string text5 = array4[0].Trim().ToLowerInvariant();
 				string text6 = array4[1].Trim();
 				if (!int.TryParse(array4[2].Trim(), out var result) || result <= 0)
 				{
-					LogMessage($"ERROR: Invalid count '{array4[2]}' for transfer item '{text4}' (NPC {npc.Name}).");
+					LogPrepareError(npc, "Invalid count in transfer_troops segment: " + text4 + ".");
 				}
 				else if (text5 == "troop")
 				{
@@ -823,17 +862,17 @@ public class AIActionIntegration
 				}
 				else
 				{
-					LogMessage($"ERROR: Unknown transfer type '{text5}'. Must be 'troop' or 'prisoner' (NPC {npc.Name}).");
+					LogPrepareError(npc, "transfer_troops type must be troop or prisoner, got: " + text5 + ".");
 				}
 			}
 			if (list.Count == 0 && list2.Count == 0)
 			{
-				LogMessage($"ERROR: No valid transfers specified for transfer_troops_and_prisoners (NPC {npc.Name}).");
+				LogPrepareError(npc, "No valid troop or prisoner transfers in transfer_troops.");
 				return false;
 			}
 			if (!TransferTroopsAndPrisonersAction.PrepareTransfer(npc, list, list2, flag))
 			{
-				LogMessage($"ERROR: Failed to prepare transfer_troops_and_prisoners for {npc.Name}");
+				LogPrepareError(npc, "Failed to prepare transfer_troops.");
 				return false;
 			}
 			LogMessage($"Prepared transfer_troops_and_prisoners for {npc.Name}: {text}, {list.Count} troops, {list2.Count} prisoners");
@@ -844,9 +883,79 @@ public class AIActionIntegration
 		}
 	}
 
+	private static void ApplyCreatePartyParameter(Hero npc, string parameter)
+	{
+		NPCContext ctx = AIInfluenceBehavior.Instance?.GetOrCreateNPCContext(npc);
+		if (ctx == null)
+			return;
+		ctx.PendingCreatePartyForceOutlaw = false;
+		if (string.IsNullOrWhiteSpace(parameter))
+			return;
+		foreach (string raw in parameter.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+		{
+			string t = raw.Trim();
+			if (t.Length == 0)
+				continue;
+			if (t.Equals("outlaw", StringComparison.OrdinalIgnoreCase) || t.Equals("bandit", StringComparison.OrdinalIgnoreCase))
+				ctx.PendingCreatePartyForceOutlaw = true;
+			else if (t.StartsWith("outlaw:", StringComparison.OrdinalIgnoreCase) || t.StartsWith("bandit:", StringComparison.OrdinalIgnoreCase))
+			{
+				string[] kv = t.Split(new[] { ':' }, 2);
+				if (kv.Length > 1 && (kv[1].Trim().Equals("true", StringComparison.OrdinalIgnoreCase) || kv[1].Trim() == "1"))
+					ctx.PendingCreatePartyForceOutlaw = true;
+			}
+		}
+	}
+
 	private void LogMessage(string message)
 	{
 		AIActionsLogger.Instance.Log("[AIActionIntegration] " + message);
+	}
+
+	private static void LogPrepareError(Hero npc, string message)
+	{
+		string line = "[AIActionIntegration] ERROR: " + message + (npc != null ? " (NPC " + ((object)npc.Name)?.ToString() + ")" : "");
+		AIActionsLogger.Instance.Log(line);
+		string suffix = npc != null ? " (" + ((object)npc.Name)?.ToString() + ")" : "";
+		InformationManager.DisplayMessage(new InformationMessage("[AI Influence] " + message + suffix, ExtraColors.RedAIInfluence));
+	}
+
+	/// <summary>Parses create_rp_weapon pipe payload: query|display_name|description|item_types|culture|tier|modifier|give_to_player (description may contain '|').</summary>
+	private static bool TryParseCreateRpWeaponParameter(string parameter, out CreateRPWeaponAction.WeaponCreationRequest request)
+	{
+		request = null;
+		string[] segments = parameter.Split('|');
+		if (segments.Length < 8)
+			return false;
+		int lastIndex = segments.Length - 1;
+		string giveToPlayerSegment = segments[lastIndex].Trim();
+		string modifierSegment = segments[lastIndex - 1].Trim();
+		string tierSegment = segments[lastIndex - 2].Trim();
+		string cultureSegment = segments[lastIndex - 3].Trim();
+		string itemTypesSegment = string.IsNullOrWhiteSpace(segments[lastIndex - 4]) ? "Weapon" : segments[lastIndex - 4].Trim();
+		string querySegment = segments[0].Trim();
+		string displayNameSegment = segments[1].Trim();
+		int descriptionSegmentCount = segments.Length - 7;
+		string descriptionSegment = descriptionSegmentCount == 1 ? segments[2].Trim() : string.Join("|", segments, 2, descriptionSegmentCount).Trim();
+		if (!int.TryParse(tierSegment, NumberStyles.Integer, CultureInfo.InvariantCulture, out int tierValue))
+			tierValue = 3;
+		bool giveToPlayer = giveToPlayerSegment.Equals("true", StringComparison.OrdinalIgnoreCase);
+		if (string.IsNullOrWhiteSpace(querySegment) || string.IsNullOrWhiteSpace(displayNameSegment))
+			return false;
+		if (!Enum.TryParse(itemTypesSegment, true, out ItemTypes parsedItemTypes))
+			return false;
+		request = new CreateRPWeaponAction.WeaponCreationRequest
+		{
+			Query = querySegment,
+			DisplayName = displayNameSegment,
+			Description = descriptionSegment,
+			ItemTypes = parsedItemTypes,
+			Culture = cultureSegment,
+			Tier = tierValue,
+			ModifierToken = modifierSegment,
+			GiveToPlayer = giveToPlayer
+		};
+		return true;
 	}
 
 	private void SetActionStartOverride(Hero hero, string actionName)

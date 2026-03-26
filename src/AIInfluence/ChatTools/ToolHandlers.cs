@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using AIInfluence.Behaviors.AIActions;
 using AIInfluence;
+using AIInfluence.Util;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Party;
+using TaleWorlds.Library;
 
 namespace AIInfluence.ChatTools;
 
@@ -28,8 +30,9 @@ public static class ToolHandlers
 			"patrol_settlement" => RunPatrolSettlement(argsJson, npc, context),
 			"wait_near_settlement" => RunWaitNearSettlement(argsJson, npc, context),
 			"siege_settlement" => RunSiegeSettlement(argsJson, npc, context),
-			"create_party" => RunCreateParty(npc, context),
+			"create_party" => RunCreateParty(argsJson, npc, context),
 			"create_rp_item" => RunCreateRPItem(argsJson, npc, context),
+			"create_rp_weapon" => RunCreateRPWeapon(argsJson, npc, context),
 			"transfer_money" => RunTransferMoney(argsJson, npc, context, behavior),
 			"transfer_items" => RunTransferItems(argsJson, npc, context, behavior),
 			"workshop_sell" => RunWorkshopSell(argsJson, npc, context, behavior),
@@ -38,11 +41,6 @@ public static class ToolHandlers
 			"character_death" => RunCharacterDeath(argsJson, context),
 			"return_to_player" => RunReturnToPlayer(npc, context),
 			"transfer_troops" => RunTransferTroops(argsJson, npc, context),
-			"suspected_lie" => RunSuspectedLie(argsJson, context),
-			"dialogue_decision" => RunDialogueDecision(argsJson, context),
-			"romance_intent" => RunRomanceIntent(argsJson, context),
-			"escalation_update" => RunEscalationUpdate(argsJson, context),
-			"allows_letters" => RunAllowsLetters(argsJson, context),
 			_ => "unknown"
 		};
 		ToolCallTelemetry.RaiseCompleted("npc_chat", name, argsJson, result, null);
@@ -170,12 +168,21 @@ public static class ToolHandlers
 		return "ok";
 	}
 
-	private static string RunCreateParty(Hero npc, NPCContext context)
+	private static string RunCreateParty(string argsJson, Hero npc, NPCContext context)
 	{
-		bool ok = AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "create_party", "") == true
-			&& AIActionManager.Instance?.StartAction(npc, "create_party") == true;
-		if (ok) ChatToolPillBuilder.AppendMapToolPill(context, npc, "create_party");
-		return ok ? "ok" : "failed";
+		JObject parsed = ParseOrEmpty(argsJson);
+		string mode = parsed["mode"]?.ToString();
+		string param = mode != null && mode.Equals("outlaw", StringComparison.OrdinalIgnoreCase) ? "outlaw:true" : "";
+		bool prepared = AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "create_party", param) == true;
+		bool started = AIActionManager.Instance?.StartAction(npc, "create_party") == true;
+		if (prepared && started)
+		{
+			ChatToolPillBuilder.AppendMapToolPill(context, npc, "create_party");
+			return JsonConvert.SerializeObject(new { status = "ok" });
+		}
+		string err = "create_party failed (prepare or start returned false).";
+		InformationManager.DisplayMessage(new InformationMessage("[AI Influence] " + err, ExtraColors.RedAIInfluence));
+		return JsonConvert.SerializeObject(new { status = "failed", error = err });
 	}
 
 	private static string RunCreateRPItem(string argsJson, Hero npc, NPCContext context)
@@ -188,6 +195,30 @@ public static class ToolHandlers
 		AIActionManager.Instance?.StartAction(npc, "create_rp_item");
 		ChatToolPillBuilder.AppendMapToolPill(context, npc, "create_rp_item:" + param);
 		return "ok";
+	}
+
+	private static string RunCreateRPWeapon(string argsJson, Hero npc, NPCContext context)
+	{
+		JObject p = ParseOrEmpty(argsJson);
+		string query = p["query"]?.ToString()?.Trim();
+		string displayName = p["display_name"]?.ToString()?.Trim();
+		if (string.IsNullOrEmpty(query) || string.IsNullOrEmpty(displayName))
+			return "missing query or display_name";
+		string description = p["description"]?.ToString() ?? "";
+		string itemTypes = p["item_types"]?.ToString() ?? "";
+		string culture = p["culture"]?.ToString() ?? "";
+		int tier = p["tier"]?.Value<int?>() ?? 3;
+		string modifier = p["modifier"]?.ToString() ?? "";
+		if (!p.TryGetValue("give_to_player", out JToken gt))
+			return "missing give_to_player";
+		bool giveToPlayer = gt.Type == JTokenType.Boolean ? gt.Value<bool>() : string.Equals(gt.ToString(), "true", StringComparison.OrdinalIgnoreCase);
+		string param = query + "|" + displayName + "|" + description + "|" + itemTypes + "|" + culture + "|" + tier + "|" + modifier + "|" + (giveToPlayer ? "true" : "false");
+		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "create_rp_weapon", param) != true)
+			return "failed";
+		if (AIActionManager.Instance?.StartAction(npc, "create_rp_weapon") != true)
+			return "failed";
+		ChatToolPillBuilder.AppendMapToolPill(context, npc, "create_rp_weapon:" + displayName);
+		return JsonConvert.SerializeObject(new { status = "ok", item_display_name = displayName });
 	}
 
 	private static string RunTransferTroops(string argsJson, Hero npc, NPCContext context)
@@ -265,71 +296,6 @@ public static class ToolHandlers
 			OpposedAttribute = parsedArgs["opposed_attribute"]?.ToString()
 		};
 		context.AppendToolPill("Roleplay death", ChatToolPillBuilder.ActionColor);
-		return "ok";
-	}
-
-	private static string RunSuspectedLie(string argsJson, NPCContext context)
-	{
-		JObject parsedArgs = ParseOrEmpty(argsJson);
-		if (parsedArgs["suspected"] == null)
-			return "missing";
-		context.DialogueToolSuspectedLie = parsedArgs["suspected"].Value<bool>();
-		context.AppendToolPill(context.DialogueToolSuspectedLie.Value ? "Suspected lie" : "Not suspected of lying", ChatToolPillBuilder.ActionColor);
-		return "ok";
-	}
-
-	private static string RunDialogueDecision(string argsJson, NPCContext context)
-	{
-		string decision = ParseOrEmpty(argsJson)["decision"]?.ToString();
-		if (string.IsNullOrEmpty(decision))
-			return "missing";
-		context.DialogueToolDecision = decision;
-		context.AppendToolPill(decision.Trim(), ChatToolPillBuilder.ActionColor);
-		return "ok";
-	}
-
-	private static string RunRomanceIntent(string argsJson, NPCContext context)
-	{
-		string intent = ParseOrEmpty(argsJson)["intent"]?.ToString();
-		if (string.IsNullOrEmpty(intent))
-			return "missing";
-		context.DialogueToolRomanceIntent = intent;
-		ChatToolPillBuilder.AppendRomanceIntent(context, intent);
-		return "ok";
-	}
-
-	private static string RunEscalationUpdate(string argsJson, NPCContext context)
-	{
-		JObject parsedArgs = ParseOrEmpty(argsJson);
-		JToken threatLevelToken = parsedArgs["threat_level"];
-		if (threatLevelToken != null && threatLevelToken.Type != JTokenType.Null)
-			context.DialogueToolThreatLevel = threatLevelToken.ToString();
-		JToken escalationStateToken = parsedArgs["escalation_state"];
-		if (escalationStateToken != null && escalationStateToken.Type != JTokenType.Null)
-			context.DialogueToolEscalationState = escalationStateToken.ToString();
-		JToken deescalationAttemptToken = parsedArgs["deescalation_attempt"];
-		if (deescalationAttemptToken != null && deescalationAttemptToken.Type != JTokenType.Null)
-			context.DialogueToolDeescalationAttempt = deescalationAttemptToken.Value<bool>();
-		var parts = new List<string>();
-		if (context.DialogueToolThreatLevel != null)
-			parts.Add("Threat: " + context.DialogueToolThreatLevel);
-		if (context.DialogueToolEscalationState != null)
-			parts.Add("Escalation: " + context.DialogueToolEscalationState);
-		if (context.DialogueToolDeescalationAttempt.HasValue)
-			parts.Add("De-escalation attempt: " + (context.DialogueToolDeescalationAttempt.Value ? "yes" : "no"));
-		if (parts.Count > 0)
-			context.AppendToolPill(string.Join(" · ", parts), ChatToolPillBuilder.ActionColor);
-		return "ok";
-	}
-
-	private static string RunAllowsLetters(string argsJson, NPCContext context)
-	{
-		JObject parsedArgs = ParseOrEmpty(argsJson);
-		if (parsedArgs["allows"] == null)
-			return "missing";
-		bool allows = parsedArgs["allows"].Value<bool>();
-		context.DialogueToolAllowsLetters = allows;
-		context.AppendToolPill(allows ? "Will send letters" : "Will not send letters", ChatToolPillBuilder.ActionColor);
 		return "ok";
 	}
 

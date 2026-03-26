@@ -104,6 +104,10 @@ public class NPCContext
 	[JsonIgnore]
 	public List<(string Text, string Color, bool ForPlayerRow)> DeferredChatPillAppends { get; set; }
 
+	/// <summary>Next <c>create_party</c> for this NPC: force outlaw minor-clan path when supported. Cleared when that action starts or dialogue tools clear.</summary>
+	[JsonIgnore]
+	public bool? PendingCreatePartyForceOutlaw { get; set; }
+
 	/// <summary>
 	/// Temporary hold for roleplay death data from the OpenRouter <c>character_death</c> tool. Copied onto <see cref="AIResponse.CharacterDeath"/>
 	/// by <see cref="AIInfluenceBehavior.ApplyNpcContextToolDeferralsToAiResponse"/> before the rest of the mod runs.
@@ -144,28 +148,6 @@ public class NPCContext
 	/// <summary>Set by <c>kingdom_action</c> chat tool; applied when the chat row is finalized after streaming (no 6s delay).</summary>
 	[JsonIgnore]
 	public AIResponse PendingKingdomActionFromTools { get; set; }
-
-	/// <summary>OpenRouter dialogue tools: merged into <see cref="AIResponse"/> after deserialize (tools override JSON when set).</summary>
-	[JsonIgnore]
-	public bool? DialogueToolSuspectedLie { get; set; }
-
-	[JsonIgnore]
-	public string DialogueToolDecision { get; set; }
-
-	[JsonIgnore]
-	public string DialogueToolRomanceIntent { get; set; }
-
-	[JsonIgnore]
-	public string DialogueToolThreatLevel { get; set; }
-
-	[JsonIgnore]
-	public string DialogueToolEscalationState { get; set; }
-
-	[JsonIgnore]
-	public bool? DialogueToolDeescalationAttempt { get; set; }
-
-	[JsonIgnore]
-	public bool? DialogueToolAllowsLetters { get; set; }
 
 	public PendingRelationChange PendingRelationChange { get; set; }
 

@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Reflection;
 using System.Threading.Tasks;
 using AIInfluence.API;
 using AIInfluence.Behaviors.AIActions;
@@ -972,7 +972,6 @@ public class NPCInitiativeSystem
 			}
 			AIResponse response = NpcOpenRouterAssistantParser.Parse(aiResponse, npcName);
 			AIInfluenceBehavior.ApplyNpcContextToolDeferralsToAiResponse(request.Context, response);
-			AIInfluenceBehavior.ApplyNpcDialogueToolsToAiResponse(request.Context, response);
 			string message = response?.Response ?? "The messenger failed to deliver the message.";
 			message = UnescapeFormatting(message);
 			request.Context.LastAIResponseJson = JsonConvert.SerializeObject(response);
@@ -1536,7 +1535,6 @@ public class NPCInitiativeSystem
 			}
 			AIResponse response = NpcOpenRouterAssistantParser.Parse(aiResponse, npcName);
 			AIInfluenceBehavior.ApplyNpcContextToolDeferralsToAiResponse(context, response);
-			AIInfluenceBehavior.ApplyNpcDialogueToolsToAiResponse(context, response);
 			LogMessage("[NPC_MESSENGER_DEBUG] Parsed response from " + npcName + ":");
 			LogMessage("  - response: " + (response?.Response?.Substring(0, Math.Min(100, (response?.Response?.Length).GetValueOrDefault())) ?? "null") + "...");
 			LogMessage("  - romance_intent: " + (response?.RomanceIntent ?? "null"));
@@ -1939,7 +1937,6 @@ public class NPCInitiativeSystem
 			string npcNameStr = ((object)npc.Name)?.ToString() ?? "NPC";
 			AIResponse response = NpcOpenRouterAssistantParser.Parse(aiResponse, npcNameStr);
 			AIInfluenceBehavior.ApplyNpcContextToolDeferralsToAiResponse(context, response);
-			AIInfluenceBehavior.ApplyNpcDialogueToolsToAiResponse(context, response);
 			string message = response?.Response ?? "...";
 			message = UnescapeFormatting(message);
 			context.LastAIResponseJson = JsonConvert.SerializeObject(response);
@@ -2094,7 +2091,6 @@ public class NPCInitiativeSystem
 			string npcNameStr = ((object)npc.Name)?.ToString() ?? "NPC";
 			AIResponse response = NpcOpenRouterAssistantParser.Parse(aiResponse, npcNameStr);
 			AIInfluenceBehavior.ApplyNpcContextToolDeferralsToAiResponse(context, response);
-			AIInfluenceBehavior.ApplyNpcDialogueToolsToAiResponse(context, response);
 			string message = response?.Response ?? "...";
 			message = UnescapeFormatting(message);
 			context.LastAIResponseJson = JsonConvert.SerializeObject(response);
