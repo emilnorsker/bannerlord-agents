@@ -10,25 +10,15 @@
     <Nullable>disable</Nullable>
     <!-- Keep the DLL named AIInfluence.dll, not AIInfluence.v1.x.x.dll -->
     <OverrideAssemblyName>false</OverrideAssemblyName>
-    <_BlgmUnderGameFolder>$(GameFolder)Modules/Bannerlord.GameMaster/bin/Win64_Shipping_Client/Bannerlord.GameMaster.dll</_BlgmUnderGameFolder>
-    <_BlgmUnderRepo>$(MSBuildThisFileDirectory)../_game_folder/Modules/Bannerlord.GameMaster/bin/Win64_Shipping_Client/Bannerlord.GameMaster.dll</_BlgmUnderRepo>
-    <BlgmReferencePath Condition="'$(BlgmReferencePath)' == '' and Exists('$(_BlgmUnderGameFolder)')">$(_BlgmUnderGameFolder)</BlgmReferencePath>
-    <BlgmReferencePath Condition="'$(BlgmReferencePath)' == '' and Exists('$(_BlgmUnderRepo)')">$(_BlgmUnderRepo)</BlgmReferencePath>
   </PropertyGroup>
 
   <ItemGroup>
     <Reference Include="System.Net.Http" />
-    <!-- BLGM: runtime SubModule dep; compile against DLL from GameFolder, or repo _game_folder (CI / manual unzip). -->
-    <Reference Include="Bannerlord.GameMaster" Condition="'$(BlgmReferencePath)' != ''">
-      <HintPath>$(BlgmReferencePath)</HintPath>
+    <Reference Include="Bannerlord.GameMaster">
+      <HintPath>$(GameFolder)Modules\Bannerlord.GameMaster\bin\Win64_Shipping_Client\Bannerlord.GameMaster.dll</HintPath>
       <Private>false</Private>
     </Reference>
   </ItemGroup>
-
-  <Target Name="EnsureBlgmCompileReference" BeforeTargets="ResolveAssemblyReferences">
-    <Error Condition="'$(BlgmReferencePath)' == '' OR !Exists('$(BlgmReferencePath)')"
-      Text="Bannerlord.GameMaster.dll not found for compile. Install the Bannerlord.GameMaster mod under your game Modules folder, set GameFolder/BANNERLORD_GAME_DIR for BUTR, or unzip BLGM into repo _game_folder/Modules/Bannerlord.GameMaster/ (see publish.yml)." />
-  </Target>
 
   <ItemGroup>
     <PackageReference Include="Lib.Harmony" Version="2.4.2" IncludeAssets="compile" PrivateAssets="all" />
