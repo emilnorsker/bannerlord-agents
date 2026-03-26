@@ -32,6 +32,7 @@ public static class ToolHandlers
 			"siege_settlement" => RunSiegeSettlement(argsJson, npc, context),
 			"create_party" => RunCreateParty(argsJson, npc, context),
 			"create_rp_item" => RunCreateRPItem(argsJson, npc, context),
+			"create_rp_weapon" => RunCreateRPWeapon(argsJson, npc, context),
 			"transfer_money" => RunTransferMoney(argsJson, npc, context, behavior),
 			"transfer_items" => RunTransferItems(argsJson, npc, context, behavior),
 			"workshop_sell" => RunWorkshopSell(argsJson, npc, context, behavior),
@@ -199,6 +200,30 @@ public static class ToolHandlers
 		AIActionManager.Instance?.StartAction(npc, "create_rp_item");
 		ChatToolPillBuilder.AppendMapToolPill(context, npc, "create_rp_item:" + param);
 		return "ok";
+	}
+
+	private static string RunCreateRPWeapon(string argsJson, Hero npc, NPCContext context)
+	{
+		JObject p = ParseOrEmpty(argsJson);
+		string query = p["query"]?.ToString()?.Trim();
+		string displayName = p["display_name"]?.ToString()?.Trim();
+		if (string.IsNullOrEmpty(query) || string.IsNullOrEmpty(displayName))
+			return "missing query or display_name";
+		string description = p["description"]?.ToString() ?? "";
+		string itemTypes = string.IsNullOrWhiteSpace(p["item_types"]?.ToString()) ? "Weapon" : p["item_types"].ToString().Trim();
+		string culture = p["culture"]?.ToString() ?? "";
+		int tier = p["tier"]?.Value<int?>() ?? 3;
+		string modifier = p["modifier"]?.ToString() ?? "";
+		if (!p.TryGetValue("give_to_player", out JToken gt))
+			return "missing give_to_player";
+		bool giveToPlayer = gt.Type == JTokenType.Boolean ? gt.Value<bool>() : string.Equals(gt.ToString(), "true", StringComparison.OrdinalIgnoreCase);
+		string param = query + "|" + displayName + "|" + description + "|" + itemTypes + "|" + culture + "|" + tier + "|" + modifier + "|" + (giveToPlayer ? "true" : "false");
+		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "create_rp_weapon", param) != true)
+			return "failed";
+		if (AIActionManager.Instance?.StartAction(npc, "create_rp_weapon") != true)
+			return "failed";
+		ChatToolPillBuilder.AppendMapToolPill(context, npc, "create_rp_weapon:" + displayName);
+		return JsonConvert.SerializeObject(new { status = "ok", item_display_name = displayName });
 	}
 
 	private static string RunTransferTroops(string argsJson, Hero npc, NPCContext context)

@@ -76,6 +76,8 @@ public static class ChatToolPillBuilder
 			context.AppendToolPill($"Traveling to {payload.Split(':')[0]}", MapOrderPillColor);
 		else if (name.Equals("transfer_troops_and_prisoners", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(payload))
 			context.AppendToolPill(FormatTroopTransferLine(payload, npcName), TroopTransferColor);
+		else if (name.Equals("create_rp_weapon", StringComparison.OrdinalIgnoreCase))
+			context.AppendToolPill(string.IsNullOrWhiteSpace(payload) ? "create_rp_weapon" : payload.Trim(), MapOrderPillColor);
 		else if (!string.IsNullOrEmpty(name))
 			context.AppendToolPill(name, MapOrderPillColor);
 		context.MapToolRanThisTurn = true;
