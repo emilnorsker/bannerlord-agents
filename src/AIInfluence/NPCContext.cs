@@ -88,9 +88,21 @@ public class NPCContext
 
 	public AIResponse PendingAIResponse { get; set; }
 
-	/// <summary>In-memory map tool lines for chat UI pills (pipe-separated); cleared each dialogue turn.</summary>
+	/// <summary>True after a map/order chat tool ran this turn (for messenger diagnostics).</summary>
 	[JsonIgnore]
-	public string LastTechnicalActionForDisplay { get; set; }
+	public bool MapToolRanThisTurn { get; set; }
+
+	/// <summary>Chat action pills for the current NPC turn; appended when tools run; cleared at turn start.</summary>
+	[JsonIgnore]
+	public List<(string Text, string Color)> ToolPillsForCurrentTurn { get; set; }
+
+	/// <summary>Chat action pills for the <b>player</b> message row (economy perspective); cleared at turn start.</summary>
+	[JsonIgnore]
+	public List<(string Text, string Color)> ToolPlayerPillsForCurrentTurn { get; set; }
+
+	/// <summary>Pills to append when delayed effects complete (e.g. workshop sale); drained by <see cref="NpcChatWindowVM.AppendDeferredChatPills"/>.</summary>
+	[JsonIgnore]
+	public List<(string Text, string Color, bool ForPlayerRow)> DeferredChatPillAppends { get; set; }
 
 	/// <summary>
 	/// Temporary hold for roleplay death data from the OpenRouter <c>character_death</c> tool. Copied onto <see cref="AIResponse.CharacterDeath"/>
@@ -99,16 +111,39 @@ public class NPCContext
 	[JsonIgnore]
 	public CharacterDeathInfo DeferredCharacterDeathFromTools { get; set; }
 
-	public void AppendMapToolDisplayLine(string line)
+	public void AppendToolPill(string line, string color)
 	{
-		if (string.IsNullOrEmpty(line))
+		if (string.IsNullOrWhiteSpace(line))
 			return;
-		LastTechnicalActionForDisplay = string.IsNullOrEmpty(LastTechnicalActionForDisplay) ? line : LastTechnicalActionForDisplay + "|" + line;
+		ToolPillsForCurrentTurn ??= new List<(string, string)>();
+		string t = NormalizePillLine(line);
+		ToolPillsForCurrentTurn.Add((t, color));
+	}
+
+	public void AppendPlayerToolPill(string line, string color)
+	{
+		if (string.IsNullOrWhiteSpace(line))
+			return;
+		ToolPlayerPillsForCurrentTurn ??= new List<(string, string)>();
+		string t = NormalizePillLine(line);
+		ToolPlayerPillsForCurrentTurn.Add((t, color));
+	}
+
+	private static string NormalizePillLine(string line)
+	{
+		string t = line.Trim();
+		if (!t.StartsWith("• ", StringComparison.Ordinal))
+			t = "• " + t;
+		return t;
 	}
 
 	/// <summary>Set by <c>quest_action</c> tool; applied when the chat UI finishes the typewriter and finalizes the NPC line (not during the async tool round).</summary>
 	[JsonIgnore]
 	public QuestActionData PendingQuestActionFromTools { get; set; }
+
+	/// <summary>Set by <c>kingdom_action</c> chat tool; applied when the chat row is finalized after streaming (no 6s delay).</summary>
+	[JsonIgnore]
+	public AIResponse PendingKingdomActionFromTools { get; set; }
 
 	/// <summary>OpenRouter dialogue tools: merged into <see cref="AIResponse"/> after deserialize (tools override JSON when set).</summary>
 	[JsonIgnore]

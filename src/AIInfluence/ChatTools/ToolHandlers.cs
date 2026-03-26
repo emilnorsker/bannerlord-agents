@@ -76,7 +76,7 @@ public static class ToolHandlers
 		AIActionManager.Instance?.StopAction(npc, "follow_player");
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "follow_player", "") != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "follow_player");
-		context.AppendMapToolDisplayLine("follow_player");
+		ChatToolPillBuilder.AppendMapToolPill(context, npc, "follow_player");
 		return "ok";
 	}
 
@@ -85,7 +85,7 @@ public static class ToolHandlers
 		string actionName = ParseOrEmpty(argsJson)["action_name"]?.ToString();
 		if (string.IsNullOrEmpty(actionName)) return "missing";
 		AIActionManager.Instance?.StopAction(npc, actionName, showMessage: true);
-		context?.AppendMapToolDisplayLine(actionName + ":STOP");
+		ChatToolPillBuilder.AppendMapToolPill(context, npc, actionName + ":STOP");
 		return "stopped";
 	}
 
@@ -98,7 +98,7 @@ public static class ToolHandlers
 		string param = settlementStringId + ":" + waitDays; // legacy API expects this format
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "go_to_settlement", param) != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "go_to_settlement");
-		context.AppendMapToolDisplayLine("go_to_settlement:" + param);
+		ChatToolPillBuilder.AppendMapToolPill(context, npc, "go_to_settlement:" + param);
 		return "ok";
 	}
 
@@ -110,7 +110,7 @@ public static class ToolHandlers
 		string param = parsedArgs["then_return"]?.Value<bool>() == true ? partyStringId + ",then:return" : partyStringId;
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "attack_party", param) != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "attack_party");
-		context.AppendMapToolDisplayLine("attack_party:" + param);
+		ChatToolPillBuilder.AppendMapToolPill(context, npc, "attack_party:" + param);
 		return "ok";
 	}
 
@@ -121,7 +121,7 @@ public static class ToolHandlers
 		if (string.IsNullOrEmpty(villageStringId)) return "use find_settlements first";
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "raid_village", villageStringId) != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "raid_village");
-		context.AppendMapToolDisplayLine("raid_village:" + villageStringId);
+		ChatToolPillBuilder.AppendMapToolPill(context, npc, "raid_village:" + villageStringId);
 		return "ok";
 	}
 
@@ -133,7 +133,7 @@ public static class ToolHandlers
 		string param = settlementStringId + ":" + (parsedArgs["days"]?.Value<float>() ?? 5f);
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "patrol_settlement", param) != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "patrol_settlement");
-		context.AppendMapToolDisplayLine("patrol_settlement:" + param);
+		ChatToolPillBuilder.AppendMapToolPill(context, npc, "patrol_settlement:" + param);
 		return "ok";
 	}
 
@@ -145,7 +145,7 @@ public static class ToolHandlers
 		string param = settlementStringId + ":" + (parsedArgs["days"]?.Value<float>() ?? 2f);
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "wait_near_settlement", param) != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "wait_near_settlement");
-		context.AppendMapToolDisplayLine("wait_near_settlement:" + param);
+		ChatToolPillBuilder.AppendMapToolPill(context, npc, "wait_near_settlement:" + param);
 		return "ok";
 	}
 
@@ -156,7 +156,7 @@ public static class ToolHandlers
 		if (string.IsNullOrEmpty(settlementStringId)) return "use find_settlements first";
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "siege_settlement", settlementStringId) != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "siege_settlement");
-		context.AppendMapToolDisplayLine("siege_settlement:" + settlementStringId);
+		ChatToolPillBuilder.AppendMapToolPill(context, npc, "siege_settlement:" + settlementStringId);
 		return "ok";
 	}
 
@@ -166,7 +166,7 @@ public static class ToolHandlers
 		AIActionManager.Instance?.StopAction(npc, "return_to_player");
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "return_to_player", "") != true) return "failed";
 		if (AIActionManager.Instance?.StartAction(npc, "return_to_player") != true) return "failed";
-		context.AppendMapToolDisplayLine("return_to_player");
+		ChatToolPillBuilder.AppendMapToolPill(context, npc, "return_to_player");
 		return "ok";
 	}
 
@@ -174,7 +174,7 @@ public static class ToolHandlers
 	{
 		bool ok = AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "create_party", "") == true
 			&& AIActionManager.Instance?.StartAction(npc, "create_party") == true;
-		if (ok) context.AppendMapToolDisplayLine("create_party");
+		if (ok) ChatToolPillBuilder.AppendMapToolPill(context, npc, "create_party");
 		return ok ? "ok" : "failed";
 	}
 
@@ -186,7 +186,7 @@ public static class ToolHandlers
 		string param = itemName + "|" + (parsedArgs["description"]?.ToString() ?? "");
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "create_rp_item", param) != true) return "failed";
 		AIActionManager.Instance?.StartAction(npc, "create_rp_item");
-		context.AppendMapToolDisplayLine("create_rp_item:" + param);
+		ChatToolPillBuilder.AppendMapToolPill(context, npc, "create_rp_item:" + param);
 		return "ok";
 	}
 
@@ -201,7 +201,7 @@ public static class ToolHandlers
 		string param = direction + ":" + transfers;
 		if (AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "transfer_troops_and_prisoners", param) != true) return "failed";
 		if (AIActionManager.Instance?.StartAction(npc, "transfer_troops_and_prisoners") != true) return "failed";
-		context.AppendMapToolDisplayLine("transfer_troops_and_prisoners:" + param);
+		ChatToolPillBuilder.AppendMapToolPill(context, npc, "transfer_troops_and_prisoners:" + param);
 		return "ok";
 	}
 
@@ -209,7 +209,7 @@ public static class ToolHandlers
 	{
 		JObject parsedArgs = ParseOrEmpty(argsJson);
 		var moneyTransfer = new MoneyTransferInfo { Action = parsedArgs["action"]?.ToString(), Amount = parsedArgs["amount"]?.Value<int>() ?? 0, OpposedAttribute = parsedArgs["opposed_attribute"]?.ToString() };
-		if (moneyTransfer.Amount > 0) behavior.ProcessMoneyTransfer(npc, context, moneyTransfer);
+		if (moneyTransfer.Amount > 0) behavior.ProcessMoneyTransfer(npc, context, moneyTransfer, context);
 		return "ok";
 	}
 
@@ -222,7 +222,7 @@ public static class ToolHandlers
 		foreach (JToken itemRow in arr)
 			list.Add(new ItemTransferData { ItemId = itemRow["item_id"]?.ToString(), Amount = itemRow["amount"]?.Value<int>() ?? 1, Action = itemRow["action"]?.ToString() });
 		context.PendingItemTransfersOpposedAttribute = parsedArgs["opposed_attribute"]?.ToString();
-		behavior.ProcessItemTransfers(npc, context, list);
+		behavior.ProcessItemTransfers(npc, context, list, context);
 		return "ok";
 	}
 
@@ -237,13 +237,14 @@ public static class ToolHandlers
 	{
 		JObject parsedArgs = ParseOrEmpty(argsJson);
 		string kingdomAction = parsedArgs["action"]?.ToString();
-		if (string.IsNullOrEmpty(kingdomAction)) return "ok";
-		behavior.ProcessKingdomAction(npc, new AIResponse
+		if (string.IsNullOrEmpty(kingdomAction) || kingdomAction.Equals("none", StringComparison.OrdinalIgnoreCase)) return "ok";
+		string reason = parsedArgs["reason"]?.ToString() ?? "";
+		context.PendingKingdomActionFromTools = new AIResponse
 		{
 			KingdomAction = kingdomAction,
-			KingdomActionReason = parsedArgs["reason"]?.ToString() ?? "",
+			KingdomActionReason = reason,
 			SettlementId = parsedArgs["settlement_id"]?.ToString()
-		}, context);
+		};
 		return "ok";
 	}
 
@@ -263,6 +264,7 @@ public static class ToolHandlers
 			KillerStringId = parsedArgs["killer_string_id"]?.ToString(),
 			OpposedAttribute = parsedArgs["opposed_attribute"]?.ToString()
 		};
+		context.AppendToolPill("Roleplay death", ChatToolPillBuilder.ActionColor);
 		return "ok";
 	}
 
@@ -272,6 +274,7 @@ public static class ToolHandlers
 		if (parsedArgs["suspected"] == null)
 			return "missing";
 		context.DialogueToolSuspectedLie = parsedArgs["suspected"].Value<bool>();
+		context.AppendToolPill(context.DialogueToolSuspectedLie.Value ? "Suspected lie" : "Not suspected of lying", ChatToolPillBuilder.ActionColor);
 		return "ok";
 	}
 
@@ -281,6 +284,7 @@ public static class ToolHandlers
 		if (string.IsNullOrEmpty(decision))
 			return "missing";
 		context.DialogueToolDecision = decision;
+		context.AppendToolPill(decision.Trim(), ChatToolPillBuilder.ActionColor);
 		return "ok";
 	}
 
@@ -290,6 +294,7 @@ public static class ToolHandlers
 		if (string.IsNullOrEmpty(intent))
 			return "missing";
 		context.DialogueToolRomanceIntent = intent;
+		ChatToolPillBuilder.AppendRomanceIntent(context, intent);
 		return "ok";
 	}
 
@@ -305,6 +310,15 @@ public static class ToolHandlers
 		JToken deescalationAttemptToken = parsedArgs["deescalation_attempt"];
 		if (deescalationAttemptToken != null && deescalationAttemptToken.Type != JTokenType.Null)
 			context.DialogueToolDeescalationAttempt = deescalationAttemptToken.Value<bool>();
+		var parts = new List<string>();
+		if (context.DialogueToolThreatLevel != null)
+			parts.Add("Threat: " + context.DialogueToolThreatLevel);
+		if (context.DialogueToolEscalationState != null)
+			parts.Add("Escalation: " + context.DialogueToolEscalationState);
+		if (context.DialogueToolDeescalationAttempt.HasValue)
+			parts.Add("De-escalation attempt: " + (context.DialogueToolDeescalationAttempt.Value ? "yes" : "no"));
+		if (parts.Count > 0)
+			context.AppendToolPill(string.Join(" · ", parts), ChatToolPillBuilder.ActionColor);
 		return "ok";
 	}
 
@@ -313,7 +327,9 @@ public static class ToolHandlers
 		JObject parsedArgs = ParseOrEmpty(argsJson);
 		if (parsedArgs["allows"] == null)
 			return "missing";
-		context.DialogueToolAllowsLetters = parsedArgs["allows"].Value<bool>();
+		bool allows = parsedArgs["allows"].Value<bool>();
+		context.DialogueToolAllowsLetters = allows;
+		context.AppendToolPill(allows ? "Will send letters" : "Will not send letters", ChatToolPillBuilder.ActionColor);
 		return "ok";
 	}
 
@@ -327,6 +343,8 @@ public static class ToolHandlers
 		{
 			questAction.Category = parsedArgs["category"]?.ToString();
 			context.PendingQuestActionFromTools = questAction;
+			if (!string.IsNullOrEmpty(questAction.Action))
+				context.AppendToolPill("Quest: " + questAction.Action, ChatToolPillBuilder.QuestActionColor);
 		}
 		return "ok";
 	}

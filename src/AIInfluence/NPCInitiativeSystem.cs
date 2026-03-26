@@ -1576,7 +1576,7 @@ public class NPCInitiativeSystem
 				InformationManager.DisplayMessage(new InformationMessage(((object)new TextObject("{=" + statusTextId + "}" + fallbackText, letterStatusDict)).ToString(), Colors.Gray));
 			}
 			LogMessage("[NPC_MESSENGER] " + npcName + " response: " + message);
-			if (LetterReplyImpliesLikelyMapCommitment(message) && string.IsNullOrEmpty(context.LastTechnicalActionForDisplay))
+			if (LetterReplyImpliesLikelyMapCommitment(message) && !context.MapToolRanThisTurn)
 				LogMessage("[NPC_MESSENGER] Letter text suggests travel or map commitment, but no map tools ran this turn — the campaign map will not change until the model calls go_to_settlement, wait_near_settlement, or follow_player.");
 			if (!context.KnowledgeGenerated)
 			{

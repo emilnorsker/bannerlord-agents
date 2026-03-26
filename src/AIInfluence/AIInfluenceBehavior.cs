@@ -910,6 +910,23 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 	}
 
+	/// <summary>Runs <see cref="ProcessKingdomAction"/> for <c>kingdom_action</c> staged during tools. Call from chat UI after the NPC line and pills are visible (after streaming).</summary>
+	public void ApplyPendingKingdomActionFromTools(Hero npc, NPCContext context)
+	{
+		if (npc == null || context?.PendingKingdomActionFromTools == null)
+			return;
+		AIResponse k = context.PendingKingdomActionFromTools;
+		context.PendingKingdomActionFromTools = null;
+		try
+		{
+			ProcessKingdomAction(npc, k, context, executeImmediately: true);
+		}
+		catch (Exception ex)
+		{
+			LogMessage("[ERROR] Chat kingdom action failed: " + ex.Message);
+		}
+	}
+
 	public void ProcessQuestAction(Hero npc, NPCContext context, QuestActionData questAction)
 	{
 		string text = ((npc == null) ? null : ((object)npc.Name)?.ToString()) ?? "Unknown";
@@ -2198,6 +2215,17 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 							{ "PRICE", agreedPrice }
 						});
 						InformationManager.DisplayMessage(new InformationMessage(((object)val2).ToString(), ExtraColors.GreenAIInfluence));
+						string npcN = ((object)npc.Name)?.ToString() ?? "NPC";
+						context.DeferredChatPillAppends ??= new List<(string, string, bool)>();
+						context.DeferredChatPillAppends.Add(($"{npcN} sold you a workshop", ChatTools.ChatToolPillBuilder.WorkshopActionColor, false));
+						context.DeferredChatPillAppends.Add(("You bought a workshop", ChatTools.ChatToolPillBuilder.WorkshopActionColor, true));
+						MainThreadDispatcher.Queue.Enqueue(() =>
+						{
+							if (!NpcChatWindowManager.IsOpen) return;
+							NpcChatWindowVM vm = NpcChatWindowManager.GetCurrentViewModel();
+							if (vm == null || vm.TargetHero != npc) return;
+							vm.AppendDeferredChatPills(context);
+						});
 						return;
 					}
 					catch (Exception ex3)
@@ -2221,7 +2249,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		});
 	}
 
-	public void ProcessItemTransfers(Hero npc, NPCContext context, List<ItemTransferData> itemTransfers)
+	public void ProcessItemTransfers(Hero npc, NPCContext context, List<ItemTransferData> itemTransfers, NPCContext contextForToolPills = null)
 	{
 		//IL_0342: Unknown result type (might be due to invalid IL or missing references)
 		//IL_034c: Expected O, but got Unknown
@@ -2261,6 +2289,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			}
 		}
 		string text = ((object)npc.Name)?.ToString() ?? "Unknown";
+		var npcGave = new List<ItemTransferData>();
+		var npcTook = new List<ItemTransferData>();
 		foreach (ItemTransferData transfer in itemTransfers)
 		{
 			bool flag = false;
@@ -2272,6 +2302,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				flag = InventoryHelper.TransferItem(transfer.ItemId, transfer.Amount, npc, Hero.MainHero, out errorReason);
 				if (flag)
 				{
+					npcGave.Add(transfer);
 					LogMessage($"[ITEM_TRANSFER] {text} GAVE {transfer.Amount} of {transfer.ItemId} to Player.");
 					RPItemManager.Instance?.UpdateItemOwner(transfer.ItemId, "MainParty");
 					InformationManager.DisplayMessage(new InformationMessage(((object)new TextObject("{=AIInfluence_NPCGaveItem}{npcName} gave you {amount} {itemId}", new Dictionary<string, object>
@@ -2287,6 +2318,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				flag = InventoryHelper.TransferItem(transfer.ItemId, transfer.Amount, Hero.MainHero, npc, out errorReason);
 				if (flag)
 				{
+					npcTook.Add(transfer);
 					LogMessage($"[ITEM_TRANSFER] {text} TOOK {transfer.Amount} of {transfer.ItemId} from Player.");
 					RPItemManager.Instance?.UpdateItemOwner(transfer.ItemId, ((MBObjectBase)npc).StringId);
 					InformationManager.DisplayMessage(new InformationMessage(((object)new TextObject("{=AIInfluence_NPCTookItem}{npcName} took {amount} {itemId} from you", new Dictionary<string, object>
@@ -2311,9 +2343,22 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				})).ToString(), ExtraColors.RedAIInfluence));
 			}
 		}
+		if (contextForToolPills != null)
+		{
+			if (npcGave.Count > 0)
+			{
+				ChatTools.ChatToolPillBuilder.AppendNpcItemGive(contextForToolPills, text, npcGave);
+				contextForToolPills.AppendPlayerToolPill($"You received {ChatTools.ChatToolPillBuilder.FormatItemListForPill(npcGave)} from {text}", ChatTools.ChatToolPillBuilder.ItemTransferColor);
+			}
+			if (npcTook.Count > 0)
+			{
+				ChatTools.ChatToolPillBuilder.AppendNpcItemTake(contextForToolPills, text, npcTook);
+				contextForToolPills.AppendPlayerToolPill($"You gave {ChatTools.ChatToolPillBuilder.FormatItemListForPill(npcTook)} to {text}", ChatTools.ChatToolPillBuilder.ItemTransferColor);
+			}
+		}
 	}
 
-	public void ProcessMoneyTransfer(Hero npc, NPCContext context, MoneyTransferInfo moneyTransfer)
+	public void ProcessMoneyTransfer(Hero npc, NPCContext context, MoneyTransferInfo moneyTransfer, NPCContext contextForToolPills = null)
 	{
 		LogMessage($"[DEBUG][MONEY_TRANSFER_EXEC] ProcessMoneyTransfer called for {((object)npc?.Name ?? "null")} - amount={moneyTransfer?.Amount}, action={moneyTransfer?.Action}. If you never see this line after a chat-window transfer, the transfer was never executed.");
 		if (!string.IsNullOrWhiteSpace(moneyTransfer.OpposedAttribute))
@@ -2384,6 +2429,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				{ "npcName", text2 },
 				{ "amount", amount }
 			})).ToString(), ExtraColors.GreenAIInfluence));
+			ChatTools.ChatToolPillBuilder.AppendMoneyGive(contextForToolPills, text2, amount);
+			contextForToolPills?.AppendPlayerToolPill($"You received {amount} gold from {text2}", ChatTools.ChatToolPillBuilder.MoneyTransferColor);
 		}
 		else if (text == "receive")
 		{
@@ -2402,6 +2449,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				{ "amount", amount },
 				{ "npcName", text2 }
 			})).ToString(), Colors.Yellow));
+			ChatTools.ChatToolPillBuilder.AppendMoneyReceive(contextForToolPills, text2, amount);
+			contextForToolPills?.AppendPlayerToolPill($"You gave {amount} gold to {text2}", ChatTools.ChatToolPillBuilder.MoneyTransferColor);
 		}
 		else
 		{
@@ -3174,7 +3223,10 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		context.DialogueToolDeescalationAttempt = null;
 		context.DialogueToolAllowsLetters = null;
 		context.PendingQuestActionFromTools = null;
-		context.LastTechnicalActionForDisplay = null;
+		context.PendingKingdomActionFromTools = null;
+		context.ToolPillsForCurrentTurn = null;
+		context.ToolPlayerPillsForCurrentTurn = null;
+		context.MapToolRanThisTurn = false;
 	}
 
 	/// <summary>Merges OpenRouter dialogue tool results into <paramref name="aiResult"/> after deserialize (tools override duplicate JSON fields).</summary>
@@ -3381,10 +3433,10 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		context.PendingAIResponse = aiResult;
 		context.LastAIResponseJson = JsonConvert.SerializeObject(aiResult);
 		context.LastDynamicResponse = reply;
-		context.AddMessage(npcName + ": " + reply);
+		context.AddMessage(npcName + ": " + (string.IsNullOrEmpty(reply) ? "(actions only)" : reply));
 		if (Campaign.Current?.ConversationManager != null)
 		{
-			try { MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", reply, false); }
+			try { MBTextManager.SetTextVariable("DYNAMIC_NPC_RESPONSE", string.IsNullOrEmpty(reply) ? "(actions only)" : reply, false); }
 			catch (Exception ex) { LogMessage("[ChatWindow] SetTextVariable failed: " + ex.Message); }
 		}
 		bool decisionHandled = false;
@@ -6074,10 +6126,16 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}, false, (Func<string, Tuple<bool, string>>)null, "", ""));
 	}
 
-	public void ProcessKingdomAction(Hero npc, AIResponse aiResult, NPCContext context)
+	public void ProcessKingdomAction(Hero npc, AIResponse aiResult, NPCContext context, bool executeImmediately = false)
 	{
 		if (!GlobalSettings<ModSettings>.Instance.EnableModification || npc == null || aiResult == null || string.IsNullOrWhiteSpace(aiResult.KingdomAction) || aiResult.KingdomAction.Equals("none", StringComparison.OrdinalIgnoreCase))
 		{
+			return;
+		}
+		if (executeImmediately)
+		{
+			LogMessage("[KINGDOM_ACTION] Immediate execute (NPC chat finalize) '" + aiResult.KingdomAction + "' for " + (((object)npc.Name)?.ToString() ?? "?") + ".");
+			ExecuteKingdomAction(npc, aiResult, context);
 			return;
 		}
 		DelayedTaskManager delayedTaskManager = GetDelayedTaskManager();

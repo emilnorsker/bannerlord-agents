@@ -35,7 +35,7 @@ Same rough “player talks to AI” story, but **many extra layers**—this is t
 | 4 | **Handle (inference)** | `AIClient` SSE + tool loop, `ToolHandlers` | This is the **intended** side-effect layer—good. |
 | 5 | **Parsing & “correctness”** | `NpcOpenRouterAssistantParser`, `JsonCleaner`, `OpenRouterDialogueJson.StripGameEffectKeys`, merge from `NPCContext` into `AIResponse`, “ensure tools didn’t duplicate JSON,” etc. | **Ambiguous authority**: gameplay semantics smuggled into “make JSON valid / consistent.” |
 | 6 | **Queues & deferrals** | `DelayedTaskManager`, pending fields, DialogManager scheduling | Work that could be **immediate** in the tool path gets **re-queued**, ordering gets harder to reason about. |
-| 7 | **UI** | Chat VM + `DialogManager` often driven by **one big `AIResponse`** and legacy `TechnicalAction` strings | **One parser loop** tries to drive both narrative and mechanics. |
+| 7 | **UI** | Chat VM + `DialogManager` still mix **`AIResponse`** parsing with tool-driven state | **One parser loop** tries to drive both narrative and mechanics until the NPC path is fully tool-first. |
 
 The north star doc must **not** treat step 5 as a permanent home for “a little more logic each time.” Step 5 should shrink to **transport-only** (or disappear for NPC chat).
 
@@ -44,7 +44,7 @@ The north star doc must **not** treat step 5 as a permanent home for “a little
 ## Legacy scar tissue (migration targets)
 
 - **Monolithic `AIResponse` envelope** as parallel authority to tools.
-- **String protocols** (`technical_action`, legacy map lines) alongside typed tools.
+- **String protocols** (legacy comma-separated map command strings in prompts or docs) alongside typed tools — **remove** wherever they still appear; map behavior is **one tool per step**.
 - **`JsonCleaner` / strip / merge** as the default way to get a consistent turn (should be debug-only or deleted on NPC path).
 - **Per-feature raw completions** (`GetRawTextResponse*`) where the same feature could use **the same tool catalog + bus**.
 - **Prompts that encode output schemas** instead of naming tools.
@@ -101,7 +101,7 @@ The north star doc must **not** treat step 5 as a permanent home for “a little
 
 ## Phase 3 — Map: end string protocols for map behavior
 
-**Status:** **Started.** Prefer **one tool per map action** with typed args; legacy **`technical_action`** / string lines should go away.
+**Status:** **Started.** Map behavior uses **typed tools** only; remove any remaining prose that describes a single string field for chained map orders.
 
 **Exit:** `DialogManager` and map UI do not read **stringly** map commands from `AIResponse`—only tool-emitted facts or handler-written context.
 

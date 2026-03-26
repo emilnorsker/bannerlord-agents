@@ -210,7 +210,7 @@ public class AIActionManager
 		}
 		if (hero.IsPrisoner)
 		{
-			LogMessage($"[TECHNICAL_ACTION] Cannot start action '{actionName}' for prisoner {hero.Name} - prisoners cannot execute actions requiring freedom of movement.");
+			LogMessage($"[AI_ACTION] Cannot start action '{actionName}' for prisoner {hero.Name} - prisoners cannot execute actions requiring freedom of movement.");
 			return false;
 		}
 		if (hero.PartyBelongedTo != null && hero.PartyBelongedTo.Army != null)
