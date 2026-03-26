@@ -16,9 +16,19 @@ public class IntrigueStore
     [JsonProperty("event_diary")]
     private EventDiary _eventDiary = new EventDiary();
 
+    [JsonProperty("hooks")]
+    private HookStore _hooks = new HookStore();
+
+    [JsonProperty("recall_phrases")]
+    private RecallPhraseStore _recallPhrases = new RecallPhraseStore();
+
     public RuntimeSecretStore RuntimeSecrets => _runtimeSecrets;
 
     public EventDiary EventDiary => _eventDiary;
+
+    public HookStore Hooks => _hooks;
+
+    public RecallPhraseStore RecallPhrases => _recallPhrases;
 
     public void AddPlot(PlotInstance plot)
     {
