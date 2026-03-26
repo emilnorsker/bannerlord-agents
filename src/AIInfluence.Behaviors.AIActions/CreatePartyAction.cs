@@ -14,13 +14,6 @@ namespace AIInfluence.Behaviors.AIActions;
 
 public sealed class CreatePartyAction : AIActionBase
 {
-	/// <summary>
-	/// Set by <see cref="AIActionIntegration.TryPrepareActionParameter"/> immediately before <see cref="AIActionManager.StartAction"/> (e.g. <c>create_party:outlaw</c> or tool <c>mode: outlaw</c>).
-	/// Consumed and cleared at the start of <see cref="OnStart"/>.
-	/// Forces the BLGM minor-clan breakaway when the hero would not otherwise match bandit culture / bandit clan.
-	/// </summary>
-	public static bool PendingOutlawMinorClanOverride { get; set; }
-
 	private bool _partyCreated;
 
 	public override string ActionName => "create_party";
@@ -60,8 +53,10 @@ public sealed class CreatePartyAction : AIActionBase
 
 	protected override void OnStart()
 	{
-		bool forceOutlaw = PendingOutlawMinorClanOverride;
-		PendingOutlawMinorClanOverride = false;
+		NPCContext ctx = AIInfluenceBehavior.Instance?.GetOrCreateNPCContext(base.TargetHero);
+		bool forceOutlaw = ctx?.PendingCreatePartyForceOutlaw == true;
+		if (ctx != null)
+			ctx.PendingCreatePartyForceOutlaw = null;
 		//IL_003f: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0046: Expected O, but got Unknown
 		//IL_011c: Unknown result type (might be due to invalid IL or missing references)

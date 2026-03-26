@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using AIInfluence;
 using AIInfluence.Behaviors.AIActions.TaskSystem;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Party;
@@ -298,7 +299,7 @@ public class AIActionIntegration
 		}
 		if (string.Equals(actionName, "create_party", StringComparison.OrdinalIgnoreCase))
 		{
-			ApplyCreatePartyParameter(parameter);
+			ApplyCreatePartyParameter(npc, parameter);
 			return true;
 		}
 		if (string.IsNullOrWhiteSpace(parameter))
@@ -849,9 +850,12 @@ public class AIActionIntegration
 		}
 	}
 
-	private static void ApplyCreatePartyParameter(string parameter)
+	private static void ApplyCreatePartyParameter(Hero npc, string parameter)
 	{
-		CreatePartyAction.PendingOutlawMinorClanOverride = false;
+		NPCContext ctx = AIInfluenceBehavior.Instance?.GetOrCreateNPCContext(npc);
+		if (ctx == null)
+			return;
+		ctx.PendingCreatePartyForceOutlaw = false;
 		if (string.IsNullOrWhiteSpace(parameter))
 			return;
 		foreach (string raw in parameter.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
@@ -860,12 +864,12 @@ public class AIActionIntegration
 			if (t.Length == 0)
 				continue;
 			if (t.Equals("outlaw", StringComparison.OrdinalIgnoreCase) || t.Equals("bandit", StringComparison.OrdinalIgnoreCase))
-				CreatePartyAction.PendingOutlawMinorClanOverride = true;
+				ctx.PendingCreatePartyForceOutlaw = true;
 			else if (t.StartsWith("outlaw:", StringComparison.OrdinalIgnoreCase) || t.StartsWith("bandit:", StringComparison.OrdinalIgnoreCase))
 			{
 				string[] kv = t.Split(new[] { ':' }, 2);
 				if (kv.Length > 1 && (kv[1].Trim().Equals("true", StringComparison.OrdinalIgnoreCase) || kv[1].Trim() == "1"))
-					CreatePartyAction.PendingOutlawMinorClanOverride = true;
+					ctx.PendingCreatePartyForceOutlaw = true;
 			}
 		}
 	}

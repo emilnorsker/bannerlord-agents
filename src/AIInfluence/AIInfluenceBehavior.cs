@@ -3194,6 +3194,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		context.DialogueToolDeescalationAttempt = null;
 		context.DialogueToolAllowsLetters = null;
 		context.PendingQuestActionFromTools = null;
+		context.PendingCreatePartyForceOutlaw = null;
 	}
 
 	/// <summary>Merges OpenRouter dialogue tool results into <paramref name="aiResult"/> after deserialize (tools override duplicate JSON fields).</summary>
