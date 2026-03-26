@@ -276,11 +276,11 @@
 | I-05 | agent | 2026-03-26 | `WorldSnapshotBuilderTests` (4): active plots, recent diary, secret count, serialization |
 | I-06 | agent | 2026-03-26 | `HookStoreTests` (4), `RecallPhraseTests` (2): hooks CRUD, recall phrase visibility filter |
 | I-07 | agent | 2026-03-26 | `ProposalValidatorTests` (5): valid proposal, invalid JSON, unknown plot, unknown op, commit |
-| I-08 | | | |
-| I-09 | | | |
-| I-10 | | | |
-| I-11 | | | |
-| I-12 | | | |
+| I-08 | agent | 2026-03-26 | `DialoguePathAuditTests` (4): invalid JSON no mutation, unknown plot no phase advance |
+| I-09 | agent | 2026-03-26 | `PlotLifecycleTests` (4): cap reject, cap after expiry, expiry sets status, no-deadline safe |
+| I-10 | agent | 2026-03-26 | `docs/INTRIGUE_TEST_SPEC.md` created with TC-01 through TC-21 + manual tests MT-01, MT-02 |
+| I-11 | agent | 2026-03-26 | `BeliefMatrixTests` (6): diagonal, off-diagonal, unknown, propagation, round-trip, partial |
+| I-12 | agent | 2026-03-26 | `ExecutionGuardTests` (3): preconditions hold, preconditions fail + replan, no precondition |
 
 ---
 
