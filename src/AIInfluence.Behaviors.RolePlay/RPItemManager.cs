@@ -667,7 +667,7 @@ public class RPItemManager : IGameStateManagerListener
 		{
 			if (!string.IsNullOrEmpty(itemData.BaseItemId) && itemData.BaseItemId != itemData.ItemId)
 			{
-				return RpWeaponForgeScript.RehydrateRegisteredWeapon(itemData);
+				return RpWeaponForgeScript.RestoreForgedWeaponFromRpData(itemData);
 			}
 			return CreateRPItem(itemData.Name, itemData.Description, itemData.CreatedBy, null, itemData.Metadata, itemData.ItemId);
 		}

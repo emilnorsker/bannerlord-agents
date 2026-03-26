@@ -13,7 +13,7 @@ namespace AIInfluence;
 
 public static class RpWeaponForgeScript
 {
-	public static ItemObject RehydrateRegisteredWeapon(RPItemData d)
+	public static ItemObject RestoreForgedWeaponFromRpData(RPItemData d)
 	{
 		ItemObject t = MBObjectManager.Instance.GetObject<ItemObject>(d.BaseItemId);
 		if (t?.WeaponComponent == null)
