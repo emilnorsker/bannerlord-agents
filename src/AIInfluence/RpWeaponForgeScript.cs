@@ -18,7 +18,7 @@ public static class RpWeaponForgeScript
 	{
 		if (m == null || template == null)
 			return true;
-		MethodInfo x = typeof(ItemObject).GetMethod("IsValidModifier", BindingFlags.Instance | BindingFlags.Public);
+		MethodInfo x = typeof(ItemObject).GetMethod("IsValidModifier", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 		object r = x?.Invoke(template, new object[] { m });
 		return r is bool ok ? ok : true;
 	}
