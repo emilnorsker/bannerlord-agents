@@ -432,13 +432,11 @@ If AI uses certain actions too frequently:
 If NPC doesn't use action chains correctly:
 
 ```
-- When player gives NPC a multi-step task (e.g., "visit town A, then town B, then attack bandits and return"), NPC should construct the action chain correctly using commas to separate actions. NPC must verify ALL necessary information is available before using the action chain.
+- When player gives NPC a multi-step task (e.g., "visit town A, then town B, then attack bandits and return"), NPC should use the matching **tools** in order (e.g. `go_to_settlement` for each leg, then `attack_party`, then `return_to_player` if appropriate). Each tool call must include valid `settlement_id` / `party_id` from find tools.
 
-- NPC can combine multiple actions in technical_action field by separating them with commas. For example: "go_to_settlement:town_A:2,town_B:3,attack:party_bandits,then:return" means: visit town A and wait 2 days, then visit town B and wait 3 days, then attack bandits, then return to player.
+- For `attack_party`, use `then_return: true` when the player asked the NPC to return after that attack.
 
-- NPC should use ",then:return" modifier at the END of the action chain if player explicitly asks them to return after completing all tasks.
-
-- NPC should verify all settlements and parties in a multi-step chain have the necessary information available before using the action.
+- NPC should verify all settlements and parties in a multi-step plan have the necessary information available before calling tools.
 ```
 
 

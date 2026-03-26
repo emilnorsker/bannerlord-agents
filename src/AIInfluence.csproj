@@ -1,7 +1,12 @@
 <Project Sdk="Bannerlord.BUTRModule.Sdk/1.1.0.129">
+  <Target Name="SyncSubModuleIntoModuleFolder" BeforeTargets="PostBuildEvent">
+    <Copy SourceFiles="$(MSBuildThisFileDirectory)../SubModule.xml" DestinationFolder="$(MSBuildThisFileDirectory)_Module" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildThisFileDirectory)../SubModule.xml')" />
+  </Target>
+
   <PropertyGroup>
     <AssemblyName>AIInfluence</AssemblyName>
     <ModuleId>AIInfluence</ModuleId>
+    <ModuleName>AIInfluence</ModuleName>
     <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
     <TargetFramework>net472</TargetFramework>
     <Platforms>x64</Platforms>

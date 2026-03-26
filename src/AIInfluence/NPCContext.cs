@@ -88,23 +88,12 @@ public class NPCContext
 
 	public AIResponse PendingAIResponse { get; set; }
 
-	/// <summary>In-memory map tool lines for chat UI pills (pipe-separated); cleared each dialogue turn.</summary>
-	[JsonIgnore]
-	public string LastTechnicalActionForDisplay { get; set; }
-
 	/// <summary>
 	/// Temporary hold for roleplay death data from the OpenRouter <c>character_death</c> tool. Copied onto <see cref="AIResponse.CharacterDeath"/>
 	/// by <see cref="AIInfluenceBehavior.ApplyNpcContextToolDeferralsToAiResponse"/> before the rest of the mod runs.
 	/// </summary>
 	[JsonIgnore]
 	public CharacterDeathInfo DeferredCharacterDeathFromTools { get; set; }
-
-	public void AppendMapToolDisplayLine(string line)
-	{
-		if (string.IsNullOrEmpty(line))
-			return;
-		LastTechnicalActionForDisplay = string.IsNullOrEmpty(LastTechnicalActionForDisplay) ? line : LastTechnicalActionForDisplay + "|" + line;
-	}
 
 	/// <summary>Set by <c>quest_action</c> tool; applied when the chat UI finishes the typewriter and finalizes the NPC line (not during the async tool round).</summary>
 	[JsonIgnore]
