@@ -1,6 +1,8 @@
 src/.bl-refs/
 src/bin/
 src/obj/
+tests/**/bin/
+tests/**/obj/
 logs/
 mod_log.txt
 _game_folder/
