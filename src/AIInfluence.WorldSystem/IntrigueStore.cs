@@ -13,7 +13,12 @@ public class IntrigueStore
     [JsonProperty("runtime_secrets")]
     private RuntimeSecretStore _runtimeSecrets = new RuntimeSecretStore();
 
+    [JsonProperty("event_diary")]
+    private EventDiary _eventDiary = new EventDiary();
+
     public RuntimeSecretStore RuntimeSecrets => _runtimeSecrets;
+
+    public EventDiary EventDiary => _eventDiary;
 
     public void AddPlot(PlotInstance plot)
     {
