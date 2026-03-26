@@ -53,7 +53,8 @@ public static class QuestPartyBlgmKernel
 			if (mc?.Leader == null) { x.Err = "minor"; return x; }
 			if (lead == null) mc.Leader.SetName(new TextObject(d.Name), new TextObject(d.Name));
 			x.Hero = mc.Leader; x.Party = x.Hero.PartyBelongedTo;
-			War(mc, x.Hero); AddT(x.Party, d, cu); return x;
+			// War runs after CreateMinorClan so leader normally has PartyBelongedTo; anchor used if not.
+			War(mc, x.Hero, a); AddT(x.Party, d, cu); return x;
 		}
 		Kingdom k = KingdomQueries.QueryKingdoms(d.Faction?.Trim() ?? "").FirstOrDefault();
 		if (k == null) { x.Err = "kingdom"; return x; }
@@ -62,10 +63,15 @@ public static class QuestPartyBlgmKernel
 		x.Hero = HeroGenerator.CreateLord(d.Name.Trim(), k.Culture?.ToCultureFlag() ?? cf, gf, c, true, a, 0.5f, -1, ag, true);
 		x.Party = x.Hero?.PartyBelongedTo; AddT(x.Party, d, c.Culture ?? cu); return x.Hero == null ? new R { Err = "lord" } : x;
 	}
-	static void War(Clan o, Hero h)
+	/// <param name="spawnAnchor">Fallback map point for nearest-enemy when hero has no party/settlement and main party is null.</param>
+	static void War(Clan o, Hero h, Settlement spawnAnchor)
 	{
 		IFaction p = Clan.PlayerClan?.MapFaction ?? Clan.PlayerClan;
-		Vec2 v = h.PartyBelongedTo != null ? GameVersionCompatibility.GetPosition2D(h.PartyBelongedTo) : h.CurrentSettlement != null ? GameVersionCompatibility.GetPosition2D(h.CurrentSettlement) : MobileParty.MainParty != null ? GameVersionCompatibility.GetPosition2D(MobileParty.MainParty) : default;
+		Vec2 v = h.PartyBelongedTo != null ? GameVersionCompatibility.GetPosition2D(h.PartyBelongedTo)
+			: h.CurrentSettlement != null ? GameVersionCompatibility.GetPosition2D(h.CurrentSettlement)
+			: MobileParty.MainParty != null ? GameVersionCompatibility.GetPosition2D(MobileParty.MainParty)
+			: spawnAnchor != null ? GameVersionCompatibility.GetPosition2D(spawnAnchor)
+			: default;
 		IFaction n = Settlement.All?.Where(s => s != null && !s.IsHideout && s.MapFaction != null && (!(s.MapFaction is Clan b) || !b.IsBanditFaction)).OrderBy(s => s.GetPosition2D.DistanceSquared(v)).FirstOrDefault()?.MapFaction;
 		try
 		{

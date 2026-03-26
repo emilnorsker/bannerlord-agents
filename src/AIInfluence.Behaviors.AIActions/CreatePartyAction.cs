@@ -122,6 +122,13 @@ public sealed class CreatePartyAction : AIActionBase
 				InformationManager.DisplayMessage(new InformationMessage("[AI Influence] Outlaw clan creation failed; forming a normal clan party instead. " + outlawFallbackReason, ExtraColors.RedAIInfluence));
 			}
 		}
+		if (base.TargetHero.Clan != Clan.PlayerClan)
+		{
+			LogError("create_party: hero left player clan; outlaw failed — cannot form player-clan party");
+			InformationManager.DisplayMessage(new InformationMessage("[AI Influence] Party creation failed: hero is no longer in your clan after outlaw attempt.", ExtraColors.RedAIInfluence));
+			Stop();
+			return;
+		}
 		MobileParty playerClanLordParty = GameVersionCompatibility.CreateNewClanMobileParty(base.TargetHero, Clan.PlayerClan);
 		if (playerClanLordParty == null)
 		{
