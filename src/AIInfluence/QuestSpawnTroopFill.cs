@@ -14,16 +14,16 @@ public static class QuestSpawnTroopFill
 		if (party == null || data == null)
 			return;
 		int totalCount = Math.Max(0, Math.Min(data.PartySize ?? 0, 5000));
-		int cur = party.MemberRoster.TotalManCount;
-		if (cur >= totalCount)
+		int currentMemberCount = party.MemberRoster.TotalManCount;
+		if (currentMemberCount >= totalCount)
 			return;
-		totalCount -= cur;
+		totalCount -= currentMemberCount;
 		List<CharacterObject> resolved = new List<CharacterObject>();
 		if (data.PartyTroops != null)
 		{
-			foreach (string name in data.PartyTroops.Where(n => !string.IsNullOrWhiteSpace(n)).Distinct(StringComparer.OrdinalIgnoreCase))
+			foreach (string troopQueryName in data.PartyTroops.Where(token => !string.IsNullOrWhiteSpace(token)).Distinct(StringComparer.OrdinalIgnoreCase))
 			{
-				CharacterObject troop = ItemMentionParser.FindBestTroopMatch(name);
+				CharacterObject troop = ItemMentionParser.FindBestTroopMatch(troopQueryName);
 				if (troop != null)
 					resolved.Add(troop);
 			}

@@ -12,14 +12,14 @@ public static class QuestSpawnSettlementResolver
 	{
 		if (!string.IsNullOrWhiteSpace(name))
 		{
-			string n = name.Trim().ToLowerInvariant();
-			Settlement s = Settlement.All?.FirstOrDefault(x => !x.IsHideout && x.Name != null && string.Equals(x.Name.ToString(), name, StringComparison.OrdinalIgnoreCase));
-			if (s != null) return s;
-			s = Settlement.All?.FirstOrDefault(x => !x.IsHideout && x.Name != null && x.Name.ToString().ToLowerInvariant().Contains(n));
-			if (s != null) return s;
-			s = Settlement.All?.FirstOrDefault(x => !x.IsHideout && x.StringId != null && x.StringId.ToLowerInvariant().Contains(n));
-			if (s != null) return s;
+			string normalizedName = name.Trim().ToLowerInvariant();
+			Settlement matchedSettlement = Settlement.All?.FirstOrDefault(candidate => !candidate.IsHideout && candidate.Name != null && string.Equals(candidate.Name.ToString(), name, StringComparison.OrdinalIgnoreCase));
+			if (matchedSettlement != null) return matchedSettlement;
+			matchedSettlement = Settlement.All?.FirstOrDefault(candidate => !candidate.IsHideout && candidate.Name != null && candidate.Name.ToString().ToLowerInvariant().Contains(normalizedName));
+			if (matchedSettlement != null) return matchedSettlement;
+			matchedSettlement = Settlement.All?.FirstOrDefault(candidate => !candidate.IsHideout && candidate.StringId != null && candidate.StringId.ToLowerInvariant().Contains(normalizedName));
+			if (matchedSettlement != null) return matchedSettlement;
 		}
-		return Settlement.All?.Where(x => x.IsTown).OrderBy(x => x.GetPosition2D.Distance(fallbackPos)).FirstOrDefault();
+		return Settlement.All?.Where(candidateTown => candidateTown.IsTown).OrderBy(candidateTown => candidateTown.GetPosition2D.Distance(fallbackPos)).FirstOrDefault();
 	}
 }

@@ -1096,32 +1096,32 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
 			return;
 		}
-		QuestPartyBlgmKernel.R r = QuestPartyBlgmKernel.Run(spawnData, anchor);
-		if (!string.IsNullOrEmpty(r.Err))
+		QuestPartyBlgmKernel.QuestPartySpawnOutcome spawnOutcome = QuestPartyBlgmKernel.Run(spawnData, anchor);
+		if (!string.IsNullOrEmpty(spawnOutcome.ErrorToken))
 		{
-			LogMessage("[QUEST] spawn_party failed: " + r.Err);
-			InformationManager.DisplayMessage(new InformationMessage("Quest spawn failed: " + r.Err, ExtraColors.RedAIInfluence));
+			LogMessage("[QUEST] spawn_party failed: " + spawnOutcome.ErrorToken);
+			InformationManager.DisplayMessage(new InformationMessage("Quest spawn failed: " + spawnOutcome.ErrorToken, ExtraColors.RedAIInfluence));
 			SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
 			return;
 		}
 		bool targetLookupOnly = !string.IsNullOrWhiteSpace(spawnData.TargetHeroStringId) || !string.IsNullOrWhiteSpace(spawnData.TargetHeroQuery);
 		bool createdNewNamedHero = !string.IsNullOrWhiteSpace(spawnData.Name) && !targetLookupOnly;
-		if (r.Hero != null && r.Party == null && createdNewNamedHero)
+		if (spawnOutcome.Hero != null && spawnOutcome.Party == null && createdNewNamedHero)
 		{
-			TryRemoveOrphanQuestSpawnHero(r.Hero, "Inconsistent BLGM result: new named hero but no party.");
+			TryRemoveOrphanQuestSpawnHero(spawnOutcome.Hero, "Inconsistent BLGM result: new named hero but no party.");
 			LogMessage("[QUEST] spawn_party failed: hero without party after create");
 			InformationManager.DisplayMessage(new InformationMessage("Quest spawn failed: inconsistent hero spawn", ExtraColors.RedAIInfluence));
 			SaveNPCContext(((MBObjectBase)npc).StringId, npc, context);
 			return;
 		}
-		if (r.Hero != null)
+		if (spawnOutcome.Hero != null)
 		{
-			string targetNpcId = ((MBObjectBase)r.Hero).StringId;
+			string targetNpcId = ((MBObjectBase)spawnOutcome.Hero).StringId;
 			QuestBase q = Campaign.Current?.QuestManager?.Quests?.FirstOrDefault((QuestBase qq) => ((MBObjectBase)qq).StringId == questInfo.QuestId && qq.IsOngoing);
-			q?.AddTrackedObject((ITrackableCampaignObject)(object)r.Hero);
+			q?.AddTrackedObject((ITrackableCampaignObject)(object)spawnOutcome.Hero);
 			if (q is AIGeneratedQuest agq)
 				agq.AppendTargetNpc(targetNpcId);
-			EnsureQuestTargetContextFileExists(targetNpcId, r.Hero);
+			EnsureQuestTargetContextFileExists(targetNpcId, spawnOutcome.Hero);
 			NPCContext nPCContext = LoadNPCContext(targetNpcId);
 			if (nPCContext != null)
 			{
@@ -1130,12 +1130,12 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				if (!nPCContext.IncomingAIQuests.Any((AIQuestInfo x) => x.QuestId == questInfo.QuestId))
 					nPCContext.IncomingAIQuests.Add(questInfo);
 				if (string.IsNullOrEmpty(nPCContext.Name) || nPCContext.Name == "Unknown_NPC")
-					nPCContext.Name = ((object)r.Hero.Name)?.ToString() ?? "Unknown_NPC";
+					nPCContext.Name = ((object)spawnOutcome.Hero.Name)?.ToString() ?? "Unknown_NPC";
 				if (string.IsNullOrEmpty(nPCContext.StringId))
 					nPCContext.StringId = targetNpcId;
 				_npcContexts[targetNpcId] = nPCContext;
 				UpdateStringIdIndex(targetNpcId, targetNpcId);
-				SaveNPCContext(targetNpcId, r.Hero, nPCContext);
+				SaveNPCContext(targetNpcId, spawnOutcome.Hero, nPCContext);
 			}
 			if (questInfo.TargetNpcIds == null)
 				questInfo.TargetNpcIds = new List<string>();
@@ -1145,21 +1145,21 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				questInfo.TargetNpcId = targetNpcId;
 			LogMessage("[QUEST] spawn_party linked target hero " + targetNpcId);
 			SyncQuestInfoAcrossNpcs(questInfo);
-			NPCContext spawnedContext = GetOrCreateNPCContext(r.Hero);
+			NPCContext spawnedContext = GetOrCreateNPCContext(spawnOutcome.Hero);
 			if (spawnedContext != null)
-				SaveNPCContext(targetNpcId, r.Hero, spawnedContext);
+				SaveNPCContext(targetNpcId, spawnOutcome.Hero, spawnedContext);
 		}
-		if (r.Party != null)
+		if (spawnOutcome.Party != null)
 		{
-			CultureObject troopCulture = r.Party.LeaderHero?.Culture ?? r.Hero?.Culture ?? anchor.Culture;
-			QuestSpawnTroopFill.Apply(r.Party, spawnData, troopCulture);
-			string partyStringId = ((MBObjectBase)r.Party).StringId;
+			CultureObject troopCulture = spawnOutcome.Party.LeaderHero?.Culture ?? spawnOutcome.Hero?.Culture ?? anchor.Culture;
+			QuestSpawnTroopFill.Apply(spawnOutcome.Party, spawnData, troopCulture);
+			string partyStringId = ((MBObjectBase)spawnOutcome.Party).StringId;
 			questInfo.SpawnedPartyId = partyStringId;
 			questInfo.SpawnedPartyDefeatMeansFailure = !string.Equals(spawnData.Alignment, "hostile", StringComparison.OrdinalIgnoreCase);
-			r.Party.SetPartyUsedByQuest(true);
+			spawnOutcome.Party.SetPartyUsedByQuest(true);
 			if (string.Equals(spawnData.Alignment, "hostile", StringComparison.OrdinalIgnoreCase))
 			{
-				string partyName = spawnData.PartyName ?? (r.Party.Name?.ToString()) ?? "a party";
+				string partyName = spawnData.PartyName ?? (spawnOutcome.Party.Name?.ToString()) ?? "a party";
 				string spawnLocation = !string.IsNullOrEmpty(spawnData.Settlement) ? spawnData.Settlement : (npc?.PartyBelongedTo != null ? ((npc.Name)?.ToString() ?? "the quest giver") : "the player");
 				string addNote = "A hostile party '" + partyName + "' (id:" + questInfo.SpawnedPartyId + ") was spawned near " + spawnLocation + ". The quest is complete when this party is destroyed.";
 				questInfo.AIVerificationNotes = string.IsNullOrEmpty(questInfo.AIVerificationNotes) ? addNote : questInfo.AIVerificationNotes + " " + addNote;
@@ -1167,8 +1167,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			QuestBase questBase2 = Campaign.Current?.QuestManager?.Quests?.FirstOrDefault((QuestBase qq) => ((MBObjectBase)qq).StringId == questInfo.QuestId && qq.IsOngoing);
 			if (questBase2 is AIGeneratedQuest aiGenQuest)
 				aiGenQuest.SpawnedPartyId = partyStringId;
-			questBase2?.AddTrackedObject((ITrackableCampaignObject)(object)r.Party);
-			r.Party.IsVisible = true;
+			questBase2?.AddTrackedObject((ITrackableCampaignObject)(object)spawnOutcome.Party);
+			spawnOutcome.Party.IsVisible = true;
 			bool hostileParty = string.Equals(spawnData.Alignment, "hostile", StringComparison.OrdinalIgnoreCase);
 			InformationManager.DisplayMessage(new InformationMessage(hostileParty ? "An enemy party has appeared on the map!" : "A party has appeared on the map!", hostileParty ? ExtraColors.RedAIInfluence : ExtraColors.GreenAIInfluence));
 		}
