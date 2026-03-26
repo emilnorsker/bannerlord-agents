@@ -176,7 +176,7 @@ public static class ToolHandlers
 	{
 		JObject parsed = ParseOrEmpty(argsJson);
 		string mode = parsed["mode"]?.ToString();
-		string param = string.IsNullOrEmpty(mode) ? "" : (mode.Equals("normal", StringComparison.OrdinalIgnoreCase) ? "normal:true" : "outlaw:true");
+		string param = mode != null && mode.Equals("outlaw", StringComparison.OrdinalIgnoreCase) ? "outlaw:true" : "";
 		bool prepared = AIActionIntegration.Instance?.TryPrepareActionParameter(npc, "create_party", param) == true;
 		bool started = AIActionManager.Instance?.StartAction(npc, "create_party") == true;
 		if (prepared && started)

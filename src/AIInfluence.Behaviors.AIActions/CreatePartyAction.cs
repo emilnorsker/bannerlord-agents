@@ -15,20 +15,11 @@ namespace AIInfluence.Behaviors.AIActions;
 public sealed class CreatePartyAction : AIActionBase
 {
 	/// <summary>
-	/// Set by <see cref="AIActionIntegration.TryPrepareActionParameter"/> immediately before <see cref="AIActionManager.StartAction"/> (e.g. LLM <c>create_party</c> with <c>mode: outlaw</c> or <c>create_party:outlaw</c>).
+	/// Set by <see cref="AIActionIntegration.TryPrepareActionParameter"/> immediately before <see cref="AIActionManager.StartAction"/> (e.g. <c>create_party:outlaw</c> or tool <c>mode: outlaw</c>).
 	/// Consumed and cleared at the start of <see cref="OnStart"/>.
-	/// Use when the model or dialogue explicitly wants the BLGM minor-clan breakaway (war on player + nearby realm) even if this hero’s culture would not normally take the outlaw branch.
+	/// Forces the BLGM minor-clan breakaway when the hero would not otherwise match bandit culture / bandit clan.
 	/// </summary>
 	public static bool PendingOutlawMinorClanOverride { get; set; }
-
-	/// <summary>
-	/// Set by <see cref="AIActionIntegration.TryPrepareActionParameter"/> immediately before <see cref="AIActionManager.StartAction"/> (e.g. LLM <c>create_party</c> with <c>mode: normal</c> or <c>create_party:normal</c>).
-	/// Consumed and cleared at the start of <see cref="OnStart"/>.
-	/// Use when the model or dialogue explicitly wants a standard <strong>player-clan</strong> lord party (<see cref="GameVersionCompatibility.CreateNewClanMobileParty"/>): hero remains in <see cref="Clan.PlayerClan"/>, no BLGM minor clan, no automatic wars from this action.
-	/// Typical reason: bandit-flavored culture or backstory but the story beat is “lead a party for the clan,” not “go independent / outlaw.”
-	/// If both this and <see cref="PendingOutlawMinorClanOverride"/> were set, preparation clears the outlaw override; normal wins.
-	/// </summary>
-	public static bool PendingPlayerClanLordPartyOverride { get; set; }
 
 	private bool _partyCreated;
 
@@ -70,9 +61,7 @@ public sealed class CreatePartyAction : AIActionBase
 	protected override void OnStart()
 	{
 		bool forceOutlaw = PendingOutlawMinorClanOverride;
-		bool skipOutlaw = PendingPlayerClanLordPartyOverride;
 		PendingOutlawMinorClanOverride = false;
-		PendingPlayerClanLordPartyOverride = false;
 		//IL_003f: Unknown result type (might be due to invalid IL or missing references)
 		//IL_0046: Expected O, but got Unknown
 		//IL_011c: Unknown result type (might be due to invalid IL or missing references)
@@ -89,7 +78,7 @@ public sealed class CreatePartyAction : AIActionBase
 			Stop();
 			return;
 		}
-		if (!skipOutlaw && BlgmOutlawPath.Use(base.TargetHero, forceOutlaw))
+		if (BlgmOutlawPath.Use(base.TargetHero, forceOutlaw))
 		{
 			Settlement anchor = base.TargetHero.CurrentSettlement ?? base.TargetHero.BornSettlement ?? Settlement.All?.FirstOrDefault(s => s.IsTown);
 			if (anchor == null)

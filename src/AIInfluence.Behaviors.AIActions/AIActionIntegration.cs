@@ -213,11 +213,8 @@ public class AIActionIntegration
 				{
 					text += "### create_party\n";
 					text += "**Purpose**: Companion in the player's clan gains an independent **MobileParty** on the campaign map (requires `CanExecute`: in `Clan.PlayerClan`, alive, not prisoner, not already leading a non-main party).\n";
-					text += "**Faction outcome**: `mode` omitted or `normal`, or non-bandit culture without `outlaw`: hero stays in **Clan.PlayerClan** (`CreateNewClanMobileParty`). Bandit-type culture default, or `mode` `outlaw`: hero is removed from the player's clan into a new minor clan (`ClanGenerator.CreateMinorClan`); `DeclareWar` as below.\n";
-					text += "**Tool** `create_party` with optional `mode` `outlaw`|`normal`, or **technical_action**:\n";
-					text += "- `create_party` — If the hero's culture matches a bandit-type culture flag set, the mod uses Bannerlord.GameMaster `ClanGenerator.CreateMinorClan`: new minor clan, lord party, `DeclareWar` on the player's map faction and on the map faction of the nearest non-hideout settlement (bandit factions excluded). Otherwise `CreateNewClanMobileParty` in the player's clan.\n";
-					text += "- `create_party:outlaw` — Force the minor-clan branch when the hero is in the player's clan and other preconditions pass.\n";
-					text += "- `create_party:normal` — Force the player-clan lord party branch.\n\n";
+					text += "**Faction outcome**: Bandit-type culture or bandit clan, or explicit `outlaw`: Bannerlord.GameMaster `ClanGenerator.CreateMinorClan` — new minor clan, lord party, `DeclareWar` on the player's map faction and on the map faction of the nearest non-hideout settlement (bandit factions excluded). Otherwise `CreateNewClanMobileParty` in **Clan.PlayerClan**.\n";
+					text += "**Tool** `create_party` with optional `mode` `outlaw`, or **technical_action** `create_party:outlaw` to force the minor-clan branch when culture/clan would not.\n\n";
 				}
 				break;
 			case "create_rp_item":
@@ -855,7 +852,6 @@ public class AIActionIntegration
 	private static void ApplyCreatePartyParameter(string parameter)
 	{
 		CreatePartyAction.PendingOutlawMinorClanOverride = false;
-		CreatePartyAction.PendingPlayerClanLordPartyOverride = false;
 		if (string.IsNullOrWhiteSpace(parameter))
 			return;
 		foreach (string raw in parameter.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
@@ -871,17 +867,7 @@ public class AIActionIntegration
 				if (kv.Length > 1 && (kv[1].Trim().Equals("true", StringComparison.OrdinalIgnoreCase) || kv[1].Trim() == "1"))
 					CreatePartyAction.PendingOutlawMinorClanOverride = true;
 			}
-			else if (t.Equals("normal", StringComparison.OrdinalIgnoreCase))
-				CreatePartyAction.PendingPlayerClanLordPartyOverride = true;
-			else if (t.StartsWith("normal:", StringComparison.OrdinalIgnoreCase))
-			{
-				string[] kv2 = t.Split(new[] { ':' }, 2);
-				if (kv2.Length > 1 && (kv2[1].Trim().Equals("true", StringComparison.OrdinalIgnoreCase) || kv2[1].Trim() == "1"))
-					CreatePartyAction.PendingPlayerClanLordPartyOverride = true;
-			}
 		}
-		if (CreatePartyAction.PendingPlayerClanLordPartyOverride)
-			CreatePartyAction.PendingOutlawMinorClanOverride = false;
 	}
 
 	private void LogMessage(string message)
