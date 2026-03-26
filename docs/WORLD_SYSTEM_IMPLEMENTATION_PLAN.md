@@ -275,7 +275,7 @@
 | I-04 | agent | 2026-03-26 | `PlotSchedulerTests` (5): trigger dispatch, no-match, idempotency, correlation logging, inactive plot skip |
 | I-05 | agent | 2026-03-26 | `WorldSnapshotBuilderTests` (4): active plots, recent diary, secret count, serialization |
 | I-06 | agent | 2026-03-26 | `HookStoreTests` (4), `RecallPhraseTests` (2): hooks CRUD, recall phrase visibility filter |
-| I-07 | | | |
+| I-07 | agent | 2026-03-26 | `ProposalValidatorTests` (5): valid proposal, invalid JSON, unknown plot, unknown op, commit |
 | I-08 | | | |
 | I-09 | | | |
 | I-10 | | | |
