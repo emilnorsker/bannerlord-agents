@@ -60,7 +60,9 @@ public static class QuestPartyBlgmKernel
 			: CultureFlags.AllMainCultures;
 		GenderFlags genderFlags = spawnData.IsFemale == true ? GenderFlags.Female : spawnData.IsFemale == false ? GenderFlags.Male : GenderFlags.Either;
 		int ageYears = spawnData.Age ?? -1;
-		if (spawnData.IsOutlaw == true)
+		bool useOutlawPath = spawnData.IsOutlaw == true
+			|| (spawnData.IsOutlaw == null && string.Equals(spawnData.Alignment, "hostile", StringComparison.OrdinalIgnoreCase));
+		if (useOutlawPath)
 		{
 			Hero outlawLeaderHero = spawnData.InternalOutlawLeader;
 			Clan outlawMinorClan = ClanGenerator.CreateMinorClan(2, spawnData.PartyName ?? spawnData.Name, outlawLeaderHero,
