@@ -124,8 +124,22 @@ public sealed class CreatePartyAction : AIActionBase
 		}
 		if (base.TargetHero.Clan != Clan.PlayerClan)
 		{
-			LogError("create_party: hero left player clan; outlaw failed — cannot form player-clan party");
-			InformationManager.DisplayMessage(new InformationMessage("[AI Influence] Party creation failed: hero is no longer in your clan after outlaw attempt.", ExtraColors.RedAIInfluence));
+			try
+			{
+				AddCompanionAction.Apply(Clan.PlayerClan, base.TargetHero);
+			}
+			catch (Exception restoreCompanionException)
+			{
+				LogError("create_party: could not restore hero to player clan: " + restoreCompanionException.Message);
+			}
+			if (base.TargetHero.Clan != Clan.PlayerClan)
+			{
+				LogError("create_party: hero left player clan; outlaw failed — cannot form player-clan party");
+				InformationManager.DisplayMessage(new InformationMessage("[AI Influence] Party creation failed: hero is no longer in your clan after outlaw attempt.", ExtraColors.RedAIInfluence));
+				Stop();
+				return;
+			}
+			InformationManager.DisplayMessage(new InformationMessage("[AI Influence] Outlaw path failed; restored companion to your clan. No new party was created.", ExtraColors.RedAIInfluence));
 			Stop();
 			return;
 		}

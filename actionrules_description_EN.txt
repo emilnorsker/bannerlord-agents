@@ -181,7 +181,8 @@ NPCs can combine actions with commas, creating a sequence of tasks that will be 
 **What it does**: Resolves `query` to a weapon, adds one copy to the NPC party inventory, optionally transfers one copy to the player when `give_to_player` is true.
 **When used**: When the narrative is a forged or commissioned equippable weapon; use `create_rp_item` for non-weapon narrative props.
 **Preconditions**: The NPC is in a party with an item roster; the tool is available in the current mod load order.
-**Parameters**: `query` (text to select a weapon), `display_name` (shown name), `give_to_player` (boolean), optional `description` (stored with the item), optional `item_types` (default `Weapon`), optional `culture`, optional `tier`, optional `modifier` (quality label or empty).
+**Parameters**: `query` (text to select a weapon), `display_name` (shown name), `give_to_player` (boolean), optional `description` (stored with the item), optional `item_types` (default `Weapon`), optional `culture` (plain name or phrase, fuzzy-matched; empty for any), optional `tier` (0–6: below 3 substandard for military use, 3–4 standard, 5 strong, 6 exceptional and scarce), optional `modifier` (quality label or empty).
+**Roleplay**: The tool only creates the item; agree payment, materials, or quest hooks in dialogue first when appropriate; use `transfer_money` / `transfer_items` if resources change hands in the same turn.
 
 
 6. DIPLOMATIC ACTIONS (kingdom_action)

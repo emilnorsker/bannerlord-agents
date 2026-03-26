@@ -26,11 +26,13 @@ jobs:
       - name: Place Bannerlord.GameMaster.dll for compile (GameFolder layout)
         env:
           BLGM_URL: https://github.com/SolWayward/Bannerlord.GameMaster/releases/download/v1.3.14.11/Bannerlord.GameMaster-v1.3.14.11.zip
+          BLGM_DLL_SHA256: ffe1f4d62c0b1fbd9d2fa28866ec02592f20893b8e347aed7f1789729130aaa2
         run: |
           set -e
           mkdir -p _game_folder/Modules/Bannerlord.GameMaster/bin/Win64_Shipping_Client
           curl -sSL -o /tmp/blgm.zip "$BLGM_URL"
           unzip -p /tmp/blgm.zip Bannerlord.GameMaster/bin/Win64_Shipping_Client/Bannerlord.GameMaster.dll > _game_folder/Modules/Bannerlord.GameMaster/bin/Win64_Shipping_Client/Bannerlord.GameMaster.dll
+          echo "$BLGM_DLL_SHA256  _game_folder/Modules/Bannerlord.GameMaster/bin/Win64_Shipping_Client/Bannerlord.GameMaster.dll" | sha256sum -c -
 
       - name: Restore & build
         run: |

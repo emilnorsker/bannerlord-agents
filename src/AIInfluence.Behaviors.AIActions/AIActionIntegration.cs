@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using AIInfluence;
 using AIInfluence.Behaviors.AIActions.TaskSystem;
+using AIInfluence.Util;
 using Bannerlord.GameMaster.Items;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Party;
@@ -214,9 +215,10 @@ public class AIActionIntegration
 				if (flag2)
 				{
 					text += "### create_party\n";
-					text += "**Purpose**: Start an independent **MobileParty** on the campaign map for yourself (leave the main party / act on the map under your own command when the player asks).\n";
-					text += "**Preconditions** (`CanExecute`): you are in **Clan.PlayerClan**, alive, not a prisoner, and you do not already lead a party other than the main party.\n";
-					text += "**Outcomes**: With bandit-type culture or bandit clan, or with tool `mode` `outlaw`, the game may create a new minor clan and lord party and declare wars on the player's map faction and on a nearby non-bandit faction. Otherwise you remain in **Clan.PlayerClan** and get a new party under that clan.\n";
+					text += "**Who sees this**: Only companions and household members of the player clan who travel in the main party (or have no party yet). Other NPCs never receive this tool in their action list.\n";
+					text += "**Purpose**: Start your own **MobileParty** on the campaign map (leave the main party or act independently when the player asks).\n";
+					text += "**Preconditions** (`CanExecute`): you are in the **player clan**, alive, not a prisoner, and you do not already command a separate party.\n";
+					text += "**Outcomes**: With bandit-type culture or bandit clan, or with tool `mode` `outlaw`, the game may create a new minor clan and lord party and declare wars on the player's map faction and on a nearby non-bandit faction. Otherwise you remain in the **player clan** and get a new party under that clan.\n";
 					text += "**Tool**: `create_party`; optional argument `mode`: `outlaw` selects the minor-clan path when culture or clan would not.\n\n";
 				}
 				break;
@@ -234,7 +236,9 @@ public class AIActionIntegration
 				text += "### create_rp_weapon\n";
 				text += "**Effect**: Adds a weapon matched from `query` to this character's party inventory. If `give_to_player` is true, one copy is transferred to the player's inventory.\n";
 				text += "**Requires**: This character is in a party that has an item roster.\n";
-				text += "**Arguments**: `query` (text to select a weapon), `display_name` (name shown in-game), `give_to_player` (boolean). Optional: `description` (extra text stored with the item), `item_types` (Weapon, OneHanded, TwoHanded, Polearm, Ranged, Thrown, Bow, Crossbow, Shield, or None; default Weapon), `culture` (culture string_id or empty), `tier` (integer), `modifier` (quality label or empty).\n";
+				text += "**Roleplay**: The tool applies the item only; gold, materials, prior agreement, quest completion, and similar constraints stay in dialogue. Charge or refuse in speech before calling the tool when that fits the scene; use `transfer_money` / `transfer_items` if payment or materials change hands in the same turn.\n";
+				text += "**Arguments**: `query` (weapon to match), `display_name` (name shown in-game), `give_to_player` (boolean). Optional: `description` (extra text stored with the item), `item_types` (Weapon, OneHanded, TwoHanded, Polearm, Ranged, Thrown, Bow, Crossbow, Shield, or None; default Weapon), `culture` (plain culture name or phrase for fuzzy matching, or empty), `tier` (integer item tier; see scale below), `modifier` (quality label or empty).\n";
+				text += "**Tier scale**: 0–2 substandard for a professional military issue; 3–4 standard service arms; 5 strong or specialist gear; 6 exceptional pieces that are scarce in the world. Use 6 sparingly.\n";
 				text += "**Difference from `create_rp_item`**: `create_rp_item` only creates narrative props. `create_rp_weapon` creates equippable weapons.\n\n";
 				break;
 			case "transfer_troops_and_prisoners":
@@ -784,52 +788,20 @@ public class AIActionIntegration
 			LogMessage($"Parsing create_rp_weapon parameter for {npc.Name}: '{parameter}'");
 			if (string.IsNullOrWhiteSpace(parameter))
 			{
-				LogMessage($"ERROR: Empty parameter for create_rp_weapon (NPC {npc.Name}).");
+				LogPrepareError(npc, "Empty parameter for create_rp_weapon.");
 				return false;
 			}
-			string[] parts = parameter.Split('|');
-			if (parts.Length < 8)
+			if (!TryParseCreateRpWeaponParameter(parameter, out CreateRPWeaponAction.WeaponCreationRequest weaponRequest))
 			{
-				LogMessage($"ERROR: Invalid create_rp_weapon format (NPC {npc.Name}). Expected at least 8 pipe-separated segments.");
+				LogPrepareError(npc, "Invalid create_rp_weapon format or unknown item_types. Expected query, display_name, and eight pipe-separated fields (description may contain '|').");
 				return false;
 			}
-			string giveStr = parts[parts.Length - 1].Trim();
-			string modTok = parts[parts.Length - 2].Trim();
-			if (!int.TryParse(parts[parts.Length - 3].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int tier))
-				tier = 3;
-			string cul = parts[parts.Length - 4].Trim();
-			string typesStr = string.IsNullOrWhiteSpace(parts[parts.Length - 5]) ? "Weapon" : parts[parts.Length - 5].Trim();
-			string q = parts[0].Trim();
-			string dn = parts[1].Trim();
-			string desc = parts.Length == 8 ? parts[2].Trim() : string.Join("|", parts, 2, parts.Length - 7).Trim();
-			bool give = giveStr.Equals("true", StringComparison.OrdinalIgnoreCase);
-			if (string.IsNullOrWhiteSpace(q) || string.IsNullOrWhiteSpace(dn))
+			if (!CreateRPWeaponAction.PrepareWeaponCreation(npc, weaponRequest))
 			{
-				LogMessage($"ERROR: create_rp_weapon requires query and display_name (NPC {npc.Name}).");
+				LogPrepareError(npc, "Failed to prepare create_rp_weapon.");
 				return false;
 			}
-			if (!Enum.TryParse(typesStr, true, out ItemTypes itemTypes))
-			{
-				LogMessage($"ERROR: Unknown item_types '{typesStr}' for create_rp_weapon (NPC {npc.Name}).");
-				return false;
-			}
-			var req = new CreateRPWeaponAction.WeaponCreationRequest
-			{
-				Query = q,
-				DisplayName = dn,
-				Description = desc,
-				ItemTypes = itemTypes,
-				Culture = cul,
-				Tier = tier,
-				ModifierToken = modTok,
-				GiveToPlayer = give
-			};
-			if (!CreateRPWeaponAction.PrepareWeaponCreation(npc, req))
-			{
-				LogMessage($"ERROR: Failed to prepare create_rp_weapon for {npc.Name}");
-				return false;
-			}
-			LogMessage($"Prepared create_rp_weapon for {npc.Name}: {dn}");
+			LogMessage($"Prepared create_rp_weapon for {npc.Name}: {weaponRequest.DisplayName}");
 			return true;
 		}
 		case "transfer_troops_and_prisoners":
@@ -939,6 +911,51 @@ public class AIActionIntegration
 	private void LogMessage(string message)
 	{
 		AIActionsLogger.Instance.Log("[AIActionIntegration] " + message);
+	}
+
+	private static void LogPrepareError(Hero npc, string message)
+	{
+		AIActionsLogger.Instance.Log("[AIActionIntegration] ERROR: " + message);
+		string suffix = npc != null ? " (" + ((object)npc.Name)?.ToString() + ")" : "";
+		InformationManager.DisplayMessage(new InformationMessage("[AI Influence] " + message + suffix, ExtraColors.RedAIInfluence));
+	}
+
+	/// <summary>Parses create_rp_weapon pipe payload: query|display_name|description|item_types|culture|tier|modifier|give_to_player (description may contain '|').</summary>
+	private static bool TryParseCreateRpWeaponParameter(string parameter, out CreateRPWeaponAction.WeaponCreationRequest request)
+	{
+		request = null;
+		string[] segments = parameter.Split('|');
+		if (segments.Length < 8)
+			return false;
+		int lastIndex = segments.Length - 1;
+		string giveToPlayerSegment = segments[lastIndex].Trim();
+		string modifierSegment = segments[lastIndex - 1].Trim();
+		string tierSegment = segments[lastIndex - 2].Trim();
+		string cultureSegment = segments[lastIndex - 3].Trim();
+		string itemTypesSegment = string.IsNullOrWhiteSpace(segments[lastIndex - 4]) ? "Weapon" : segments[lastIndex - 4].Trim();
+		string querySegment = segments[0].Trim();
+		string displayNameSegment = segments[1].Trim();
+		int descriptionSegmentCount = segments.Length - 7;
+		string descriptionSegment = descriptionSegmentCount == 1 ? segments[2].Trim() : string.Join("|", segments, 2, descriptionSegmentCount).Trim();
+		if (!int.TryParse(tierSegment, NumberStyles.Integer, CultureInfo.InvariantCulture, out int tierValue))
+			tierValue = 3;
+		bool giveToPlayer = giveToPlayerSegment.Equals("true", StringComparison.OrdinalIgnoreCase);
+		if (string.IsNullOrWhiteSpace(querySegment) || string.IsNullOrWhiteSpace(displayNameSegment))
+			return false;
+		if (!Enum.TryParse(itemTypesSegment, true, out ItemTypes parsedItemTypes))
+			return false;
+		request = new CreateRPWeaponAction.WeaponCreationRequest
+		{
+			Query = querySegment,
+			DisplayName = displayNameSegment,
+			Description = descriptionSegment,
+			ItemTypes = parsedItemTypes,
+			Culture = cultureSegment,
+			Tier = tierValue,
+			ModifierToken = modifierSegment,
+			GiveToPlayer = giveToPlayer
+		};
+		return true;
 	}
 
 	private void SetActionStartOverride(Hero hero, string actionName)

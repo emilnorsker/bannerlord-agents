@@ -75,7 +75,14 @@ public static class QuestPartyBlgmKernel
 			AddBasicTroopPaddingToParty(leaderParty, spawnData, culture);
 			return new QuestPartySpawnOutcome { Hero = leaderHero, Party = leaderParty };
 		}
-		Kingdom targetKingdom = KingdomQueries.QueryKingdoms(spawnData.Faction?.Trim() ?? "").FirstOrDefault();
+		string factionQuery = spawnData.Faction?.Trim() ?? "";
+		Kingdom targetKingdom = KingdomQueries.QueryKingdoms(factionQuery).FirstOrDefault();
+		if (targetKingdom == null && string.IsNullOrEmpty(factionQuery))
+		{
+			Clan anchorOwnerClan = anchorSettlement.OwnerClan;
+			if (anchorOwnerClan?.MapFaction is Kingdom ownerKingdom)
+				targetKingdom = ownerKingdom;
+		}
 		if (targetKingdom == null)
 			return new QuestPartySpawnOutcome { ErrorToken = "kingdom" };
 		Clan kingdomClan = targetKingdom.Clans?.FirstOrDefault(candidateClan => candidateClan != null && !candidateClan.IsEliminated && candidateClan.Leader != null)
