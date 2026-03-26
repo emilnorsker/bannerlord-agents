@@ -33,19 +33,29 @@ public static class RpWeaponForgeScript
 
 	public static ItemObject RestoreForgedWeaponFromRpData(RPItemData d)
 	{
+		ItemObject already = MBObjectManager.Instance.GetObject<ItemObject>(d.ItemId);
+		if (already != null)
+		{
+			typeof(ItemObject).GetProperty("Name", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)?.SetValue(already, new TextObject(d.Name ?? "", null), null);
+			return already;
+		}
 		ItemObject t = MBObjectManager.Instance.GetObject<ItemObject>(d.BaseItemId);
 		if (t?.WeaponComponent == null)
 			return null;
+		// Shallow clone: native item templates treat WeaponComponent as immutable after init.
 		ItemObject w = (ItemObject)typeof(object).GetMethod("MemberwiseClone", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(t, null);
 		((MBObjectBase)w).StringId = d.ItemId;
 		typeof(ItemObject).GetProperty("Name", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)?.SetValue(w, new TextObject(d.Name ?? "", null), null);
-		MBObjectManager.Instance.RegisterObject(w);
+		if (MBObjectManager.Instance.GetObject<ItemObject>(d.ItemId) == null)
+			MBObjectManager.Instance.RegisterObject(w);
+		else
+			w = MBObjectManager.Instance.GetObject<ItemObject>(d.ItemId);
 		return w;
 	}
 
 	public static void ForgeToNpcBag(Hero npc, string query, ItemTypes types, string culture, int tier, string modToken, string displayName, string description = null)
 	{
-		ItemRoster bag = npc.PartyBelongedTo.ItemRoster;
+		ItemRoster bag = npc?.PartyBelongedTo?.ItemRoster ?? throw new InvalidOperationException((((object)npc?.Name)?.ToString() ?? "NPC") + " does not belong to a party.");
 		ItemObject t = ItemQueries.QueryItems(query, types, true, tier, culture ?? "", false, "tier", true).FirstOrDefault(i => i.WeaponComponent != null) ?? throw new InvalidOperationException("no weapon match for " + displayName);
 		(ItemModifier m, string err) = ItemModifierHelper.ParseModifier(modToken);
 		if (err != null)
@@ -54,10 +64,13 @@ public static class RpWeaponForgeScript
 			throw new InvalidOperationException(t.Name + " cannot have quality modifiers.");
 		if (m != null && !ModifierAllowedOn(t, m))
 			throw new InvalidOperationException("That modifier cannot be applied to this weapon." + ValidModifierHint(t));
+		// Shallow clone: native item templates treat WeaponComponent as immutable after init.
 		ItemObject w = (ItemObject)typeof(object).GetMethod("MemberwiseClone", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(t, null);
 		string id = "rp_w_" + Guid.NewGuid().ToString("N").Substring(0, 8);
 		((MBObjectBase)w).StringId = id;
 		typeof(ItemObject).GetProperty("Name", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)?.SetValue(w, new TextObject(displayName ?? "", null), null);
+		if (MBObjectManager.Instance.GetObject<ItemObject>(id) != null)
+			throw new InvalidOperationException("weapon id collision: " + id);
 		MBObjectManager.Instance.RegisterObject(w);
 		bag.AddToCounts(new EquipmentElement(w, m), 1);
 		RPItemManager.Instance.RegisterForgedWeapon(w, ((MBObjectBase)t).StringId, displayName, description, ((MBObjectBase)npc).StringId, m, ((MBObjectBase)npc).StringId);
