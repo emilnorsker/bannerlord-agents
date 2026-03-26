@@ -238,7 +238,7 @@ public class AIActionIntegration
 				text += "**Requires**: This character is in a party that has an item roster.\n";
 				text += "**Roleplay**: The tool applies the item only; gold, materials, prior agreement, quest completion, and similar constraints stay in dialogue. Charge or refuse in speech before calling the tool when that fits the scene; use `transfer_money` / `transfer_items` if payment or materials change hands in the same turn.\n";
 				text += "**Arguments**: `query` (weapon to match), `display_name` (name shown in-game), `give_to_player` (boolean). Optional: `description` (extra text stored with the item), `item_types` (Weapon, OneHanded, TwoHanded, Polearm, Ranged, Thrown, Bow, Crossbow, Shield, or None; default Weapon), `culture` (plain culture name or phrase for fuzzy matching, or empty), `tier` (integer item tier; see scale below), `modifier` (quality label or empty).\n";
-				text += "**Tier scale**: 0–2 substandard for a professional military issue; 3–4 standard service arms; 5 strong or specialist gear; 6 exceptional pieces that are scarce in the world. Use 6 sparingly.\n";
+				text += "**Tier scale**: 0–2 substandard for a professional military issue; 3–4 standard service arms; 5 exceptional; 6 mythic. Use tier 6 sparingly.\n";
 				text += "**Difference from `create_rp_item`**: `create_rp_item` only creates narrative props. `create_rp_weapon` creates equippable weapons.\n\n";
 				break;
 			case "transfer_troops_and_prisoners":
