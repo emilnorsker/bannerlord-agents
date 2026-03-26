@@ -329,6 +329,17 @@ public static class ToolHandlers
 			return "error: missing action field in quest (use create_quest, update_quest, complete_quest, or fail_quest)";
 		}
 		questAction.Category = parsedArgs["category"]?.ToString();
+		string actionLower = questAction.Action.ToLowerInvariant();
+		if (actionLower == "create_quest" && (string.IsNullOrEmpty(questAction.Title) || string.IsNullOrEmpty(questAction.Description)))
+		{
+			behavior?.LogMessage("[QUEST_TOOL] create_quest missing title or description");
+			return "error: create_quest requires non-empty title and description";
+		}
+		if ((actionLower == "update_quest" || actionLower == "complete_quest" || actionLower == "fail_quest") && string.IsNullOrEmpty(questAction.QuestId))
+		{
+			behavior?.LogMessage("[QUEST_TOOL] " + actionLower + " missing quest_id");
+			return "error: " + actionLower + " requires quest_id";
+		}
 		context.PendingQuestActionFromTools = questAction;
 		context.AppendToolPill("Quest: " + questAction.Action, ChatToolPillBuilder.QuestActionColor);
 		behavior?.LogMessage("[QUEST_TOOL] Staged " + questAction.Action + " (title: " + (questAction.Title ?? "n/a") + ")");
