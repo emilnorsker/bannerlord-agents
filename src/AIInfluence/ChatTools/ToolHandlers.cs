@@ -37,7 +37,10 @@ public static class ToolHandlers
 			"transfer_items" => RunTransferItems(argsJson, npc, context, behavior),
 			"workshop_sell" => RunWorkshopSell(argsJson, npc, context, behavior),
 			"kingdom_action" => RunKingdomAction(argsJson, npc, context, behavior),
-			"quest_action" => RunQuestAction(argsJson, npc, context, behavior),
+			"create_quest" => RunCreateQuest(argsJson, npc, context, behavior),
+			"update_quest" => RunUpdateQuest(argsJson, npc, context, behavior),
+			"complete_quest" => RunCompleteOrFailQuest(argsJson, "complete_quest", npc, context, behavior),
+			"fail_quest" => RunCompleteOrFailQuest(argsJson, "fail_quest", npc, context, behavior),
 			"character_death" => RunCharacterDeath(argsJson, context),
 			"return_to_player" => RunReturnToPlayer(npc, context),
 			"transfer_troops" => RunTransferTroops(argsJson, npc, context),
@@ -299,56 +302,66 @@ public static class ToolHandlers
 		return "ok";
 	}
 
-	private static string RunQuestAction(string argsJson, Hero npc, NPCContext context, AIInfluenceBehavior behavior)
+	private static string RunCreateQuest(string argsJson, Hero npc, NPCContext context, AIInfluenceBehavior behavior)
 	{
 		JObject parsedArgs = ParseOrEmpty(argsJson);
-		JToken questToken = parsedArgs["quest"];
-		if (questToken == null)
-		{
-			behavior?.LogMessage("[QUEST_TOOL] quest_action called without quest parameter");
-			return "error: missing quest parameter";
-		}
-		QuestActionData questAction;
-		try
-		{
-			questAction = JsonConvert.DeserializeObject<QuestActionData>(questToken.ToString());
-		}
-		catch (JsonException deserializeException)
-		{
-			behavior?.LogMessage("[QUEST_TOOL] Failed to deserialize quest object: " + deserializeException.Message);
-			return "error: invalid quest JSON";
-		}
-		if (questAction == null)
-		{
-			behavior?.LogMessage("[QUEST_TOOL] quest object deserialized to null");
-			return "error: quest was null";
-		}
-		if (string.IsNullOrEmpty(questAction.Action))
-		{
-			behavior?.LogMessage("[QUEST_TOOL] quest_action called without action field");
-			return "error: missing action field in quest (use create_quest, update_quest, complete_quest, or fail_quest)";
-		}
-		questAction.Category = parsedArgs["category"]?.ToString();
-		string actionLower = questAction.Action.ToLowerInvariant();
-		if (actionLower == "create_quest" && (string.IsNullOrEmpty(questAction.Title) || string.IsNullOrEmpty(questAction.Description)))
+		string title = parsedArgs["title"]?.ToString();
+		string description = parsedArgs["description"]?.ToString();
+		if (string.IsNullOrEmpty(title) || string.IsNullOrEmpty(description))
 		{
 			behavior?.LogMessage("[QUEST_TOOL] create_quest missing title or description");
 			return "error: create_quest requires non-empty title and description";
 		}
-		if (actionLower == "create_quest" && context.ActiveAIQuests != null && context.ActiveAIQuests.Count > 0)
+		if (context.ActiveAIQuests != null && context.ActiveAIQuests.Count > 0)
 		{
 			string existingTitle = context.ActiveAIQuests[context.ActiveAIQuests.Count - 1].Title;
 			behavior?.LogMessage("[QUEST_TOOL] create_quest rejected: NPC already has active quest '" + existingTitle + "'");
-			return "error: this NPC already has an active quest ('" + existingTitle + "'). Use update_quest with quest_id to modify it, or complete_quest/fail_quest first.";
+			return "error: this NPC already has an active quest ('" + existingTitle + "'). Use update_quest to modify it, or complete_quest/fail_quest first.";
 		}
-		if ((actionLower == "update_quest" || actionLower == "complete_quest" || actionLower == "fail_quest") && string.IsNullOrEmpty(questAction.QuestId))
-		{
-			behavior?.LogMessage("[QUEST_TOOL] " + actionLower + " missing quest_id");
-			return "error: " + actionLower + " requires quest_id";
-		}
+		QuestActionData questAction = JsonConvert.DeserializeObject<QuestActionData>(parsedArgs.ToString());
+		questAction.Action = "create_quest";
 		context.PendingQuestActionFromTools = questAction;
-		context.AppendToolPill("Quest: " + questAction.Action, ChatToolPillBuilder.QuestActionColor);
-		behavior?.LogMessage("[QUEST_TOOL] Staged " + questAction.Action + " (title: " + (questAction.Title ?? "n/a") + ")");
+		context.AppendToolPill("Quest: create_quest", ChatToolPillBuilder.QuestActionColor);
+		behavior?.LogMessage("[QUEST_TOOL] Staged create_quest (title: " + title + ")");
+		return "ok";
+	}
+
+	private static string RunUpdateQuest(string argsJson, Hero npc, NPCContext context, AIInfluenceBehavior behavior)
+	{
+		JObject parsedArgs = ParseOrEmpty(argsJson);
+		string questId = parsedArgs["quest_id"]?.ToString();
+		if (string.IsNullOrEmpty(questId))
+		{
+			behavior?.LogMessage("[QUEST_TOOL] update_quest missing quest_id");
+			return "error: update_quest requires quest_id";
+		}
+		QuestActionData questAction = JsonConvert.DeserializeObject<QuestActionData>(parsedArgs.ToString());
+		questAction.Action = "update_quest";
+		questAction.QuestId = questId;
+		context.PendingQuestActionFromTools = questAction;
+		context.AppendToolPill("Quest: update_quest", ChatToolPillBuilder.QuestActionColor);
+		behavior?.LogMessage("[QUEST_TOOL] Staged update_quest (quest_id: " + questId + ")");
+		return "ok";
+	}
+
+	private static string RunCompleteOrFailQuest(string argsJson, string action, Hero npc, NPCContext context, AIInfluenceBehavior behavior)
+	{
+		JObject parsedArgs = ParseOrEmpty(argsJson);
+		string questId = parsedArgs["quest_id"]?.ToString();
+		if (string.IsNullOrEmpty(questId))
+		{
+			behavior?.LogMessage("[QUEST_TOOL] " + action + " missing quest_id");
+			return "error: " + action + " requires quest_id";
+		}
+		QuestActionData questAction = new QuestActionData
+		{
+			Action = action,
+			QuestId = questId,
+			CompletionReason = parsedArgs["completion_reason"]?.ToString() ?? ""
+		};
+		context.PendingQuestActionFromTools = questAction;
+		context.AppendToolPill("Quest: " + action, ChatToolPillBuilder.QuestActionColor);
+		behavior?.LogMessage("[QUEST_TOOL] Staged " + action + " (quest_id: " + questId + ")");
 		return "ok";
 	}
 

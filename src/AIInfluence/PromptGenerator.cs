@@ -4581,7 +4581,7 @@ public static class PromptGenerator
 					stringBuilder.Append("      - " + updateLog.NpcName + ": " + updateLog.Message + text4 + "\n");
 				}
 			}
-			stringBuilder.Append("- To UPDATE progress (only if quest has Progress X/Y above): `\"action\": \"update_quest\"`, `\"quest_id\"`, `\"update_log\"`, optionally `\"set_progress\": N`, optionally `\"spawn_party\": {...}` to spawn enemies on this **existing** quest (omit if this quest already has a spawned party unless the story requires a new wave). Quests without progress have no Progress line — omit set_progress.\n- To COMPLETE a quest: `\"action\": \"complete_quest\"`, `\"quest_id\"`, `\"completion_reason\"`, optionally `\"set_progress\": N` (only when quest has progress; defaults to target). Reward is given automatically. Only you or the designated completer_npc can do this.\n- To FAIL a quest: `\"action\": \"fail_quest\"`, `\"quest_id\"`, `\"completion_reason\"`.\n- Use your AI NOTES + update logs + progress to verify if the player is telling the truth. Stay in character.\n- Also check Recent Events for objective evidence of quest-related actions — relevant events appear there regardless of distance.\n");
+			stringBuilder.Append("Use tools: `update_quest` (quest_id + update_log/set_progress/spawn_party), `complete_quest` (quest_id + completion_reason), `fail_quest` (quest_id + completion_reason). Verify with AI NOTES, update logs, progress, and Recent Events.\n");
 		}
 		if (flag2)
 		{
@@ -4613,7 +4613,7 @@ public static class PromptGenerator
 					stringBuilder.Append("      - " + updateLog2.NpcName + ": " + updateLog2.Message + text8 + "\n");
 				}
 			}
-			stringBuilder.Append("- You are a TARGET NPC in these quests. React naturally to the player's arrival. Quests with progress show Progress (X/Y) above.\n- To UPDATE a quest (mark your part done, leave a note): `\"action\": \"update_quest\"`, `\"quest_id\"`, `\"update_log\"` (your note). If quest has progress, optionally `\"set_progress\": N`. If you reveal where enemies are, add `\"spawn_party\": {...}` so the quest is linked to that hostile party (same rules as create_quest).\n- After you update, your map marker is REMOVED so the player knows to move on.\n- If you are the designated COMPLETER, you CAN use `complete_quest` or `fail_quest` with `\"completion_reason\"`.\n- Use AI NOTES to verify the player. Stay in character — you may or may not know details depending on context.\n");
+			stringBuilder.Append("You are a TARGET NPC. Use `update_quest` (quest_id + update_log) to mark your part done. If you are the COMPLETER, use `complete_quest` or `fail_quest`. Verify with AI NOTES. After update, your map marker is removed.\n");
 		}
 		if (flag3)
 		{
