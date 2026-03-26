@@ -5527,15 +5527,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					LogMessage($"[SAVE] Serialized AI actions length: {_serializedActionState?.Length ?? 0}");
 				}
 				Dictionary<string, NPCContext> contextsToSave = new Dictionary<string, NPCContext>(_npcContexts);
-				int histCap = GlobalSettings<ModSettings>.Instance?.PromptMaxHistory ?? 100;
-				int eventCap = GlobalSettings<ModSettings>.Instance?.MaxRecentEvents ?? 50;
-				foreach (NPCContext saveContext in contextsToSave.Values)
-				{
-					if (saveContext.ConversationHistory != null && saveContext.ConversationHistory.Count > histCap)
-						saveContext.ConversationHistory = saveContext.ConversationHistory.GetRange(saveContext.ConversationHistory.Count - histCap, histCap);
-					if (saveContext.RecentEvents != null && saveContext.RecentEvents.Count > eventCap)
-						saveContext.RecentEvents = saveContext.RecentEvents.GetRange(saveContext.RecentEvents.Count - eventCap, eventCap);
-				}
 				_npcContextsJson = CompressPayload(JsonConvert.SerializeObject(contextsToSave));
 				LogMessage($"[SAVE] Serialized {contextsToSave.Count} NPC contexts into game save");
 			}
