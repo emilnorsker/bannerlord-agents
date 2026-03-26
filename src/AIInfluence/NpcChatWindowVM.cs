@@ -819,13 +819,21 @@ public class NpcChatWindowVM : ViewModel
                 if (streamingItem != null)
                 {
                     releaseSendLockInFinally = false;
-                    finalizeNpcMessage = doFinalize;
-                    streamingTargetText = npcLineBody;
-                    if (!streamPumpActive && streamPumpStep != null)
+                    MainThreadDispatcher.Queue.Enqueue(() =>
                     {
-                        streamPumpActive = true;
-                        streamPumpStep();
-                    }
+                        streamingTargetText = npcLineBody;
+                        finalizeNpcMessage = doFinalize;
+                        if (!streamPumpActive && streamPumpStep != null)
+                        {
+                            streamPumpActive = true;
+                            streamPumpStep();
+                        }
+                        if (!streamPumpActive)
+                        {
+                            finalizeNpcMessage = null;
+                            doFinalize();
+                        }
+                    });
                 }
                 else
                 {
@@ -835,22 +843,27 @@ public class NpcChatWindowVM : ViewModel
             }
             else
             {
-                if (streamingItem != null)
-                {
-                    streamingRetired = true;
-                    MessageList.Remove(streamingItem);
-                }
                 AIInfluenceBehavior.Instance?.ApplyPendingQuestActionFromTools(_npc, ctx);
                 AIInfluenceBehavior.Instance?.ApplyPendingKingdomActionFromTools(_npc, ctx);
-                if (ctx != null && AIInfluenceBehavior.Instance != null)
-                    MainThreadDispatcher.Queue.Enqueue(() =>
+                MainThreadDispatcher.Queue.Enqueue(() =>
+                {
+                    if (streamingItem != null)
                     {
-                        if (!NpcChatWindowManager.IsOpen || NpcChatWindowManager.GetCurrentViewModel() != this) return;
-                        RefreshTraitOverlay(_npc, ctx);
-                        RefreshCharacterSection(_npc, ctx);
-                    });
-                _isSending = false;
-                ((ViewModel)this).OnPropertyChangedWithValue(true, "IsSendEnabled");
+                        streamingRetired = true;
+                        MessageList.Remove(streamingItem);
+                    }
+                    if (ctx != null && AIInfluenceBehavior.Instance != null)
+                    {
+                        if (NpcChatWindowManager.IsOpen && NpcChatWindowManager.GetCurrentViewModel() == this)
+                        {
+                            RefreshTraitOverlay(_npc, ctx);
+                            RefreshCharacterSection(_npc, ctx);
+                        }
+                    }
+                    _isSending = false;
+                    ((ViewModel)this).OnPropertyChangedWithValue(true, "IsSendEnabled");
+                });
+                releaseSendLockInFinally = false;
             }
         }
         catch (Exception ex)
