@@ -41,11 +41,6 @@ public static class ToolHandlers
 			"character_death" => RunCharacterDeath(argsJson, context),
 			"return_to_player" => RunReturnToPlayer(npc, context),
 			"transfer_troops" => RunTransferTroops(argsJson, npc, context),
-			"suspected_lie" => RunSuspectedLie(argsJson, context),
-			"dialogue_decision" => RunDialogueDecision(argsJson, context),
-			"romance_intent" => RunRomanceIntent(argsJson, context),
-			"escalation_update" => RunEscalationUpdate(argsJson, context),
-			"allows_letters" => RunAllowsLetters(argsJson, context),
 			_ => "unknown"
 		};
 		ToolCallTelemetry.RaiseCompleted("npc_chat", name, argsJson, result, null);
@@ -301,71 +296,6 @@ public static class ToolHandlers
 			OpposedAttribute = parsedArgs["opposed_attribute"]?.ToString()
 		};
 		context.AppendToolPill("Roleplay death", ChatToolPillBuilder.ActionColor);
-		return "ok";
-	}
-
-	private static string RunSuspectedLie(string argsJson, NPCContext context)
-	{
-		JObject parsedArgs = ParseOrEmpty(argsJson);
-		if (parsedArgs["suspected"] == null)
-			return "missing";
-		context.DialogueToolSuspectedLie = parsedArgs["suspected"].Value<bool>();
-		context.AppendToolPill(context.DialogueToolSuspectedLie.Value ? "Suspected lie" : "Not suspected of lying", ChatToolPillBuilder.ActionColor);
-		return "ok";
-	}
-
-	private static string RunDialogueDecision(string argsJson, NPCContext context)
-	{
-		string decision = ParseOrEmpty(argsJson)["decision"]?.ToString();
-		if (string.IsNullOrEmpty(decision))
-			return "missing";
-		context.DialogueToolDecision = decision;
-		context.AppendToolPill(decision.Trim(), ChatToolPillBuilder.ActionColor);
-		return "ok";
-	}
-
-	private static string RunRomanceIntent(string argsJson, NPCContext context)
-	{
-		string intent = ParseOrEmpty(argsJson)["intent"]?.ToString();
-		if (string.IsNullOrEmpty(intent))
-			return "missing";
-		context.DialogueToolRomanceIntent = intent;
-		ChatToolPillBuilder.AppendRomanceIntent(context, intent);
-		return "ok";
-	}
-
-	private static string RunEscalationUpdate(string argsJson, NPCContext context)
-	{
-		JObject parsedArgs = ParseOrEmpty(argsJson);
-		JToken threatLevelToken = parsedArgs["threat_level"];
-		if (threatLevelToken != null && threatLevelToken.Type != JTokenType.Null)
-			context.DialogueToolThreatLevel = threatLevelToken.ToString();
-		JToken escalationStateToken = parsedArgs["escalation_state"];
-		if (escalationStateToken != null && escalationStateToken.Type != JTokenType.Null)
-			context.DialogueToolEscalationState = escalationStateToken.ToString();
-		JToken deescalationAttemptToken = parsedArgs["deescalation_attempt"];
-		if (deescalationAttemptToken != null && deescalationAttemptToken.Type != JTokenType.Null)
-			context.DialogueToolDeescalationAttempt = deescalationAttemptToken.Value<bool>();
-		var parts = new List<string>();
-		if (context.DialogueToolThreatLevel != null)
-			parts.Add("Threat: " + context.DialogueToolThreatLevel);
-		if (context.DialogueToolEscalationState != null)
-			parts.Add("Escalation: " + context.DialogueToolEscalationState);
-		if (context.DialogueToolDeescalationAttempt.HasValue)
-			parts.Add("De-escalation attempt: " + (context.DialogueToolDeescalationAttempt.Value ? "yes" : "no"));
-		if (parts.Count > 0)
-			context.AppendToolPill(string.Join(" · ", parts), ChatToolPillBuilder.ActionColor);
-		return "ok";
-	}
-
-	private static string RunAllowsLetters(string argsJson, NPCContext context)
-	{
-		JObject parsedArgs = ParseOrEmpty(argsJson);
-		if (parsedArgs["allows"] == null)
-			return "missing";
-		bool allows = parsedArgs["allows"].Value<bool>();
-		context.DialogueToolAllowsLetters = allows;
-		context.AppendToolPill(allows ? "Will send letters" : "Will not send letters", ChatToolPillBuilder.ActionColor);
 		return "ok";
 	}
 

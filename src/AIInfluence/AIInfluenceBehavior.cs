@@ -2942,7 +2942,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		LogMessage("[DEBUG] Raw AI response: " + aiResponse);
 		AIResponse aiResult = NpcOpenRouterAssistantParser.Parse(aiResponse, npcName);
 		ApplyNpcContextToolDeferralsToAiResponse(context, aiResult);
-		ApplyNpcDialogueToolsToAiResponse(context, aiResult);
 		if (!string.IsNullOrEmpty(aiResult.RomanceIntent) && aiResult.RomanceIntent != "none")
 		{
 			CampaignTime now = CampaignTime.Now;
@@ -3270,66 +3269,17 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		}
 	}
 
-	/// <summary>Clears per-turn scratch from OpenRouter dialogue tools (<c>suspected_lie</c>, …).</summary>
+	/// <summary>Clears per-turn tool scratch on <paramref name="context"/> before a new inference pass.</summary>
 	public static void ClearNpcTurnDialogueTools(NPCContext context)
 	{
 		if (context == null)
 			return;
-		context.DialogueToolSuspectedLie = null;
-		context.DialogueToolDecision = null;
-		context.DialogueToolRomanceIntent = null;
-		context.DialogueToolThreatLevel = null;
-		context.DialogueToolEscalationState = null;
-		context.DialogueToolDeescalationAttempt = null;
-		context.DialogueToolAllowsLetters = null;
 		context.PendingQuestActionFromTools = null;
 		context.PendingKingdomActionFromTools = null;
 		context.ToolPillsForCurrentTurn = null;
 		context.ToolPlayerPillsForCurrentTurn = null;
 		context.MapToolRanThisTurn = false;
 		context.PendingCreatePartyForceOutlaw = null;
-	}
-
-	/// <summary>Merges OpenRouter dialogue tool results into <paramref name="aiResult"/> after deserialize (tools override duplicate JSON fields).</summary>
-	public static void ApplyNpcDialogueToolsToAiResponse(NPCContext context, AIResponse aiResult)
-	{
-		if (context == null || aiResult == null)
-			return;
-		if (context.DialogueToolSuspectedLie.HasValue)
-		{
-			aiResult.SuspectedLie = context.DialogueToolSuspectedLie.Value;
-			context.DialogueToolSuspectedLie = null;
-		}
-		if (!string.IsNullOrEmpty(context.DialogueToolDecision))
-		{
-			aiResult.Decision = context.DialogueToolDecision;
-			context.DialogueToolDecision = null;
-		}
-		if (!string.IsNullOrEmpty(context.DialogueToolRomanceIntent))
-		{
-			aiResult.RomanceIntent = context.DialogueToolRomanceIntent;
-			context.DialogueToolRomanceIntent = null;
-		}
-		if (context.DialogueToolThreatLevel != null)
-		{
-			aiResult.ThreatLevel = context.DialogueToolThreatLevel;
-			context.DialogueToolThreatLevel = null;
-		}
-		if (context.DialogueToolEscalationState != null)
-		{
-			aiResult.EscalationState = context.DialogueToolEscalationState;
-			context.DialogueToolEscalationState = null;
-		}
-		if (context.DialogueToolDeescalationAttempt.HasValue)
-		{
-			aiResult.DeescalationAttempt = context.DialogueToolDeescalationAttempt.Value;
-			context.DialogueToolDeescalationAttempt = null;
-		}
-		if (context.DialogueToolAllowsLetters.HasValue)
-		{
-			aiResult.AllowsLettersFromNPC = context.DialogueToolAllowsLetters;
-			context.DialogueToolAllowsLetters = null;
-		}
 	}
 
 	/// <summary>Runs one player turn in NPC chat. Returns the final assistant <b>message</b> body when complete.</summary>
@@ -3411,7 +3361,6 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		if (aiResult == null)
 			return "";
 		ApplyNpcContextToolDeferralsToAiResponse(context, aiResult);
-		ApplyNpcDialogueToolsToAiResponse(context, aiResult);
 		string reply = aiResult.Response ?? "";
 		context.LastInteractionTime = CampaignTime.Now;
 		context.InteractionCount++;

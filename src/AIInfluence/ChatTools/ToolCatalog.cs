@@ -12,19 +12,6 @@ using TaleWorlds.ObjectSystem;
 
 namespace AIInfluence.ChatTools;
 
-/// <summary>Typed tool params - single source of truth for schemas and deserialization.</summary>
-public static class ToolParams
-{
-	public record GoToSettlement(string settlement_id, float wait_days = 3f);
-	public record AttackParty(string party_id, bool then_return = false);
-	public record StopAction(string action_name);
-	public record TransferMoney(string action, int amount, string opposed_attribute = null);
-	public record TransferItem(string item_id, int amount, string action);
-	public record TransferItems(List<TransferItem> items, string opposed_attribute = null);
-	public record WorkshopSell(string workshop_string_id, int price);
-	public record FindQuery(string query, int limit = 8);
-}
-
 public static class ToolCatalog
 {
 	public static JArray GetToolsForApi()
@@ -73,16 +60,6 @@ public static class ToolCatalog
 				"{\"quest\":{\"type\":\"object\"},\"category\":{\"type\":\"string\",\"enum\":[\"Combat\",\"Negotiation\",\"Intrigue\",\"Escort\",\"Gather\",\"Other\"]}}", new[] { "quest", "category" }),
 			Tool("character_death", "Schedules roleplay death handling for this NPC when rules allow. should_die true triggers the flow.",
 				"{\"should_die\":{\"type\":\"boolean\"},\"death_reason\":{\"type\":\"string\"},\"killer_string_id\":{\"type\":\"string\"},\"opposed_attribute\":{\"type\":\"string\"}}", new[] { "should_die" }),
-			Tool("suspected_lie", "Records whether this NPC treats the player's last line as untruthful.",
-				"{\"suspected\":{\"type\":\"boolean\"}}", new[] { "suspected" }),
-			Tool("dialogue_decision", "Conversation branch token: release, attack, surrender, accept_surrender, propose_marriage, accept_marriage, reject_marriage, intimate, or none.",
-				"{\"decision\":{\"type\":\"string\"}}", new[] { "decision" }),
-			Tool("romance_intent", "Romance state token: none, flirt, romance, proposal.",
-				"{\"intent\":{\"type\":\"string\"}}", new[] { "intent" }),
-			Tool("escalation_update", "Updates tension fields: optional threat_level, escalation_state, deescalation_attempt.",
-				"{\"threat_level\":{\"type\":\"string\"},\"escalation_state\":{\"type\":\"string\"},\"deescalation_attempt\":{\"type\":\"boolean\"}}", System.Array.Empty<string>()),
-			Tool("allows_letters", "Sets whether this NPC may send letters or messengers to the player.",
-				"{\"allows\":{\"type\":\"boolean\"}}", new[] { "allows" })
 		};
 	}
 
