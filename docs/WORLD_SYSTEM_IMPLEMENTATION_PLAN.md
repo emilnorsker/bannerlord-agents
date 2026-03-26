@@ -273,7 +273,7 @@
 | I-02 | agent | 2026-03-26 | `RuntimeSecretStoreTests` (3 tests), `SecretResolverTests` (4 tests), `IntrigueStoreSecretsTests` (1 test), `PromptGenerator` resolver wiring |
 | I-03 | agent | 2026-03-26 | `EventDiaryTests` (7), `PatternMatcherTests` (11), `EpisodeTests` (4), `PlotTemplateTests` (3), `StepExecutorTests` (7), `PatternLibraryTests` (4), `IntrigueStoreDiaryTests` (1) |
 | I-04 | agent | 2026-03-26 | `PlotSchedulerTests` (5): trigger dispatch, no-match, idempotency, correlation logging, inactive plot skip |
-| I-05 | | | |
+| I-05 | agent | 2026-03-26 | `WorldSnapshotBuilderTests` (4): active plots, recent diary, secret count, serialization |
 | I-06 | | | |
 | I-07 | | | |
 | I-08 | | | |
