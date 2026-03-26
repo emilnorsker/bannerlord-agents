@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.GameState;
 using TaleWorlds.CampaignSystem.Party;
+using TaleWorlds.CampaignSystem.Roster;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Core;
 using TaleWorlds.Localization;
@@ -323,6 +324,16 @@ public class RPItemManager : IGameStateManagerListener
 			SaveRPItems();
 			LogMessage("[RP_ITEM_MANAGER] UpdateItemOwner: " + itemId + " owner changed " + owner + " -> " + newOwner);
 		}
+	}
+
+	public void RegisterForgedWeapon(ItemObject w, string baseItemId, string name, string description, string createdBy, ItemModifier mod, string ownerId)
+	{
+		string id = ((MBObjectBase)w).StringId;
+		RPItemData d = new RPItemData { ItemId = id, Name = name, Description = description ?? "", BaseItemId = baseItemId, ModifierStringId = (mod != null) ? ((MBObjectBase)mod).StringId : null, CreatedBy = createdBy, CreatedDay = (int)CampaignTime.Now.ToDays, Metadata = new Dictionary<string, object>(), Owner = ownerId };
+		_rpItems[id] = d;
+		_createdItems[id] = w;
+		SynchronizeItemData(w, d);
+		SaveRPItems();
 	}
 
 	public void OnDailyTick()
@@ -654,6 +665,10 @@ public class RPItemManager : IGameStateManagerListener
 	{
 		try
 		{
+			if (!string.IsNullOrEmpty(itemData.BaseItemId) && itemData.BaseItemId != itemData.ItemId)
+			{
+				return RpWeaponForgeScript.RestoreForgedWeaponFromRpData(itemData);
+			}
 			return CreateRPItem(itemData.Name, itemData.Description, itemData.CreatedBy, null, itemData.Metadata, itemData.ItemId);
 		}
 		catch (Exception ex)
@@ -686,7 +701,7 @@ public class RPItemManager : IGameStateManagerListener
 					rPItemComponent.CreatedDay = itemData.CreatedDay;
 				}
 			}
-			else
+			else if (item.WeaponComponent == null)
 			{
 				RPItemComponent obj = new RPItemComponent
 				{
@@ -705,6 +720,23 @@ public class RPItemManager : IGameStateManagerListener
 		}
 	}
 
+	private static void TryAddForgedStack(ItemRoster roster, ItemObject item, RPItemData itemData)
+	{
+		if (roster == null || roster.GetItemNumber(item) > 0)
+		{
+			return;
+		}
+		ItemModifier itemModifier = string.IsNullOrEmpty(itemData.ModifierStringId) ? null : MBObjectManager.Instance.GetObject<ItemModifier>(itemData.ModifierStringId);
+		if (itemModifier != null)
+		{
+			roster.AddToCounts(new EquipmentElement(item, itemModifier), 1);
+		}
+		else
+		{
+			roster.AddToCounts(item, 1);
+		}
+	}
+
 	private void RestoreItemToOwner(ItemObject item, RPItemData itemData)
 	{
 		try
@@ -718,7 +750,7 @@ public class RPItemManager : IGameStateManagerListener
 				MobileParty mainParty = MobileParty.MainParty;
 				if (((mainParty != null) ? mainParty.ItemRoster : null) != null && MobileParty.MainParty.ItemRoster.GetItemNumber(item) == 0)
 				{
-					MobileParty.MainParty.ItemRoster.AddToCounts(item, 1);
+					TryAddForgedStack(MobileParty.MainParty.ItemRoster, item, itemData);
 					LogMessage("[RP_ITEM_MANAGER] Restored item " + itemData.Name + " to MainParty");
 				}
 				return;
@@ -728,7 +760,7 @@ public class RPItemManager : IGameStateManagerListener
 			{
 				if (val.ItemRoster.GetItemNumber(item) == 0)
 				{
-					val.ItemRoster.AddToCounts(item, 1);
+					TryAddForgedStack(val.ItemRoster, item, itemData);
 					LogMessage($"[RP_ITEM_MANAGER] Restored item {itemData.Name} to settlement {val.Name}");
 				}
 				return;
@@ -738,7 +770,7 @@ public class RPItemManager : IGameStateManagerListener
 			{
 				if (val2.PartyBelongedTo.ItemRoster.GetItemNumber(item) == 0)
 				{
-					val2.PartyBelongedTo.ItemRoster.AddToCounts(item, 1);
+					TryAddForgedStack(val2.PartyBelongedTo.ItemRoster, item, itemData);
 					LogMessage($"[RP_ITEM_MANAGER] Restored item {itemData.Name} to {val2.Name}");
 				}
 			}

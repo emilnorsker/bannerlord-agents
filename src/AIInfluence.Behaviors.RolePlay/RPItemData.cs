@@ -13,6 +13,8 @@ public class RPItemData
 
 	public string BaseItemId { get; set; }
 
+	public string ModifierStringId { get; set; }
+
 	public string CreatedBy { get; set; }
 
 	public int CreatedDay { get; set; }
