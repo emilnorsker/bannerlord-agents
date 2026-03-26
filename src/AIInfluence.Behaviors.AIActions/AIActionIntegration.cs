@@ -213,9 +213,10 @@ public class AIActionIntegration
 				if (flag2)
 				{
 					text += "### create_party\n";
-					text += "**Purpose**: Companion in the player's clan gains an independent **MobileParty** on the campaign map (requires `CanExecute`: in `Clan.PlayerClan`, alive, not prisoner, not already leading a non-main party).\n";
-					text += "**Faction outcome**: Bandit-type culture or bandit clan, or explicit `outlaw`: Bannerlord.GameMaster `ClanGenerator.CreateMinorClan` — new minor clan, lord party, `DeclareWar` on the player's map faction and on the map faction of the nearest non-hideout settlement (bandit factions excluded). Otherwise `CreateNewClanMobileParty` in **Clan.PlayerClan**.\n";
-					text += "**Tool** `create_party` with optional `mode` `outlaw` to force the minor-clan branch when culture/clan would not.\n\n";
+					text += "**Purpose**: Start an independent **MobileParty** on the campaign map for yourself (leave the main party / act on the map under your own command when the player asks).\n";
+					text += "**Preconditions** (`CanExecute`): you are in **Clan.PlayerClan**, alive, not a prisoner, and you do not already lead a party other than the main party.\n";
+					text += "**Outcomes**: Bandit-type culture, bandit clan, or tool `mode` `outlaw` → BLGM `ClanGenerator.CreateMinorClan` (new minor clan, lord party, wars declared on the player's map faction and on the nearest non-hideout non-bandit settlement faction). Otherwise → `CreateNewClanMobileParty` while remaining in **Clan.PlayerClan**.\n";
+					text += "**Tool**: `create_party`; optional argument `mode`: `outlaw` forces the minor-clan path when culture/clan would not.\n\n";
 				}
 				break;
 			case "create_rp_item":
