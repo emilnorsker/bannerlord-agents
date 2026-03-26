@@ -21,12 +21,21 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Install tools
-        run: sudo apt-get install -y p7zip-full libxml2-utils
+        run: sudo apt-get install -y p7zip-full libxml2-utils curl unzip
+
+      - name: Fetch Bannerlord.GameMaster for compile reference
+        env:
+          BLGM_URL: https://github.com/SolWayward/Bannerlord.GameMaster/releases/download/v1.3.14.11/Bannerlord.GameMaster-v1.3.14.11.zip
+        run: |
+          set -e
+          mkdir -p _game_folder/Modules/Bannerlord.GameMaster/bin/Win64_Shipping_Client
+          curl -sSL -o /tmp/blgm.zip "$BLGM_URL"
+          unzip -p /tmp/blgm.zip Bannerlord.GameMaster/bin/Win64_Shipping_Client/Bannerlord.GameMaster.dll > _game_folder/Modules/Bannerlord.GameMaster/bin/Win64_Shipping_Client/Bannerlord.GameMaster.dll
 
       - name: Restore & build
         run: |
           dotnet restore src/AIInfluence.csproj
-          dotnet build src/AIInfluence.csproj -c Release --no-restore -p:GameFolder="$PWD/_game_folder"
+          dotnet build src/AIInfluence.csproj -c Release --no-restore -p:GameFolder="$PWD/_game_folder/"
 
       - name: Get mod version
         id: version
