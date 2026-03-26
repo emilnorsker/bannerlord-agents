@@ -71,8 +71,7 @@ public static class RpWeaponForgeScript
 		typeof(ItemObject).GetProperty("Name", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)?.SetValue(w, new TextObject(displayName ?? "", null), null);
 		if (MBObjectManager.Instance.GetObject<ItemObject>(id) != null)
 			throw new InvalidOperationException("weapon id collision: " + id);
-		MBObjectManager.Instance.RegisterObject(w);
-		bag.AddToCounts(new EquipmentElement(w, m), 1);
 		RPItemManager.Instance.RegisterForgedWeapon(w, ((MBObjectBase)t).StringId, displayName, description, ((MBObjectBase)npc).StringId, m, ((MBObjectBase)npc).StringId);
+		bag.AddToCounts(new EquipmentElement(w, m), 1);
 	}
 }
