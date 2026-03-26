@@ -149,6 +149,19 @@ public class AIGeneratedQuest : QuestBase
 		base.StartQuest();
 	}
 
+	public void AppendTargetNpc(string npcId)
+	{
+		if (string.IsNullOrEmpty(npcId))
+			return;
+		List<string> list = TargetNpcIds;
+		if (list.Contains(npcId))
+			return;
+		list.Add(npcId);
+		_targetNpcIdsCsv = string.Join(",", list);
+		if (string.IsNullOrEmpty(_targetNpcId))
+			_targetNpcId = npcId;
+	}
+
 	public void AddUpdateLog(string message)
 	{
 		//IL_0004: Unknown result type (might be due to invalid IL or missing references)

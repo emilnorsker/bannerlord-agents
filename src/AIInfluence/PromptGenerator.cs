@@ -4694,7 +4694,11 @@ public static class PromptGenerator
 			string result = string.Join(", ", names);
 			return string.IsNullOrEmpty(result) ? "unknown" : result;
 		}
-		catch { return "unknown"; }
+		catch (Exception ex)
+		{
+			AIInfluenceBehavior.Instance?.LogMessage("[PromptGenerator] GetAvailableCultures: " + ex.Message);
+			return "unknown";
+		}
 	}
 
 	private static string GetAvailableKingdoms()
@@ -4710,6 +4714,10 @@ public static class PromptGenerator
 			string result = string.Join(", ", names);
 			return string.IsNullOrEmpty(result) ? "unknown" : result;
 		}
-		catch { return "unknown"; }
+		catch (Exception ex)
+		{
+			AIInfluenceBehavior.Instance?.LogMessage("[PromptGenerator] GetAvailableKingdoms: " + ex.Message);
+			return "unknown";
+		}
 	}
 }

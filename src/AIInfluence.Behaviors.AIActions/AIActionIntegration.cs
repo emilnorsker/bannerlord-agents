@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using AIInfluence;
 using AIInfluence.Behaviors.AIActions.TaskSystem;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Party;
@@ -212,9 +213,10 @@ public class AIActionIntegration
 				if (flag2)
 				{
 					text += "### create_party\n";
-					text += "**Purpose**: Form your own party (leave the player's party and act independently).\n";
-					text += "**Usage**: Confirm in dialogue, then call tool `create_party`.\n";
-					text += "**Note**: This is a one-time action that creates your independent party. Use if they ask you to create your own party and move independently.\n\n";
+					text += "**Purpose**: Start an independent **MobileParty** on the campaign map for yourself (leave the main party / act on the map under your own command when the player asks).\n";
+					text += "**Preconditions** (`CanExecute`): you are in **Clan.PlayerClan**, alive, not a prisoner, and you do not already lead a party other than the main party.\n";
+					text += "**Outcomes**: Bandit-type culture, bandit clan, or tool `mode` `outlaw` → BLGM `ClanGenerator.CreateMinorClan` (new minor clan, lord party, wars declared on the player's map faction and on the nearest non-hideout non-bandit settlement faction). Otherwise → `CreateNewClanMobileParty` while remaining in **Clan.PlayerClan**.\n";
+					text += "**Tool**: `create_party`; optional argument `mode`: `outlaw` forces the minor-clan path when culture/clan would not.\n\n";
 				}
 				break;
 			case "create_rp_item":
@@ -295,6 +297,11 @@ public class AIActionIntegration
 		if (npc == null)
 		{
 			return false;
+		}
+		if (string.Equals(actionName, "create_party", StringComparison.OrdinalIgnoreCase))
+		{
+			ApplyCreatePartyParameter(npc, parameter);
+			return true;
 		}
 		if (string.IsNullOrWhiteSpace(parameter))
 		{
@@ -841,6 +848,30 @@ public class AIActionIntegration
 		}
 		default:
 			return true;
+		}
+	}
+
+	private static void ApplyCreatePartyParameter(Hero npc, string parameter)
+	{
+		NPCContext ctx = AIInfluenceBehavior.Instance?.GetOrCreateNPCContext(npc);
+		if (ctx == null)
+			return;
+		ctx.PendingCreatePartyForceOutlaw = false;
+		if (string.IsNullOrWhiteSpace(parameter))
+			return;
+		foreach (string raw in parameter.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+		{
+			string t = raw.Trim();
+			if (t.Length == 0)
+				continue;
+			if (t.Equals("outlaw", StringComparison.OrdinalIgnoreCase) || t.Equals("bandit", StringComparison.OrdinalIgnoreCase))
+				ctx.PendingCreatePartyForceOutlaw = true;
+			else if (t.StartsWith("outlaw:", StringComparison.OrdinalIgnoreCase) || t.StartsWith("bandit:", StringComparison.OrdinalIgnoreCase))
+			{
+				string[] kv = t.Split(new[] { ':' }, 2);
+				if (kv.Length > 1 && (kv[1].Trim().Equals("true", StringComparison.OrdinalIgnoreCase) || kv[1].Trim() == "1"))
+					ctx.PendingCreatePartyForceOutlaw = true;
+			}
 		}
 	}
 

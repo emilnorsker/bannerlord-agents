@@ -16,6 +16,7 @@
     <DependedModule Id="Sandbox" />
     <DependedModule Id="StoryMode" />
     <DependedModule Id="CustomBattle" />
+    <DependedModule Id="Bannerlord.GameMaster" />
     </DependedModules>
     <DependedModuleMetadatas>
     <DependedModuleMetadata id="Bannerlord.Harmony" order="LoadBeforeThis" />
@@ -25,6 +26,7 @@
     <DependedModuleMetadata id="Sandbox" order="LoadBeforeThis" />
     <DependedModuleMetadata id="StoryMode" order="LoadBeforeThis" />
     <DependedModuleMetadata id="CustomBattle" order="LoadBeforeThis" />
+    <DependedModuleMetadata id="Bannerlord.GameMaster" order="LoadBeforeThis" />
   </DependedModuleMetadatas>
     <SubModules>
         <SubModule>

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using TaleWorlds.CampaignSystem;
 
 namespace AIInfluence;
 
@@ -85,6 +86,19 @@ public class SpawnPartyData
 	[JsonProperty("party_size")]
 	[JsonConverter(typeof(LenientIntConverter))]
 	public int? PartySize { get; set; }
+
+	[JsonProperty("target_hero_string_id")]
+	public string TargetHeroStringId { get; set; }
+
+	[JsonProperty("target_hero_query")]
+	public string TargetHeroQuery { get; set; }
+
+	[JsonProperty("is_outlaw")]
+	[JsonConverter(typeof(LenientBoolConverter))]
+	public bool? IsOutlaw { get; set; }
+
+	[JsonIgnore]
+	public Hero InternalOutlawLeader { get; set; }
 }
 
 public class StringOrArrayConverter : JsonConverter<List<string>>
