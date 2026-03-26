@@ -3344,6 +3344,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					messageDraft?.Clear();
 					lastNpcMessagePreview = "";
 					notifyNpcMessagePreviewChanged?.Invoke("");
+					ClearNpcTurnDialogueTools(context);
 				}
 				OpenRouterCallResult dialogueResult = await AIClient.GetAIResponse(npcName, faction, prompt + "\nPlayer: " + playerMessage, notifyMessageChunk, toolExecutor);
 				if (dialogueResult.Success && !string.IsNullOrEmpty(dialogueResult.Payload))
