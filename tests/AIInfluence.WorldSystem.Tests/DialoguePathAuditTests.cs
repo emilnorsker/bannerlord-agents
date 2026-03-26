@@ -8,39 +8,90 @@ namespace AIInfluence.WorldSystem.Tests;
 public class DialoguePathAuditTests
 {
     [Test]
-    public void ProseText_CannotAddSecretWithoutValidatedCommit()
+    public void ValidProposal_ThenCommit_MutatesState()
     {
         var store = new IntrigueStore();
-        int initialCount = store.RuntimeSecrets.GetAll().Count;
+        store.AddPlot(new PlotInstance
+        {
+            Id = "plot_01", TemplateId = "tmpl_a",
+            Status = PlotStatus.Active, Phase = "phase_1", StartedCampaignDay = 1
+        });
 
-        Assert.That(initialCount, Is.EqualTo(0));
-        Assert.That(store.RuntimeSecrets.GetAll(), Has.Count.EqualTo(0));
+        var json = Newtonsoft.Json.JsonConvert.SerializeObject(new WorldProposal
+        {
+            CorrelationId = "corr_1",
+            Operations = new List<ProposalOperation>
+            {
+                new ProposalOperation
+                {
+                    OperationType = "emit_secret",
+                    TargetId = "secret_new",
+                    PlotId = "plot_01",
+                    Parameters = new Dictionary<string, string>
+                    {
+                        ["description"] = "test secret",
+                        ["access_level"] = "restricted"
+                    }
+                }
+            }
+        });
+
+        var result = ProposalValidator.TryParseAndValidate(json, store);
+        Assert.That(result.Valid, Is.True);
+
+        var proposal = Newtonsoft.Json.JsonConvert.DeserializeObject<WorldProposal>(json);
+        ProposalCommitter.Commit(proposal, store, store.EventDiary, store.Beliefs);
+
+        Assert.That(store.RuntimeSecrets.GetById("secret_new"), Is.Not.Null);
     }
 
     [Test]
-    public void InvalidProposal_DoesNotMutateHookStore()
+    public void InvalidJson_NeverMutatesAnyStore()
     {
         var store = new IntrigueStore();
-        var result = ProposalValidator.TryParseAndValidate("not json", store);
+        store.AddPlot(new PlotInstance
+        {
+            Id = "plot_01", TemplateId = "tmpl_a",
+            Status = PlotStatus.Active, Phase = "phase_1", StartedCampaignDay = 1
+        });
+
+        var result = ProposalValidator.TryParseAndValidate("{ this is not valid json !!!", store);
 
         Assert.That(result.Valid, Is.False);
+        Assert.That(store.RuntimeSecrets.GetAll(), Is.Empty);
         Assert.That(store.Hooks.GetByTarget("anyone"), Is.Empty);
+        Assert.That(store.EventDiary.GetAll(), Is.Empty);
+        Assert.That(store.GetPlotById("plot_01").Phase, Is.EqualTo("phase_1"));
     }
 
     [Test]
-    public void InvalidProposal_DoesNotMutateBeliefService()
+    public void RejectedProposal_NeverCommitted()
     {
         var store = new IntrigueStore();
-        var beliefs = new BeliefService();
 
-        var result = ProposalValidator.TryParseAndValidate("{ broken }", store);
+        var proposal = new WorldProposal
+        {
+            CorrelationId = "corr_1",
+            Operations = new List<ProposalOperation>
+            {
+                new ProposalOperation
+                {
+                    OperationType = "advance_plot_phase",
+                    TargetId = "phase_2",
+                    PlotId = "nonexistent_plot"
+                }
+            }
+        };
 
+        var result = ProposalValidator.Validate(proposal, store);
         Assert.That(result.Valid, Is.False);
-        Assert.That(beliefs.GetConfidence("any", "a", "b"), Is.EqualTo(0.0));
+
+        Assert.That(store.GetAllPlots(), Is.Empty);
+        Assert.That(store.EventDiary.GetAll(), Is.Empty);
     }
 
     [Test]
-    public void ProposalWithUnknownPlot_DoesNotAdvancePhase()
+    public void ValidatedCommit_IsOnlyPathToMutation()
     {
         var store = new IntrigueStore();
         store.AddPlot(new PlotInstance
@@ -58,13 +109,16 @@ public class DialoguePathAuditTests
                 {
                     OperationType = "advance_plot_phase",
                     TargetId = "phase_2",
-                    PlotId = "nonexistent"
+                    PlotId = "plot_01"
                 }
             }
         };
 
-        var result = ProposalValidator.Validate(proposal, store);
-        Assert.That(result.Valid, Is.False);
+        var validationResult = ProposalValidator.Validate(proposal, store);
+        Assert.That(validationResult.Valid, Is.True);
         Assert.That(store.GetPlotById("plot_01").Phase, Is.EqualTo("phase_1"));
+
+        ProposalCommitter.Commit(proposal, store, store.EventDiary, store.Beliefs);
+        Assert.That(store.GetPlotById("plot_01").Phase, Is.EqualTo("phase_2"));
     }
 }
