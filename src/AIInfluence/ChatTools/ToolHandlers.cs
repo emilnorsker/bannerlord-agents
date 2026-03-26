@@ -208,9 +208,9 @@ public static class ToolHandlers
 		string query = p["query"]?.ToString()?.Trim();
 		string displayName = p["display_name"]?.ToString()?.Trim();
 		if (string.IsNullOrEmpty(query) || string.IsNullOrEmpty(displayName))
-		bool giveToPlayer = false;
-		if (p.TryGetValue("give_to_player", out JToken gt))
-			giveToPlayer = gt.Type == JTokenType.Boolean ? gt.Value<bool>() : string.Equals(gt.ToString(), "true", StringComparison.OrdinalIgnoreCase);
+			return "missing query or display_name";
+		string description = p["description"]?.ToString() ?? "";
+		string itemTypes = p["item_types"]?.ToString() ?? "";
 		string culture = p["culture"]?.ToString() ?? "";
 		int tier = p["tier"]?.Value<int?>() ?? 3;
 		string modifier = p["modifier"]?.ToString() ?? "";
