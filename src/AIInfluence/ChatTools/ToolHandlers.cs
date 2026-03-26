@@ -335,6 +335,12 @@ public static class ToolHandlers
 			behavior?.LogMessage("[QUEST_TOOL] create_quest missing title or description");
 			return "error: create_quest requires non-empty title and description";
 		}
+		if (actionLower == "create_quest" && context.ActiveAIQuests != null && context.ActiveAIQuests.Count > 0)
+		{
+			string existingTitle = context.ActiveAIQuests[context.ActiveAIQuests.Count - 1].Title;
+			behavior?.LogMessage("[QUEST_TOOL] create_quest rejected: NPC already has active quest '" + existingTitle + "'");
+			return "error: this NPC already has an active quest ('" + existingTitle + "'). Use update_quest with quest_id to modify it, or complete_quest/fail_quest first.";
+		}
 		if ((actionLower == "update_quest" || actionLower == "complete_quest" || actionLower == "fail_quest") && string.IsNullOrEmpty(questAction.QuestId))
 		{
 			behavior?.LogMessage("[QUEST_TOOL] " + actionLower + " missing quest_id");
