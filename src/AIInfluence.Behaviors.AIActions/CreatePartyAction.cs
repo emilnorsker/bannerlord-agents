@@ -120,6 +120,7 @@ public sealed class CreatePartyAction : AIActionBase
 				string outlawFallbackReason = outlawSpawnOutcome.ErrorToken ?? "unknown";
 				LogError("Outlaw BLGM path failed, falling back to player-clan party: " + outlawFallbackReason);
 				InformationManager.DisplayMessage(new InformationMessage("[AI Influence] Outlaw clan creation failed; forming a normal clan party instead. " + outlawFallbackReason, ExtraColors.RedAIInfluence));
+				TryPutCompanionBackInMainParty(base.TargetHero);
 			}
 		}
 		if (base.TargetHero.Clan != Clan.PlayerClan)
@@ -140,6 +141,7 @@ public sealed class CreatePartyAction : AIActionBase
 				return;
 			}
 			InformationManager.DisplayMessage(new InformationMessage("[AI Influence] Outlaw path failed; restored companion to your clan. No new party was created.", ExtraColors.RedAIInfluence));
+			TryPutCompanionBackInMainParty(base.TargetHero);
 			Stop();
 			return;
 		}
@@ -151,6 +153,7 @@ public sealed class CreatePartyAction : AIActionBase
 			createPartyFailedMessage.SetTextVariable("HERO_NAME", ((targetHero == null) ? null : ((object)targetHero.Name)?.ToString()) ?? "Unknown");
 			InformationManager.DisplayMessage(new InformationMessage(((object)createPartyFailedMessage).ToString(), ExtraColors.RedAIInfluence));
 			LogError("CreateNewClanMobileParty returned null");
+			TryPutCompanionBackInMainParty(base.TargetHero);
 			Stop();
 			return;
 		}
@@ -188,6 +191,25 @@ public sealed class CreatePartyAction : AIActionBase
 
 	protected override void OnUpdate(float deltaTime)
 	{
+	}
+
+	/// <summary>After outlaw strip-from-main, rejoin the main party if the hero is still in the player clan but has no party.</summary>
+	private static void TryPutCompanionBackInMainParty(Hero hero)
+	{
+		if (hero == null || MobileParty.MainParty == null || hero.Clan != Clan.PlayerClan)
+			return;
+		if (hero.PartyBelongedTo == MobileParty.MainParty)
+			return;
+		if (hero.PartyBelongedTo != null)
+			return;
+		try
+		{
+			AddHeroToPartyAction.Apply(hero, MobileParty.MainParty, true);
+		}
+		catch (Exception exception)
+		{
+			AIInfluenceBehavior.Instance?.LogMessage("[CreatePartyAction] TryPutCompanionBackInMainParty: " + exception.Message);
+		}
 	}
 
 	private static void ShowSuccessDelayed(string text)

@@ -104,7 +104,7 @@ public class NPCContext
 	[JsonIgnore]
 	public List<(string Text, string Color, bool ForPlayerRow)> DeferredChatPillAppends { get; set; }
 
-	/// <summary>Next <c>create_party</c> for this NPC: force BLGM outlaw minor-clan path. Cleared when that action starts or dialogue tools clear.</summary>
+	/// <summary>Next <c>create_party</c> for this NPC: force outlaw minor-clan path when supported. Cleared when that action starts or dialogue tools clear.</summary>
 	[JsonIgnore]
 	public bool? PendingCreatePartyForceOutlaw { get; set; }
 

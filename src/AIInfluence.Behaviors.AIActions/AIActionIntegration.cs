@@ -329,7 +329,7 @@ public class AIActionIntegration
 			string[] array13 = parameter.Split(new char[1] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 			if (array13.Length == 0)
 			{
-				LogMessage($"ERROR: Empty parameter for go_to_settlement (NPC {npc.Name}).");
+				LogPrepareError(npc, "Empty parameter for go_to_settlement.");
 				return false;
 			}
 			if (array13.Length == 1)
@@ -357,12 +357,12 @@ public class AIActionIntegration
 					}
 					catch (Exception ex6)
 					{
-						LogMessage("ERROR creating task for go_to_settlement: " + ex6.Message);
+						LogPrepareError(npc, "go_to_settlement task failed: " + ex6.Message);
 					}
 					LogMessage($"Prepared go_to_settlement for {npc.Name} -> {settlement3.Name} (wait {num7} days)");
 					return true;
 				}
-				LogMessage($"ERROR: Failed to find settlement '{text17}' for go_to_settlement (NPC {npc.Name}).");
+				LogPrepareError(npc, "Failed to find settlement for go_to_settlement: " + text17 + ".");
 				return false;
 			}
 			try
@@ -370,7 +370,7 @@ public class AIActionIntegration
 				TaskManager instance7 = TaskManager.Instance;
 				if (instance7 == null)
 				{
-					LogMessage("ERROR: TaskManager not available for multi-step task");
+					LogPrepareError(npc, "Task manager not available for multi-step travel task.");
 					return false;
 				}
 				TaskBuilder taskBuilder6 = new TaskBuilder(npc);
@@ -390,13 +390,13 @@ public class AIActionIntegration
 						string[] array16 = text19.Split(new char[1] { ':' }, 2);
 						if (array16.Length < 2)
 						{
-							LogMessage("ERROR: Invalid attack directive '" + text19 + "' in multi-step task");
+							LogPrepareError(npc, "Invalid attack step in multi-step travel: " + text19 + ".");
 							continue;
 						}
 						string text20 = array16[1].Trim();
 						if (string.IsNullOrEmpty(text20))
 						{
-							LogMessage("ERROR: Empty attack target in '" + text19 + "'");
+							LogPrepareError(npc, "Empty attack target in multi-step travel.");
 							continue;
 						}
 						taskBuilder6.AttackParty(text20);
@@ -420,7 +420,7 @@ public class AIActionIntegration
 					}
 					else
 					{
-						LogMessage("ERROR: Failed to find settlement '" + text21 + "' in multi-step task");
+						LogPrepareError(npc, "Multi-step travel: settlement not found: " + text21 + ".");
 					}
 				}
 				if (!flag7)
@@ -434,12 +434,12 @@ public class AIActionIntegration
 					LogMessage($"Prepared go_to_settlement multi-step task for {npc.Name}");
 					return true;
 				}
-				LogMessage($"ERROR: Failed to build multi-step task for {npc.Name}");
+				LogPrepareError(npc, "Failed to build multi-step travel task.");
 				return false;
 			}
 			catch (Exception ex7)
 			{
-				LogMessage("ERROR creating multi-step task: " + ex7.Message);
+				LogPrepareError(npc, "Multi-step travel task failed: " + ex7.Message);
 				return false;
 			}
 		}
@@ -449,7 +449,7 @@ public class AIActionIntegration
 			string[] array10 = parameter.Split(new char[1] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 			if (array10.Length == 0)
 			{
-				LogMessage($"ERROR: Empty parameter for attack_party (NPC {npc.Name}).");
+				LogPrepareError(npc, "Empty parameter for attack_party.");
 				return false;
 			}
 			string text13 = array10[0].Trim();
@@ -459,12 +459,12 @@ public class AIActionIntegration
 			}
 			if (string.IsNullOrEmpty(text13))
 			{
-				LogMessage($"ERROR: Missing target party id for attack_party (NPC {npc.Name}).");
+				LogPrepareError(npc, "Missing target party id for attack_party.");
 				return false;
 			}
 			if (!AttackPartyAction.PrepareAttackTarget(npc, text13))
 			{
-				LogMessage($"ERROR: Failed to prepare attack target '{text13}' for {npc.Name}");
+				LogPrepareError(npc, "Failed to prepare attack_party target: " + text13 + ".");
 				return false;
 			}
 			bool flag5 = false;
@@ -495,7 +495,7 @@ public class AIActionIntegration
 			}
 			catch (Exception ex4)
 			{
-				LogMessage("ERROR creating attack task: " + ex4.Message);
+				LogPrepareError(npc, "attack_party task failed: " + ex4.Message);
 			}
 			LogMessage($"Prepared attack_party for {npc.Name} -> {text13}");
 			return true;
@@ -506,27 +506,26 @@ public class AIActionIntegration
 			string[] array9 = parameter.Split(new char[1] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 			if (array9.Length == 0)
 			{
-				LogMessage($"ERROR: Empty parameter for raid_village (NPC {npc.Name}).");
+				LogPrepareError(npc, "Empty parameter for raid_village.");
 				return false;
 			}
 			string raidPrimaryToken = array9[0].Trim();
 			if (string.IsNullOrEmpty(raidPrimaryToken))
 			{
-				LogMessage($"ERROR: Missing village id for raid_village (NPC {npc.Name}).");
+				LogPrepareError(npc, "Missing village id for raid_village.");
 				return false;
 			}
 			Settlement val2 = ((IEnumerable<Settlement>)Settlement.All).FirstOrDefault((Func<Settlement, bool>)((Settlement s) => ((MBObjectBase)s).StringId == raidPrimaryToken));
 			if (val2 == null || !val2.IsVillage)
 			{
-				LogMessage($"ERROR: Target '{raidPrimaryToken}' is not a valid village for raid_village (NPC {npc.Name}).");
+				LogPrepareError(npc, "Target is not a valid village for raid_village: " + raidPrimaryToken + ".");
 				return false;
 			}
 			if (IsVillageOwnedByHero(val2, npc))
 			{
-				TextObject name = npc.Name;
 				TextObject name2 = val2.Name;
 				Clan clan = npc.Clan;
-				LogMessage(string.Format("ERROR: {0} attempted to raid own village {1} (belongs to {2}). Action blocked.", name, name2, ((clan == null) ? null : ((object)clan.Name)?.ToString()) ?? "their faction"));
+				LogPrepareError(npc, string.Format("Cannot raid own village {0} (faction: {1}).", name2, ((clan == null) ? null : ((object)clan.Name)?.ToString()) ?? "their faction"));
 				return false;
 			}
 			bool flag4 = false;
@@ -540,7 +539,7 @@ public class AIActionIntegration
 			}
 			if (!RaidVillageAction.PrepareRaidTarget(npc, raidPrimaryToken))
 			{
-				LogMessage($"ERROR: Failed to prepare raid target '{raidPrimaryToken}' for {npc.Name}");
+				LogPrepareError(npc, "Failed to prepare raid_village target: " + raidPrimaryToken + ".");
 				return false;
 			}
 			try
@@ -562,7 +561,7 @@ public class AIActionIntegration
 			}
 			catch (Exception ex3)
 			{
-				LogMessage("ERROR creating raid_village task: " + ex3.Message);
+				LogPrepareError(npc, "raid_village task failed: " + ex3.Message);
 			}
 			LogMessage($"Prepared raid_village for {npc.Name} -> {val2.Name}");
 			return true;
@@ -573,7 +572,7 @@ public class AIActionIntegration
 			string[] array11 = parameter.Split(new char[1] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 			if (array11.Length == 0)
 			{
-				LogMessage($"ERROR: Empty parameter for patrol_settlement (NPC {npc.Name}).");
+				LogPrepareError(npc, "Empty parameter for patrol_settlement.");
 				return false;
 			}
 			string patrolSettlementId;
@@ -599,7 +598,7 @@ public class AIActionIntegration
 			}
 			if (!PatrolSettlementAction.PreparePatrolRequest(npc, patrolSettlementId, num5, flag6))
 			{
-				LogMessage($"ERROR: Failed to prepare patrol request '{patrolSettlementId}' for {npc.Name}");
+				LogPrepareError(npc, "Failed to prepare patrol_settlement: " + patrolSettlementId + ".");
 				return false;
 			}
 			try
@@ -622,7 +621,7 @@ public class AIActionIntegration
 			}
 			catch (Exception ex5)
 			{
-				LogMessage("ERROR creating patrol task: " + ex5.Message);
+				LogPrepareError(npc, "patrol_settlement task failed: " + ex5.Message);
 			}
 			LogMessage($"Prepared patrol_settlement for {npc.Name} -> {patrolSettlementId} (duration {num5} days, return {flag6})");
 			return true;
@@ -633,7 +632,7 @@ public class AIActionIntegration
 			string[] array6 = parameter.Split(new char[1] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 			if (array6.Length == 0)
 			{
-				LogMessage($"ERROR: Empty parameter for siege_settlement (NPC {npc.Name}).");
+				LogPrepareError(npc, "Empty parameter for siege_settlement.");
 				return false;
 			}
 			string text8 = array6[0].Trim();
@@ -648,7 +647,7 @@ public class AIActionIntegration
 			}
 			if (!GoToSettlementAction.PrepareDestination(npc, text8, out var settlement))
 			{
-				LogMessage("ERROR: Failed to find settlement '" + text8 + "' for siege_settlement.");
+				LogPrepareError(npc, "Failed to find settlement for siege_settlement: " + text8 + ".");
 				return false;
 			}
 			SiegeSettlementAction.PrepareSiegeTarget(npc, ((MBObjectBase)settlement).StringId, flag2);
@@ -671,7 +670,7 @@ public class AIActionIntegration
 			}
 			catch (Exception ex)
 			{
-				LogMessage("ERROR creating siege task: " + ex.Message);
+				LogPrepareError(npc, "siege_settlement task failed: " + ex.Message);
 			}
 			LogMessage($"Prepared siege_settlement for {npc.Name} -> {settlement.Name}");
 			return true;
@@ -682,19 +681,19 @@ public class AIActionIntegration
 			string[] array7 = parameter.Split(new char[1] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 			if (array7.Length == 0)
 			{
-				LogMessage($"ERROR: Empty parameter for wait_near_settlement (NPC {npc.Name}).");
+				LogPrepareError(npc, "Empty parameter for wait_near_settlement.");
 				return false;
 			}
 			string text10 = array7[0].Trim();
 			if (string.IsNullOrWhiteSpace(text10))
 			{
-				LogMessage($"ERROR: Invalid wait_near_settlement parameter '{parameter}' (NPC {npc.Name}).");
+				LogPrepareError(npc, "Invalid wait_near_settlement parameter.");
 				return false;
 			}
 			string[] array8 = text10.Split(new char[1] { ':' }, StringSplitOptions.RemoveEmptyEntries);
 			if (array8.Length == 0)
 			{
-				LogMessage($"ERROR: Invalid wait_near_settlement parameter '{parameter}' (NPC {npc.Name}).");
+				LogPrepareError(npc, "Invalid wait_near_settlement parameter.");
 				return false;
 			}
 			string waitSettlementToken = array8[0].Trim();
@@ -720,12 +719,12 @@ public class AIActionIntegration
 			Settlement val = ((IEnumerable<Settlement>)Settlement.All).FirstOrDefault((Func<Settlement, bool>)((Settlement s) => ((MBObjectBase)s).StringId.Equals(waitSettlementToken, StringComparison.OrdinalIgnoreCase) || (((object)s.Name)?.ToString().Equals(waitSettlementToken, StringComparison.OrdinalIgnoreCase) ?? false)));
 			if (val == null)
 			{
-				LogMessage("ERROR: Failed to find settlement '" + waitSettlementToken + "' for wait_near_settlement.");
+				LogPrepareError(npc, "Failed to find settlement for wait_near_settlement: " + waitSettlementToken + ".");
 				return false;
 			}
 			if (!WaitNearSettlementAction.PrepareWaitRequest(npc, val, num, num2))
 			{
-				LogMessage($"ERROR: Failed to prepare wait_near_settlement for {npc.Name}.");
+				LogPrepareError(npc, "Failed to prepare wait_near_settlement.");
 				return false;
 			}
 			try
@@ -747,7 +746,7 @@ public class AIActionIntegration
 			}
 			catch (Exception ex2)
 			{
-				LogMessage("ERROR creating wait_near_settlement task: " + ex2.Message);
+				LogPrepareError(npc, "wait_near_settlement task failed: " + ex2.Message);
 			}
 			GoToSettlementAction.PrepareDestination(npc, val, 0.05f);
 			SetActionStartOverride(npc, "go_to_settlement");
@@ -759,25 +758,25 @@ public class AIActionIntegration
 			LogMessage($"Parsing create_rp_item parameter for {npc.Name}: '{parameter}'");
 			if (string.IsNullOrWhiteSpace(parameter))
 			{
-				LogMessage($"ERROR: Empty parameter for create_rp_item (NPC {npc.Name}).");
+				LogPrepareError(npc, "Empty parameter for create_rp_item.");
 				return false;
 			}
 			string[] array5 = parameter.Split(new char[1] { '|' }, 3);
 			if (array5.Length < 2)
 			{
-				LogMessage($"ERROR: Invalid parameter format for create_rp_item. Expected: name|description|type (NPC {npc.Name}).");
+				LogPrepareError(npc, "Invalid create_rp_item format. Expected name|description.");
 				return false;
 			}
 			string text7 = array5[0].Trim();
 			string itemDescription = array5[1].Trim();
 			if (string.IsNullOrWhiteSpace(text7))
 			{
-				LogMessage($"ERROR: Item name is required for create_rp_item (NPC {npc.Name}).");
+				LogPrepareError(npc, "Item name is required for create_rp_item.");
 				return false;
 			}
 			if (!CreateRPItemAction.PrepareItemCreation(npc, text7, itemDescription))
 			{
-				LogMessage($"ERROR: Failed to prepare create_rp_item for {npc.Name}");
+				LogPrepareError(npc, "Failed to prepare create_rp_item.");
 				return false;
 			}
 			LogMessage($"Prepared create_rp_item for {npc.Name}: {text7}");
@@ -809,20 +808,20 @@ public class AIActionIntegration
 			LogMessage($"Parsing transfer_troops_and_prisoners parameter for {npc.Name}: '{parameter}'");
 			if (string.IsNullOrWhiteSpace(parameter))
 			{
-				LogMessage($"ERROR: Empty parameter for transfer_troops_and_prisoners (NPC {npc.Name}).");
+				LogPrepareError(npc, "Empty parameter for transfer_troops.");
 				return false;
 			}
 			string[] array = parameter.Split(new char[1] { ':' }, 2);
 			if (array.Length < 2)
 			{
-				LogMessage($"ERROR: Invalid parameter format for transfer_troops_and_prisoners. Expected: direction:transfers (NPC {npc.Name}).");
+				LogPrepareError(npc, "Invalid transfer_troops format. Expected direction:transfers.");
 				return false;
 			}
 			string text = array[0].Trim().ToLowerInvariant();
 			bool flag = text == "to_player";
 			if (!flag && text != "from_player")
 			{
-				LogMessage($"ERROR: Invalid direction '{text}' for transfer_troops_and_prisoners. Must be 'to_player' or 'from_player' (NPC {npc.Name}).");
+				LogPrepareError(npc, "transfer_troops direction must be to_player or from_player.");
 				return false;
 			}
 			string text2 = array[1].Trim();
@@ -836,14 +835,14 @@ public class AIActionIntegration
 				string[] array4 = text4.Split(new char[1] { ':' }, StringSplitOptions.RemoveEmptyEntries);
 				if (array4.Length < 3)
 				{
-					LogMessage($"ERROR: Invalid transfer item format '{text4}'. Expected: type:string_id:count (NPC {npc.Name}).");
+					LogPrepareError(npc, "Invalid transfer_troops segment (expected type:id:count): " + text4 + ".");
 					continue;
 				}
 				string text5 = array4[0].Trim().ToLowerInvariant();
 				string text6 = array4[1].Trim();
 				if (!int.TryParse(array4[2].Trim(), out var result) || result <= 0)
 				{
-					LogMessage($"ERROR: Invalid count '{array4[2]}' for transfer item '{text4}' (NPC {npc.Name}).");
+					LogPrepareError(npc, "Invalid count in transfer_troops segment: " + text4 + ".");
 				}
 				else if (text5 == "troop")
 				{
@@ -863,17 +862,17 @@ public class AIActionIntegration
 				}
 				else
 				{
-					LogMessage($"ERROR: Unknown transfer type '{text5}'. Must be 'troop' or 'prisoner' (NPC {npc.Name}).");
+					LogPrepareError(npc, "transfer_troops type must be troop or prisoner, got: " + text5 + ".");
 				}
 			}
 			if (list.Count == 0 && list2.Count == 0)
 			{
-				LogMessage($"ERROR: No valid transfers specified for transfer_troops_and_prisoners (NPC {npc.Name}).");
+				LogPrepareError(npc, "No valid troop or prisoner transfers in transfer_troops.");
 				return false;
 			}
 			if (!TransferTroopsAndPrisonersAction.PrepareTransfer(npc, list, list2, flag))
 			{
-				LogMessage($"ERROR: Failed to prepare transfer_troops_and_prisoners for {npc.Name}");
+				LogPrepareError(npc, "Failed to prepare transfer_troops.");
 				return false;
 			}
 			LogMessage($"Prepared transfer_troops_and_prisoners for {npc.Name}: {text}, {list.Count} troops, {list2.Count} prisoners");
@@ -915,7 +914,8 @@ public class AIActionIntegration
 
 	private static void LogPrepareError(Hero npc, string message)
 	{
-		AIActionsLogger.Instance.Log("[AIActionIntegration] ERROR: " + message);
+		string line = "[AIActionIntegration] ERROR: " + message + (npc != null ? " (NPC " + ((object)npc.Name)?.ToString() + ")" : "");
+		AIActionsLogger.Instance.Log(line);
 		string suffix = npc != null ? " (" + ((object)npc.Name)?.ToString() + ")" : "";
 		InformationManager.DisplayMessage(new InformationMessage("[AI Influence] " + message + suffix, ExtraColors.RedAIInfluence));
 	}

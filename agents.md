@@ -24,6 +24,8 @@ Strings sent to the model as tool `description` fields (and parallel action text
 
 Edits to `ToolCatalog.GetToolsForApi()` should be reviewed against this list.
 
+**Prepare failures:** When `AIActionIntegration.TryPrepareActionParameter` rejects tool arguments (returns `false`), the same error line is logged and shown via `InformationManager` (`LogPrepareError`) so the player sees why a map or transfer tool did not arm.
+
 ---
 
 ## Target Game Version

@@ -4556,7 +4556,7 @@ public static class PromptGenerator
 			"  - `\"is_female\"`: true/false (optional).\n" +
 			"  - `\"age\"`: 18–70 (optional, default 30).\n" +
 			"  - `\"settlement\"`: town/village name to spawn near (e.g. \"Epicrotea\"). Defaults to nearest town.\n" +
-			"  - `\"faction\"`: kingdom/clan name. Usually omit — alignment handles it. Available kingdoms: " + GetAvailableKingdoms() + ".\n" +
+			"  - `\"faction\"`: kingdom/clan name (fuzzy). Usually omit — alignment handles it. If omitted for a **named** non-outlaw lord spawn, the game uses the anchor settlement owner's kingdom when one exists. Available kingdoms: " + GetAvailableKingdoms() + ".\n" +
 			"  - `\"equipment\"`: object — override default gear. All item names fuzzy-matched.\n" +
 			"    - `\"weapon\"`, `\"shield\"`, `\"head\"`, `\"body\"`, `\"cape\"`, `\"gloves\"`, `\"legs\"`, `\"horse\"`: item names.\n" +
 			"    - `\"tier\"`: 0–6 — prefer items of this quality level.\n" +
