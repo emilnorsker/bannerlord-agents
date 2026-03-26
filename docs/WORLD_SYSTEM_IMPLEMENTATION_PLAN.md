@@ -269,8 +269,8 @@
 
 | Slice | Owner | Date | Test case reference |
 |-------|--------|------|---------------------|
-| I-01 | | | |
-| I-02 | | | |
+| I-01 | agent | 2026-03-26 | `PlotInstancePersistenceTests` (3 tests), `IntrigueStoreTests` (6 tests), `SyncData` wiring, MCM debug button |
+| I-02 | agent | 2026-03-26 | `RuntimeSecretStoreTests` (3 tests), `SecretResolverTests` (4 tests), `IntrigueStoreSecretsTests` (1 test), `PromptGenerator` resolver wiring |
 | I-03 | | | |
 | I-04 | | | |
 | I-05 | | | |
