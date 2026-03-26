@@ -95,6 +95,10 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	private string _serializedActionState = string.Empty;
 
+	private string _intrigueStoreJson;
+
+	private WorldSystem.IntrigueStore _intrigueStore = new WorldSystem.IntrigueStore();
+
 	private string _lastKnownPlayerStringId;
 
 	private bool _playerReinforcementAdded = false;
@@ -109,6 +113,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	public static AIInfluenceBehavior Instance => _instance;
 
 	public NPCInitiativeSystem InitiativeSystem => _npcInitiativeSystem;
+
+	public WorldSystem.IntrigueStore IntrigueStore => _intrigueStore;
 
 	public static void ResetStaticFlags()
 	{
@@ -5520,6 +5526,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				Dictionary<string, NPCContext> contextsToSave = new Dictionary<string, NPCContext>(_npcContexts);
 				_npcContextsJson = CompressPayload(JsonConvert.SerializeObject(contextsToSave));
 				LogMessage($"[SAVE] Serialized {contextsToSave.Count} NPC contexts into game save");
+				_intrigueStoreJson = CompressPayload(_intrigueStore.Serialize());
+				LogMessage($"[SAVE] Serialized intrigue store ({_intrigueStore.GetAllPlots().Count} plots) into game save");
 			}
 			syncStage = "sync-followingHeroIds";
 			dataStore.SyncData<List<string>>("AIInfluence_followingHeroIds", ref _followingHeroIds);
@@ -5575,6 +5583,23 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 							AIActionManager.Instance.RestoreFollowingActions(heroIdsToRestore);
 						});
 					}
+				}
+			}
+			syncStage = "sync-intrigueStore";
+			dataStore.SyncData<string>("AIInfluence_intrigueStore", ref _intrigueStoreJson);
+			if (dataStore.IsLoading)
+			{
+				if (!string.IsNullOrEmpty(_intrigueStoreJson))
+				{
+					string intrigueJson = DecompressPayload(_intrigueStoreJson);
+					_intrigueStore = WorldSystem.IntrigueStore.Deserialize(intrigueJson);
+					_intrigueStoreJson = null;
+					LogMessage($"[LOAD] Restored intrigue store ({_intrigueStore.GetAllPlots().Count} plots) from game save");
+				}
+				else
+				{
+					_intrigueStore = new WorldSystem.IntrigueStore();
+					LogMessage("[LOAD] No intrigue store in save; initialized empty (backward compatible).");
 				}
 			}
 			syncStage = "sync-currentSaveFolder";
