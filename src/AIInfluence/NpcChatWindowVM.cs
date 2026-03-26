@@ -683,7 +683,10 @@ public class NpcChatWindowVM : ViewModel
                 var preCtx = AIInfluenceBehavior.Instance.GetOrCreateNPCContext(_npc);
                 playerHistoryIdx = preCtx?.ConversationHistory?.Count ?? -1;
             }
-            catch (Exception) { }
+            catch (Exception ex)
+            {
+                AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] pre-send GetOrCreateNPCContext: " + ex.Message);
+            }
             ChatMessageItemVM streamingItem = null;
             bool streamingRetired = false;
             string streamingTargetText = "";

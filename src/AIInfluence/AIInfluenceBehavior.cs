@@ -3973,14 +3973,9 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 							}
 						}
 					}
-					catch (JsonException)
+					catch (Exception ex)
 					{
-					}
-					catch (IOException)
-					{
-					}
-					catch (Exception)
-					{
+						LogMessage("[NPC_FILE_SCAN] Skip " + text + ": " + ex.Message);
 					}
 				}
 			}

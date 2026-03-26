@@ -67,7 +67,15 @@ public static class QuestPartyBlgmKernel
 		IFaction p = Clan.PlayerClan?.MapFaction ?? Clan.PlayerClan;
 		Vec2 v = h.PartyBelongedTo != null ? GameVersionCompatibility.GetPosition2D(h.PartyBelongedTo) : h.CurrentSettlement != null ? GameVersionCompatibility.GetPosition2D(h.CurrentSettlement) : MobileParty.MainParty != null ? GameVersionCompatibility.GetPosition2D(MobileParty.MainParty) : default;
 		IFaction n = Settlement.All?.Where(s => s != null && !s.IsHideout && s.MapFaction != null && (!(s.MapFaction is Clan b) || !b.IsBanditFaction)).OrderBy(s => s.GetPosition2D.DistanceSquared(v)).FirstOrDefault()?.MapFaction;
-		try { if (p != null) ClanExtensions.DeclareWar(o, p); if (n != null && !ReferenceEquals(n, p)) ClanExtensions.DeclareWar(o, n); } catch { }
+		try
+		{
+			if (p != null) ClanExtensions.DeclareWar(o, p);
+			if (n != null && !ReferenceEquals(n, p)) ClanExtensions.DeclareWar(o, n);
+		}
+		catch (Exception ex)
+		{
+			AIInfluenceBehavior.Instance?.LogMessage("[QuestPartyBlgmKernel] DeclareWar failed: " + ex.Message + "\n" + ex.StackTrace);
+		}
 	}
 
 	static void AddT(MobileParty p, SpawnPartyData d, CultureObject cu)
