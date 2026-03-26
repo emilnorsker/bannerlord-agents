@@ -457,11 +457,12 @@ public static class PromptGenerator
 					}
 				}
 			}
-			int count = instance4?.MaxRecentEvents ?? 50;
-			List<string> list5 = (from e in list4
-				where e.Type == "Battle" || (e.Type == "HeroKilled" && !e.Description.Contains("by unknown")) || (e.Type != "Battle" && e.Type != "HeroKilled")
-				orderby e.Timestamp descending
-				select e).Take(count).Select(delegate(CampaignEvent e)
+			int promptEventCap = Math.Min(instance4?.MaxRecentEvents ?? 50, 12);
+			List<string> list5 = list4
+				.Where(e => e.Type == "Battle" || (e.Type == "HeroKilled" && !e.Description.Contains("by unknown")) || (e.Type != "Battle" && e.Type != "HeroKilled"))
+				.OrderByDescending(e => ScoreEventRelevance(e, npcName))
+				.ThenByDescending(e => e.Timestamp)
+				.Take(promptEventCap).Select(delegate(CampaignEvent e)
 			{
 				//IL_001a: Unknown result type (might be due to invalid IL or missing references)
 				//IL_0020: Unknown result type (might be due to invalid IL or missing references)
@@ -4532,6 +4533,22 @@ public static class PromptGenerator
 		stringBuilder.AppendLine("**CRITICAL:** 'FACT CHECK:' at start of internal_thoughts. CURRENT DATA ONLY. internal_thoughts justifies ALL JSON fields. Response = thoughts + facts." + (flag ? " Override Rules = ABSOLUTE PRIORITY." : ""));
 		stringBuilder.AppendLine();
 		return stringBuilder.ToString();
+	}
+
+	private static int ScoreEventRelevance(CampaignEvent campaignEvent, string npcName)
+	{
+		if (campaignEvent == null) return 0;
+		string description = campaignEvent.Description ?? "";
+		int score = 0;
+		if (description.StartsWith("I ", StringComparison.Ordinal))
+			score += 100;
+		if (!string.IsNullOrEmpty(npcName) && description.IndexOf(npcName, StringComparison.OrdinalIgnoreCase) >= 0)
+			score += 80;
+		if (campaignEvent.Type != "Battle")
+			score += 60;
+		if (description.IndexOf("player", StringComparison.OrdinalIgnoreCase) >= 0)
+			score += 40;
+		return score;
 	}
 
 	private static string GetQuestSection(Hero npc, NPCContext context)
