@@ -14,10 +14,20 @@ namespace AIInfluence.Behaviors.AIActions;
 
 public sealed class CreatePartyAction : AIActionBase
 {
-	/// <summary>Next <see cref="OnStart"/>: use BLGM outlaw minor-clan path even when culture would not normally choose it.</summary>
+	/// <summary>
+	/// Set by <see cref="AIActionIntegration.TryPrepareActionParameter"/> immediately before <see cref="AIActionManager.StartAction"/> (e.g. LLM <c>create_party</c> with <c>mode: outlaw</c> or <c>create_party:outlaw</c>).
+	/// Consumed and cleared at the start of <see cref="OnStart"/>.
+	/// Use when the model or dialogue explicitly wants the BLGM minor-clan breakaway (war on player + nearby realm) even if this hero’s culture would not normally take the outlaw branch.
+	/// </summary>
 	public static bool PendingOutlawMinorClanOverride { get; set; }
 
-	/// <summary>Next <see cref="OnStart"/>: skip outlaw path; create a normal player-clan lord party.</summary>
+	/// <summary>
+	/// Set by <see cref="AIActionIntegration.TryPrepareActionParameter"/> immediately before <see cref="AIActionManager.StartAction"/> (e.g. LLM <c>create_party</c> with <c>mode: normal</c> or <c>create_party:normal</c>).
+	/// Consumed and cleared at the start of <see cref="OnStart"/>.
+	/// Use when the model or dialogue explicitly wants a standard <strong>player-clan</strong> lord party (<see cref="GameVersionCompatibility.CreateNewClanMobileParty"/>): hero remains in <see cref="Clan.PlayerClan"/>, no BLGM minor clan, no automatic wars from this action.
+	/// Typical reason: bandit-flavored culture or backstory but the story beat is “lead a party for the clan,” not “go independent / outlaw.”
+	/// If both this and <see cref="PendingOutlawMinorClanOverride"/> were set, preparation clears the outlaw override; normal wins.
+	/// </summary>
 	public static bool PendingPlayerClanLordPartyOverride { get; set; }
 
 	private bool _partyCreated;
