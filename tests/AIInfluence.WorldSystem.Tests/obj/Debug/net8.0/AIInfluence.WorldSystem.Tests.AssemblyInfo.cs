@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AIInfluence.WorldSystem.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b4c2ffb9673b16cbdb7677cd4ce91948b018341c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+bae55208f4f21d203359e1a6cf77e33a12dd9bcd")]
 [assembly: System.Reflection.AssemblyProductAttribute("AIInfluence.WorldSystem.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AIInfluence.WorldSystem.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
