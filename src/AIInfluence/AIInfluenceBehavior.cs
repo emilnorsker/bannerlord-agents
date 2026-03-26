@@ -99,6 +99,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	private WorldSystem.IntrigueStore _intrigueStore = new WorldSystem.IntrigueStore();
 
+	private WorldSystem.PlotScheduler _plotScheduler;
+
 	private string _lastKnownPlayerStringId;
 
 	private bool _playerReinforcementAdded = false;
@@ -115,6 +117,23 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	public NPCInitiativeSystem InitiativeSystem => _npcInitiativeSystem;
 
 	public WorldSystem.IntrigueStore IntrigueStore => _intrigueStore;
+
+	public WorldSystem.PlotScheduler PlotScheduler => _plotScheduler;
+
+	public WorldSystem.ValidationResult ValidateAndCommitProposal(string proposalJson)
+	{
+		var result = WorldSystem.ProposalValidator.TryParseAndValidate(proposalJson, _intrigueStore);
+		if (!result.Valid)
+		{
+			LogMessage("[WorldSystem] Proposal rejected: " + string.Join("; ", result.Errors));
+			return result;
+		}
+
+		var proposal = Newtonsoft.Json.JsonConvert.DeserializeObject<WorldSystem.WorldProposal>(proposalJson);
+		WorldSystem.ProposalCommitter.Commit(proposal, _intrigueStore, _intrigueStore.EventDiary, _intrigueStore.Beliefs);
+		LogMessage($"[WorldSystem] Proposal committed: {proposal.CorrelationId} ({proposal.Operations.Count} ops)");
+		return result;
+	}
 
 	public static void ResetStaticFlags()
 	{
@@ -542,6 +561,14 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		catch (Exception ex4)
 		{
 			LogMessage("[ERROR] RPItemManager OnDailyTick error: " + ex4.Message);
+		}
+		try
+		{
+			_plotScheduler?.OnTrigger("on_daily");
+		}
+		catch (Exception ex5)
+		{
+			LogMessage("[ERROR] PlotScheduler on_daily error: " + ex5.Message);
 		}
 	}
 
@@ -4589,6 +4616,12 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			Hero mainHero2 = Hero.MainHero;
 			LogMessage($"[PLAYER_TRACKING] Initial player character: {((mainHero2 != null) ? mainHero2.Name : null)} (StringId: {_lastKnownPlayerStringId})");
 			LogMessage("[SYSTEM] DialogueAnalyzer system ready for dynamic event generation.");
+			_plotScheduler = new WorldSystem.PlotScheduler(
+				_intrigueStore,
+				_intrigueStore.EventDiary,
+				new Dictionary<string, WorldSystem.PlotTemplate>(),
+				msg => LogMessage(msg));
+			LogMessage("[WorldSystem] PlotScheduler initialized (0 templates loaded).");
 		}
 		catch (Exception ex)
 		{

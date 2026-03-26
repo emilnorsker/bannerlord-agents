@@ -22,6 +22,9 @@ public class IntrigueStore
     [JsonProperty("recall_phrases")]
     private RecallPhraseStore _recallPhrases = new RecallPhraseStore();
 
+    [JsonProperty("beliefs")]
+    private BeliefService _beliefs = new BeliefService();
+
     public RuntimeSecretStore RuntimeSecrets => _runtimeSecrets;
 
     public EventDiary EventDiary => _eventDiary;
@@ -29,6 +32,8 @@ public class IntrigueStore
     public HookStore Hooks => _hooks;
 
     public RecallPhraseStore RecallPhrases => _recallPhrases;
+
+    public BeliefService Beliefs => _beliefs;
 
     public void AddPlot(PlotInstance plot)
     {

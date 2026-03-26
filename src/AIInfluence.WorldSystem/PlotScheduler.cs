@@ -49,6 +49,27 @@ public class PlotScheduler
                 else
                     _log($"[WorldSystem] {correlationId} step={step.StepId} skipped: {result.Reason}");
             }
+
+            EvaluateEpisodes(template, plot, correlationId);
+        }
+    }
+
+    private void EvaluateEpisodes(PlotTemplate template, PlotInstance plot, string correlationId)
+    {
+        var diaryEntries = _diary.GetAll();
+        foreach (var episode in template.Episodes)
+        {
+            var evalResult = episode.Evaluate(diaryEntries);
+            if (!evalResult.Fired)
+                continue;
+
+            _log($"[WorldSystem] {correlationId} episode={episode.EpisodeId} fired pattern={evalResult.MatchedPatternId} on plot={plot.Id}");
+
+            foreach (var literal in evalResult.Resolution.RStateLiterals)
+            {
+                if (!plot.CompletedStepIds.Contains(literal))
+                    plot.CompletedStepIds.Add(literal);
+            }
         }
     }
 }
