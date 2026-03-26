@@ -125,11 +125,4 @@ public static class ChatToolPillBuilder
 		return (t, KingdomActionColor);
 	}
 
-	public static void AppendRomanceIntent(NPCContext context, string intent)
-	{
-		if (context == null || string.IsNullOrEmpty(intent) || intent.Equals("none", StringComparison.OrdinalIgnoreCase)) return;
-		string ri = intent.Trim().ToLowerInvariant();
-		string msg = ri == "flirt" ? "Accepted your flirtation" : ri == "romance" ? "Accepted your courtship" : ri == "proposal" ? "Marriage proposal" : $"Romance: {intent.Trim()}";
-		context.AppendToolPill(msg, RomanceActionColor);
-	}
 }
