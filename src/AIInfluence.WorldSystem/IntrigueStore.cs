@@ -10,6 +10,11 @@ public class IntrigueStore
     [JsonProperty("plots")]
     private List<PlotInstance> _plots = new List<PlotInstance>();
 
+    [JsonProperty("runtime_secrets")]
+    private RuntimeSecretStore _runtimeSecrets = new RuntimeSecretStore();
+
+    public RuntimeSecretStore RuntimeSecrets => _runtimeSecrets;
+
     public void AddPlot(PlotInstance plot)
     {
         _plots.Add(plot);

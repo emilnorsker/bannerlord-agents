@@ -376,9 +376,19 @@ public static class PromptGenerator
 		string text19 = "none";
 		if (context.KnownSecrets.Any())
 		{
-			List<string> list = (from s in WorldInfoManager.WorldSecretsManager.Instance.GetSecrets()
-				where context.KnownSecrets.Contains(s.Id)
-				select s.Description + " (access: " + s.AccessLevel + ")").ToList();
+			var runtimeSecretStore = AIInfluenceBehavior.Instance?.IntrigueStore?.RuntimeSecrets ?? new WorldSystem.RuntimeSecretStore();
+			var catalogProjection = WorldInfoManager.WorldSecretsManager.Instance.GetSecrets()
+				.Select(s => new WorldSystem.CatalogSecret { Id = s.Id, Description = s.Description, AccessLevel = s.AccessLevel })
+				.ToList();
+			var secretResolver = new WorldSystem.SecretResolver(
+				runtimeSecretStore,
+				catalogProjection,
+				error => AIInfluenceBehavior.Instance?.LogMessage(error));
+			List<string> list = context.KnownSecrets
+				.Select(id => secretResolver.Resolve(id))
+				.Where(r => r != null)
+				.Select(r => r.Description + " (access: " + r.AccessLevel + ")")
+				.ToList();
 			text19 = (list.Any() ? string.Join("; ", list) : "none");
 		}
 		string text20 = "none";
