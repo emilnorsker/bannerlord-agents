@@ -433,9 +433,7 @@ public class NpcChatWindowVM : ViewModel
     private const string ActionColor          = "#FFD700FF";  // golden (fallback)
     private const string MoneyTransferColor   = "#E6B800FF";  // amber gold
     private const string ItemTransferColor    = "#4CAF50FF";  // green
-    private const string TroopTransferColor   = "#78909CFF";  // steel blue-grey
     private const string QuestActionColor     = "#26A69AFF";  // teal
-    private const string TechnicalActionColor = "#81C784FF";  // soft green
     private const string RomanceActionColor   = "#E91E63FF";  // pink
     private const string WorkshopActionColor  = "#FFB74DFF";  // trade orange
     private const string KingdomActionColor   = "#5C6BC0FF";  // political purple
@@ -582,31 +580,6 @@ public class NpcChatWindowVM : ViewModel
         return item?.Name?.ToString() ?? "Unknown item";
     }
 
-    private static string ResolveTroopName(string stringId)
-    {
-        if (string.IsNullOrEmpty(stringId)) return "Unknown troop";
-        var troop = MBObjectManager.Instance?.GetObject<CharacterObject>(stringId);
-        return troop?.Name?.ToString() ?? "Unknown troop";
-    }
-
-    private static string FormatTroopTransferPill(string payload, string npcName)
-    {
-        string[] dirAndRest = payload.Split(new[] { ':' }, 2);
-        if (dirAndRest.Length < 2) return "Transferred troops";
-        bool toPlayer = dirAndRest[0].Trim().Equals("to_player", StringComparison.OrdinalIgnoreCase);
-        var items = new List<string>();
-        foreach (string part in dirAndRest[1].Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
-        {
-            string[] segs = part.Trim().Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
-            if (segs.Length < 3 || !int.TryParse(segs[2], out int count) || count <= 0) continue;
-            string name = ResolveTroopName(segs[1].Trim());
-            items.Add($"{name} (x{count})");
-        }
-        if (items.Count == 0) return toPlayer ? $"{npcName} transferred troops to you" : $"You transferred troops to {npcName}";
-        string list = string.Join(", ", items);
-        return toPlayer ? $"{npcName} gave you {list}" : $"You gave {list} to {npcName}";
-    }
-
     private static string FormatItemTransferPillList(IEnumerable<ItemTransferData> transfers) =>
         string.Join(", ", transfers.Select(t => $"{ResolveItemName(t.ItemId)} (x{t.Amount})"));
 
@@ -630,7 +603,7 @@ public class NpcChatWindowVM : ViewModel
             yield return ($"• You received {FormatItemTransferPillList(giveTransfers)} from {npcName}", ItemTransferColor);
     }
 
-    private static IEnumerable<(string text, string textColor)> BuildNpcActionPills(AIResponse r, NPCContext ctx, string npcName)
+    private static IEnumerable<(string text, string textColor)> BuildNpcActionPills(AIResponse r, string npcName)
     {
         if (r == null) yield break;
         if (r.MoneyTransfer != null && r.MoneyTransfer.Amount != 0)
@@ -651,29 +624,6 @@ public class NpcChatWindowVM : ViewModel
             yield return ($"• Quest: {r.QuestAction.Action}", QuestActionColor);
         if (!string.IsNullOrEmpty(r.Decision) && r.Decision != "none" && r.Decision != "none\n")
             yield return ($"• {r.Decision.Trim()}", ActionColor);
-        string techAction = ctx?.LastTechnicalActionForDisplay;
-        if (!string.IsNullOrEmpty(techAction) && !techAction.Equals("none", StringComparison.OrdinalIgnoreCase))
-        {
-            foreach (string action in techAction.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
-            {
-                string[] segs = action.Trim().Split(new[] { ':' }, 2);
-                string name = segs[0].Trim();
-                string payload = segs.Length > 1 ? segs[1].Trim() : "";
-                bool isStop = payload.Equals("STOP", StringComparison.OrdinalIgnoreCase);
-                if (isStop)
-                    yield return ($"• Stopped {name}", TechnicalActionColor);
-                else if (name.Equals("follow_player", StringComparison.OrdinalIgnoreCase))
-                    yield return ("• Now following you", TechnicalActionColor);
-                else if (name.Equals("return_to_player", StringComparison.OrdinalIgnoreCase))
-                    yield return ("• Returning to you", TechnicalActionColor);
-                else if (name.Equals("go_to_settlement", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(payload))
-                    yield return ($"• Traveling to {payload.Split(':')[0]}", TechnicalActionColor);
-                else if (name.Equals("transfer_troops_and_prisoners", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(payload))
-                    yield return ("• " + FormatTroopTransferPill(payload, npcName), TroopTransferColor);
-                else if (!string.IsNullOrEmpty(name))
-                    yield return ($"• {name}", TechnicalActionColor);
-            }
-        }
         if (!string.IsNullOrEmpty(r.RomanceIntent) && !r.RomanceIntent.Equals("none", StringComparison.OrdinalIgnoreCase))
         {
             string ri = r.RomanceIntent.Trim().ToLowerInvariant();
@@ -733,7 +683,10 @@ public class NpcChatWindowVM : ViewModel
                 var preCtx = AIInfluenceBehavior.Instance.GetOrCreateNPCContext(_npc);
                 playerHistoryIdx = preCtx?.ConversationHistory?.Count ?? -1;
             }
-            catch (Exception) { }
+            catch (Exception ex)
+            {
+                AIInfluenceBehavior.Instance?.LogMessage("[NpcChatWindow] pre-send GetOrCreateNPCContext: " + ex.Message);
+            }
             ChatMessageItemVM streamingItem = null;
             bool streamingRetired = false;
             string streamingTargetText = "";
@@ -821,7 +774,7 @@ public class NpcChatWindowVM : ViewModel
 
                 string tone = pendingResponse?.Tone ?? "";
                 var playerPills = BuildPlayerActionPills(pendingResponse, npcName).ToList();
-                var npcPills = BuildNpcActionPills(pendingResponse, ctx, npcName).ToList();
+                var npcPills = BuildNpcActionPills(pendingResponse, npcName).ToList();
                 string relMsg = GetRelationChangeMessage(pendingResponse, ctx, npcName);
 
                 // Swaps the streaming placeholder for the finalised message item and persists pills.

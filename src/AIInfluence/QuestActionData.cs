@@ -70,24 +70,8 @@ public class QuestActionData
 	[JsonProperty("influence_change")]
 	public int? InfluenceChange { get; set; }
 
-	[JsonProperty("spawn_hostile_party")]
-	public bool SpawnHostileParty { get; set; }
-
-	[JsonProperty("hostile_party_size")]
-	public int HostilePartySize { get; set; }
-
-	[JsonProperty("hostile_party_label")]
-	public string HostilePartyLabel { get; set; }
-
-	[JsonProperty("hostile_troop_name")]
-	public string HostileTroopName { get; set; }
-
 	[JsonProperty("spawn_party")]
 	public SpawnPartyData SpawnParty { get; set; }
-
-	[JsonProperty("spawn_npc")]
-	[Obsolete("Use SpawnParty. Kept for backward compatibility.")]
-	public SpawnPartyData SpawnNpc { get => SpawnParty; set => SpawnParty = value; }
 
 	public List<string> GetEffectiveTargetNpcIds()
 	{

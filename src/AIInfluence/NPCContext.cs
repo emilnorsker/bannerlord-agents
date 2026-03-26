@@ -88,9 +88,9 @@ public class NPCContext
 
 	public AIResponse PendingAIResponse { get; set; }
 
-	/// <summary>In-memory map tool lines for chat UI pills (pipe-separated); cleared each dialogue turn.</summary>
+	/// <summary>Next <c>create_party</c> for this NPC: force BLGM outlaw minor-clan path. Cleared when that action starts or dialogue tools clear.</summary>
 	[JsonIgnore]
-	public string LastTechnicalActionForDisplay { get; set; }
+	public bool? PendingCreatePartyForceOutlaw { get; set; }
 
 	/// <summary>
 	/// Temporary hold for roleplay death data from the OpenRouter <c>character_death</c> tool. Copied onto <see cref="AIResponse.CharacterDeath"/>
@@ -98,13 +98,6 @@ public class NPCContext
 	/// </summary>
 	[JsonIgnore]
 	public CharacterDeathInfo DeferredCharacterDeathFromTools { get; set; }
-
-	public void AppendMapToolDisplayLine(string line)
-	{
-		if (string.IsNullOrEmpty(line))
-			return;
-		LastTechnicalActionForDisplay = string.IsNullOrEmpty(LastTechnicalActionForDisplay) ? line : LastTechnicalActionForDisplay + "|" + line;
-	}
 
 	/// <summary>Set by <c>quest_action</c> tool; applied when the chat UI finishes the typewriter and finalizes the NPC line (not during the async tool round).</summary>
 	[JsonIgnore]
