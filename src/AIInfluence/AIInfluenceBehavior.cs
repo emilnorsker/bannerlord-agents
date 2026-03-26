@@ -3310,7 +3310,13 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			void AppendMessageChunk(string messageChunk)
 			{
-				messageDraft.Append(messageChunk ?? "");
+				if (messageChunk == null)
+				{
+					messageDraft.Clear();
+					lastNpcMessagePreview = "";
+					return;
+				}
+				messageDraft.Append(messageChunk);
 				string text = GetNpcMessagePreview(messageDraft.ToString());
 				if (!string.IsNullOrEmpty(text) && !string.Equals(text, lastNpcMessagePreview, StringComparison.Ordinal))
 				{

@@ -201,6 +201,7 @@ public static class AIClient
 						["content"] = result ?? ""
 					});
 				}
+				notifyMessageChunk?.Invoke(null);
 				continue;
 			}
 
