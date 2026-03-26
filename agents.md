@@ -12,6 +12,20 @@ Violations make documents unusable for a cold reader; treat this as a hard rule 
 
 ---
 
+## LLM tool descriptions (`ToolCatalog` and related prompts)
+
+Strings sent to the model as tool `description` fields (and parallel action text in `AIActionIntegration`) are **API contracts**, not documentation for maintainers.
+
+- **Neutral voice.** Third person or imperative on what the tool *does*. No praise, blame, jokes, or “you should”.
+- **No implementation leaks.** Do not name internal mods, DLLs, namespaces, class names, enum type names from dependencies, or engine internals the model cannot observe. Describe **inputs, outputs, and game-visible effects** only.
+- **No editorial framing.** Avoid loaded qualifiers (“real”, “proper”) and prescriptive filler (“make sure”, “always remember”). State conditions and parameters as facts.
+- **Prefer parameters over prose** for allowed values: use JSON `enum` where the set is fixed; keep the top-level description short and repeat detail in property descriptions if needed.
+- **Same vocabulary as the game**: `string_id`, settlement vs village, give/receive, etc., aligned with `actionrules` and prompts.
+
+Edits to `ToolCatalog.GetToolsForApi()` should be reviewed against this list.
+
+---
+
 ## Target Game Version
 
 This mod targets **Bannerlord v1.3.x**. Do not reference or worry about v1.0–v1.2.x API differences.

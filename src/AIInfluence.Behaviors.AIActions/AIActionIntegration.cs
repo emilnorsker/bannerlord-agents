@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using AIInfluence;
 using AIInfluence.Behaviors.AIActions.TaskSystem;
+using Bannerlord.GameMaster.Items;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Settlements;
@@ -215,8 +216,8 @@ public class AIActionIntegration
 					text += "### create_party\n";
 					text += "**Purpose**: Start an independent **MobileParty** on the campaign map for yourself (leave the main party / act on the map under your own command when the player asks).\n";
 					text += "**Preconditions** (`CanExecute`): you are in **Clan.PlayerClan**, alive, not a prisoner, and you do not already lead a party other than the main party.\n";
-					text += "**Outcomes**: Bandit-type culture, bandit clan, or tool `mode` `outlaw` → BLGM `ClanGenerator.CreateMinorClan` (new minor clan, lord party, wars declared on the player's map faction and on the nearest non-hideout non-bandit settlement faction). Otherwise → `CreateNewClanMobileParty` while remaining in **Clan.PlayerClan**.\n";
-					text += "**Tool**: `create_party`; optional argument `mode`: `outlaw` forces the minor-clan path when culture/clan would not.\n\n";
+					text += "**Outcomes**: With bandit-type culture or bandit clan, or with tool `mode` `outlaw`, the game may create a new minor clan and lord party and declare wars on the player's map faction and on a nearby non-bandit faction. Otherwise you remain in **Clan.PlayerClan** and get a new party under that clan.\n";
+					text += "**Tool**: `create_party`; optional argument `mode`: `outlaw` selects the minor-clan path when culture or clan would not.\n\n";
 				}
 				break;
 			case "create_rp_item":
@@ -228,6 +229,13 @@ public class AIActionIntegration
 				text += "**Example**: name \"Letter\", description \"Important message\".\n";
 				text += "**Important**: Consensual handoff only — item is given automatically. Do not use `item_transfers` for voluntary RP handoffs; use `item_transfers` + opposed attribute only for contested takes of real inventory items.\n";
 				text += "**CRITICAL**: Check \"CRITICAL - Player's Inventory (UNKNOWN TO YOU)\" section BEFORE creating. Do NOT create duplicate items.\n\n";
+				break;
+			case "create_rp_weapon":
+				text += "### create_rp_weapon\n";
+				text += "**Effect**: Adds a weapon matched from `query` to this character's party inventory. If `give_to_player` is true, one copy is transferred to the player's inventory.\n";
+				text += "**Requires**: This character is in a party that has an item roster.\n";
+				text += "**Arguments**: `query` (text to select a weapon), `display_name` (name shown in-game), `give_to_player` (boolean). Optional: `description` (extra text stored with the item), `item_types` (Weapon, OneHanded, TwoHanded, Polearm, Ranged, Thrown, Bow, Crossbow, Shield, or None; default Weapon), `culture` (culture string_id or empty), `tier` (integer), `modifier` (quality label or empty).\n";
+				text += "**Difference from `create_rp_item`**: `create_rp_item` only creates narrative props. `create_rp_weapon` creates equippable weapons.\n\n";
 				break;
 			case "transfer_troops_and_prisoners":
 				if (flag)
@@ -769,6 +777,59 @@ public class AIActionIntegration
 				return false;
 			}
 			LogMessage($"Prepared create_rp_item for {npc.Name}: {text7}");
+			return true;
+		}
+		case "create_rp_weapon":
+		{
+			LogMessage($"Parsing create_rp_weapon parameter for {npc.Name}: '{parameter}'");
+			if (string.IsNullOrWhiteSpace(parameter))
+			{
+				LogMessage($"ERROR: Empty parameter for create_rp_weapon (NPC {npc.Name}).");
+				return false;
+			}
+			string[] parts = parameter.Split('|');
+			if (parts.Length < 8)
+			{
+				LogMessage($"ERROR: Invalid create_rp_weapon format (NPC {npc.Name}). Expected at least 8 pipe-separated segments.");
+				return false;
+			}
+			string giveStr = parts[parts.Length - 1].Trim();
+			string modTok = parts[parts.Length - 2].Trim();
+			if (!int.TryParse(parts[parts.Length - 3].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int tier))
+				tier = 3;
+			string cul = parts[parts.Length - 4].Trim();
+			string typesStr = string.IsNullOrWhiteSpace(parts[parts.Length - 5]) ? "Weapon" : parts[parts.Length - 5].Trim();
+			string q = parts[0].Trim();
+			string dn = parts[1].Trim();
+			string desc = parts.Length == 8 ? parts[2].Trim() : string.Join("|", parts, 2, parts.Length - 7).Trim();
+			bool give = giveStr.Equals("true", StringComparison.OrdinalIgnoreCase);
+			if (string.IsNullOrWhiteSpace(q) || string.IsNullOrWhiteSpace(dn))
+			{
+				LogMessage($"ERROR: create_rp_weapon requires query and display_name (NPC {npc.Name}).");
+				return false;
+			}
+			if (!Enum.TryParse(typesStr, true, out ItemTypes itemTypes))
+			{
+				LogMessage($"ERROR: Unknown item_types '{typesStr}' for create_rp_weapon (NPC {npc.Name}).");
+				return false;
+			}
+			var req = new CreateRPWeaponAction.WeaponCreationRequest
+			{
+				Query = q,
+				DisplayName = dn,
+				Description = desc,
+				ItemTypes = itemTypes,
+				Culture = cul,
+				Tier = tier,
+				ModifierToken = modTok,
+				GiveToPlayer = give
+			};
+			if (!CreateRPWeaponAction.PrepareWeaponCreation(npc, req))
+			{
+				LogMessage($"ERROR: Failed to prepare create_rp_weapon for {npc.Name}");
+				return false;
+			}
+			LogMessage($"Prepared create_rp_weapon for {npc.Name}: {dn}");
 			return true;
 		}
 		case "transfer_troops_and_prisoners":
