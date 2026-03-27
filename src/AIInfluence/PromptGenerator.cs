@@ -4437,10 +4437,10 @@ public static class PromptGenerator
 		stringBuilder.AppendLine("**STEP 5: Action Constraints (MANDATORY)**");
 		stringBuilder.AppendLine("Check if any action is ALLOWED right now:");
 		stringBuilder.AppendLine("- Only use actions if player explicitly agreed/requested AND you accept.");
-		stringBuilder.AppendLine("- Exception: the `quest_action` tool with `create_quest` is allowed when the player clearly came for a task (e.g. sent by someone they name, or directly asks you to give work) and you accept — you may include `spawn_party` in the same tool call. For an **ongoing quest from another NPC**, use `update_quest` with the correct `quest_id` and optional `spawn_party` instead of creating a duplicate quest.");
+		stringBuilder.AppendLine("- Exception: the `create_quest` tool is allowed when the player clearly came for a task (e.g. sent by someone they name, or directly asks you to give work) and you accept — you may include `spawn_party` in the same tool call. For an **ongoing quest from another NPC**, use `update_quest` with the correct `quest_id` and optional `spawn_party` instead of creating a duplicate quest.");
 		stringBuilder.AppendLine("- Respect role/authority limits (leader/vassal/companion), prisoner state, war/peace status.");
 		stringBuilder.AppendLine("- If unsure or not confirmed → keep action fields absent/none.");
-		stringBuilder.AppendLine("- Check Previous Response: if a tool call (transfer_items, transfer_money, quest_action) was ALREADY executed in the previous turn, it was EXECUTED. Do NOT repeat it.");
+		stringBuilder.AppendLine("- Check Previous Response: if a tool call (transfer_items, transfer_money, create_quest, update_quest, complete_quest, fail_quest) was ALREADY executed in the previous turn, it was EXECUTED. Do NOT repeat it.");
 		stringBuilder.AppendLine();
 		stringBuilder.AppendLine("**STEP 6: Claimed Identity Fields (MANDATORY)**");
 		stringBuilder.AppendLine("Update claimed_name/claimed_clan/claimed_age ONLY if player explicitly stated them in spoken dialogue.");
@@ -4527,7 +4527,7 @@ public static class PromptGenerator
 	{
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.Append("### Quests ###\n" +
-			"Use the `quest_action` tool. All field names and types are in the tool schema.\n" +
+			"Use the `create_quest`, `update_quest`, `complete_quest`, or `fail_quest` tools. All field names and types are in each tool's schema.\n" +
 			"Rules:\n" +
 			"- `description`: plain prose for the player journal (no JSON/string_ids). Technical details go in `ai_verification_notes`.\n" +
 			"- `target_npc_ids`: valid string_ids from CURRENT DATA only.\n" +

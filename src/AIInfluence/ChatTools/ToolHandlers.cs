@@ -319,6 +319,11 @@ public static class ToolHandlers
 			return "error: this NPC already has an active quest ('" + existingTitle + "'). Use update_quest to modify it, or complete_quest/fail_quest first.";
 		}
 		QuestActionData questAction = JsonConvert.DeserializeObject<QuestActionData>(parsedArgs.ToString());
+		if (questAction == null)
+		{
+			behavior?.LogMessage("[QUEST_TOOL] create_quest failed to deserialize QuestActionData from args");
+			return "error: create_quest failed to parse quest data";
+		}
 		questAction.Action = "create_quest";
 		context.PendingQuestActionFromTools = questAction;
 		context.AppendToolPill("Quest: create_quest", ChatToolPillBuilder.QuestActionColor);
@@ -336,6 +341,11 @@ public static class ToolHandlers
 			return "error: update_quest requires quest_id";
 		}
 		QuestActionData questAction = JsonConvert.DeserializeObject<QuestActionData>(parsedArgs.ToString());
+		if (questAction == null)
+		{
+			behavior?.LogMessage("[QUEST_TOOL] update_quest failed to deserialize QuestActionData from args");
+			return "error: update_quest failed to parse quest data";
+		}
 		questAction.Action = "update_quest";
 		questAction.QuestId = questId;
 		context.PendingQuestActionFromTools = questAction;
