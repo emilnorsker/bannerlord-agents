@@ -1073,6 +1073,17 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				LogMessage("[QUEST] Error adding quest to target NPC '" + targetNpcId + "': " + ex.Message);
 			}
 		}
+		if (questAction.SpawnParty == null && string.Equals(questAction.Category, "Combat", StringComparison.OrdinalIgnoreCase))
+		{
+			questAction.SpawnParty = new SpawnPartyData
+			{
+				Alignment = "hostile",
+				PartyName = questAction.Title,
+				PartySize = 15,
+				Settlement = npc.CurrentSettlement != null ? ((object)npc.CurrentSettlement.Name)?.ToString() : null
+			};
+			LogMessage("[QUEST] Auto-generated spawn_party for Combat quest (model omitted it)");
+		}
 		TrySpawnPartyFromQuestAction(questAction, item, npc, context, skipIfAlreadySpawned: false);
 		LogMessage(string.Format("[QUEST] Created quest '{0}' (ID: {1}) from {2}, reward: {3}, duration: {4} days, targets: [{5}]", questAction.Title, text5, text, num, num2, string.Join(", ", effectiveTargetNpcIds)) + ((!string.IsNullOrEmpty(text2)) ? (", completer: " + text2) : "") + ((valueOrDefault > 0) ? $", progress: 0/{valueOrDefault} ({text4})" : ""));
 	}
