@@ -181,7 +181,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	public void LogMessage(string message)
 	{
-		bool isAlwaysLog = !string.IsNullOrEmpty(message) && (message.StartsWith("[ERROR]") || message.StartsWith("[SYNC-TRACE]"));
+		bool isAlwaysLog = !string.IsNullOrEmpty(message) && (message.StartsWith("[ERROR]") || message.StartsWith("[SYNC-TRACE]") || message.StartsWith("[TOOL_CALL]") || message.StartsWith("[TOOL_RESULT]") || message.StartsWith("[TOOL_CALL_ERROR]"));
 		if (!isAlwaysLog && (!_isInitialized || !(GlobalSettings<ModSettings>.Instance?.EnableDebugLogging ?? false)))
 		{
 			return;
@@ -971,10 +971,17 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		//IL_018e: Unknown result type (might be due to invalid IL or missing references)
 		string text = ((npc == null) ? null : ((object)npc.Name)?.ToString()) ?? "Unknown";
 		LogMessage($"[QUEST] ProcessCreateQuest from {text}: title={questAction.Title ?? "(null)"}, description={(questAction.Description != null ? questAction.Description.Length + " chars" : "(null)")}, reward={questAction.RewardGold}, duration={questAction.DurationDays}d");
-		if (string.IsNullOrEmpty(questAction.Title) || string.IsNullOrEmpty(questAction.Description))
+		if (string.IsNullOrEmpty(questAction.Description))
 		{
-			LogMessage("[QUEST] Quest from " + text + " has no title or description, ignoring");
+			LogMessage("[QUEST] Quest from " + text + " has no description, ignoring");
 			return;
+		}
+		if (string.IsNullOrEmpty(questAction.Title))
+		{
+			questAction.Title = questAction.Description.Length > 50
+				? questAction.Description.Substring(0, 47) + "..."
+				: questAction.Description;
+			LogMessage("[QUEST] Quest from " + text + " had no title, derived from description: " + questAction.Title);
 		}
 		int num = Math.Max(0, Math.Min(questAction.RewardGold, 50000));
 		int num2 = Math.Max(7, Math.Min(questAction.DurationDays, 120));
@@ -3505,14 +3512,17 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	private Task<string> ExecuteChatTool(string name, string argsJson, Hero npc, NPCContext context)
 	{
+		LogMessage("[TOOL_CALL] " + name + " args=" + (argsJson ?? "{}"));
 		try
 		{
-			return Task.FromResult(ToolHandlers.Run(name, argsJson, npc, context, this));
+			string result = ToolHandlers.Run(name, argsJson, npc, context, this);
+			LogMessage("[TOOL_RESULT] " + name + " result=" + result);
+			return Task.FromResult(result);
 		}
 		catch (Exception ex)
 		{
 			ChatTools.ToolCallTelemetry.RaiseCompleted("npc_chat", name, argsJson, null, ex);
-			LogMessage("[ChatTool] " + name + ": " + ex.Message);
+			LogMessage("[TOOL_CALL_ERROR] " + name + ": " + ex.Message);
 			return Task.FromResult("error");
 		}
 	}
