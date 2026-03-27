@@ -4545,7 +4545,7 @@ public static class PromptGenerator
 			"- `description`: plain prose for the player journal (no JSON/string_ids). Technical details go in `ai_verification_notes`.\n" +
 			"- `target_npc_ids`: valid string_ids from CURRENT DATA only.\n" +
 			"- Quest creation is TWO-TURN: describe first, create after player agrees. Exception: if player was sent by someone or asks for work directly, create in the same turn.\n" +
-			"- `spawn_party`: spawns a NEW party/NPC on the map for combat quests. Available cultures: " + GetAvailableCultures() + ".\n" +
+			"- For combat quests, ALWAYS include `spawn_party` to create the enemy on the map. Without it, no enemy exists and the quest is impossible. Available cultures: " + GetAvailableCultures() + ".\n" +
 			"- Do NOT repeat tool calls already executed.\n\n");
 		return stringBuilder.ToString();
 	}
