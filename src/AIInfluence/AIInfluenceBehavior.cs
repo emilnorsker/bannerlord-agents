@@ -984,7 +984,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			LogMessage("[QUEST] Quest from " + text + " had no title, derived from description: " + questAction.Title);
 		}
 		int num = Math.Max(0, Math.Min(questAction.RewardGold, 50000));
-		int num2 = Math.Max(7, Math.Min(questAction.DurationDays, 120));
+		int num2 = Math.Max(7, Math.Min(questAction.DurationDays, 500));
 		List<string> effectiveTargetNpcIds = questAction.GetEffectiveTargetNpcIds();
 		string text2 = questAction.CompleterNpcId ?? "";
 		string text3 = questAction.AIVerificationNotes ?? "";

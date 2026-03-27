@@ -4531,7 +4531,7 @@ public static class PromptGenerator
 			"A quest is a concrete task with a clear objective — not a vague suggestion. It must be something the player can accomplish and return to report.\n" +
 			"- `title`: short, evocative name (3-8 words). Rooted in the world — reference places, people, or threats.\n" +
 			"- `description`: 2-4 sentences of plain prose for the quest journal. State what the player must do, where, and what success looks like. Write as the quest giver would describe it.\n" +
-			"- `duration_days`: 7-30 for local tasks, 30-60 for distant or complex ones, up to 120 for epic journeys.\n" +
+			"- `duration_days`: 30 for standard tasks, 60-120 for distant or complex ones, up to 500 for epic journeys.\n" +
 			"- `ai_verification_notes`: private — describe exact success conditions so any NPC in the chain can verify completion.\n");
 		bool hasActiveQuests = context.ActiveAIQuests != null && context.ActiveAIQuests.Count > 0;
 		bool hasIncomingQuests = context.IncomingAIQuests != null && context.IncomingAIQuests.Count > 0;
