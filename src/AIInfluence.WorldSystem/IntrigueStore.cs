@@ -35,10 +35,22 @@ public class IntrigueStore
 
     public BeliefService Beliefs => _beliefs;
 
+    public const int DefaultMaxConcurrentPlots = 10;
+
     public void AddPlot(PlotInstance plot)
+    {
+        AddPlot(plot, DefaultMaxConcurrentPlots);
+    }
+
+    public void AddPlot(PlotInstance plot, int maxConcurrentPlots)
     {
         if (_plots.Any(p => p.Id == plot.Id))
             throw new System.ArgumentException($"Plot with id '{plot.Id}' already exists.");
+
+        int activeCount = _plots.Count(p => p.Status == PlotStatus.Active);
+        if (activeCount >= maxConcurrentPlots)
+            throw new System.InvalidOperationException($"Cannot add plot '{plot.Id}': active plot cap ({maxConcurrentPlots}) reached.");
+
         _plots.Add(plot);
     }
 

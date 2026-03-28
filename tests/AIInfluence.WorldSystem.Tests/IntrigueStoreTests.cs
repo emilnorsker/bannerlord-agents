@@ -83,6 +83,16 @@ public class IntrigueStoreTests
         Assert.Throws<System.ArgumentException>(() => store.AddPlot(MakePlot("p1")));
     }
 
+    [Test]
+    public void AddPlot_ExceedsCap_Throws()
+    {
+        var store = new IntrigueStore();
+        store.AddPlot(MakePlot("p1"), 2);
+        store.AddPlot(MakePlot("p2"), 2);
+
+        Assert.Throws<System.InvalidOperationException>(() => store.AddPlot(MakePlot("p3"), 2));
+    }
+
     private static PlotInstance MakePlot(string id)
     {
         return new PlotInstance

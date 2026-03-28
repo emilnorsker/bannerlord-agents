@@ -8,57 +8,91 @@ namespace AIInfluence.WorldSystem.Tests;
 public class ExecutionGuardTests
 {
     [Test]
-    public void PreconditionsHold_EffectExecuted()
+    public void EffectPreconditionHolds_EffectExecuted()
     {
         var store = new IntrigueStore();
+        AddPlot(store, "plot_01");
         var diary = new EventDiary();
-        var logs = new List<string>();
-        var guard = new ExecutionGuard(
-            precondition => true,
-            msg => logs.Add(msg));
+        var executor = new StepExecutor(store, diary, _ => true);
 
-        var effect = new PlotEffect { EffectType = PlotEffectType.EmitPlotPoint, TargetId = "pp_1" };
-        var result = guard.TryExecuteEffect(effect, store, diary, "plot_01", "corr_01");
+        var step = new PlotStep
+        {
+            StepId = "step_guarded",
+            Effects = new List<PlotEffect>
+            {
+                new PlotEffect
+                {
+                    EffectType = PlotEffectType.EmitPlotPoint,
+                    TargetId = "pp_1",
+                    Parameters = new Dictionary<string, string> { ["precondition"] = "hero_alive:lord_a" }
+                }
+            }
+        };
 
-        Assert.That(result, Is.True);
+        var result = executor.Execute(step, "plot_01", "corr_01");
+
+        Assert.That(result.Success, Is.True);
         Assert.That(diary.GetAll(), Has.Count.EqualTo(1));
     }
 
     [Test]
-    public void PreconditionsFail_EffectBlocked_LogsReplan()
+    public void EffectPreconditionFails_EffectBlocked_ReplanLogged()
     {
         var store = new IntrigueStore();
+        AddPlot(store, "plot_01");
         var diary = new EventDiary();
-        var logs = new List<string>();
-        var guard = new ExecutionGuard(
-            precondition => false,
-            msg => logs.Add(msg));
+        var executor = new StepExecutor(store, diary, _ => false);
 
-        var effect = new PlotEffect
+        var step = new PlotStep
         {
-            EffectType = PlotEffectType.EmitPlotPoint,
-            TargetId = "pp_1",
-            Parameters = new Dictionary<string, string> { ["precondition"] = "hero_alive:lord_a" }
+            StepId = "step_guarded",
+            Effects = new List<PlotEffect>
+            {
+                new PlotEffect
+                {
+                    EffectType = PlotEffectType.EmitPlotPoint,
+                    TargetId = "pp_1",
+                    Parameters = new Dictionary<string, string> { ["precondition"] = "hero_alive:lord_a" }
+                }
+            }
         };
-        var result = guard.TryExecuteEffect(effect, store, diary, "plot_01", "corr_01");
 
-        Assert.That(result, Is.False);
+        var result = executor.Execute(step, "plot_01", "corr_01");
+
+        Assert.That(result.Success, Is.False);
+        Assert.That(result.Reason, Does.Contain("replan"));
         Assert.That(diary.GetAll(), Is.Empty);
-        Assert.That(logs, Has.Some.Contain("replan"));
     }
 
     [Test]
-    public void NoPrecondition_EffectExecutedNormally()
+    public void NoPreconditionParam_EffectExecutedNormally()
     {
         var store = new IntrigueStore();
+        AddPlot(store, "plot_01");
         var diary = new EventDiary();
-        var guard = new ExecutionGuard(
-            precondition => false,
-            msg => { });
+        var executor = new StepExecutor(store, diary, _ => false);
 
-        var effect = new PlotEffect { EffectType = PlotEffectType.EmitPlotPoint, TargetId = "pp_1" };
-        var result = guard.TryExecuteEffect(effect, store, diary, "plot_01", "corr_01");
+        var step = new PlotStep
+        {
+            StepId = "step_no_precond",
+            Effects = new List<PlotEffect>
+            {
+                new PlotEffect { EffectType = PlotEffectType.EmitPlotPoint, TargetId = "pp_1" }
+            }
+        };
 
-        Assert.That(result, Is.True);
+        var result = executor.Execute(step, "plot_01", "corr_01");
+
+        Assert.That(result.Success, Is.True);
+        Assert.That(diary.GetAll(), Has.Count.EqualTo(1));
+    }
+
+    private static void AddPlot(IntrigueStore store, string id)
+    {
+        store.AddPlot(new PlotInstance
+        {
+            Id = id, TemplateId = "tmpl_test",
+            Status = PlotStatus.Active, Phase = "init", StartedCampaignDay = 1
+        });
     }
 }
