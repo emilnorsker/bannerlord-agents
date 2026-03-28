@@ -323,11 +323,6 @@ public static class ToolHandlers
 		{
 			behavior?.LogMessage("[QUEST_TOOL] create_quest failed to deserialize QuestActionData from args");
 			return "error: create_quest failed to parse quest data";
-		QuestActionData questAction = JsonConvert.DeserializeObject<QuestActionData>(parsedArgs.ToString());
-		if (questAction == null)
-		{
-			behavior?.LogMessage("[QUEST_TOOL] create_quest failed to deserialize QuestActionData from args");
-			return "error: create_quest failed to parse quest data";
 		}
 		questAction.Action = "create_quest";
 		context.PendingQuestActionFromTools = questAction;
