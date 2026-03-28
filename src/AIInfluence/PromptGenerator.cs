@@ -1024,10 +1024,18 @@ public static class PromptGenerator
 				var plotDescs = activePlots.Select(p => $"{p.Id} (phase: {p.Phase})");
 				stringBuilder.Append("- **Active plots:** " + string.Join("; ", plotDescs) + ".\n");
 			}
-			var recallPhrases = intrigueStore.RecallPhrases.GetAll();
-			if (recallPhrases.Count > 0)
+			var beliefs = intrigueStore.Beliefs;
+			var visiblePhrases = intrigueStore.RecallPhrases.GetVisiblePhrases(binding =>
 			{
-				var phrases = recallPhrases.Select(r => r.Text).Take(5);
+				if (binding.Kind == "secret")
+					return context.KnownSecrets.Contains(binding.Id);
+				if (binding.Kind == "belief_key")
+					return beliefs.GetConfidence(binding.Id, npcStringId, npcStringId) > 0.5;
+				return true;
+			});
+			if (visiblePhrases.Count > 0)
+			{
+				var phrases = visiblePhrases.Select(r => r.Text).Take(5);
 				stringBuilder.Append("- **Recall context:** " + string.Join("; ", phrases) + ".\n");
 			}
 		}

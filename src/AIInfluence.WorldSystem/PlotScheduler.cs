@@ -9,18 +9,21 @@ public class PlotScheduler
     private readonly EventDiary _diary;
     private readonly Dictionary<string, PlotTemplate> _templates;
     private readonly Action<string> _log;
+    private readonly Func<string, bool> _preconditionChecker;
     private int _correlationCounter;
 
     public PlotScheduler(
         IntrigueStore store,
         EventDiary diary,
         Dictionary<string, PlotTemplate> templates,
-        Action<string> log = null)
+        Action<string> log = null,
+        Func<string, bool> preconditionChecker = null)
     {
         _store = store;
         _diary = diary;
         _templates = templates;
         _log = log ?? (_ => { });
+        _preconditionChecker = preconditionChecker ?? (_ => true);
     }
 
     public void OnTrigger(string trigger)
@@ -34,7 +37,7 @@ public class PlotScheduler
                 continue;
 
             var correlationId = $"corr={++_correlationCounter}";
-            var executor = new StepExecutor(_store, _diary);
+            var executor = new StepExecutor(_store, _diary, _preconditionChecker, _store.Beliefs);
 
             foreach (var step in template.Steps)
             {

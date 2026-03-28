@@ -3834,6 +3834,8 @@ public class WorldInfoManager
 			AIInfluenceBehavior.Instance?.LogMessage("[WARNING] OnBattleEnded called with null mapEvent!");
 			return;
 		}
+		try { AIInfluenceBehavior.Instance?.PlotScheduler?.OnTrigger("on_battle_end"); }
+		catch (Exception exPlot) { AIInfluenceBehavior.Instance?.LogMessage("[ERROR] PlotScheduler on_battle_end: " + exPlot.Message); }
 		bool flag = GlobalSettings<ModSettings>.Instance?.EnableDetailedInfoLogging ?? false;
 		BattleSideEnum winningSide = mapEvent.WinningSide;
 		if ((int)winningSide == -1)

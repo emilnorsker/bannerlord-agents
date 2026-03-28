@@ -60,6 +60,8 @@ public static class ToolCatalog
 				"{\"quest\":{\"type\":\"object\"},\"category\":{\"type\":\"string\",\"enum\":[\"Combat\",\"Negotiation\",\"Intrigue\",\"Escort\",\"Gather\",\"Other\"]}}", new[] { "quest", "category" }),
 			Tool("character_death", "Schedules roleplay death handling for this NPC when rules allow. should_die true triggers the flow.",
 				"{\"should_die\":{\"type\":\"boolean\"},\"death_reason\":{\"type\":\"string\"},\"killer_string_id\":{\"type\":\"string\"},\"opposed_attribute\":{\"type\":\"string\"}}", new[] { "should_die" }),
+			Tool("world_proposal", "Submits a validated World system proposal. Operations: emit_plot_point, emit_secret, advance_plot_phase, propagate_knowledge, update_belief_matrix, create_hook, emit_dynamic_event, apply_bannerlord_effect. Each operation needs operation_type and target_id; plot_id and parameters as needed.",
+				"{\"proposal\":{\"type\":\"string\",\"description\":\"JSON string containing correlation_id and operations array\"}}", new[] { "proposal" }),
 		};
 	}
 

@@ -41,6 +41,7 @@ public static class ToolHandlers
 			"character_death" => RunCharacterDeath(argsJson, context),
 			"return_to_player" => RunReturnToPlayer(npc, context),
 			"transfer_troops" => RunTransferTroops(argsJson, npc, context),
+			"world_proposal" => RunWorldProposal(argsJson),
 			_ => "unknown"
 		};
 		ToolCallTelemetry.RaiseCompleted("npc_chat", name, argsJson, result, null);
@@ -336,6 +337,24 @@ public static class ToolHandlers
 				return "malformed_transfer_count:" + s;
 		}
 		return null;
+	}
+
+	private static string RunWorldProposal(string argsJson)
+	{
+		var behavior = AIInfluenceBehavior.Instance;
+		if (behavior == null)
+			return JsonConvert.SerializeObject(new { error = "AIInfluenceBehavior not initialized" });
+
+		var parsed = ParseOrEmpty(argsJson);
+		var proposalJson = parsed["proposal"]?.ToString();
+		if (string.IsNullOrEmpty(proposalJson))
+			return JsonConvert.SerializeObject(new { error = "Missing 'proposal' field" });
+
+		var result = behavior.ValidateAndCommitProposal(proposalJson);
+		if (result.Valid)
+			return JsonConvert.SerializeObject(new { status = "committed" });
+
+		return JsonConvert.SerializeObject(new { status = "rejected", errors = result.Errors });
 	}
 
 	private static JObject ParseOrEmpty(string argsJson) =>

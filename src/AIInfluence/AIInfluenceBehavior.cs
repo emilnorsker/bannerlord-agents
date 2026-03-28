@@ -565,10 +565,12 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		try
 		{
 			_plotScheduler?.OnTrigger("on_daily");
+			var lifecycle = new WorldSystem.PlotLifecycleManager(_intrigueStore, 10);
+			lifecycle.CleanupExpired((int)CampaignTime.Now.ToDays);
 		}
 		catch (Exception ex5)
 		{
-			LogMessage("[ERROR] PlotScheduler on_daily error: " + ex5.Message);
+			LogMessage("[ERROR] PlotScheduler/Lifecycle on_daily error: " + ex5.Message);
 		}
 	}
 
@@ -728,6 +730,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			return;
 		}
+		try { _plotScheduler?.OnTrigger("on_hourly"); }
+		catch (Exception exPlot) { LogMessage("[ERROR] PlotScheduler on_hourly: " + exPlot.Message); }
 		CheckPlayerCharacterChanged();
 		if (_npcInitiativeSystem != null)
 		{
@@ -4616,12 +4620,14 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			Hero mainHero2 = Hero.MainHero;
 			LogMessage($"[PLAYER_TRACKING] Initial player character: {((mainHero2 != null) ? mainHero2.Name : null)} (StringId: {_lastKnownPlayerStringId})");
 			LogMessage("[SYSTEM] DialogueAnalyzer system ready for dynamic event generation.");
+			string templatePath = Path.Combine(Path.GetDirectoryName(typeof(AIInfluenceBehavior).Assembly.Location) ?? "", "..", "plot_templates.json");
+			var plotTemplates = WorldSystem.PlotTemplateLoader.LoadFromFile(templatePath, msg => LogMessage(msg));
 			_plotScheduler = new WorldSystem.PlotScheduler(
 				_intrigueStore,
 				_intrigueStore.EventDiary,
-				new Dictionary<string, WorldSystem.PlotTemplate>(),
+				plotTemplates,
 				msg => LogMessage(msg));
-			LogMessage("[WorldSystem] PlotScheduler initialized (0 templates loaded).");
+			LogMessage($"[WorldSystem] PlotScheduler initialized ({plotTemplates.Count} templates loaded).");
 		}
 		catch (Exception ex)
 		{
@@ -5371,6 +5377,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			NPCContext context = _npcContexts[((MBObjectBase)hero).StringId];
 			TrackSettlementVisitForHero(context, hero, settlement);
 		}
+		try { _plotScheduler?.OnTrigger("on_enter_settlement"); }
+		catch (Exception ex) { LogMessage("[ERROR] PlotScheduler on_enter_settlement: " + ex.Message); }
 		if (party != MobileParty.MainParty || settlement == null)
 		{
 			return;
@@ -8233,6 +8241,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	private void OnHeroPrisonerTaken(PartyBase capturer, Hero prisoner)
 	{
 		//IL_0435: Unknown result type (might be due to invalid IL or missing references)
+		try { _plotScheduler?.OnTrigger("on_prisoner_taken"); }
+		catch (Exception exPlot) { LogMessage("[ERROR] PlotScheduler on_prisoner_taken: " + exPlot.Message); }
 		try
 		{
 			if (prisoner == null || !prisoner.IsLord)

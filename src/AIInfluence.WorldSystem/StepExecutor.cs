@@ -59,6 +59,17 @@ public class StepExecutor
 
         foreach (var effect in step.Effects)
         {
+            if (effect.Parameters != null && effect.Parameters.TryGetValue("precondition", out var precondition))
+            {
+                if (!_requiresPredicate(precondition))
+                {
+                    return new StepExecutionResult
+                    {
+                        Success = false,
+                        Reason = $"Precondition '{precondition}' failed at execution time for effect {effect.EffectType}:{effect.TargetId} (replan)."
+                    };
+                }
+            }
             ApplyEffect(effect, plotId, step.StepId, correlationId);
         }
 
