@@ -4620,8 +4620,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			Hero mainHero2 = Hero.MainHero;
 			LogMessage($"[PLAYER_TRACKING] Initial player character: {((mainHero2 != null) ? mainHero2.Name : null)} (StringId: {_lastKnownPlayerStringId})");
 			LogMessage("[SYSTEM] DialogueAnalyzer system ready for dynamic event generation.");
-			string templatePath = Path.Combine(Path.GetDirectoryName(typeof(AIInfluenceBehavior).Assembly.Location) ?? "", "..", "plot_templates.json");
-			var plotTemplates = WorldSystem.PlotTemplateLoader.LoadFromFile(templatePath, msg => LogMessage(msg));
+			string modRoot = Path.Combine(Path.GetDirectoryName(typeof(AIInfluenceBehavior).Assembly.Location) ?? "", "..");
+			var plotTemplates = WorldSystem.PlotTemplateLoader.LoadFromFile(
+				Path.Combine(modRoot, "plot_templates.json"), msg => LogMessage(msg));
+			string patternLibPath = Path.Combine(modRoot, "pattern_libraries.json");
+			WorldSystem.PatternLibraryLoader.LoadFromFile(patternLibPath, msg => LogMessage(msg));
 			_plotScheduler = new WorldSystem.PlotScheduler(
 				_intrigueStore,
 				_intrigueStore.EventDiary,
