@@ -181,7 +181,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	public void LogMessage(string message)
 	{
-		bool isAlwaysLog = !string.IsNullOrEmpty(message) && (message.StartsWith("[ERROR]") || message.StartsWith("[SYNC-TRACE]"));
+		bool isAlwaysLog = !string.IsNullOrEmpty(message) && (message.StartsWith("[ERROR]") || message.StartsWith("[SYNC-TRACE]") || message.StartsWith("[TOOL_CALL]") || message.StartsWith("[TOOL_RESULT]") || message.StartsWith("[TOOL_CALL_ERROR]"));
 		if (!isAlwaysLog && (!_isInitialized || !(GlobalSettings<ModSettings>.Instance?.EnableDebugLogging ?? false)))
 		{
 			return;
@@ -900,13 +900,14 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			return;
 		QuestActionData questData = context.PendingQuestActionFromTools;
 		context.PendingQuestActionFromTools = null;
+		LogMessage("[QUEST] ApplyPendingQuestActionFromTools: action=" + (questData.Action ?? "(null)") + ", title=" + (questData.Title ?? "(null)"));
 		try
 		{
 			ProcessQuestAction(npc, context, questData);
 		}
 		catch (Exception ex)
 		{
-			LogMessage("[ERROR] Chat quest action failed: " + ex.Message);
+			LogMessage("[ERROR] Chat quest action failed: " + ex.Message + "\n" + ex.StackTrace);
 		}
 	}
 
@@ -969,13 +970,21 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		//IL_0189: Unknown result type (might be due to invalid IL or missing references)
 		//IL_018e: Unknown result type (might be due to invalid IL or missing references)
 		string text = ((npc == null) ? null : ((object)npc.Name)?.ToString()) ?? "Unknown";
-		if (string.IsNullOrEmpty(questAction.Title) || string.IsNullOrEmpty(questAction.Description))
+		LogMessage($"[QUEST] ProcessCreateQuest from {text}: title={questAction.Title ?? "(null)"}, description={(questAction.Description != null ? questAction.Description.Length + " chars" : "(null)")}, reward={questAction.RewardGold}, duration={questAction.DurationDays}d");
+		if (string.IsNullOrEmpty(questAction.Description))
 		{
-			LogMessage("[QUEST] Quest from " + text + " has no title or description, ignoring");
+			LogMessage("[QUEST] Quest from " + text + " has no description, ignoring");
 			return;
 		}
+		if (string.IsNullOrEmpty(questAction.Title))
+		{
+			questAction.Title = questAction.Description.Length > 50
+				? questAction.Description.Substring(0, 47) + "..."
+				: questAction.Description;
+			LogMessage("[QUEST] Quest from " + text + " had no title, derived from description: " + questAction.Title);
+		}
 		int num = Math.Max(0, Math.Min(questAction.RewardGold, 50000));
-		int num2 = Math.Max(7, Math.Min(questAction.DurationDays, 120));
+		int num2 = Math.Max(7, Math.Min(questAction.DurationDays, 500));
 		List<string> effectiveTargetNpcIds = questAction.GetEffectiveTargetNpcIds();
 		string text2 = questAction.CompleterNpcId ?? "";
 		string text3 = questAction.AIVerificationNotes ?? "";
@@ -1063,6 +1072,17 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			{
 				LogMessage("[QUEST] Error adding quest to target NPC '" + targetNpcId + "': " + ex.Message);
 			}
+		}
+		if (questAction.SpawnParty == null && string.Equals(questAction.Category, "Combat", StringComparison.OrdinalIgnoreCase))
+		{
+			questAction.SpawnParty = new SpawnPartyData
+			{
+				Alignment = "hostile",
+				PartyName = questAction.Title,
+				PartySize = 15,
+				Settlement = npc.CurrentSettlement != null ? ((object)npc.CurrentSettlement.Name)?.ToString() : null
+			};
+			LogMessage("[QUEST] Auto-generated spawn_party for Combat quest (model omitted it)");
 		}
 		TrySpawnPartyFromQuestAction(questAction, item, npc, context, skipIfAlreadySpawned: false);
 		LogMessage(string.Format("[QUEST] Created quest '{0}' (ID: {1}) from {2}, reward: {3}, duration: {4} days, targets: [{5}]", questAction.Title, text5, text, num, num2, string.Join(", ", effectiveTargetNpcIds)) + ((!string.IsNullOrEmpty(text2)) ? (", completer: " + text2) : "") + ((valueOrDefault > 0) ? $", progress: 0/{valueOrDefault} ({text4})" : ""));
@@ -3310,7 +3330,13 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			void AppendMessageChunk(string messageChunk)
 			{
-				messageDraft.Append(messageChunk ?? "");
+				if (messageChunk == null)
+				{
+					messageDraft.Clear();
+					lastNpcMessagePreview = "";
+					return;
+				}
+				messageDraft.Append(messageChunk);
 				string text = GetNpcMessagePreview(messageDraft.ToString());
 				if (!string.IsNullOrEmpty(text) && !string.Equals(text, lastNpcMessagePreview, StringComparison.Ordinal))
 				{
@@ -3338,6 +3364,7 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					messageDraft?.Clear();
 					lastNpcMessagePreview = "";
 					notifyNpcMessagePreviewChanged?.Invoke("");
+					ClearNpcTurnDialogueTools(context);
 				}
 				OpenRouterCallResult dialogueResult = await AIClient.GetAIResponse(npcName, faction, prompt + "\nPlayer: " + playerMessage, notifyMessageChunk, toolExecutor);
 				if (dialogueResult.Success && !string.IsNullOrEmpty(dialogueResult.Payload))
@@ -3496,14 +3523,17 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	private Task<string> ExecuteChatTool(string name, string argsJson, Hero npc, NPCContext context)
 	{
+		LogMessage("[TOOL_CALL] " + name + " args=" + (argsJson ?? "{}"));
 		try
 		{
-			return Task.FromResult(ToolHandlers.Run(name, argsJson, npc, context, this));
+			string result = ToolHandlers.Run(name, argsJson, npc, context, this);
+			LogMessage("[TOOL_RESULT] " + name + " result=" + result);
+			return Task.FromResult(result);
 		}
 		catch (Exception ex)
 		{
 			ChatTools.ToolCallTelemetry.RaiseCompleted("npc_chat", name, argsJson, null, ex);
-			LogMessage("[ChatTool] " + name + ": " + ex.Message);
+			LogMessage("[TOOL_CALL_ERROR] " + name + ": " + ex.Message);
 			return Task.FromResult("error");
 		}
 	}
@@ -5543,7 +5573,9 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 					catch (Exception ex)
 					{
 						LogMessage("[ERROR] Failed to deserialize NPC contexts from game save. stage=" + syncStage + ", payloadLength=" + (_npcContextsJson?.Length ?? 0) + ". " + ex);
-						throw;
+						_npcContexts = new Dictionary<string, NPCContext>();
+						_npcContextsJson = null;
+						LogMessage("[ERROR] Recovering load with empty NPC context state to keep save loadable.");
 					}
 				}
 				if (_followingHeroIds == null)
@@ -5586,7 +5618,11 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			LogMessage("[ERROR] SyncData failed at stage=" + syncStage + ". followingHeroIdsCount=" + (_followingHeroIds?.Count ?? 0) + ", aiActionStateLength=" + (_serializedActionState?.Length ?? 0) + ", npcPayloadLength=" + (_npcContextsJson?.Length ?? 0) + ". " + ex);
 			if (dataStore.IsLoading)
 			{
-				LogMessage("[ERROR] SyncData load failed at stage=" + syncStage + "; not applying default state (v5.0.0).");
+				_followingHeroIds ??= new List<string>();
+				_npcContexts ??= new Dictionary<string, NPCContext>();
+				_npcContextsJson = null;
+				LogMessage("[ERROR] Recovering SyncData load failure with default AIInfluence state.");
+				return;
 			}
 			throw;
 		}
