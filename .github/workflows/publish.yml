@@ -63,7 +63,8 @@ jobs:
           # TECHNICAL_GUIDE.*.md stay in the repo for contributors; not bundled in the release 7z
           for f in world.txt world_info.json world_secrets.json cultural_traditions.json \
                    actionrules_description_EN.txt actionrules.txt eventsanalyzerrules.txt \
-                   eventsgeneratorrules.txt kingdomstatementrules.txt playerdescription.txt; do
+                   eventsgeneratorrules.txt kingdomstatementrules.txt playerdescription.txt \
+                   plot_templates.json; do
             [ -f "$f" ] && cp "$f" staging/AIInfluence/
           done
 

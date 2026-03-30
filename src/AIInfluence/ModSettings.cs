@@ -3550,4 +3550,30 @@ public class ModSettings : AttributeGlobalSettings<ModSettings>
 			}
 		}
 	}
+
+	[SettingPropertyGroup("{=AIInfluence_Group_Debug}Debug & Fixes", GroupOrder = 99)]
+	[SettingPropertyBool("Debug: Write Test Plot", Order = 20, RequireRestart = false, HintText = "Creates a test plot instance in the intrigue store and logs it. Use to verify World system persistence.")]
+	public bool DebugWriteTestPlot
+	{
+		get => false;
+		set
+		{
+			if (value && AIInfluenceBehavior.Instance != null)
+			{
+				var store = AIInfluenceBehavior.Instance.IntrigueStore;
+				var plot = new WorldSystem.PlotInstance
+				{
+					Id = "debug_plot_" + System.Guid.NewGuid().ToString("N").Substring(0, 8),
+					TemplateId = "tmpl_debug",
+					Status = WorldSystem.PlotStatus.Active,
+					Phase = "test",
+					StartedCampaignDay = (int)CampaignTime.Now.ToDays
+				};
+				store.AddPlot(plot);
+				var message = $"[WorldSystem] Debug plot created: {plot.Id} (total plots: {store.GetAllPlots().Count})";
+				AIInfluenceBehavior.Instance.LogMessage(message);
+				InformationManager.DisplayMessage(new InformationMessage(message));
+			}
+		}
+	}
 }

@@ -95,6 +95,12 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 
 	private string _serializedActionState = string.Empty;
 
+	private string _intrigueStoreJson;
+
+	private WorldSystem.IntrigueStore _intrigueStore = new WorldSystem.IntrigueStore();
+
+	private WorldSystem.PlotScheduler _plotScheduler;
+
 	private string _lastKnownPlayerStringId;
 
 	private bool _playerReinforcementAdded = false;
@@ -109,6 +115,25 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	public static AIInfluenceBehavior Instance => _instance;
 
 	public NPCInitiativeSystem InitiativeSystem => _npcInitiativeSystem;
+
+	public WorldSystem.IntrigueStore IntrigueStore => _intrigueStore;
+
+	public WorldSystem.PlotScheduler PlotScheduler => _plotScheduler;
+
+	public WorldSystem.ValidationResult ValidateAndCommitProposal(string proposalJson)
+	{
+		var result = WorldSystem.ProposalValidator.TryParseAndValidate(proposalJson, _intrigueStore);
+		if (!result.Valid)
+		{
+			LogMessage("[WorldSystem] Proposal rejected: " + string.Join("; ", result.Errors));
+			return result;
+		}
+
+		var proposal = Newtonsoft.Json.JsonConvert.DeserializeObject<WorldSystem.WorldProposal>(proposalJson);
+		WorldSystem.ProposalCommitter.Commit(proposal, _intrigueStore, _intrigueStore.EventDiary, _intrigueStore.Beliefs);
+		LogMessage($"[WorldSystem] Proposal committed: {proposal.CorrelationId} ({proposal.Operations.Count} ops)");
+		return result;
+	}
 
 	public static void ResetStaticFlags()
 	{
@@ -537,6 +562,16 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			LogMessage("[ERROR] RPItemManager OnDailyTick error: " + ex4.Message);
 		}
+		try
+		{
+			_plotScheduler?.OnTrigger("on_daily");
+			var lifecycle = new WorldSystem.PlotLifecycleManager(_intrigueStore, 10);
+			lifecycle.CleanupExpired((int)CampaignTime.Now.ToDays);
+		}
+		catch (Exception ex5)
+		{
+			LogMessage("[ERROR] PlotScheduler/Lifecycle on_daily error: " + ex5.Message);
+		}
 	}
 
 	private void CheckPlayerCharacterChanged()
@@ -695,6 +730,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 		{
 			return;
 		}
+		try { _plotScheduler?.OnTrigger("on_hourly"); }
+		catch (Exception exPlot) { LogMessage("[ERROR] PlotScheduler on_hourly: " + exPlot.Message); }
 		CheckPlayerCharacterChanged();
 		if (_npcInitiativeSystem != null)
 		{
@@ -4583,6 +4620,17 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			Hero mainHero2 = Hero.MainHero;
 			LogMessage($"[PLAYER_TRACKING] Initial player character: {((mainHero2 != null) ? mainHero2.Name : null)} (StringId: {_lastKnownPlayerStringId})");
 			LogMessage("[SYSTEM] DialogueAnalyzer system ready for dynamic event generation.");
+			string modRoot = Path.Combine(Path.GetDirectoryName(typeof(AIInfluenceBehavior).Assembly.Location) ?? "", "..");
+			var plotTemplates = WorldSystem.PlotTemplateLoader.LoadFromFile(
+				Path.Combine(modRoot, "plot_templates.json"), msg => LogMessage(msg));
+			string patternLibPath = Path.Combine(modRoot, "pattern_libraries.json");
+			WorldSystem.PatternLibraryLoader.LoadFromFile(patternLibPath, msg => LogMessage(msg));
+			_plotScheduler = new WorldSystem.PlotScheduler(
+				_intrigueStore,
+				_intrigueStore.EventDiary,
+				plotTemplates,
+				msg => LogMessage(msg));
+			LogMessage($"[WorldSystem] PlotScheduler initialized ({plotTemplates.Count} templates loaded).");
 		}
 		catch (Exception ex)
 		{
@@ -5332,6 +5380,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 			NPCContext context = _npcContexts[((MBObjectBase)hero).StringId];
 			TrackSettlementVisitForHero(context, hero, settlement);
 		}
+		try { _plotScheduler?.OnTrigger("on_enter_settlement"); }
+		catch (Exception ex) { LogMessage("[ERROR] PlotScheduler on_enter_settlement: " + ex.Message); }
 		if (party != MobileParty.MainParty || settlement == null)
 		{
 			return;
@@ -5520,6 +5570,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 				Dictionary<string, NPCContext> contextsToSave = new Dictionary<string, NPCContext>(_npcContexts);
 				_npcContextsJson = CompressPayload(JsonConvert.SerializeObject(contextsToSave));
 				LogMessage($"[SAVE] Serialized {contextsToSave.Count} NPC contexts into game save");
+				_intrigueStoreJson = CompressPayload(_intrigueStore.Serialize());
+				LogMessage($"[SAVE] Serialized intrigue store ({_intrigueStore.GetAllPlots().Count} plots) into game save");
 			}
 			syncStage = "sync-followingHeroIds";
 			dataStore.SyncData<List<string>>("AIInfluence_followingHeroIds", ref _followingHeroIds);
@@ -5575,6 +5627,23 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 							AIActionManager.Instance.RestoreFollowingActions(heroIdsToRestore);
 						});
 					}
+				}
+			}
+			syncStage = "sync-intrigueStore";
+			dataStore.SyncData<string>("AIInfluence_intrigueStore", ref _intrigueStoreJson);
+			if (dataStore.IsLoading)
+			{
+				if (!string.IsNullOrEmpty(_intrigueStoreJson))
+				{
+					string intrigueJson = DecompressPayload(_intrigueStoreJson);
+					_intrigueStore = WorldSystem.IntrigueStore.Deserialize(intrigueJson);
+					_intrigueStoreJson = null;
+					LogMessage($"[LOAD] Restored intrigue store ({_intrigueStore.GetAllPlots().Count} plots) from game save");
+				}
+				else
+				{
+					_intrigueStore = new WorldSystem.IntrigueStore();
+					LogMessage("[LOAD] No intrigue store in save; initialized empty (backward compatible).");
 				}
 			}
 			syncStage = "sync-currentSaveFolder";
@@ -8175,6 +8244,8 @@ public class AIInfluenceBehavior : CampaignBehaviorBase
 	private void OnHeroPrisonerTaken(PartyBase capturer, Hero prisoner)
 	{
 		//IL_0435: Unknown result type (might be due to invalid IL or missing references)
+		try { _plotScheduler?.OnTrigger("on_prisoner_taken"); }
+		catch (Exception exPlot) { LogMessage("[ERROR] PlotScheduler on_prisoner_taken: " + exPlot.Message); }
 		try
 		{
 			if (prisoner == null || !prisoner.IsLord)

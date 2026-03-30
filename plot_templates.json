@@ -1,0 +1,63 @@
+[
+  {
+    "template_id": "tmpl_rumor_spread",
+    "steps": [
+      {
+        "step_id": "step_seed_rumor",
+        "requires": [],
+        "effects": [
+          {
+            "effect_type": "EmitSecret",
+            "target_id": "rumor_${plot_id}",
+            "parameters": {
+              "description": "A rumor circulates about suspicious activity",
+              "access_level": "restricted"
+            }
+          },
+          {
+            "effect_type": "EmitPlotPoint",
+            "target_id": "pp_rumor_seeded"
+          }
+        ],
+        "triggers": ["on_daily"]
+      },
+      {
+        "step_id": "step_rumor_spreads",
+        "requires": [],
+        "effects": [
+          {
+            "effect_type": "PropagateKnowledge",
+            "target_id": "rumor_${plot_id}",
+            "parameters": {
+              "source_hero": "${source_hero}",
+              "target_hero": "${target_hero}",
+              "confidence": "0.6"
+            }
+          }
+        ],
+        "triggers": ["on_daily"]
+      }
+    ],
+    "episodes": [
+      {
+        "episode_id": "ep_rumor_confirmed",
+        "name": "Rumor Confirmed",
+        "patterns": [
+          {
+            "pattern_id": "p_two_plot_points",
+            "match_type": "NonConsecutive",
+            "events": [
+              { "event_code": "plot_point_emitted" },
+              { "event_code": "plot_point_emitted" }
+            ]
+          }
+        ],
+        "resolution": {
+          "rstate_literals": ["+rumor_confirmed"],
+          "rgoals": []
+        }
+      }
+    ],
+    "version": "1.0"
+  }
+]

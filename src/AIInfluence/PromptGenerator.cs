@@ -376,9 +376,19 @@ public static class PromptGenerator
 		string text19 = "none";
 		if (context.KnownSecrets.Any())
 		{
-			List<string> list = (from s in WorldInfoManager.WorldSecretsManager.Instance.GetSecrets()
-				where context.KnownSecrets.Contains(s.Id)
-				select s.Description + " (access: " + s.AccessLevel + ")").ToList();
+			var runtimeSecretStore = AIInfluenceBehavior.Instance?.IntrigueStore?.RuntimeSecrets ?? new WorldSystem.RuntimeSecretStore();
+			var catalogProjection = WorldInfoManager.WorldSecretsManager.Instance.GetSecrets()
+				.Select(s => new WorldSystem.CatalogSecret { Id = s.Id, Description = s.Description, AccessLevel = s.AccessLevel })
+				.ToList();
+			var secretResolver = new WorldSystem.SecretResolver(
+				runtimeSecretStore,
+				catalogProjection,
+				error => AIInfluenceBehavior.Instance?.LogMessage(error));
+			List<string> list = context.KnownSecrets
+				.Select(id => secretResolver.Resolve(id))
+				.Where(r => r != null)
+				.Select(r => r.Description + " (access: " + r.AccessLevel + ")")
+				.ToList();
 			text19 = (list.Any() ? string.Join("; ", list) : "none");
 		}
 		string text20 = "none";
@@ -990,6 +1000,44 @@ public static class PromptGenerator
 		if (!isMessengerMode && GlobalSettings<ModSettings>.Instance.PromptEnableQuests)
 		{
 			stringBuilder.Append(GetQuestDynamicData(npc, context));
+		}
+		var intrigueStore = AIInfluenceBehavior.Instance?.IntrigueStore;
+		if (intrigueStore != null)
+		{
+			string npcStringId = ((TaleWorlds.ObjectSystem.MBObjectBase)npc).StringId;
+			var hooksOnNpc = intrigueStore.Hooks.GetByTarget(npcStringId);
+			if (hooksOnNpc.Count > 0)
+			{
+				var hookDescs = hooksOnNpc.Select(h => h.Description ?? $"{h.Strength} hook ({h.Id})");
+				stringBuilder.Append("- **Leverage on this NPC:** " + string.Join("; ", hookDescs) + ".\n");
+			}
+			var playerHooks = intrigueStore.Hooks.GetByOwner("player");
+			var playerHooksOnNpc = playerHooks.Where(h => h.TargetHeroStringId == npcStringId).ToList();
+			if (playerHooksOnNpc.Count > 0)
+			{
+				var hookDescs = playerHooksOnNpc.Select(h => h.Description ?? $"{h.Strength} hook ({h.Id})");
+				stringBuilder.Append("- **Your leverage on them:** " + string.Join("; ", hookDescs) + ".\n");
+			}
+			var activePlots = intrigueStore.GetAllPlots().Where(p => p.Status == WorldSystem.PlotStatus.Active).ToList();
+			if (activePlots.Count > 0)
+			{
+				var plotDescs = activePlots.Select(p => $"{p.Id} (phase: {p.Phase})");
+				stringBuilder.Append("- **Active plots:** " + string.Join("; ", plotDescs) + ".\n");
+			}
+			var beliefs = intrigueStore.Beliefs;
+			var visiblePhrases = intrigueStore.RecallPhrases.GetVisiblePhrases(binding =>
+			{
+				if (binding.Kind == "secret")
+					return context.KnownSecrets.Contains(binding.Id);
+				if (binding.Kind == "belief_key")
+					return beliefs.GetConfidence(binding.Id, npcStringId, npcStringId) > 0.5;
+				return true;
+			});
+			if (visiblePhrases.Count > 0)
+			{
+				var phrases = visiblePhrases.Select(r => r.Text).Take(5);
+				stringBuilder.Append("- **Recall context:** " + string.Join("; ", phrases) + ".\n");
+			}
 		}
 		stringBuilder.Append("### Immediate Situation (CURRENT DATA) ###\n- **Your Current Task:** " + currentTask + ".\n- **Recent Events:** " + text54 + ".\n" + ((activeDiplomaticEventsForNPC != "none") ? ("- **Active Diplomatic Events:** " + activeDiplomaticEventsForNPC + ".\n") : "") + ((diplomaticStatementsForNPC != "none") ? ("- **Diplomatic Statements (Last 15 from 50 days):** " + diplomaticStatementsForNPC + ".\n") : "") + "- **Your Emotional State:** You feel " + text24 + ".\n" + ((!string.IsNullOrEmpty(text26)) ? ("- **Your Health:** You are sick with: " + text26 + ". This affects your condition and may influence your behavior.\n") : "") + "- **Time & Place:** It is " + text25 + "." + ((!string.IsNullOrEmpty(weatherInfo)) ? (" " + weatherInfo) : "") + "\n\n### The Player (CURRENT DATA) ###\n" + GetPlayerIdentityDescription(npc, context) + (isMessengerMode ? "" : ("  - **Their Appearance:** " + text45 + " " + text44 + "\n")) + ((!string.IsNullOrEmpty(text38)) ? ("  - **Player Character Description:** " + text38 + "\n") : "") + ((!string.IsNullOrEmpty(text51)) ? ("  - **Their Location:**" + text51 + "\n") : "") + (isMessengerMode ? "" : ("  - **Their Wealth:** " + GetPlayerWealthDescription(context) + "\n")) + "- **Their Forces:** " + text28 + ".\n" + ((!string.IsNullOrEmpty(otherPlayerPrisonersInfo)) ? ("- **Other Lords in Player's Captivity:** " + otherPlayerPrisonersInfo + ".\n  **CRITICAL:** To transfer prisoners or troops, use the `transfer_troops_and_prisoners` action. Do NOT use `item_transfers` for prisoners or troops.\n") : "") + (isMessengerMode ? "" : ("- **CRITICAL - Player's Inventory (UNKNOWN TO YOU):**\n  **IMPORTANT: You DO NOT KNOW what items the player has in their inventory unless they explicitly tell you about it in conversation.**\n  The following list is provided ONLY for technical purposes (to know valid Item IDs IF the player offers to trade):\n" + mentionedItemsSummary + "\n  **You must NOT reference these items unless the player mentions them first.** If you want to ask for items, you can only ask for items the player has mentioned or shown you.\n  (Use exact Item IDs from this list for 'item_transfers' action ONLY when player explicitly offers or agrees to trade)\n")) + GetPlayerRecruitmentOpportunityInfo(npc) + "\n" + ((text47 != null) ? ($"### Mentioned Settlements ###\n(Detected in last {6} messages)\n" + "(TECHNICAL PARSING ONLY – these are settlement names and string_ids detected in recent dialogue. They are NOT guaranteed to be nearby or personally known to you; use them only as factual references.)\n" + text47 + "\n\n") : "") + ((nearbySettlementsInfo != null) ? ("### Nearby Settlements (Strategic Context, CURRENT DATA) ###\n(Settlements geographically closest to your current location. USE THIS LIST to identify nearest targets/allies.)\n" + nearbySettlementsInfo + "\n\n") : "") + ((text48 != null) ? $"### Nearby Parties (NPC Vicinity, CURRENT DATA) ###\n(Within {10f:F0} world units)\n{text48}\n\n" : "") + "### Conversation History ###\n" + $"(Last {GlobalSettings<ModSettings>.Instance.PromptMaxHistory} messages)\n{arg5}\n" + "Last Interaction: You last spoke with player " + text18 + ", pay attention to this\n\n" + (isMessengerMode ? ("### Previous Messenger Letters (Avoid Repetition) ###\n(Your last 5 letters sent via messenger)\n" + text46 + "\n\n") : "") + ((context.LastAIResponseJson != null) ? ("### Your Previous Response (For Continuity) ###\nThis is the JSON response that you gave during your last interaction. Use it to maintain consistency in behavior and decisions.  Rely on the technical real-world data of the entire project, analyze everything carefully, match the character and goals of your character and give an answer.\n" + CleanPreviousResponseJson(context.LastAIResponseJson, flag2 || flag3, flag4) + "\n\n") : "") + "### CRITICAL REMINDER: You Are a Living Person ###\nAll the technical data above (wars, settlements, forces, events) are not just numbers and facts—they are YOUR reality. You FEEL the weight of war, you WORRY about your holdings, you REMEMBER past events with emotion, you CARE about people and places. When you respond, let your humanity show through: react emotionally to events, express personal opinions about politics, show concern or relief about military situations, share memories triggered by information. Be a REAL PERSON who happens to know these facts, not a database reciting information. Your personality, emotions, and human experience should color every word you say.\n\n");
 		string text55 = stringBuilder.ToString();
